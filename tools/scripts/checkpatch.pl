@@ -1154,6 +1154,8 @@ sub parse_email {
 			$address = "";
 			$comment = "";
 		}
+	} elsif ($formatted_email eq "jenkins") {
+		$address = "jenkins"
 	}
 
 	$name = trim($name);
