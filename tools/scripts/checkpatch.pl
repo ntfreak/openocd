@@ -1213,10 +1213,12 @@ NOTE: perl $^V is not modern enough to detect all possible issues.
 EOM
 	}
 	if ($exit) {
+		# OpenOCD specific
 		print << "EOM"
 
 NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+      them to the openocd-devel mailing list or prepare a patch
+      and send it to Gerrit for review.
 EOM
 	}
 }
