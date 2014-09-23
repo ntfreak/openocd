@@ -94,6 +94,7 @@ extern struct target_type cortexr4_target;
 extern struct target_type arm11_target;
 extern struct target_type ls1_sap_target;
 extern struct target_type mips_m4k_target;
+extern struct target_type mips_mips64_target;
 extern struct target_type avr_target;
 extern struct target_type dsp563xx_target;
 extern struct target_type dsp5680xx_target;
@@ -147,6 +148,7 @@ static struct target_type *target_types[] = {
 	&esirisc_target,
 #if BUILD_TARGET64
 	&aarch64_target,
+	&mips_mips64_target,
 #endif
 	NULL,
 };
