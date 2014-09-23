@@ -182,6 +182,20 @@
 #define EJTAG_VERSION_41		4
 #define EJTAG_VERSION_51		5
 
+/*
+ * Additional defines for MIPS64 EJTAG
+ */
+#define EJTAG64_DCR			0xFFFFFFFFFF300000ull
+#define EJTAG64_DCR_ENM			(1llu << 29)
+#define EJTAG64_DCR_DB			(1llu << 17)
+#define EJTAG64_DCR_IB			(1llu << 16)
+#define EJTAG64_DCR_INTE		(1llu << 4)
+#define EJTAG64_DCR_MP			(1llu << 2)
+#define EJTAG64_V25_DBA0		0xFFFFFFFFFF302100ull
+#define EJTAG64_V25_DBS			0xFFFFFFFFFF302000ull
+#define EJTAG64_V25_IBA0		0xFFFFFFFFFF301100ull
+#define EJTAG64_V25_IBS			0xFFFFFFFFFF301000ull
+
 struct mips_ejtag {
 	struct jtag_tap *tap;
 	uint32_t impcode;
@@ -224,22 +238,32 @@ struct mips_ejtag {
 void mips_ejtag_set_instr(struct mips_ejtag *ejtag_info, uint32_t new_instr);
 int mips_ejtag_enter_debug(struct mips_ejtag *ejtag_info);
 int mips_ejtag_exit_debug(struct mips_ejtag *ejtag_info);
+int mips64_ejtag_exit_debug(struct mips_ejtag *ejtag_info);
 int mips_ejtag_get_idcode(struct mips_ejtag *ejtag_info);
 void mips_ejtag_add_scan_96(struct mips_ejtag *ejtag_info,
 			    uint32_t ctrl, uint32_t data, uint8_t *in_scan_buf);
+int mips_ejtag_drscan_64(struct mips_ejtag *ejtag_info, uint64_t *data);
 void mips_ejtag_drscan_32_out(struct mips_ejtag *ejtag_info, uint32_t data);
 int mips_ejtag_drscan_32(struct mips_ejtag *ejtag_info, uint32_t *data);
 void mips_ejtag_drscan_8_out(struct mips_ejtag *ejtag_info, uint8_t data);
 int mips_ejtag_drscan_8(struct mips_ejtag *ejtag_info, uint8_t *data);
 int mips_ejtag_fastdata_scan(struct mips_ejtag *ejtag_info, int write_t, uint32_t *data);
+int mips64_ejtag_fastdata_scan(struct mips_ejtag *ejtag_info, bool write_t, uint64_t *data);
 
 int mips_ejtag_init(struct mips_ejtag *ejtag_info);
 int mips_ejtag_config_step(struct mips_ejtag *ejtag_info, int enable_step);
+int mips64_ejtag_config_step(struct mips_ejtag *ejtag_info, bool enable_step);
 
 static inline void mips_le_to_h_u32(jtag_callback_data_t arg)
 {
 	uint8_t *in = (uint8_t *)arg;
 	*((uint32_t *)arg) = le_to_h_u32(in);
+}
+
+static inline void mips_le_to_h_u64(jtag_callback_data_t arg)
+{
+	uint8_t *in = (uint8_t *)arg;
+	*((uint64_t *)arg) = le_to_h_u64(in);
 }
 
 #endif /* OPENOCD_TARGET_MIPS_EJTAG_H */
