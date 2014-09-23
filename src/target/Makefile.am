@@ -125,6 +125,7 @@ MIPS64_SRC = \
 	%D%/mips64.c \
 	%D%/mips32_pracc.c \
 	%D%/mips64_pracc.c \
+	%D%/mips_mips64.c \
 	%D%/trace.c \
 	%D%/mips_ejtag.c
 
@@ -203,6 +204,7 @@ ESIRISC_SRC = \
 	%D%/mips32.h \
 	%D%/mips64.h \
 	%D%/mips_m4k.h \
+	%D%/mips_mips64.h \
 	%D%/mips_ejtag.h \
 	%D%/mips32_pracc.h \
 	%D%/mips32_dmaacc.h \
