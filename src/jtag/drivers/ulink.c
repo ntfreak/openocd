@@ -25,6 +25,7 @@
 #include <jtag/commands.h>
 #include <target/image.h>
 #include <libusb.h>
+#include "libusb_helper.h"
 #include "OpenULINK/include/msgtypes.h"
 
 /** USB Vendor ID of ULINK device in unconfigured state (no firmware loaded
@@ -148,6 +149,9 @@ struct ulink {
 	struct libusb_device_handle *usb_device_handle;
 	enum ulink_type type;
 
+	unsigned int ep_in;		/**< IN endpoint number */
+	unsigned int ep_out;		/**< OUT endpoint number */
+
 	int delay_scan_in;	/**< Delay value for SCAN_IN commands */
 	int delay_scan_out;	/**< Delay value for SCAN_OUT commands */
 	int delay_scan_io;	/**< Delay value for SCAN_IO commands */
@@ -250,7 +254,7 @@ static struct ulink *ulink_handle;
 /**************************** USB helper functions ****************************/
 
 /**
- * Opens the ULINK device and claims its USB interface.
+ * Opens the ULINK device
  *
  * Currently, only the original ULINK is supported
  *
@@ -287,9 +291,6 @@ static int ulink_usb_open(struct ulink **device)
 	if (libusb_open(usb_devices[i], &usb_device_handle) != 0)
 		return ERROR_FAIL;
 	libusb_free_device_list(usb_devices, 1);
-
-	if (libusb_claim_interface(usb_device_handle, 0) != 0)
-		return ERROR_FAIL;
 
 	(*device)->usb_device_handle = usb_device_handle;
 	(*device)->type = ULINK_1;
@@ -725,7 +726,7 @@ static int ulink_execute_queued_commands(struct ulink *device, int timeout)
 	}
 
 	/* Send packet to ULINK */
-	ret = libusb_bulk_transfer(device->usb_device_handle, (2 | LIBUSB_ENDPOINT_OUT),
+	ret = libusb_bulk_transfer(device->usb_device_handle, device->ep_out,
 			(unsigned char *)buffer, count_out, &transferred, timeout);
 	if (ret != 0)
 		return ERROR_FAIL;
@@ -734,7 +735,7 @@ static int ulink_execute_queued_commands(struct ulink *device, int timeout)
 
 	/* Wait for response if commands contain IN payload data */
 	if (count_in > 0) {
-		ret = libusb_bulk_transfer(device->usb_device_handle, (2 | LIBUSB_ENDPOINT_IN),
+		ret = libusb_bulk_transfer(device->usb_device_handle, device->ep_in,
 				(unsigned char *)buffer, 64, &transferred, timeout);
 		if (ret != 0)
 			return ERROR_FAIL;
@@ -2156,6 +2157,12 @@ static int ulink_init(void)
 	} else
 		LOG_INFO("ULINK device is already running OpenULINK firmware");
 
+	/* Get OpenULINK USB IN/OUT endpoints and claim the interface */
+	ret = jtag_libusb_choose_interface(ulink_handle->usb_device_handle,
+		&ulink_handle->ep_in, &ulink_handle->ep_out, -1, -1, -1, -1);
+	if (ret != ERROR_OK)
+		return ret;
+
 	/* Initialize OpenULINK command queue */
 	ulink_clear_queue(ulink_handle);
 
@@ -2171,7 +2178,7 @@ static int ulink_init(void)
 		 * shut down by the user via Ctrl-C. Try to retrieve this Bulk IN packet. */
 		dummy = calloc(64, sizeof(uint8_t));
 
-		ret = libusb_bulk_transfer(ulink_handle->usb_device_handle, (2 | LIBUSB_ENDPOINT_IN),
+		ret = libusb_bulk_transfer(ulink_handle->usb_device_handle, ulink_handle->ep_in,
 				dummy, 64, &transferred, 200);
 
 		free(dummy);
