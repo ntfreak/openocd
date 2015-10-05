@@ -4637,7 +4637,8 @@ The value should normally correspond to a static mapping for the
 @item @code{-rtos} @var{rtos_type} -- enable rtos support for target,
 @var{rtos_type} can be one of @option{auto}, @option{eCos},
 @option{ThreadX}, @option{FreeRTOS}, @option{linux}, @option{ChibiOS},
-@option{embKernel}, @option{mqx}, @option{uCOS-III}, @option{nuttx}
+@option{embKernel}, @option{mqx}, @option{uCOS-III}, @option{nuttx},
+@option{RIOT}
 @xref{gdbrtossupport,,RTOS Support}.
 
 @item @code{-defer-examine} -- skip target examination at initial JTAG chain
@@ -10543,6 +10544,7 @@ Currently supported rtos's include:
 @item @option{mqx}
 @item @option{uCOS-III}
 @item @option{nuttx}
+@item @option{RIOT}
 @item @option{hwthread} (This is not an actual RTOS. @xref{usingopenocdsmpwithgdb,,Using OpenOCD SMP with GDB}.)
 @end itemize
 
@@ -10579,6 +10581,8 @@ _mqx_kernel_data, MQX_init_struct.
 OSRunning, OSTCBCurPtr, OSTaskDbgListPtr, OSTaskQty
 @item nuttx symbols
 g_readytorun, g_tasklisttable
+@item RIOT symbols
+sched_threads, sched_num_threads, sched_active_pid, max_threads, _tcb_name_offset
 @end table
 
 For most RTOS supported the above symbols will be exported by default. However for
