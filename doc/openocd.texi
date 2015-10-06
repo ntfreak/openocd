@@ -4176,7 +4176,7 @@ The value should normally correspond to a static mapping for the
 @anchor{rtostype}
 @item @code{-rtos} @var{rtos_type} -- enable rtos support for target,
 @var{rtos_type} can be one of @option{auto}|@option{eCos}|@option{ThreadX}|
-@option{FreeRTOS}|@option{linux}|@option{ChibiOS}|@option{embKernel}|@option{mqx}
+@option{FreeRTOS}|@option{linux}|@option{ChibiOS}|@option{embKernel}|@option{mqx}|@option{RIOT}
 @xref{gdbrtossupport,,RTOS Support}.
 
 @end itemize
@@ -8506,6 +8506,7 @@ Currently supported rtos's include:
 @item @option{ChibiOS}
 @item @option{embKernel}
 @item @option{mqx}
+@item @option{RIOT}
 @end itemize
 
 @quotation Note
@@ -8539,6 +8540,8 @@ Rtos::sCurrentTask, Rtos::sListReady, Rtos::sListSleep,
 Rtos::sListSuspended, Rtos::sMaxPriorities, Rtos::sCurrentTaskCount.
 @item mqx symbols
 _mqx_kernel_data, MQX_init_struct.
+@item RIOT symbols
+sched_threads, sched_num_threads, sched_active_pid, max_threads.
 @end table
 
 For most RTOS supported the above symbols will be exported by default. However for
@@ -8550,6 +8553,14 @@ along with the project:
 @table @code
 @item FreeRTOS
 contrib/rtos-helpers/FreeRTOS-openocd.c
+@end table
+
+For RIOT thread names are only available if it was compiled with DEVELHELP, so
+add this line to your @file{Makefile}:
+
+@table @code
+@item RIOT
+CFLAGS += -DDEVELHELP
 @end table
 
 @node Tcl Scripting API
