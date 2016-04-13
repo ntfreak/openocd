@@ -312,6 +312,36 @@ static void telnet_history_down(struct connection *connection)
 	telnet_history_go(connection, next_history);
 }
 
+static int telnet_history_print(struct connection *connection)
+{
+	struct telnet_connection *tc;
+
+	tc = connection->priv;
+
+	for (size_t i = 1; i < TELNET_LINE_HISTORY_SIZE; i++) {
+		char *line;
+
+		/*
+		 * The tc->next_history line contains empty string (unless NULL), thus
+		 * it is not printed.
+		 */
+		line = tc->history[(tc->next_history + i) % TELNET_LINE_HISTORY_SIZE];
+
+		if (line) {
+			telnet_write(connection, line, strlen(line));
+			telnet_write(connection, "\r\n\x00", 3);
+		}
+	}
+
+	tc->line_size = 0;
+	tc->line_cursor = 0;
+
+	/* The prompt is always placed at the line beginning. */
+	telnet_write(connection, "\r", 1);
+
+	return telnet_prompt(connection);
+}
+
 static void telnet_move_cursor(struct connection *connection, size_t pos)
 {
 	struct telnet_connection *tc;
@@ -407,21 +437,11 @@ static int telnet_input(struct connection *connection)
 							telnet_write(connection, "\r\n\x00", 3);
 
 							if (strcmp(t_con->line, "history") == 0) {
-								size_t i;
-								for (i = 1; i < TELNET_LINE_HISTORY_SIZE; i++) {
-									/* the t_con->next_history line contains empty string
-									 * (unless NULL), thus it is not printed */
-									char *history_line = t_con->history[(t_con->
-											next_history + i) %
-											TELNET_LINE_HISTORY_SIZE];
-									if (history_line) {
-										telnet_write(connection, history_line,
-												strlen(history_line));
-										telnet_write(connection, "\r\n\x00", 3);
-									}
-								}
-								t_con->line_size = 0;
-								t_con->line_cursor = 0;
+								retval = telnet_history_print(connection);
+
+								if (retval != ERROR_OK)
+									return retval;
+
 								continue;
 							}
 
