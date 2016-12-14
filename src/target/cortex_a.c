@@ -23,6 +23,9 @@
  *   Copyright (C) 2013 Kamal Dasu                                         *
  *   kdasu.kdev@gmail.com                                                  *
  *                                                                         *
+ *   Copyright (C) 2016 Chengyu Zheng                                      *
+ *   chengyu.zheng@polimi.it : watchpoint support                          *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -80,6 +83,16 @@ static int cortex_a_virt2phys(struct target *target,
 static int cortex_a_read_cpu_memory(struct target *target,
 	uint32_t address, uint32_t size, uint32_t count, uint8_t *buffer);
 
+static unsigned int ilog2(unsigned int x)
+{
+	unsigned int y = 0;
+	x /= 2;
+	while (x) {
+		++y;
+		x /= 2;
+		}
+	return y;
+}
 
 /*  restore cp15_control_reg at resume */
 static int cortex_a_restore_cp15_control_reg(struct target *target)
@@ -1658,6 +1671,161 @@ static int cortex_a_remove_breakpoint(struct target *target, struct breakpoint *
 	return ERROR_OK;
 }
 
+/**
+ * Sets a watchpoint for an Cortex-A target in one of the watchpoint units.  It is
+ * considered a bug to call this function when there are no available watchpoint
+ * units.
+ *
+ * @param target Pointer to an Cortex-A target to set a watchpoint on
+ * @param watchpoint Pointer to the watchpoint to be set
+ * @return Error status if watchpoint set fails or the result of executing the
+ * JTAG queue
+ */
+static int cortex_a_set_watchpoint(struct target *target, struct watchpoint *watchpoint)
+{
+	int retval = ERROR_OK;
+	int wrp_i = 0;
+	uint32_t control;
+	uint8_t address_mask = ilog2(watchpoint->length);
+	uint8_t byte_address_select = 0xFF;
+	uint8_t load_store_access_control = 0x3;
+	struct cortex_a_common *cortex_a = target_to_cortex_a(target);
+	struct armv7a_common *armv7a = &cortex_a->armv7a_common;
+	struct cortex_a_wrp *wrp_list = cortex_a->wrp_list;
+
+	if (watchpoint->set) {
+		LOG_WARNING("watchpoint already set");
+		return retval;
+	}
+
+	/* check available context WRPs */
+	while (wrp_list[wrp_i].used && (wrp_i < cortex_a->wrp_num))
+		wrp_i++;
+
+	if (wrp_i >= cortex_a->wrp_num) {
+		LOG_ERROR("ERROR Can not find free Watchpoint Register Pair");
+		return ERROR_FAIL;
+	}
+
+	if (address_mask == 0x1 || address_mask == 0x2) {
+		LOG_WARNING("length must be a power of 2 and different than 2 and 4");
+		return ERROR_FAIL;
+	}
+
+	watchpoint->set = wrp_i + 1;
+	control = (address_mask << 24) |
+		(byte_address_select << 5) |
+		(load_store_access_control << 3) |
+		(0x3 << 1) | 1;
+	wrp_list[wrp_i].used = 1;
+	wrp_list[wrp_i].value = (watchpoint->address & 0xFFFFFFFC);
+	wrp_list[wrp_i].control = control;
+
+	retval = cortex_a_dap_write_memap_register_u32(target, armv7a->debug_base
+			+ CPUDBG_WVR_BASE + 4 * wrp_list[wrp_i].WRPn,
+			wrp_list[wrp_i].value);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = cortex_a_dap_write_memap_register_u32(target, armv7a->debug_base
+			+ CPUDBG_WCR_BASE + 4 * wrp_list[wrp_i].WRPn,
+			wrp_list[wrp_i].control);
+	if (retval != ERROR_OK)
+		return retval;
+
+	LOG_DEBUG("wp %i control 0x%0" PRIx32 " value 0x%0" PRIx32, wrp_i,
+			wrp_list[wrp_i].control,
+			wrp_list[wrp_i].value);
+
+	return ERROR_OK;
+}
+
+/**
+ * Unset an existing watchpoint and clear the used watchpoint unit.
+ *
+ * @param target Pointer to the target to have the watchpoint removed
+ * @param watchpoint Pointer to the watchpoint to be removed
+ * @return Error status while trying to unset the watchpoint or the result of
+ *         executing the JTAG queue
+ */
+static int cortex_a_unset_watchpoint(struct target *target, struct watchpoint *watchpoint)
+{
+	int retval;
+	struct cortex_a_common *cortex_a = target_to_cortex_a(target);
+	struct armv7a_common *armv7a = &cortex_a->armv7a_common;
+	struct cortex_a_wrp *wrp_list = cortex_a->wrp_list;
+
+	if (!watchpoint->set) {
+		LOG_WARNING("watchpoint not set");
+		return ERROR_OK;
+	}
+
+	int wrp_i = watchpoint->set - 1;
+	if (wrp_i < 0 || wrp_i >= cortex_a->wrp_num) {
+		LOG_DEBUG("Invalid WRP number in watchpoint");
+		return ERROR_OK;
+	}
+	LOG_DEBUG("wrp %i control 0x%0" PRIx32 " value 0x%0" PRIx32, wrp_i,
+			wrp_list[wrp_i].control, wrp_list[wrp_i].value);
+	wrp_list[wrp_i].used = 0;
+	wrp_list[wrp_i].value = 0;
+	wrp_list[wrp_i].control = 0;
+	retval = cortex_a_dap_write_memap_register_u32(target, armv7a->debug_base
+			+ CPUDBG_WCR_BASE + 4 * wrp_list[wrp_i].WRPn,
+			wrp_list[wrp_i].control);
+	if (retval != ERROR_OK)
+		return retval;
+	retval = cortex_a_dap_write_memap_register_u32(target, armv7a->debug_base
+			+ CPUDBG_WVR_BASE + 4 * wrp_list[wrp_i].WRPn,
+			wrp_list[wrp_i].value);
+	if (retval != ERROR_OK)
+		return retval;
+	watchpoint->set = 0;
+
+	return ERROR_OK;
+}
+
+/**
+ * Add a watchpoint to an Cortex-A target.  If there are no watchpoint units
+ * available, an error response is returned.
+ *
+ * @param target Pointer to the Cortex-A target to add a watchpoint to
+ * @param watchpoint Pointer to the watchpoint to be added
+ * @return Error status while trying to add the watchpoint
+ */
+static int cortex_a_add_watchpoint(struct target *target, struct watchpoint *watchpoint)
+{
+	struct cortex_a_common *cortex_a = target_to_cortex_a(target);
+
+	if (cortex_a->wrp_num_available < 1) {
+		LOG_INFO("no hardware watchpoint available");
+		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
+	}
+
+	cortex_a->wrp_num_available--;
+	return cortex_a_set_watchpoint(target, watchpoint);
+}
+
+/**
+ * Remove a watchpoint from an Cortex-A target.  The watchpoint will be unset and
+ * the used watchpoint unit will be reopened.
+ *
+ * @param target Pointer to the target to remove a watchpoint from
+ * @param watchpoint Pointer to the watchpoint to be removed
+ * @return Result of trying to unset the watchpoint
+ */
+static int cortex_a_remove_watchpoint(struct target *target, struct watchpoint *watchpoint)
+{
+	struct cortex_a_common *cortex_a = target_to_cortex_a(target);
+
+	if (watchpoint->set) {
+		cortex_a->wrp_num_available++;
+		cortex_a_unset_watchpoint(target, watchpoint);
+	}
+	return ERROR_OK;
+}
+
+
 /*
  * Cortex-A Reset functions
  */
@@ -2837,6 +3005,20 @@ static int cortex_a_examine_first(struct target *target)
 
 	LOG_DEBUG("Configured %i hw breakpoints", cortex_a->brp_num);
 
+	/* Setup Watchpoint Register Pairs */
+	cortex_a->wrp_num = ((didr >> 28) & 0x0F) + 1;
+	cortex_a->wrp_num_available = cortex_a->brp_num;
+	free(cortex_a->wrp_list);
+	cortex_a->wrp_list = calloc(cortex_a->wrp_num, sizeof(struct cortex_a_wrp));
+	for (i = 0; i < cortex_a->wrp_num; i++) {
+		cortex_a->wrp_list[i].used = 0;
+		cortex_a->wrp_list[i].value = 0;
+		cortex_a->wrp_list[i].control = 0;
+		cortex_a->wrp_list[i].WRPn = i;
+	}
+
+	LOG_DEBUG("Configured %i hw watchpoints", cortex_a->wrp_num);
+
 	/* select debug_ap as default */
 	swjdp->apsel = armv7a->debug_ap->ap_num;
 
@@ -3173,8 +3355,8 @@ struct target_type cortexa_target = {
 	.add_context_breakpoint = cortex_a_add_context_breakpoint,
 	.add_hybrid_breakpoint = cortex_a_add_hybrid_breakpoint,
 	.remove_breakpoint = cortex_a_remove_breakpoint,
-	.add_watchpoint = NULL,
-	.remove_watchpoint = NULL,
+	.add_watchpoint = cortex_a_add_watchpoint,
+	.remove_watchpoint = cortex_a_remove_watchpoint,
 
 	.commands = cortex_a_command_handlers,
 	.target_create = cortex_a_target_create,
@@ -3250,8 +3432,8 @@ struct target_type cortexr4_target = {
 	.add_context_breakpoint = cortex_a_add_context_breakpoint,
 	.add_hybrid_breakpoint = cortex_a_add_hybrid_breakpoint,
 	.remove_breakpoint = cortex_a_remove_breakpoint,
-	.add_watchpoint = NULL,
-	.remove_watchpoint = NULL,
+	.add_watchpoint = cortex_a_add_watchpoint,
+	.remove_watchpoint = cortex_a_remove_watchpoint,
 
 	.commands = cortex_r4_command_handlers,
 	.target_create = cortex_r4_target_create,
