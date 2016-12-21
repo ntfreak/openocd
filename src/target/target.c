@@ -1031,11 +1031,11 @@ int target_run_flash_async_algorithm(struct target *target,
 			 * programming. The exact delay shouldn't matter as long as it's
 			 * less than buffer size / flash speed. This is very unlikely to
 			 * run when using high latency connections such as USB. */
-			alive_sleep(10);
+			alive_sleep(2);
 
 			/* to stop an infinite loop on some targets check and increment a timeout
 			 * this issue was observed on a stellaris using the new ICDI interface */
-			if (timeout++ >= 500) {
+			if (timeout++ >= 2500) {
 				LOG_ERROR("timeout waiting for algorithm, a target reset is recommended");
 				return ERROR_FLASH_OPERATION_FAILED;
 			}
@@ -1048,6 +1048,10 @@ int target_run_flash_async_algorithm(struct target *target,
 		/* Limit to the amount of data we actually want to write */
 		if (thisrun_bytes > count * block_size)
 			thisrun_bytes = count * block_size;
+
+		/* Force end of large blocks to be word aligned */
+		if (thisrun_bytes >= 16)
+			thisrun_bytes -= (rp + thisrun_bytes) & 0x03;
 
 		/* Write data to fifo */
 		retval = target_write_buffer(target, wp, thisrun_bytes, buffer);
@@ -1091,6 +1095,156 @@ int target_run_flash_async_algorithm(struct target *target,
 		retval = target_read_u32(target, rp_addr, &rp);
 		if (retval == ERROR_OK && rp == 0) {
 			LOG_ERROR("flash write algorithm aborted by target");
+			retval = ERROR_FLASH_OPERATION_FAILED;
+		}
+	}
+
+	return retval;
+}
+
+int target_run_read_async_algorithm(struct target *target,
+		uint8_t *buffer, uint32_t count, int block_size,
+		int num_mem_params, struct mem_param *mem_params,
+		int num_reg_params, struct reg_param *reg_params,
+		uint32_t buffer_start, uint32_t buffer_size,
+		uint32_t entry_point, uint32_t exit_point, void *arch_info)
+{
+	int retval;
+	int timeout = 0;
+
+	const uint8_t *buffer_orig = buffer;
+
+	/* Set up working area. First word is write pointer, second word is read pointer,
+	 * rest is fifo data area. */
+	uint32_t wp_addr = buffer_start;
+	uint32_t rp_addr = buffer_start + 4;
+	uint32_t fifo_start_addr = buffer_start + 8;
+	uint32_t fifo_end_addr = buffer_start + buffer_size;
+
+	uint32_t wp = fifo_start_addr;
+	uint32_t rp = fifo_start_addr;
+
+	/* validate block_size is 2^n */
+	assert(!block_size || !(block_size & (block_size - 1)));
+
+	retval = target_write_u32(target, wp_addr, wp);
+	if (retval != ERROR_OK)
+		return retval;
+	retval = target_write_u32(target, rp_addr, rp);
+	if (retval != ERROR_OK)
+		return retval;
+
+	/* Start up algorithm on target */
+	retval = target_start_algorithm(target, num_mem_params, mem_params,
+			num_reg_params, reg_params,
+			entry_point,
+			exit_point,
+			arch_info);
+
+	if (retval != ERROR_OK) {
+		LOG_ERROR("error starting target flash read algorithm");
+		return retval;
+	}
+
+	while (count > 0) {
+		retval = target_read_u32(target, wp_addr, &wp);
+		if (retval != ERROR_OK) {
+			LOG_ERROR("failed to get write pointer");
+			break;
+		}
+
+		LOG_DEBUG("offs 0x%zx count 0x%" PRIx32 " wp 0x%" PRIx32 " rp 0x%" PRIx32,
+			(size_t) (buffer - buffer_orig), count, wp, rp);
+
+		if (wp == 0) {
+			LOG_ERROR("flash read algorithm aborted by target");
+			retval = ERROR_FLASH_OPERATION_FAILED;
+			break;
+		}
+
+		if (((wp - fifo_start_addr) & (block_size - 1)) || wp < fifo_start_addr || wp >= fifo_end_addr) {
+			LOG_ERROR("corrupted fifo write pointer 0x%" PRIx32, wp);
+			break;
+		}
+
+		/* Count the number of bytes available in the fifo without
+		 * crossing the wrap around. */
+		uint32_t thisrun_bytes;
+		if (wp >= rp)
+			thisrun_bytes = wp - rp;
+		else
+			thisrun_bytes = fifo_end_addr - rp;
+
+		if (thisrun_bytes == 0) {
+			/* Throttle polling a bit if transfer is (much) faster than flash
+			 * reading. The exact delay shouldn't matter as long as it's
+			 * less than buffer size / flash speed. This is very unlikely to
+			 * run when using high latency connections such as USB. */
+			alive_sleep(2);
+
+			/* to stop an infinite loop on some targets check and increment a timeout
+			 * this issue was observed on a stellaris using the new ICDI interface */
+			if (timeout++ >= 2500) {
+				LOG_ERROR("timeout waiting for algorithm, a target reset is recommended");
+				return ERROR_FLASH_OPERATION_FAILED;
+			}
+			continue;
+		}
+
+		/* Reset our timeout */
+		timeout = 0;
+
+		/* Limit to the amount of data we actually want to read */
+		if (thisrun_bytes > count * block_size)
+			thisrun_bytes = count * block_size;
+
+		/* Force end of large blocks to be word aligned */
+		if (thisrun_bytes >= 16)
+			thisrun_bytes -= (rp + thisrun_bytes) & 0x03;
+
+		/* Read data from fifo */
+		retval = target_read_buffer(target, rp, thisrun_bytes, buffer);
+		if (retval != ERROR_OK)
+			break;
+
+		/* Update counters and wrap write pointer */
+		buffer += thisrun_bytes;
+		count -= thisrun_bytes / block_size;
+		rp += thisrun_bytes;
+		if (rp >= fifo_end_addr)
+			rp = fifo_start_addr;
+
+		/* Store updated write pointer to target */
+		retval = target_write_u32(target, rp_addr, rp);
+		if (retval != ERROR_OK)
+			break;
+
+		/* Avoid GDB timeouts */
+		keep_alive();
+
+	}
+
+	if (retval != ERROR_OK) {
+		/* abort flash write algorithm on target */
+		target_write_u32(target, rp_addr, 0);
+	}
+
+	int retval2 = target_wait_algorithm(target, num_mem_params, mem_params,
+			num_reg_params, reg_params,
+			exit_point,
+			10000,
+			arch_info);
+
+	if (retval2 != ERROR_OK) {
+		LOG_ERROR("error waiting for target flash write algorithm");
+		retval = retval2;
+	}
+
+	if (retval == ERROR_OK) {
+		/* check if algorithm set wp = 0 after fifo writer loop finished */
+		retval = target_read_u32(target, wp_addr, &wp);
+		if (retval == ERROR_OK && wp == 0) {
+			LOG_ERROR("flash read algorithm aborted by target");
 			retval = ERROR_FLASH_OPERATION_FAILED;
 		}
 	}
