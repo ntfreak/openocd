@@ -456,7 +456,8 @@ COMMAND_HANDLER(handle_flash_write_image_command)
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = flash_write_unlock(target, &image, &written, auto_erase, auto_unlock);
+	retval = flash_write_unlock_verify(target, &image, &written, auto_erase,
+		auto_unlock, true, false);
 	if (retval != ERROR_OK) {
 		image_close(&image);
 		return retval;
@@ -466,6 +467,58 @@ COMMAND_HANDLER(handle_flash_write_image_command)
 		command_print(CMD, "wrote %" PRIu32 " bytes from file %s "
 			"in %fs (%0.3f KiB/s)", written, CMD_ARGV[0],
 			duration_elapsed(&bench), duration_kbps(&bench, written));
+	}
+
+	image_close(&image);
+
+	return retval;
+}
+
+COMMAND_HANDLER(handle_flash_verify_image_command)
+{
+	struct target *target = get_current_target(CMD_CTX);
+
+	struct image image;
+	uint32_t verified;
+
+	int retval;
+
+	if (CMD_ARGC < 1)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	if (!target) {
+		LOG_ERROR("no target selected");
+		return ERROR_FAIL;
+	}
+
+	struct duration bench;
+	duration_start(&bench);
+
+	if (CMD_ARGC >= 2) {
+		image.base_address_set = 1;
+		COMMAND_PARSE_NUMBER(llong, CMD_ARGV[1], image.base_address);
+	} else {
+		image.base_address_set = 0;
+		image.base_address = 0x0;
+	}
+
+	image.start_address_set = 0;
+
+	retval = image_open(&image, CMD_ARGV[0], (CMD_ARGC == 3) ? CMD_ARGV[2] : NULL);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = flash_write_unlock_verify(target, &image, &verified, false,
+		false, false, true);
+	if (retval != ERROR_OK) {
+		image_close(&image);
+		return retval;
+	}
+
+	if ((ERROR_OK == retval) && (duration_measure(&bench) == ERROR_OK)) {
+		command_print(CMD, "verified %" PRIu32 " bytes from file %s "
+			"in %fs (%0.3f KiB/s)", verified, CMD_ARGV[0],
+			duration_elapsed(&bench), duration_kbps(&bench, verified));
 	}
 
 	image_close(&image);
@@ -1145,7 +1198,15 @@ static const struct command_registration flash_exec_command_handlers[] = {
 		.mode = COMMAND_EXEC,
 		.usage = "[erase] [unlock] filename [offset [file_type]]",
 		.help = "Write an image to flash.  Optionally first unprotect "
-			"and/or erase the region to be used.  Allow optional "
+			"and/or erase the region to be used. Allow optional "
+			"offset from beginning of bank (defaults to zero)",
+	},
+	{
+		.name = "verify_image",
+		.handler = handle_flash_verify_image_command,
+		.mode = COMMAND_EXEC,
+		.usage = "filename [offset [file_type]]",
+		.help = "Verify an image against flash. Allow optional "
 			"offset from beginning of bank (defaults to zero)",
 	},
 	{
