@@ -1024,7 +1024,7 @@ void image_close(struct image *image)
 	image->sections = NULL;
 }
 
-int image_calculate_checksum(uint8_t *buffer, uint32_t nbytes, uint32_t *checksum)
+int image_calculate_checksum(const uint8_t *buffer, uint32_t nbytes, uint32_t *checksum)
 {
 	uint32_t crc = 0xffffffff;
 	LOG_DEBUG("Calculating checksum");

@@ -5249,6 +5249,18 @@ it has been removed by the @option{unlock} flag.
 
 @end deffn
 
+@deffn Command {flash verify_image} filename [offset] [type]
+Verify the image @file{filename} to the current target's flash bank(s).
+Parameters follow the description of 'flash write_image'.
+In contrast to the 'verify_image' command, for banks with specific
+verify method, that one is used instead of the usual target's read
+memory methods. This is necessary for flash banks not readable by
+ordinary memory reads.
+This command gives only an overall good/bad result for each bank, not
+addresses of individual failed bytes as it's intended only as quick
+check for successful programming.
+@end deffn
+
 @section Other Flash commands
 @cindex flash protection
 
@@ -5504,6 +5516,117 @@ flash size, are detected automatically.
 @example
 flash bank $_FLASHNAME stmsmi 0xf8000000 0 0 0 $_TARGETNAME
 @end example
+
+@end deffn
+
+@deffn {Flash Driver} stmqspi
+@cindex STMicroelectronics QuadSPI/OctoSPI Interface
+@cindex QuadSPI
+@cindex OctoSPI
+@cindex stmqspi
+Some devices from STMicroelectronics include a proprietary ``QuadSPI Interface''
+(e.g. STM32F4, STM32F7, STM32L4) or ``OctoSPI Interface'' (e.g. STM32L4+)
+controller able to drive one or even two (dual mode) external SPI flash devices.
+The OctoSPI is a superset of QuadSPI, its presence is detected automatically.
+Currently only the regular command mode is supported, whereas the HyperFlash
+mode is not.
+
+QuadSPI/OctoSPI makes the flash contents directly accessible in the CPU address
+space; in case of dual mode both devices must be of the same type and are
+mapped in the same memory bank (even and odd addresses interleaved).
+CPU can directly read data, execute code (but not boot) from QuadSPI bank.
+
+The 'flash bank' command only requires the @var{base} parameter and the extra
+parameter @var{io_base} in order to identify the memory bank. Both are fixed
+by hardware, see datasheet or RM. All other parameters are ignored.
+
+The controller must be initialized after each reset and properly configured
+for memory-mapped read operation for the particular flash chip(s), for the full
+list of available register settings cf. the controller's RM. This setup is quite
+board specific (that's why booting from this memory is not possible). The
+flash driver infers all parameters from current controller register values when
+'flash probe @var{bank_id}' is executed.
+
+Normal OpenOCD commands like @command{mdw} can be used to display the flash content,
+but only after proper controller initialization as decribed above. However,
+due to a silicon bug in some devices, attempting to access the very last word
+should be avoided.
+
+It is possible to use two (even different) flash chips alternatingly, if individual
+bank chip selects are available. For some package variants, this is not the case
+due to limited pin count. To switch from one to another, adjust FSEL bit accordingly
+and re-issue 'flash probe bank_id'. Note that the bank base address will @emph{not}
+change, so the address spaces of both devices will overlap. In dual flash mode
+both chips must be identical regarding size and most other properties.
+
+Block or sector protection internal to the flash chip is not handled by this
+driver at all, but can be dealt with manually by the 'cmd' command, see below.
+The sector protection via 'flash protect' command etc. is completely internal to
+openocd, intended only to prevent accidental erase or overwrite and it does not
+persist across openocd invocations.
+
+OpenOCD contains a hardcoded list of flash devices with their properties,
+these are auto-detected. If a device is not included in this list, SFDP discovery
+is attempted. If this fails or gives inappropriate results, manual setting is
+required (see 'set' command).
+
+@example
+flash bank $_FLASHNAME stmqspi 0x90000000 0 0 0 $_TARGETNAME 0xA0001000
+flash bank $_FLASHNAME stmqspi 0x70000000 0 0 0 $_TARGETNAME 0xA0001400
+@end example
+
+There are three specific commands
+@deffn Command {stmqspi mass_erase} bank_id
+Clears sector protections and performs a mass erase. Works only if there is no
+chip specific write protection engaged.
+@end deffn
+
+@deffn Command {stmqspi set} bank_id name total_size page_size read_cmd fread_cmd pprg_cmd mass_erase_cmd sector_size sector_erase_cmd
+Set flash parameters: @var{name} human readable string, @var{total_size} size
+in bytes, @var{page_size} is write page size. @var{read_cmd}, @var{fread_cmd} and @var{pprg_cmd}
+are commands for reading and page programming. @var{fread_cmd} is used in DPI and QPI modes,
+@var{read_cmd} in normal SPI (single line) mode. @var{mass_erase_cmd}, @var{sector_size}
+and @var{sector_erase_cmd} are optional.
+
+This command is required if chip id is not hardcoded yet and e.g. for EEPROMs or FRAMs
+which don't support an id command.
+
+In dual mode parameters of both chips are set identically. The parameters refer to
+a single chip, so the whole bank gets twice the specified capacity etc.
+@end deffn
+
+@deffn Command {stmqspi cmd} bank_id resp_num cmd_byte ...
+If @var{resp_num} is zero, sends command @var{cmd_byte} and following data
+bytes. In dual mode command byte is sent to @emph{both} chips but data bytes are
+sent @emph{alternatingly} to chip 1 and 2, first to flash 1, second to flash 2, etc.,
+i.e. the total number of bytes (including cmd_byte) must be odd.
+
+If @var{resp_num} is not zero, cmd and at most four following data bytes are
+sent, in dual mode @emph{simultaneously} to both chips. Then @var{resp_num} bytes
+are read interleaved from both chips starting with chip 1. In this case
+@var{resp_num} must be even.
+
+Note the hardware dictated subtle difference of those two cases in dual-flash mode.
+
+To check basic communication settings, issue
+@example
+stmqspi cmd bank_id 0 0x04; stmqspi cmd bank_id 1 0x05; stmqspi cmd bank_id 0 0x06; stmqspi cmd bank_id 1 0x05
+@end example
+for single flash mode or
+@example
+stmqspi cmd bank_id 0 0x04; stmqspi cmd bank_id 2 0x05; stmqspi cmd bank_id 0 0x06; stmqspi cmd bank_id 2 0x05
+@end example
+for dual flash mode. This should return the status register contents.
+
+In 8-line mode, @var{cmd_byte} is sent twice - first time as given, second time
+complemented. Additionally, in 8-line mode only, some commands (e.g. Read Status)
+need a dummy address, e.g.
+@example
+stmqspi cmd bank_id 1 0x05 0x00 0x00 0x00 0x00
+@end example
+should return the status register contents.
+
+@end deffn
 
 @end deffn
 

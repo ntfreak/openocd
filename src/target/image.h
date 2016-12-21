@@ -99,7 +99,7 @@ void image_close(struct image *image);
 int image_add_section(struct image *image, uint32_t base, uint32_t size,
 		int flags, uint8_t const *data);
 
-int image_calculate_checksum(uint8_t *buffer, uint32_t nbytes,
+int image_calculate_checksum(const uint8_t *buffer, uint32_t nbytes,
 		uint32_t *checksum);
 
 #define ERROR_IMAGE_FORMAT_ERROR	(-1400)
