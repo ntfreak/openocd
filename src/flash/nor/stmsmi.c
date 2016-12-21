@@ -44,31 +44,31 @@
 #define SMI_READ_REG(a) (_SMI_READ_REG(a))
 #define _SMI_READ_REG(a)			\
 {									\
-	int __a;						\
-	uint32_t __v;					\
+	int _ret;						\
+	uint32_t _value;				\
 									\
-	__a = target_read_u32(target, io_base + (a), &__v); \
-	if (__a != ERROR_OK)			\
-		return __a;					\
-	__v;							\
+	_ret = target_read_u32(target, io_base + (a), &_value); \
+	if (_ret != ERROR_OK)			\
+		return _ret;				\
+	_value;							\
 }
 
 #define SMI_WRITE_REG(a, v)			\
 {									\
-	int __r;						\
+	int _retval;					\
 									\
-	__r = target_write_u32(target, io_base + (a), (v)); \
-	if (__r != ERROR_OK)			\
-		return __r;					\
+	_retval = target_write_u32(target, io_base + (a), (v)); \
+	if (_retval != ERROR_OK)		\
+		return _retval;				\
 }
 
 #define SMI_POLL_TFF(timeout)		\
 {									\
-	int __r;						\
+	int _retval;					\
 									\
-	__r = poll_tff(target, io_base, timeout); \
-	if (__r != ERROR_OK)			\
-		return __r;					\
+	_retval = poll_tff(target, io_base, timeout); \
+	if (_retval != ERROR_OK)		\
+		return _retval;				\
 }
 
 #define SMI_SET_SW_MODE()	SMI_WRITE_REG(SMI_CR1, \
