@@ -42,12 +42,14 @@ int flash_driver_erase(struct flash_bank *bank, unsigned int first,
 int flash_driver_protect(struct flash_bank *bank, int set, unsigned int first,
 		unsigned int last);
 int flash_driver_write(struct flash_bank *bank,
-		uint8_t *buffer, uint32_t offset, uint32_t count);
+		const uint8_t *buffer, uint32_t offset, uint32_t count);
 int flash_driver_read(struct flash_bank *bank,
 		uint8_t *buffer, uint32_t offset, uint32_t count);
+int flash_driver_verify(struct flash_bank *bank,
+		const uint8_t *buffer, uint32_t offset, uint32_t count);
 
 /* write (optional verify) an image to flash memory of the given target */
-int flash_write_unlock(struct target *target, struct image *image,
-		uint32_t *written, bool erase, bool unlock);
+int flash_write_unlock_verify(struct target *target, struct image *image,
+		uint32_t *written, bool erase, bool unlock, bool write, bool verify);
 
 #endif /* OPENOCD_FLASH_NOR_IMP_H */
