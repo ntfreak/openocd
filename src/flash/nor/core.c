@@ -92,7 +92,7 @@ int flash_driver_protect(struct flash_bank *bank, int set, int first, int last)
 }
 
 int flash_driver_write(struct flash_bank *bank,
-	uint8_t *buffer, uint32_t offset, uint32_t count)
+	const uint8_t *buffer, uint32_t offset, uint32_t count)
 {
 	int retval;
 
@@ -131,6 +131,43 @@ int default_flash_read(struct flash_bank *bank,
 	uint8_t *buffer, uint32_t offset, uint32_t count)
 {
 	return target_read_buffer(bank->target, offset + bank->base, count, buffer);
+}
+
+int flash_driver_verify(struct flash_bank *bank,
+	const uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+	int retval;
+
+	retval = bank->driver->verify ? bank->driver->verify(bank, buffer, offset, count) :
+		default_flash_verify(bank, buffer, offset, count);
+	if (retval != ERROR_OK) {
+		LOG_ERROR("verify failed in bank at " TARGET_ADDR_FMT " starting at 0x%8.8" PRIx32,
+			bank->base, offset);
+	}
+
+	return retval;
+}
+
+int default_flash_verify(struct flash_bank *bank,
+	const uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+	uint32_t target_crc, image_crc;
+	int retval;
+
+	retval = image_calculate_checksum(buffer, count, &image_crc);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = target_checksum_memory(bank->target, offset + bank->base, count, &target_crc);
+	if (retval != ERROR_OK)
+		return retval;
+
+	LOG_DEBUG("addr " TARGET_ADDR_FMT ", len 0x%08" PRIx32 ", crc 0x%08" PRIx32 " 0x%08" PRIx32,
+		offset + bank->base, count, ~image_crc, ~target_crc);
+	if (target_crc == image_crc)
+		return ERROR_OK;
+	else
+		return ERROR_FAIL;
 }
 
 void flash_bank_add(struct flash_bank *bank)
@@ -696,8 +733,8 @@ static bool flash_write_check_gap(struct flash_bank *bank,
 }
 
 
-int flash_write_unlock(struct target *target, struct image *image,
-	uint32_t *written, int erase, bool unlock)
+int flash_write_unlock_verify(struct target *target, struct image *image,
+	uint32_t *written, int erase, bool unlock, bool write, bool verify)
 {
 	int retval = ERROR_OK;
 
@@ -712,7 +749,7 @@ int flash_write_unlock(struct target *target, struct image *image,
 	if (written)
 		*written = 0;
 
-	if (erase) {
+	if (erase && write) {
 		/* assume all sectors need erasing - stops any problems
 		 * when flash_write is called multiple times */
 
@@ -921,10 +958,10 @@ int flash_write_unlock(struct target *target, struct image *image,
 
 		retval = ERROR_OK;
 
-		if (unlock)
+		if (unlock && write)
 			retval = flash_unlock_address_range(target, run_address, run_size);
 		if (retval == ERROR_OK) {
-			if (erase) {
+			if (erase && write) {
 				/* calculate and erase sectors */
 				retval = flash_erase_address_range(target,
 						true, run_address, run_size);
@@ -932,8 +969,17 @@ int flash_write_unlock(struct target *target, struct image *image,
 		}
 
 		if (retval == ERROR_OK) {
-			/* write flash sectors */
-			retval = flash_driver_write(c, buffer, run_address - c->base, run_size);
+			if (write) {
+				/* write flash sectors */
+				retval = flash_driver_write(c, buffer, run_address - c->base, run_size);
+			}
+		}
+
+		if (retval == ERROR_OK) {
+			if (verify) {
+				/* verify flash sectors */
+				retval = flash_driver_verify(c, buffer, run_address - c->base, run_size);
+			}
 		}
 
 		free(buffer);
@@ -957,7 +1003,7 @@ done:
 int flash_write(struct target *target, struct image *image,
 	uint32_t *written, int erase)
 {
-	return flash_write_unlock(target, image, written, erase, false);
+	return flash_write_unlock_verify(target, image, written, erase, false, true, false);
 }
 
 struct flash_sector *alloc_block_array(uint32_t offset, uint32_t size, int num_blocks)
