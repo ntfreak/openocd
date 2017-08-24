@@ -194,12 +194,26 @@ static int remote_bitbang_blink(int on)
 	return remote_bitbang_putc(c);
 }
 
+static int remote_bitbang_swdio_read(void)
+{
+	remote_bitbang_putc('c');
+	return remote_bitbang_rread();
+}
+
+static void remote_bitbang_swdio_drive(bool on)
+{
+	char c = on ? 'e' : 'd';
+	remote_bitbang_putc(c);
+}
+
 static struct bitbang_interface remote_bitbang_bitbang = {
 	.buf_size = sizeof(remote_bitbang_buf) - 1,
 	.sample = &remote_bitbang_sample,
 	.read_sample = &remote_bitbang_read_sample,
 	.write = &remote_bitbang_write,
 	.blink = &remote_bitbang_blink,
+	.swdio_read = &remote_bitbang_swdio_read,
+	.swdio_drive = &remote_bitbang_swdio_drive,
 };
 
 static int remote_bitbang_init_tcp(void)
@@ -341,13 +355,15 @@ static const struct command_registration remote_bitbang_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE,
 };
 
+static const char * const remote_bitbang_transports[] = { "jtag", "swd", NULL };
+
 static struct jtag_interface remote_bitbang_interface = {
 	.execute_queue = &bitbang_execute_queue,
 };
 
 struct adapter_driver remote_bitbang_adapter_driver = {
 	.name = "remote_bitbang",
-	.transports = jtag_only,
+	.transports = remote_bitbang_transports,
 	.commands = remote_bitbang_command_handlers,
 
 	.init = &remote_bitbang_init,

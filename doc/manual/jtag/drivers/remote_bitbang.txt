@@ -47,6 +47,9 @@ each possible request. The assignments are:
 	s - Reset 0 1
 	t - Reset 1 0
 	u - Reset 1 1
+	c - swdio_read
+	d - swdio_drive 0
+	e - swdio_drive 1
 
 The read response is encoded in ASCII as either digit 0 or 1.
 
