@@ -408,8 +408,27 @@ int mips_ejtag_init(struct mips_ejtag *ejtag_info)
 
 	ejtag_info->ejtag_ctrl = EJTAG_CTRL_PRACC | EJTAG_CTRL_PROBEN;
 
-	if (ejtag_info->ejtag_version != EJTAG_VERSION_20)
-		ejtag_info->ejtag_ctrl |= EJTAG_CTRL_ROCC | EJTAG_CTRL_SETDEV;
+	if (ejtag_info->ejtag_version != EJTAG_VERSION_20) {
+		ejtag_info->ejtag_ctrl |= EJTAG_CTRL_SETDEV;
+
+		/*
+		 * Test if we can set ROCC.
+		 * Assumes that there is no reset while we do this.
+		 */
+		mips_ejtag_set_instr(ejtag_info, EJTAG_INST_CONTROL);
+		mips_ejtag_drscan_32_out(ejtag_info, ejtag_info->ejtag_ctrl);
+		uint32_t ejtag_ctrl = ejtag_info->ejtag_ctrl | EJTAG_CTRL_ROCC;
+		mips_ejtag_drscan_32(ejtag_info, &ejtag_ctrl);
+		uint32_t ejtag_ctrl2 = ejtag_info->ejtag_ctrl;
+		mips_ejtag_drscan_32(ejtag_info, &ejtag_ctrl2);
+
+		if (ejtag_ctrl & EJTAG_CTRL_ROCC)
+			LOG_DEBUG("EJTAG: Failed to clear ROCC");
+		else if (ejtag_ctrl2 & EJTAG_CTRL_ROCC)
+			LOG_DEBUG("EJTAG: ROCC appears to be R/W instead of R/W0");
+		else
+			ejtag_info->ejtag_ctrl |= EJTAG_CTRL_ROCC;
+	}
 
 	ejtag_info->fast_access_save = -1;
 
