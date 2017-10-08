@@ -718,6 +718,14 @@ static int mips32_pracc_synchronize_cache(struct mips_ejtag *ejtag_info,
 		}
 	}
 	pracc_add(&ctx, 0, MIPS32_SYNC(ctx.isa));
+
+	if (ejtag_info->has_xburst_btb) {
+		pracc_add(&ctx, 0, MIPS32_MFC0(ctx.isa, 8, 16, 7));		/* move config7 to $8 */
+		pracc_add(&ctx, 0, MIPS32_ORI(ctx.isa, 8, 8, 2));		/* set BTBV to invalidate branch target buffer */
+		pracc_add(&ctx, 0, MIPS32_MTC0(ctx.isa, 8, 16, 7));		/* store $8 in config7 */
+		pracc_add_li32(&ctx, 8, ejtag_info->reg8, 0);			/* restore $8 */
+	}
+
 	pracc_add(&ctx, 0, MIPS32_B(ctx.isa, NEG16((ctx.code_count + 1) << ctx.isa)));		/* jump to start */
 	pracc_add(&ctx, 0, MIPS32_MFC0(ctx.isa, 15, 31, 0));				/* restore $15 from DeSave*/
 
