@@ -569,6 +569,10 @@ int mips32_cp0_read(struct mips_ejtag *ejtag_info, uint32_t *val, uint32_t cp0_r
 
 	ctx.retval = mips32_pracc_queue_exec(ejtag_info, &ctx, val, 1);
 	pracc_queue_free(&ctx);
+
+	if (cp0_reg == 16 && cp0_sel == 7 && ejtag_info->xburst_btb_on)
+		*val &= ~1;
+
 	return ctx.retval;
 }
 
@@ -576,6 +580,11 @@ int mips32_cp0_write(struct mips_ejtag *ejtag_info, uint32_t val, uint32_t cp0_r
 {
 	struct pracc_queue_info ctx = {.ejtag_info = ejtag_info};
 	pracc_queue_init(&ctx);
+
+	if (cp0_reg == 16 && cp0_sel == 7 && ejtag_info->has_xburst_btb) {
+		ejtag_info->xburst_btb_on = !(val & 1);
+		val |= 1;
+	}
 
 	pracc_add_li32(&ctx, 15, val, 0);				/* Load val to $15 */
 
@@ -888,6 +897,14 @@ int mips32_pracc_read_regs(struct mips_ejtag *ejtag_info, uint32_t *regs)
 		pracc_add(&ctx, MIPS32_PRACC_PARAM_OUT + (i * 4),
 				  MIPS32_SW(ctx.isa, i, PRACC_OUT_OFFSET + (i * 4), 1));
 
+	if (ejtag_info->has_xburst_btb) {
+		pracc_add(&ctx, 0, MIPS32_MFC0(ctx.isa, 8, 16, 7));		/* move config7 to $8 */
+		pracc_add(&ctx, MIPS32_PRACC_PARAM_OUT,					/* store config7 value from $8 to param out */
+				  MIPS32_SW(ctx.isa, 8, PRACC_OUT_OFFSET, 1));
+		pracc_add(&ctx, 0, MIPS32_ORI(ctx.isa, 8, 8, 1));		/* set BTBE to disable branch target buffer */
+		pracc_add(&ctx, 0, MIPS32_MTC0(ctx.isa, 8, 16, 7));		/* store $8 in config7 */
+	}
+
 	for (int i = 0; i != 6; i++) {
 		pracc_add(&ctx, 0, cp0_read_code[i]);				/* load COP0 needed registers to $8 */
 		pracc_add(&ctx, MIPS32_PRACC_PARAM_OUT + (i + 32) * 4,			/* store $8 at PARAM OUT */
@@ -905,6 +922,11 @@ int mips32_pracc_read_regs(struct mips_ejtag *ejtag_info, uint32_t *regs)
 
 	ejtag_info->reg8 = regs[8];	/* reg8 is saved but not restored, next called function should restore it */
 	ejtag_info->reg9 = regs[9];
+
+	if (ejtag_info->has_xburst_btb)
+		ejtag_info->xburst_btb_on = !(regs[0] & 1);
+
+	regs[0] = 0;
 	pracc_queue_free(&ctx);
 	return ctx.retval;
 }

@@ -204,6 +204,8 @@ struct mips_ejtag {
 	int fast_access_save;
 	uint32_t config_regs;	/* number of config registers read */
 	uint32_t config[4];	/* cp0 config to config3 */
+	bool has_xburst_btb;
+	bool xburst_btb_on;
 
 	uint32_t reg8;
 	uint32_t reg9;

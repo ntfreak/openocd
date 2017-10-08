@@ -267,11 +267,23 @@ error:
 
 int mips_ejtag_exit_debug(struct mips_ejtag *ejtag_info)
 {
-	pa_list pracc_list = {.instr = MIPS32_DRET(ejtag_info->isa), .addr = 0};
-	struct pracc_queue_info ctx = {.max_code = 1, .pracc_list = &pracc_list, .code_count = 1, .store_count = 0};
+	struct pracc_queue_info ctx = {.ejtag_info = ejtag_info};
+	pracc_queue_init(&ctx);
+
+	if (ejtag_info->xburst_btb_on) {
+		pracc_add(&ctx, 0, MIPS32_MTC0(ctx.isa, 8, 31, 0));	/* move $8 to COP0 DeSave */
+		pracc_add(&ctx, 0, MIPS32_MFC0(ctx.isa, 8, 16, 7));	/* move config7 to $8 */
+		pracc_add(&ctx, 0, MIPS32_SRL(ctx.isa, 8, 8, 1));	/* clear the lowest bit */
+		pracc_add(&ctx, 0, MIPS32_SLL(ctx.isa, 8, 8, 1));
+		pracc_add(&ctx, 0, MIPS32_MTC0(ctx.isa, 8, 16, 7));	/* store $8 in config7 */
+		pracc_add(&ctx, 0, MIPS32_MFC0(ctx.isa, 8, 31, 0));	/* move DeSave to $8 */
+	}
+
+	pracc_add(&ctx, 0, MIPS32_DRET(ejtag_info->isa));
 
 	/* execute our dret instruction */
 	ctx.retval = mips32_pracc_queue_exec(ejtag_info, &ctx, NULL, 0); /* shift out instr, omit last check */
+	pracc_queue_free(&ctx);
 
 	/* pic32mx workaround, false pending at low core clock */
 	jtag_add_sleep(1000);
