@@ -49,6 +49,17 @@
 extern struct jtag_interface *jtag_interface;
 const char * const jtag_only[] = { "jtag", NULL };
 
+#define RESET_TEST_INDEPENDENT_TRST -1
+static const Jim_Nvp nvp_reset_config_includes[] = {
+	{ .name = "srst", RESET_HAS_SRST },
+	{ .name = "trst", RESET_HAS_TRST },
+	{ .name = "srst_pulls_trst_or_combined", RESET_SRST_PULLS_TRST },
+	{ .name = "trst_pulls_srst_or_combined", RESET_TRST_PULLS_SRST },
+	{ .name = "srst_nogate", RESET_SRST_NO_GATING },
+	{ .name = "connect_assert_srst", RESET_CNCT_UNDER_SRST },
+	{ .name = "independent_trst", RESET_TEST_INDEPENDENT_TRST },
+};
+
 static int jim_adapter_name(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 {
 	Jim_GetOptInfo goi;
@@ -361,6 +372,42 @@ next:
 	return ERROR_OK;
 }
 
+static int jim_reset_config_includes(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
+{
+	Jim_GetOptInfo goi;
+	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+
+	if (goi.argc < 1) {
+		Jim_WrongNumArgs(interp, 1, argv, "[srst_any][trst_any]...");
+		return JIM_ERR;
+	}
+
+	int cfg = jtag_get_reset_config();
+	bool result = true;
+
+	while (goi.argc) {
+		Jim_Nvp *n;
+		int e = Jim_GetOpt_Nvp(&goi, nvp_reset_config_includes, &n);
+		if (e != JIM_OK) {
+			Jim_GetOpt_NvpUnknown(&goi, nvp_reset_config_includes, 1);
+			return e;
+		}
+
+		if (n->value == RESET_TEST_INDEPENDENT_TRST) {
+			bool indep_trst = cfg & RESET_HAS_TRST;
+			if (cfg & RESET_HAS_SRST && cfg & RESET_SRST_PULLS_TRST)
+				indep_trst = false;
+
+			result = result && indep_trst;
+		} else {
+			result = result && cfg & n->value;
+		}
+	}
+
+	Jim_SetResultString(interp, result ? "1" : "0", -1);
+	return JIM_OK;
+}
+
 COMMAND_HANDLER(handle_adapter_nsrst_delay_command)
 {
 	if (CMD_ARGC > 1)
@@ -528,6 +575,15 @@ static const struct command_registration interface_command_handlers[] = {
 			"[trst_push_pull|trst_open_drain] "
 			"[srst_open_drain|srst_push_pull] "
 			"[connect_deassert_srst|connect_assert_srst]",
+	},
+	{
+		.name = "reset_config_includes",
+		.jim_handler = jim_reset_config_includes,
+		.mode = COMMAND_ANY,
+		.help = "Test adapter reset configuration",
+		.usage = "[trst] [srst] [srst_nogate] [connect_assert_srst]"
+			" [srst_pulls_trst_or_combined] [trst_pulls_srst_or_combined]"
+			" [independent_trst]"
 	},
 	COMMAND_REGISTRATION_DONE
 };
