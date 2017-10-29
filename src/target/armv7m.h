@@ -218,7 +218,7 @@ int armv7m_wait_algorithm(struct target *target,
 		target_addr_t exit_point, int timeout_ms,
 		void *arch_info);
 
-int armv7m_invalidate_core_regs(struct target *target);
+int armv7m_reset_clear_internal_state(struct target *target);
 
 int armv7m_restore_context(struct target *target);
 

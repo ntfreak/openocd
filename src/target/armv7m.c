@@ -678,6 +678,19 @@ void armv7m_free_reg_cache(struct target *target)
 	arm->core_cache = NULL;
 }
 
+/**
+ * Clears register cache during reset process
+ */
+int armv7m_reset_clear_internal_state(struct target *target)
+{
+	struct armv7m_common *armv7m = target_to_armv7m(target);
+
+	if (target_was_examined(target))
+		register_cache_invalidate(armv7m->arm.core_cache);
+
+	return target_reset_clear_internal_state_default(target);
+}
+
 static int armv7m_setup_semihosting(struct target *target, int enable)
 {
 	/* nothing todo for armv7m */
