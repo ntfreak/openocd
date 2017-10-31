@@ -10,12 +10,14 @@ set in_process_reset 0
 # Catch reset recursion
 proc ocd_process_reset { MODE } {
 	global in_process_reset
+	global arp_reset_mode
 	if {$in_process_reset} {
 		set in_process_reset 0
 		return -code error "'reset' can not be invoked recursively"
 	}
 
 	set in_process_reset 1
+	set arp_reset_mode $MODE
 	set success [expr [catch {ocd_process_reset_inner $MODE} result]==0]
 	set in_process_reset 0
 
@@ -26,17 +28,91 @@ proc ocd_process_reset { MODE } {
 	}
 }
 
-proc arp_examine_all {} {
-	set targets [target names]
 
-	# Examine all targets on enabled taps.
-	foreach t $targets {
-		if {![using_jtag] || [jtag tapisenabled [$t cget -chain-position]]} {
-			$t invoke-event examine-start
-			set err [catch "$t arp_examine allow-defer"]
-			if { $err == 0 } {
-				$t invoke-event examine-end
+proc arp_is_tap_enabled { target } {
+	if (![using_jtag]) {
+		return 1
+	}
+	return [jtag tapisenabled [$target cget -chain-position]]
+}
+
+# duplicate of target_examine_one(), keep in sync
+proc arp_examine_one { target } {
+	if [arp_is_tap_enabled $target] {
+		$target invoke-event examine-start
+		set err [catch "$target arp_examine allow-defer"]
+		if {!$err} {
+			$target invoke-event examine-end
+		}
+	}
+}
+
+
+proc arp_reset_plan_no_srst { phase target { secondary_core 0 } } {
+	global arp_reset_mode
+	switch $phase {
+		pre {
+			arp_examine_one $target
+			$target arp_reset prepare $arp_reset_mode
+			# hla target asserts reset here
+		}
+		middle {
+			if { ! $secondary_core } {
+				$target arp_reset trigger $arp_reset_mode
 			}
+		}
+		post {
+			$target arp_reset post_deassert $arp_reset_mode
+		}
+	}
+}
+
+proc arp_reset_plan_srst_dbg_Working { phase target { secondary_core 0 } } {
+	global arp_reset_mode
+	switch $phase {
+		pre {
+			# srst_nogate: SRST is asserted now
+			# srst_gates_jtag: SRST has not been asserted yet
+		}
+		middle {
+			# SRST is asserted, target is responsive
+			arp_examine_one $target
+			$target arp_reset prepare $arp_reset_mode
+		}
+		post {
+			$target arp_reset post_deassert $arp_reset_mode
+		}
+	}
+}
+
+proc arp_reset_plan_srst_dbg_gated { phase target { secondary_core 0 } } {
+	global arp_reset_mode
+	switch $phase {
+		pre {
+			# SRST has not been asserted yet
+			# srst_nogate mode is not supported
+			$target arp_reset prepare $arp_reset_mode
+			# hla target asserts reset here
+		}
+		middle {
+			# SRST is asserted, target debug gated
+		}
+		post {
+			arp_examine_one $target
+			$target arp_reset post_deassert $arp_reset_mode
+		}
+	}
+}
+
+proc arp_reset_default_handler { phase target { secondary_core 0 } } {
+	if [arp_is_tap_enabled $target] {
+		switch -glob [reset_config] {
+			"* srst_nogate *"
+				{ arp_reset_plan_srst_dbg_Working $phase $target $secondary_core}
+			"* srst_gates_jtag *"
+				{arp_reset_plan_srst_dbg_gated $phase $target $secondary_core}
+			default
+				{arp_reset_plan_no_srst $phase $target $secondary_core}
 		}
 	}
 }
@@ -88,9 +164,6 @@ proc ocd_process_reset_inner { MODE } {
 		# Use TRST or TMS/TCK operations to reset all the tap controllers.
 		# TAP reset events get reported; they might enable some taps.
 		init_reset $MODE
-
-		# Examine all targets on enabled taps.
-		arp_examine_all
 	}
 
 	# Assert SRST, and report the pre/post events.
@@ -98,13 +171,10 @@ proc ocd_process_reset_inner { MODE } {
 	foreach t $targets {
 		$t invoke-event reset-assert-pre
 	}
-	foreach t $targets {
-		# C code needs to know if we expect to 'halt'
-		if {![using_jtag] || [jtag tapisenabled [$t cget -chain-position]]} {
-			$t arp_reset assert $halt
-		}
-	}
+
+	# Assert SRST
 	reset_assert_final $MODE
+
 	foreach t $targets {
 		$t invoke-event reset-assert-post
 	}
@@ -117,14 +187,8 @@ proc ocd_process_reset_inner { MODE } {
 	reset_deassert_initial $MODE
 	if { !$early_reset_init } {
 		if [using_jtag] { jtag arp_init }
-		arp_examine_all
 	}
-	foreach t $targets {
-		# Again, de-assert code needs to know if we 'halt'
-		if {![using_jtag] || [jtag tapisenabled [$t cget -chain-position]]} {
-			$t arp_reset deassert $halt
-		}
-	}
+
 	foreach t $targets {
 		$t invoke-event reset-deassert-post
 	}
@@ -134,7 +198,7 @@ proc ocd_process_reset_inner { MODE } {
 	# first executing any instructions.
 	if { $halt } {
 		foreach t $targets {
-			if {[using_jtag] && ![jtag tapisenabled [$t cget -chain-position]]} {
+			if {![arp_is_tap_enabled $t]} {
 				continue
 			}
 
@@ -148,14 +212,10 @@ proc ocd_process_reset_inner { MODE } {
 			# the JTAG tap reset signal might be hooked to a slow
 			# resistor/capacitor circuit - and it might take a while
 			# to charge
-
-			# Catch, but ignore any errors.
 			catch { $t arp_waitstate halted 1000 }
 
 			# Did we succeed?
-			set s [$t curstate]
-
-			if { 0 != [string compare $s "halted" ] } {
+			if { [$t curstate] ne "halted" } {
 				return -code error [format "TARGET: %s - Not halted" $t]
 			}
 		}
@@ -164,7 +224,7 @@ proc ocd_process_reset_inner { MODE } {
 	#Pass 2 - if needed "init"
 	if { 0 == [string compare init $MODE] } {
 		foreach t $targets {
-			if {[using_jtag] && ![jtag tapisenabled [$t cget -chain-position]]} {
+			if {![arp_is_tap_enabled $t]} {
 				continue
 			}
 
@@ -174,11 +234,7 @@ proc ocd_process_reset_inner { MODE } {
 				continue
 			}
 
-			set err [catch "$t arp_waitstate halted 5000"]
-			# Did it halt?
-			if { $err == 0 } {
-				$t invoke-event reset-init
-			}
+			$t invoke-event reset-init
 		}
 	}
 
@@ -224,6 +280,12 @@ proc set_default_target_event {t e s} {
 	}
 }
 
+proc set_arp_reset_handler { t handler { secondary_core 0 } } {
+	$t configure -event reset-assert-pre "$handler pre $t $secondary_core"
+	$t configure -event reset-assert-post "$handler middle $t $secondary_core"
+	$t configure -event reset-deassert-post "$handler post $t $secondary_core"
+}
+
 proc init_target_events {} {
 	set targets [target names]
 
@@ -231,6 +293,9 @@ proc init_target_events {} {
 		set_default_target_event $t gdb-flash-erase-start "reset init"
 		set_default_target_event $t gdb-flash-write-end "reset halt"
 		set_default_target_event $t gdb-attach "halt"
+		set_default_target_event $t reset-assert-pre "arp_reset_default_handler pre $t"
+		set_default_target_event $t reset-assert-post "arp_reset_default_handler middle $t"
+		set_default_target_event $t reset-deassert-post "arp_reset_default_handler post $t"
 	}
 }
 

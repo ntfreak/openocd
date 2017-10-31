@@ -68,6 +68,10 @@ enum target_state {
 enum nvp_assert {
 	NVP_DEASSERT,
 	NVP_ASSERT,
+	NVP_PREPARE,
+	NVP_TRIGGER,
+	NVP_POST_DEASSERT,
+	NVP_CLEAR_INTERNAL_STATE,
 };
 
 enum target_reset_mode {
@@ -154,7 +158,7 @@ struct target {
 
 	struct target_event_action *event_action;
 
-	int reset_halt;						/* attempt resetting the CPU into the halted mode? */
+	bool reset_halt;					/* attempt resetting the CPU into the halted mode */
 	target_addr_t working_area;				/* working area (initialised RAM). Evaluated
 										 * upon first allocation from virtual/physical address. */
 	bool working_area_virt_spec;		/* virtual address specified? */
@@ -382,6 +386,10 @@ int target_poll(struct target *target);
 int target_resume(struct target *target, int current, target_addr_t address,
 		int handle_breakpoints, int debug_execution);
 int target_halt(struct target *target);
+int target_reset_prepare(struct target *target, bool halt);
+int target_reset_trigger(struct target *target, bool halt);
+int target_reset_clear_internal_state_default(struct target *target);
+int target_reset_clear_internal_state(struct target *target);
 int target_call_event_callbacks(struct target *target, enum target_event event);
 int target_call_reset_callbacks(struct target *target, enum target_reset_mode reset_mode);
 int target_call_trace_callbacks(struct target *target, size_t len, uint8_t *data);

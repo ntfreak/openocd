@@ -74,6 +74,8 @@ static int target_gdb_fileio_end_default(struct target *target, int retcode,
 		int fileio_errno, bool ctrl_c);
 static int target_profiling_default(struct target *target, uint32_t *samples,
 		uint32_t max_num_samples, uint32_t *num_samples, uint32_t seconds);
+static void target_free_all_working_areas_restore(struct target *target, int restore);
+static void target_reset_examined(struct target *target);
 
 /* targets */
 extern struct target_type arm7tdmi_target;
@@ -165,6 +167,10 @@ static const Jim_Nvp nvp_assert[] = {
 	{ .name = "F", NVP_DEASSERT },
 	{ .name = "t", NVP_ASSERT },
 	{ .name = "f", NVP_DEASSERT },
+	{ .name = "prepare", NVP_PREPARE },
+	{ .name = "trigger", NVP_TRIGGER },
+	{ .name = "post_deassert", NVP_POST_DEASSERT },
+	{ .name = "clear_internal_state", NVP_CLEAR_INTERNAL_STATE },
 	{ .name = NULL, .value = -1 }
 };
 
@@ -699,6 +705,7 @@ static int default_examine(struct target *target)
 }
 
 /* no check by default */
+/*TODO: remove and use reset_deassert_post or reset_end event */
 static int default_check_reset(struct target *target)
 {
 	return ERROR_OK;
@@ -760,6 +767,51 @@ int target_examine(void)
 const char *target_type_name(struct target *target)
 {
 	return target->type->name;
+}
+
+int target_reset_prepare(struct target *target, bool halt)
+{
+	if (!target->type->reset_prepare) {
+		if (halt) {
+			LOG_ERROR("Target %s does not support reset_prepare, cannot halt",
+					target_name(target));
+			return ERROR_FAIL;
+		}
+		LOG_DEBUG("Target %s does not support reset_prepare",
+				target_name(target));
+		return ERROR_OK;
+	}
+	return target->type->reset_prepare(target, halt);
+}
+
+int target_reset_trigger(struct target *target, bool halt)
+{
+	if (!target->type->reset_trigger) {
+		LOG_ERROR("Target %s does not support reset_trigger",
+					target_name(target));
+		return ERROR_FAIL;
+	}
+	return target->type->reset_trigger(target, halt);
+}
+
+int target_reset_clear_internal_state_default(struct target *target)
+{
+	if (target->defer_examine)
+		target_reset_examined(target);
+
+	target_free_all_working_areas_restore(target, 0);
+	target->state = TARGET_RESET;
+	return ERROR_OK;
+}
+
+int target_reset_clear_internal_state(struct target *target)
+{
+	if (!target->type->reset_clear_internal_state) {
+		LOG_DEBUG("Target %s does not support reset_clear_internal_state",
+				target_name(target));
+		return ERROR_OK;
+	}
+	return target->type->reset_clear_internal_state(target);
 }
 
 static int target_soft_reset_halt(struct target *target)
@@ -1280,7 +1332,6 @@ int target_profiling(struct target *target, uint32_t *samples,
 
 /**
  * Reset the @c examined flag for the given target.
- * Pure paranoia -- targets are zeroed on allocation.
  */
 static void target_reset_examined(struct target *target)
 {
@@ -5054,7 +5105,7 @@ static int jim_target_reset(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 
 	if (goi.argc != 2) {
 		Jim_WrongNumArgs(interp, 0, argv,
-				"([tT]|[fF]|assert|deassert) BOOL");
+				"[prepare|trigger|post_deassert|clear_internal_state|assert|deassert] [run|halt|BOOL]");
 		return JIM_ERR;
 	}
 
@@ -5065,35 +5116,100 @@ static int jim_target_reset(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 		return e;
 	}
 	/* the halt or not param */
-	jim_wide a;
-	e = Jim_GetOpt_Wide(&goi, &a);
+	Jim_Obj *o;
+	e = Jim_GetOpt_Obj(&goi, &o);
 	if (e != JIM_OK)
 		return e;
 
 	struct target *target = Jim_CmdPrivData(goi.interp);
+	Jim_Nvp *n2;
+	e = Jim_Nvp_name2value_obj(interp, nvp_reset_modes, o, &n2);
+	if (e == JIM_OK) {
+		target->reset_halt = n2->value == RESET_HALT || n2->value == RESET_INIT;
+	} else {
+		jim_wide a;
+		e = Jim_GetWide(interp, o, &a);
+		if (e == JIM_OK)
+			target->reset_halt = a != 0;
+	}
+	if (e != JIM_OK) {
+		Jim_GetOpt_NvpUnknown(&goi, nvp_reset_modes, 1);
+		return e;
+	}
+
 	if (!target->tap->enabled)
 		return jim_target_tap_disabled(interp);
 
-	if (!target->type->assert_reset || !target->type->deassert_reset) {
-		Jim_SetResultFormatted(interp,
-				"No target-specific reset for %s",
+	e = ERROR_FAIL;
+	switch (n->value) {
+	case NVP_ASSERT:
+		if (!target->type->assert_reset) {
+			Jim_SetResultFormatted(interp,
+				"No target-specific reset assert for %s",
 				target_name(target));
-		return JIM_ERR;
-	}
-
-	if (target->defer_examine)
-		target_reset_examined(target);
-
-	/* determine if we should halt or not. */
-	target->reset_halt = !!a;
-	/* When this happens - all workareas are invalid. */
-	target_free_all_working_areas_restore(target, 0);
-
-	/* do the assert */
-	if (n->value == NVP_ASSERT)
+			return JIM_ERR;
+		}
 		e = target->type->assert_reset(target);
-	else
+		break;
+
+	case NVP_PREPARE:
+		if (target->type->reset_prepare) {
+			e = target->type->reset_prepare(target, target->reset_halt);
+		} else if (target->type->assert_reset) {
+			/* old target compatibility */
+			LOG_DEBUG("No target-specific reset prepare for %s, using assert_reset",
+				target_name(target));
+			e = target->type->assert_reset(target);
+		} else {
+			LOG_DEBUG("No target-specific reset prepare for %s",
+				target_name(target));
+			e = ERROR_OK;
+		}
+		break;
+
+	case NVP_TRIGGER:
+		if (target->type->reset_trigger) {
+			e = target->type->reset_trigger(target, target->reset_halt);
+		} else if (target->type->assert_reset) {
+			/* an old target, do not show error */
+			e = ERROR_OK;
+		} else {
+			Jim_SetResultFormatted(interp,
+				"No target-specific reset trigger for %s",
+				target_name(target));
+			return JIM_ERR;
+		}
+		break;
+
+	case NVP_DEASSERT:
+		if (!target->type->deassert_reset) {
+			Jim_SetResultFormatted(interp,
+				"No target-specific reset deassert for %s",
+				target_name(target));
+			return JIM_ERR;
+		}
 		e = target->type->deassert_reset(target);
+		break;
+
+	case NVP_POST_DEASSERT:
+		if (target->type->deassert_reset) {
+			e = target->type->deassert_reset(target);
+		} else {
+			LOG_DEBUG("No target-specific reset post_deassert for %s",
+				target_name(target));
+			e = ERROR_OK;
+		}
+		break;
+
+	case NVP_CLEAR_INTERNAL_STATE:
+		if (target->type->reset_clear_internal_state) {
+			e = target->type->reset_clear_internal_state(target);
+		} else {
+			LOG_DEBUG("No target-specific reset clear internal state for %s",
+				target_name(target));
+			e = target_reset_clear_internal_state_default(target);
+		}
+	}
 	return (e == ERROR_OK) ? JIM_OK : JIM_ERR;
 }
 
