@@ -496,6 +496,19 @@ done:
 
 }
 
+/**
+ * Clears register cache during reset process
+ */
+int armv7a_reset_clear_internal_state(struct target *target)
+{
+	struct armv7a_common *armv7a = target_to_armv7a(target);
+
+	if (target_was_examined(target))
+		register_cache_invalidate(armv7a->arm.core_cache);
+
+	return target_reset_clear_internal_state_default(target);
+}
+
 static int armv7a_setup_semihosting(struct target *target, int enable)
 {
 	struct armv7a_common *armv7a = target_to_armv7a(target);
