@@ -51,6 +51,7 @@ EXTRA_DIST += \
 	README.macOS \
 	$(EXTRA_DIST_NEWS) \
 	Doxyfile.in \
+	LICENSES/preferred/BSD-2-Clause \
 	LICENSES/preferred/GFDL-1.2 \
 	LICENSES/preferred/gfdl-1.2.texi.readme \
 	LICENSES/preferred/GPL-2.0 \
