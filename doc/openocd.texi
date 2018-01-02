@@ -5086,6 +5086,18 @@ it has been removed by the @option{unlock} flag.
 
 @end deffn
 
+@deffn Command {flash verify_image} filename [offset] [type]
+Verify the image @file{filename} to the current target's flash bank(s).
+Parameters follow the description of 'flash write_image'.
+In contrast to the 'verify_image' command, for banks with specific
+verify method, that one is used instead of the usual target's read
+memory methods. This is necessary for flash banks not readable by
+ordinary memory reads.
+This command gives only an overall good/bad result for each bank, not
+addresses of individual failed bytes as it's intended only as quick
+check for successful programming.
+@end deffn
+
 @section Other Flash commands
 @cindex flash protection
 
@@ -5405,6 +5417,220 @@ SiFive's Freedom E SPI controller, used in HiFive and other boards.
 @example
 flash bank $_FLASHNAME fespi 0x20000000 0 0 0 $_TARGETNAME
 @end example
+
+@end deffn
+
+@deffn {Flash Driver} cmspi
+@cindex Generic Cortex-M Bitbanging SPI/DPI/QPI/I2C Interface
+@cindex cmspi
+
+This driver supports common serial SPI flash, EEPROM, FRAM and I2C EEPROM and
+FRAM chips connected via GPIO pins on most little-endian ARM-Cortex-M CPUs.
+Word accessible output, input and read/write direction registers are required.
+No special bit set/clear facility is used. If no read/write direction registers
+are available, direction set/clear write-only registers are supported, too.
+
+Setup requires a fake @var{base} parameter, @var{inp_off}, and up to six @var{*_addr},
+@var{*_bit} pairs specifying word address and bit number of the GPIO port output
+registers of NCS (out), CLK (out), IO3/NHOLD (in/out), IO2/NWP (in/out),
+IO1/MISO (in/out), IO0/MOSI pins (in/out). For each of the four data lines,
+there are additional @var{*_dir_inp_off} and @var{*_dir_out_off} address offsets
+and @var{*_exor} mask for direction control. Other parameters are ignored:
+
+Four functional modes are supported, combined data-in/data-out via single
+bidirectional io0 pin, standard SPI with separate io1 and io0 pins (both 1-1-1),
+DPI with bidirectional io1 and io0 pins (2-2-2) and QPI with four bidirectional
+data pins io3 to io0 (4-4-4). Mixed modes like 1-1-4 or 1-1-2 are not supported.
+Unused pins should have exor-mask 0x0, for combined bidirectional
+single pin, both io1 and io0 addresses and bit numbers must coincide.
+
+@example
+flash bank $_FLASHNAME cmspi base 0 0 0 $_TARGETNAME \
+    inp_off \
+    ncs_addr ncs_bit clk_addr clk_bit \
+    io1_addr io1_bit io1_dir_inp_off io1_dir_out_off io1_exor \
+    io0_addr io0_bit io0_dir_inp_off io0_dir_out_off io0_exor
+@end example
+
+@example
+flash bank $_FLASHNAME cmspi base 0 0 0 $_TARGETNAME \
+    inp_off \
+    ncs_addr ncs_bit clk_addr clk_bit \
+    io3_addr io3_bit io3_dir_inp_off io3_dir_out_off io3_exor \
+    io2_addr io2_bit io2_dir_inp_off io2_dir_out_off io2_exor \
+    io1_addr io1_bit io1_dir_inp_off io1_dir_out_off io1_exor \
+    io0_addr io0_bit io0_dir_inp_off io0_dir_out_off io0_exor
+@end example
+
+@var{base} is used in write_image etc. to map a certain part of the CPU address space
+to this flash, but is arbitrary otherwise. Of course, the bank should not collide with
+actually implemented address space. The usual memory access commands like mdw
+or verify_image don't work, but flash read_bank and flash verify_bank do.
+Chip is autodetected via SPI command and matched against hardcoded list of types.
+
+@var{inp_off} is a 10-bit two's complement address offset from port output register
+to the corresponding port input register. The input register must be word aligned.
+
+If @var{io*_dir_inp_off} equals @var{io*_dir_out_off}, they denote a 10-bit two's
+complement address offset from port output register to the corresponding port
+direction register. This must be a word aligned read/write register, @var{io*_exor}
+is a word exor mask for toggling the direction register between input and output.
+
+Otherwise @var{io*_dir_inp_off} and @var{io*_dir_out_off} are 10-bit two's complement
+address offsets from port output register to the corresponding 'set-to-input register'
+and 'set-to-output register', respectively. @var{io*_exor} is then the word written to
+these registers. This method applies if no read/write direction register is available,
+but write-only set and clear register.
+
+The driver automatically uses 1- to 4-byte addresses according to capacity. However,
+for most flash chips 4-byte address mode must be enabled separately, e. g. by
+"Enter 4-Byte Mode" command, setting a special control bit or via non-standard
+read and page programming commands.
+
+GPIO clocks must be enabled, pins configured as GPIO output or input pins,
+respectively, in e. g. reset handler. If flash is connected with four I/O lines
+for QPI mode and all four are configured, in SPI/DPI modes the lines not used
+(IO3/NHOLD, IO2/NWP) will be actively driven high. The initial state for NCS and CLK
+should be push-pull output, high, and digital input, pull-up enabled (if available),
+high for the data pins. In I2C mode both SDA and SCL should be initialized as digital
+input, pull-up enabled, high level.
+
+If several banks use this driver, the GPIO setup should be completed for all of
+these banks before any is probed or any flash commands for these are attempted.
+Otherwise the idle GPIO settings for the various banks might interfere with each other.
+
+(Non-) volatile chip settings like QPI mode or block protection have to be
+(dis)-engaged manually (by the 'cmd' command, see below) where applicable and
+are not handled automatically by this driver. The sector protection via 'flash protect'
+command etc. is completely internal to openocd, intended only to prevent accidental erase
+or overwrite by openocd and does not persist across openocd invocations.
+
+SPI cycle time depends on CPU and peripheral structure and clocks and is hardly
+predictable. Measurement on actual hardware is adviseable. Bitbanging might
+seem quite slow, but page programming time and data transfer via debug interface
+largely dominate anyway.
+
+Example for STM32F746G discovery board (NCS: PB6, CLK: PB2, IO3: PD13,
+IO2: PE02, IO1: PD12, IO0: PD11):
+
+@example
+flash bank_id $_FLASHNAME cmspi 0x90000000 0 0 0 $_TARGETNAME \
+    0x3FC \
+    0x40020414  6 0x40020414  2 \
+    0x40020C14 13 0x3EC 0x3EC 0x04000000 0x40021014  2 0x3EC 0x3EC 0x00000010 \
+    0x40020C14 12 0x3EC 0x3EC 0x01000000 0x40020C14 11 0x3EC 0x3EC 0x00400000
+@end example
+
+Here @var{inp_off} is sign extendend to 0xFFFFFFFC, so port input register address
+for IO1/MISO pin equals 0x40020C14 + 0xFFFFFFFC = 0x40020C10.
+
+Additionally I2C mode for EEPROMs and FRAMs is supported via
+
+@example
+flash bank $_FLASHNAME cmspi base 0 0 0 $_TARGETNAME \
+    inp_off \
+    sda_addr sda_bit sda_off sda_exor \
+    scl_addr scl_bit scl_off scl_exor
+@end example
+
+Here @var{sda_*} specifies SDA pin, and @var{scl_*} the SCL pin.
+
+Example for STM32F103CBT6 with SDA on PB07, SCL on PB06
+
+@example
+flash bank $_FLASHNAME cmspi 0x90000000 0 0 0 $_TARGETNAME \
+    0x3FC 0x40010C0C  7 0x3F4 0x3F4 0xF0000000 0x40010C0C  6 0x3F4 0x3F4 0x0F000000
+@end example
+
+There are some specific commands
+
+@deffn Command {cmspi mass_erase} bank_id
+Performs a mass erase. If there is no mass erase command (EEPROMs, FRAMs), entire
+memory is filled with 0xFF by normal writes.
+@end deffn
+
+@deffn Command {cmspi set} bank_id name total_size page_size read_cmd qread_cmd pprg_cmd mass_erase_cmd sector_size sector_erase_cmd
+Sets flash parameters: @var{name} human readable string, @var{total_size}
+size in bytes, @var{page_size} is write page size. @var{read_cmd}, @var{qread_cmd}
+and @var{pprg_cmd} are commands for read (SPI mode), qread (DPI/QPI modes only)
+and page program, respectively. @var{mass_erase_cmd}, @var{sector_size} and
+@var{sector_erase_cmd} are optional. For non-page oriented memory like FRAMs,
+set write page size to some reasonable large value.
+@end deffn
+
+Required if chip id not hardcoded yet and SFDP is not available or results in incomplete
+or inappropriate settings. Most EEPROMs support neither an id command nor SFDP command.
+
+@deffn Command {cmspi cmd} bank_id resp_num cmd_byte ...
+Sends command @var{cmd_byte} and following bytes and reads @var{resp_num} bytes
+afterwards in current mode. E. g. for write enable
+@example
+cmspi cmd bank_id 0 0x06
+@end example
+and for read status register
+@example
+cmspi cmd bank_id 1 0x05
+@end example
+Dummy clocks are never inserted automatically for this command!
+@end deffn
+
+@deffn Command {cmspi spi} bank_id
+Switches to standard SPI mode. The chip had to be set to simple SPI mode just
+before this. @var{flash read_bank} and @var{flash erase_check} use the standard
+read command without any dummy clocks.
+@end deffn
+
+@deffn Command {cmspi dpi} bank_id dummy_clocks
+Switches to DPI mode. The chip had to be set to DPI mode just before this.
+@var{flash read_bank} and @var{flash erase_check} use the qread command with
+the specified number of dummy clocks.
+@end deffn
+
+@deffn Command {cmspi qpi} bank_id dummy_clocks
+Switches to QPI mode. The chip had to be set to QPI mode just before this.
+@var{flash read_bank} and @var{flash erase_check} use the qread command with
+the specified number of dummy clocks.
+@end deffn
+
+In I2C mode different commands are available or different parameters apply. As there is no
+autodetection, the chip parameters must always be specified:
+
+@deffn Command {cmspi set} bank_id name total_size page_size i2c_addr i2c_bits delay
+@var{i2c_add} is the I2C address byte (left-justified address!) with R/W bit
+cleared and including the hardware address bits A0, A1, A2 (if present), eg.
+0xA0. Note that the actual device type is given in bits 7 to 4, R/W in bit 0,
+the remaining 3 bits contain the hardware address bits and/or uppermost memory
+address bits. @var{i2c_bits} specifies how many memory address bits replace
+hardware address bits in the I2C address byte. @var{delay} specifies a delay
+inserted after every SDA and SCL transition to keep I2C speed within specs.
+This delay applies only to read, write etc. algorithms running on the target.
+The @var{set} command incurs I2C slave detection.
+@end deffn
+
+@deffn Command {cmspi calib} bank_id delay
+Helper for estimating a proper value of @var{delay} for @var{set}. The time for
+a loop toggling SCL with the specified @var{delay} on the target is measured on
+the host. This is not a precise measurement for the actual I2C cycle time,
+in particular don't expect 50% duty cycle. So, use a quite liberal setting
+for @var{delay}.
+@end deffn
+
+@deffn Command {cmspi scan} bank_id
+Scan the full legal I2C 7-bit address range for slaves, separately for read and
+write. Print populated as I2C address bytes, i. e. left-justified address with
+R/W in bit 0.
+@end deffn
+
+@deffn Command {cmspi cmd} bank_id resp_num addr wbyte1 wbyte2 ...
+Send S. Then, if @var{wbyte1} is present, write @var{addr} with R/W=0,
+@var{wbyte1} and all following bytes, checking for ACK each time.
+If @var{resp_num} is non-zero, send Sr, write @var{addr} with R/W=1 and read
+@var{resp_num} bytes, asserting ACK for each but the last byte.
+Finally, send P unconditionally. @var{addr} is the I2C address byte (left-justified!)
+with R/W=0. Done by the host via memory accesses, so quite slow and unaffected
+by @var{delay} parameter of the @var{set} command.
+@end deffn
+
 @end deffn
 
 @subsection Internal Flash (Microcontrollers)

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright (C) 2018 by Andreas Bolsch                                  *
+ *   Copyright (C) 2018-2019 by Andreas Bolsch                             *
  *   andreas.bolsch@mni.thm.de                                             *
  *                                                                         *
  *   Copyright (C) 2012 by George Harris                                   *
@@ -29,7 +29,7 @@
 
 /* data structure to maintain flash ids from different vendors */
 struct flash_device {
-	char *name;
+	const char *name;
 	uint8_t read_cmd;
 	uint8_t qread_cmd;
 	uint8_t pprog_cmd;
@@ -87,6 +87,8 @@ extern const struct flash_device flash_devices[];
 #define SPIFLASH_PAGE_PROGRAM	0x02 /* Page Program */
 #define SPIFLASH_FAST_READ		0x0B /* Fast Read */
 #define SPIFLASH_READ			0x03 /* Normal Read */
+#define SPIFLASH_MASS_ERASE		0xC7 /* Mass Erase */
+#define SPIFLASH_READ_SFDP		0x5A /* Read Serial Flash Discoverable Parameters */
 
 #define SPIFLASH_DEF_PAGESIZE	256  /* default for non-page-oriented devices (FRAMs) */
 
