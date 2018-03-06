@@ -836,7 +836,75 @@ int default_interface_jtag_execute_queue(void)
 		return ERROR_FAIL;
 	}
 
-	return jtag->execute_queue();
+	int result = jtag->execute_queue();
+
+#if !BUILD_ZY1000
+	/* Only build this if we use a regular driver with a command queue.
+	 * Otherwise jtag_command_queue won't be found at compile/link time. Its
+	 * definition is in jtag/commands.c, which is only built/linked by
+	 * jtag/Makefile.am if MINIDRIVER_DUMMY || !MINIDRIVER, but those variables
+	 * aren't accessible here. */
+	struct jtag_command *cmd = jtag_command_queue;
+	while (debug_level >= LOG_LVL_DEBUG && cmd) {
+		switch (cmd->type) {
+			case JTAG_SCAN:
+				LOG_DEBUG_IO("JTAG %s SCAN to %s",
+						cmd->cmd.scan->ir_scan ? "IR" : "DR",
+						tap_state_name(cmd->cmd.scan->end_state));
+				for (int i = 0; i < cmd->cmd.scan->num_fields; i++) {
+					struct scan_field *field = cmd->cmd.scan->fields + i;
+					if (field->out_value) {
+						char *str = buf_to_str(field->out_value, field->num_bits, 16);
+						LOG_DEBUG_IO("  %db out: %s", field->num_bits, str);
+						free(str);
+					}
+					if (field->in_value) {
+						char *str = buf_to_str(field->in_value, field->num_bits, 16);
+						LOG_DEBUG_IO("  %db  in: %s", field->num_bits, str);
+						free(str);
+					}
+				}
+				break;
+			case JTAG_TLR_RESET:
+				LOG_DEBUG_IO("JTAG TLR RESET to %s",
+						tap_state_name(cmd->cmd.statemove->end_state));
+				break;
+			case JTAG_RUNTEST:
+				LOG_DEBUG_IO("JTAG RUNTEST %d cycles to %s",
+						cmd->cmd.runtest->num_cycles,
+						tap_state_name(cmd->cmd.runtest->end_state));
+				break;
+			case JTAG_RESET:
+				{
+					const char *reset_str[3] = {
+						"leave", "deassert", "assert"
+					};
+					LOG_DEBUG_IO("JTAG RESET %s TRST, %s SRST",
+							reset_str[cmd->cmd.reset->trst + 1],
+							reset_str[cmd->cmd.reset->srst + 1]);
+				}
+				break;
+			case JTAG_PATHMOVE:
+				LOG_DEBUG_IO("JTAG PATHMOVE (TODO)");
+				break;
+			case JTAG_SLEEP:
+				LOG_DEBUG_IO("JTAG SLEEP (TODO)");
+				break;
+			case JTAG_STABLECLOCKS:
+				LOG_DEBUG_IO("JTAG STABLECLOCKS (TODO)");
+				break;
+			case JTAG_TMS:
+				LOG_DEBUG_IO("JTAG TMS (TODO)");
+				break;
+			default:
+				LOG_ERROR("Unknown JTAG command: %d", cmd->type);
+				break;
+		}
+		cmd = cmd->next;
+	}
+#endif
+
+	return result;
 }
 
 void jtag_execute_queue_noclear(void)
@@ -1107,7 +1175,8 @@ static int jtag_examine_chain(void)
 
 		if ((idcode & 1) == 0) {
 			/* Zero for LSB indicates a device in bypass */
-			LOG_INFO("TAP %s does not have IDCODE", tap->dotted_name);
+			LOG_INFO("TAP %s does not have valid IDCODE (idcode=0x%x)",
+					tap->dotted_name, idcode);
 			tap->hasidcode = false;
 			tap->idcode = 0;
 
