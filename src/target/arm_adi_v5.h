@@ -336,6 +336,16 @@ struct dap_ops {
 
 	/** Optional; called at OpenOCD exit */
 	void (*quit)(struct adiv5_dap *dap);
+
+	/** Optional interface-specific optimized AP memory read */
+	int (*ap_mem_read)(struct adiv5_ap *ap, uint8_t *buffer,
+			uint32_t size, uint32_t count, uint32_t address,
+			bool addrinc);
+
+	/** Optional interface-specific optimized AP memory write */
+	int (*ap_mem_write)(struct adiv5_ap *ap, const uint8_t *buffer,
+			uint32_t size, uint32_t count, uint32_t address,
+			bool addrinc);
 };
 
 /*
