@@ -596,24 +596,52 @@ static int mem_ap_read(struct adiv5_ap *ap, uint8_t *buffer, uint32_t size, uint
 int mem_ap_read_buf(struct adiv5_ap *ap,
 		uint8_t *buffer, uint32_t size, uint32_t count, uint32_t address)
 {
+	int retval;
+
+	if (ap->dap->ops->ap_ops.ap_mem_read) {
+		retval = ap->dap->ops->ap_ops.ap_mem_read(ap, buffer, size, count, address, true);
+		if (retval != ERROR_OP_NOT_SUPPORTED)
+			return retval;
+	}
 	return mem_ap_read(ap, buffer, size, count, address, true);
 }
 
 int mem_ap_write_buf(struct adiv5_ap *ap,
 		const uint8_t *buffer, uint32_t size, uint32_t count, uint32_t address)
 {
+	int retval;
+
+	if (ap->dap->ops->ap_ops.ap_mem_write) {
+		retval = ap->dap->ops->ap_ops.ap_mem_write(ap, buffer, size, count, address, true);
+		if (retval != ERROR_OP_NOT_SUPPORTED)
+			return retval;
+	}
 	return mem_ap_write(ap, buffer, size, count, address, true);
 }
 
 int mem_ap_read_buf_noincr(struct adiv5_ap *ap,
 		uint8_t *buffer, uint32_t size, uint32_t count, uint32_t address)
 {
+	int retval;
+
+	if (ap->dap->ops->ap_ops.ap_mem_read) {
+		retval = ap->dap->ops->ap_ops.ap_mem_read(ap, buffer, size, count, address, false);
+		if (retval != ERROR_OP_NOT_SUPPORTED)
+			return retval;
+	}
 	return mem_ap_read(ap, buffer, size, count, address, false);
 }
 
 int mem_ap_write_buf_noincr(struct adiv5_ap *ap,
 		const uint8_t *buffer, uint32_t size, uint32_t count, uint32_t address)
 {
+	int retval;
+
+	if (ap->dap->ops->ap_ops.ap_mem_write) {
+		retval = ap->dap->ops->ap_ops.ap_mem_write(ap, buffer, size, count, address, false);
+		if (retval != ERROR_OP_NOT_SUPPORTED)
+			return retval;
+	}
 	return mem_ap_write(ap, buffer, size, count, address, false);
 }
 

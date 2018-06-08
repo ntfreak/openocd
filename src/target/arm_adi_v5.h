@@ -297,6 +297,26 @@ struct adiv5_dap {
 };
 
 /**
+ * Optional optimized implementation of AP access.
+ * Use of low-level primitives in struct dap_ops already allows implementing
+ * any type of AP access. Some adapter offer faster API at higher level for
+ * specific AP types or mode.
+ * Specific request not available or not implemented should return error
+ * ERROR_OP_NOT_SUPPORTED.
+ */
+struct ap_ops {
+	/** Optional interface-specific optimized AP memory read */
+	int (*ap_mem_read)(struct adiv5_ap *ap, uint8_t *buffer,
+			uint32_t size, uint32_t count, uint32_t address,
+			bool addrinc);
+
+	/** Optional interface-specific optimized AP memory write */
+	int (*ap_mem_write)(struct adiv5_ap *ap, const uint8_t *buffer,
+			uint32_t size, uint32_t count, uint32_t address,
+			bool addrinc);
+};
+
+/**
  * Transport-neutral representation of queued DAP transactions, supporting
  * both JTAG and SWD transports.  All submitted transactions are logically
  * queued, until the queue is executed by run().  Some implementations might
@@ -336,6 +356,8 @@ struct dap_ops {
 
 	/** Optional; called at OpenOCD exit */
 	void (*quit)(struct adiv5_dap *dap);
+
+	struct ap_ops ap_ops;
 };
 
 /*
