@@ -132,9 +132,10 @@ static int ft232r_send_recv(void)
 			bytes_to_write = rxfifo_free;
 
 		if (bytes_to_write) {
-			int n = jtag_libusb_bulk_write(adapter, IN_EP,
+			int n;
+				jtag_libusb_bulk_write(adapter, IN_EP,
 				(char *) ft232r_output + total_written,
-				bytes_to_write, 1000);
+				bytes_to_write, 1000, &n);
 
 			if (n == 0) {
 				LOG_ERROR("usb bulk write failed");
@@ -147,10 +148,11 @@ static int ft232r_send_recv(void)
 
 		/* Read */
 		uint8_t reply[64];
+		int n;
 
-		int n = jtag_libusb_bulk_read(adapter, OUT_EP,
+		jtag_libusb_bulk_read(adapter, OUT_EP,
 			(char *) reply,
-			sizeof(reply), 1000);
+			sizeof(reply), 1000, &n);
 
 		if (n == 0) {
 			LOG_ERROR("usb bulk read failed");

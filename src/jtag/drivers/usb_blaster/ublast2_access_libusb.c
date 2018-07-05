@@ -42,25 +42,23 @@
 static int ublast2_libusb_read(struct ublast_lowlevel *low, uint8_t *buf,
 			      unsigned size, uint32_t *bytes_read)
 {
-	*bytes_read = jtag_libusb_bulk_read(low->libusb_dev,
+	return jtag_libusb_bulk_read(low->libusb_dev,
 					    USBBLASTER_EPIN | \
 					    LIBUSB_ENDPOINT_IN,
 					    (char *)buf,
 					    size,
-					    100);
-	return ERROR_OK;
+					    100, (int *)bytes_read);
 }
 
 static int ublast2_libusb_write(struct ublast_lowlevel *low, uint8_t *buf,
 			       int size, uint32_t *bytes_written)
 {
-	*bytes_written = jtag_libusb_bulk_write(low->libusb_dev,
+	return jtag_libusb_bulk_write(low->libusb_dev,
 						USBBLASTER_EPOUT | \
 						LIBUSB_ENDPOINT_OUT,
 						(char *)buf,
 						size,
-						100);
-	return ERROR_OK;
+						100, (int *)bytes_written);
 }
 
 static int ublast2_write_firmware_section(struct jtag_libusb_device_handle *libusb_dev,

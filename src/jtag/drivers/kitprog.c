@@ -731,8 +731,8 @@ static int kitprog_swd_run_queue(void)
 			}
 		}
 
-		ret = jtag_libusb_bulk_write(kitprog_handle->usb_handle,
-				BULK_EP_OUT, (char *)buffer, write_count, 0);
+		jtag_libusb_bulk_write(kitprog_handle->usb_handle,
+				BULK_EP_OUT, (char *)buffer, write_count, 0, &ret);
 		if (ret > 0) {
 			queued_retval = ERROR_OK;
 		} else {
@@ -754,9 +754,9 @@ static int kitprog_swd_run_queue(void)
 		if (read_count % 64 == 0)
 			read_count_workaround = read_count;
 
-		ret = jtag_libusb_bulk_read(kitprog_handle->usb_handle,
+		jtag_libusb_bulk_read(kitprog_handle->usb_handle,
 				BULK_EP_IN | LIBUSB_ENDPOINT_IN, (char *)buffer,
-				read_count_workaround, 1000);
+				read_count_workaround, 1000, &ret);
 		if (ret > 0) {
 			/* Handle garbage data by offsetting the initial read index */
 			if ((unsigned int)ret > read_count)

@@ -130,15 +130,17 @@ int jtag_libusb_control_transfer(jtag_libusb_device_handle *dev, uint8_t request
 }
 
 int jtag_libusb_bulk_write(jtag_libusb_device_handle *dev, int ep, char *bytes,
-		int size, int timeout)
+		int size, int timeout, int *transferred)
 {
-	return usb_bulk_write(dev, ep, bytes, size, timeout);
+	 *transferred = usb_bulk_write(dev, ep, bytes, size, timeout);
+	 return ERROR_OK;
 }
 
 int jtag_libusb_bulk_read(jtag_libusb_device_handle *dev, int ep, char *bytes,
-		int size, int timeout)
+		int size, int timeout, int *transferred)
 {
-	return usb_bulk_read(dev, ep, bytes, size, timeout);
+	*transferred = usb_bulk_read(dev, ep, bytes, size, timeout);
+	return ERROR_OK;
 }
 
 int jtag_libusb_set_configuration(jtag_libusb_device_handle *devh,

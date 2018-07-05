@@ -179,23 +179,39 @@ int jtag_libusb_control_transfer(jtag_libusb_device_handle *dev, uint8_t request
 }
 
 int jtag_libusb_bulk_write(jtag_libusb_device_handle *dev, int ep, char *bytes,
-		int size, int timeout)
+		int size, int timeout, int *transferred)
 {
-	int transferred = 0;
+	int ret;
 
-	libusb_bulk_transfer(dev, ep, (unsigned char *)bytes, size,
-			     &transferred, timeout);
-	return transferred;
+	*transferred = 0;
+
+	ret = libusb_bulk_transfer(dev, ep, (unsigned char *)bytes, size,
+			     transferred, timeout);
+
+	if (ret) {
+		LOG_ERROR("jtag_libusb_bulk_write: error");
+		return ERROR_FAIL;
+	}
+
+	return ERROR_OK;
 }
 
 int jtag_libusb_bulk_read(jtag_libusb_device_handle *dev, int ep, char *bytes,
-		int size, int timeout)
+		int size, int timeout, int *transferred)
 {
-	int transferred = 0;
+	int ret;
 
-	libusb_bulk_transfer(dev, ep, (unsigned char *)bytes, size,
-			     &transferred, timeout);
-	return transferred;
+	*transferred = 0;
+
+	ret = libusb_bulk_transfer(dev, ep, (unsigned char *)bytes, size,
+			     transferred, timeout);
+
+	if (ret) {
+		LOG_ERROR("jtag_libusb_bulk_read: error");
+		return ERROR_FAIL;
+	}
+
+	return ERROR_OK;
 }
 
 int jtag_libusb_set_configuration(jtag_libusb_device_handle *devh,
