@@ -731,14 +731,14 @@ static int kitprog_swd_run_queue(void)
 			}
 		}
 
-		ret = jtag_libusb_bulk_write(kitprog_handle->usb_handle,
-				BULK_EP_OUT, (char *)buffer, write_count, 0);
-		if (ret > 0) {
-			queued_retval = ERROR_OK;
-		} else {
+		if (jtag_libusb_bulk_write(kitprog_handle->usb_handle,
+					   BULK_EP_OUT, (char *)buffer,
+					   write_count, 0, &ret)) {
 			LOG_ERROR("Bulk write failed");
 			queued_retval = ERROR_FAIL;
 			break;
+		} else {
+			queued_retval = ERROR_OK;
 		}
 
 		/* KitProg firmware does not send a zero length packet
@@ -754,18 +754,17 @@ static int kitprog_swd_run_queue(void)
 		if (read_count % 64 == 0)
 			read_count_workaround = read_count;
 
-		ret = jtag_libusb_bulk_read(kitprog_handle->usb_handle,
+		if (jtag_libusb_bulk_read(kitprog_handle->usb_handle,
 				BULK_EP_IN | LIBUSB_ENDPOINT_IN, (char *)buffer,
-				read_count_workaround, 1000);
-		if (ret > 0) {
+				read_count_workaround, 1000, &ret)) {
+			LOG_ERROR("Bulk read failed");
+			queued_retval = ERROR_FAIL;
+			break;
+		} else {
 			/* Handle garbage data by offsetting the initial read index */
 			if ((unsigned int)ret > read_count)
 				read_index = ret - read_count;
 			queued_retval = ERROR_OK;
-		} else {
-			LOG_ERROR("Bulk read failed");
-			queued_retval = ERROR_FAIL;
-			break;
 		}
 
 		for (int i = 0; i < pending_transfer_count; i++) {

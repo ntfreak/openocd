@@ -60,9 +60,9 @@ int jtag_libusb_control_transfer(jtag_libusb_device_handle *dev,
 		uint8_t requestType, uint8_t request, uint16_t wValue,
 		uint16_t wIndex, char *bytes,	uint16_t size, unsigned int timeout);
 int jtag_libusb_bulk_write(struct jtag_libusb_device_handle *dev, int ep,
-		char *bytes, int size, int timeout);
+		char *bytes, int size, int timeout, int *transferred);
 int jtag_libusb_bulk_read(struct jtag_libusb_device_handle *dev, int ep,
-		char *bytes, int size, int timeout);
+		char *bytes, int size, int timeout, int *transferred);
 int jtag_libusb_set_configuration(jtag_libusb_device_handle *devh,
 		int configuration);
 int jtag_libusb_choose_interface(struct jtag_libusb_device_handle *devh,

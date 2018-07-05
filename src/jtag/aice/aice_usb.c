@@ -349,14 +349,16 @@ static void aice_unpack_dthmb(uint8_t *cmd_ack_code, uint8_t *target_id,
 /* calls the given usb_bulk_* function, allowing for the data to
  * trickle in with some timeouts  */
 static int usb_bulk_with_retries(
-			int (*f)(jtag_libusb_device_handle *, int, char *, int, int),
+			int (*f)(jtag_libusb_device_handle *, int, char *, int, int, int *),
 			jtag_libusb_device_handle *dev, int ep,
-			char *bytes, int size, int timeout)
+			char *bytes, int size, int timeout, int *transferred)
 {
 	int tries = 3, count = 0;
 
 	while (tries && (count < size)) {
-		int result = f(dev, ep, bytes + count, size - count, timeout);
+		int result;
+
+		f(dev, ep, bytes + count, size - count, timeout, &result);
 		if (result > 0)
 			count += result;
 		else if ((-ETIMEDOUT != result) || !--tries)
@@ -366,24 +368,32 @@ static int usb_bulk_with_retries(
 }
 
 static int wrap_usb_bulk_write(jtag_libusb_device_handle *dev, int ep,
-		char *buff, int size, int timeout)
+		char *buff, int size, int timeout, int *transferred)
 {
+
 	/* usb_bulk_write() takes const char *buff */
-	return jtag_libusb_bulk_write(dev, ep, buff, size, timeout);
+	jtag_libusb_bulk_write(dev, ep, buff, size, timeout, transferred);
+
+	return 0;
 }
 
 static inline int usb_bulk_write_ex(jtag_libusb_device_handle *dev, int ep,
 		char *bytes, int size, int timeout)
 {
-	return usb_bulk_with_retries(&wrap_usb_bulk_write,
-			dev, ep, bytes, size, timeout);
+	int tr = 0;
+
+	usb_bulk_with_retries(&wrap_usb_bulk_write,
+			dev, ep, bytes, size, timeout, &tr);
+	return tr;
 }
 
 static inline int usb_bulk_read_ex(jtag_libusb_device_handle *dev, int ep,
 		char *bytes, int size, int timeout)
 {
-	return usb_bulk_with_retries(&jtag_libusb_bulk_read,
-			dev, ep, bytes, size, timeout);
+	int tr = 0;
+	usb_bulk_with_retries(&jtag_libusb_bulk_read,
+			dev, ep, bytes, size, timeout, &tr);
+	return tr;
 }
 
 /* Write data from out_buffer to USB. */

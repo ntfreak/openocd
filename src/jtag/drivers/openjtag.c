@@ -256,10 +256,9 @@ static int openjtag_buf_write_cy7c65215(
 		return ERROR_JTAG_DEVICE_ERROR;
 	}
 
-	ret = jtag_libusb_bulk_write(usbh, ep_out, (char *)buf, size,
-								 CY7C65215_USB_TIMEOUT);
-	if (ret < 0) {
-		LOG_ERROR("bulk write failed, error %d", ret);
+	if (jtag_libusb_bulk_write(usbh, ep_out, (char *)buf, size,
+				   CY7C65215_USB_TIMEOUT, &ret)) {
+		LOG_ERROR("bulk write failed, error");
 		return ERROR_JTAG_DEVICE_ERROR;
 	}
 	*bytes_written = ret;
@@ -324,10 +323,9 @@ static int openjtag_buf_read_cy7c65215(
 		return ERROR_JTAG_DEVICE_ERROR;
 	}
 
-	ret = jtag_libusb_bulk_read(usbh, ep_in, (char *)buf, qty,
-								CY7C65215_USB_TIMEOUT);
-	if (ret < 0) {
-		LOG_ERROR("bulk read failed, error %d", ret);
+	if (jtag_libusb_bulk_read(usbh, ep_in, (char *)buf, qty,
+				  CY7C65215_USB_TIMEOUT, &ret)) {
+		LOG_ERROR("bulk read failed, error");
 		return ERROR_JTAG_DEVICE_ERROR;
 	}
 	*bytes_read = ret;
