@@ -770,8 +770,8 @@ int opendous_usb_write(struct opendous_jtag *opendous_jtag, int out_length)
 			LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT,
 			FUNC_WRITE_DATA, 0, 0, (char *) usb_out_buffer, out_length, OPENDOUS_USB_TIMEOUT);
 	} else {
-		result = jtag_libusb_bulk_write(opendous_jtag->usb_handle, OPENDOUS_WRITE_ENDPOINT, \
-			(char *)usb_out_buffer, out_length, OPENDOUS_USB_TIMEOUT);
+		jtag_libusb_bulk_write(opendous_jtag->usb_handle, OPENDOUS_WRITE_ENDPOINT, \
+			(char *)usb_out_buffer, out_length, OPENDOUS_USB_TIMEOUT, &result);
 	}
 #ifdef _DEBUG_USB_COMMS_
 	LOG_DEBUG("USB write end: %d bytes", result);
@@ -797,8 +797,8 @@ int opendous_usb_read(struct opendous_jtag *opendous_jtag)
 			LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_IN,
 			FUNC_READ_DATA, 0, 0, (char *) usb_in_buffer, OPENDOUS_IN_BUFFER_SIZE, OPENDOUS_USB_TIMEOUT);
 	} else {
-		result = jtag_libusb_bulk_read(opendous_jtag->usb_handle, OPENDOUS_READ_ENDPOINT,
-			(char *)usb_in_buffer, OPENDOUS_IN_BUFFER_SIZE, OPENDOUS_USB_TIMEOUT);
+		jtag_libusb_bulk_read(opendous_jtag->usb_handle, OPENDOUS_READ_ENDPOINT,
+			(char *)usb_in_buffer, OPENDOUS_IN_BUFFER_SIZE, OPENDOUS_USB_TIMEOUT, &result);
 	}
 #ifdef _DEBUG_USB_COMMS_
 	LOG_DEBUG("USB read end: %d bytes", result);

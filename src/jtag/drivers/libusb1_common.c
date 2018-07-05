@@ -33,6 +33,31 @@
 static struct libusb_context *jtag_libusb_context; /**< Libusb context **/
 static libusb_device **devs; /**< The usb device list **/
 
+static int jtag_libusb_error(int err)
+{
+	switch (err) {
+	case LIBUSB_SUCCESS:
+		return ERROR_OK;
+	case LIBUSB_ERROR_TIMEOUT:
+		return ERROR_TIMEOUT_REACHED;
+	case LIBUSB_ERROR_IO:
+	case LIBUSB_ERROR_INVALID_PARAM:
+	case LIBUSB_ERROR_ACCESS:
+	case LIBUSB_ERROR_NO_DEVICE:
+	case LIBUSB_ERROR_NOT_FOUND:
+	case LIBUSB_ERROR_BUSY:
+	case LIBUSB_ERROR_OVERFLOW:
+	case LIBUSB_ERROR_PIPE:
+	case LIBUSB_ERROR_INTERRUPTED:
+	case LIBUSB_ERROR_NO_MEM:
+	case LIBUSB_ERROR_NOT_SUPPORTED:
+	case LIBUSB_ERROR_OTHER:
+		return ERROR_FAIL;
+	default:
+		return ERROR_FAIL;
+	}
+}
+
 static bool jtag_libusb_match(struct libusb_device_descriptor *dev_desc,
 		const uint16_t vids[], const uint16_t pids[])
 {
@@ -179,23 +204,37 @@ int jtag_libusb_control_transfer(jtag_libusb_device_handle *dev, uint8_t request
 }
 
 int jtag_libusb_bulk_write(jtag_libusb_device_handle *dev, int ep, char *bytes,
-		int size, int timeout)
+			   int size, int timeout, int *transferred)
 {
-	int transferred = 0;
+	int ret;
 
-	libusb_bulk_transfer(dev, ep, (unsigned char *)bytes, size,
-			     &transferred, timeout);
-	return transferred;
+	*transferred = 0;
+
+	ret = libusb_bulk_transfer(dev, ep, (unsigned char *)bytes, size,
+				   transferred, timeout);
+	if (ret != LIBUSB_SUCCESS) {
+		LOG_ERROR("libusb_bulk_write error: %s", libusb_error_name(ret));
+		return jtag_libusb_error(ret);
+	}
+
+	return ERROR_OK;
 }
 
 int jtag_libusb_bulk_read(jtag_libusb_device_handle *dev, int ep, char *bytes,
-		int size, int timeout)
+			  int size, int timeout, int *transferred)
 {
-	int transferred = 0;
+	int ret;
 
-	libusb_bulk_transfer(dev, ep, (unsigned char *)bytes, size,
-			     &transferred, timeout);
-	return transferred;
+	*transferred = 0;
+
+	ret = libusb_bulk_transfer(dev, ep, (unsigned char *)bytes, size,
+				   transferred, timeout);
+	if (ret != LIBUSB_SUCCESS) {
+		LOG_ERROR("libusb_bulk_read error: %s", libusb_error_name(ret));
+		return jtag_libusb_error(ret);
+	}
+
+	return ERROR_OK;
 }
 
 int jtag_libusb_set_configuration(jtag_libusb_device_handle *devh,

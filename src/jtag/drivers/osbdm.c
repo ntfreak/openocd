@@ -144,10 +144,12 @@ static struct osbdm osbdm_context;
 static int osbdm_send_and_recv(struct osbdm *osbdm)
 {
 	/* Send request */
-	int count = jtag_libusb_bulk_write(osbdm->devh, OSBDM_USB_EP_WRITE,
-		(char *)osbdm->buffer, osbdm->count, OSBDM_USB_TIMEOUT);
+	int count, ret;
 
-	if (count != osbdm->count) {
+	ret = jtag_libusb_bulk_write(osbdm->devh, OSBDM_USB_EP_WRITE,
+				     (char *)osbdm->buffer, osbdm->count,
+				     OSBDM_USB_TIMEOUT, &count);
+	if (ret || count != osbdm->count) {
 		LOG_ERROR("OSBDM communication error: can't write");
 		return ERROR_FAIL;
 	}
@@ -156,13 +158,12 @@ static int osbdm_send_and_recv(struct osbdm *osbdm)
 	uint8_t cmd_saved = osbdm->buffer[0];
 
 	/* Reading answer */
-	osbdm->count = jtag_libusb_bulk_read(osbdm->devh, OSBDM_USB_EP_READ,
-		(char *)osbdm->buffer, OSBDM_USB_BUFSIZE, OSBDM_USB_TIMEOUT);
-
+	ret = jtag_libusb_bulk_read(osbdm->devh, OSBDM_USB_EP_READ,
+				    (char *)osbdm->buffer, OSBDM_USB_BUFSIZE,
+				    OSBDM_USB_TIMEOUT, &osbdm->count);
 	/* Now perform basic checks for data sent by BDM device
 	 */
-
-	if (osbdm->count < 0) {
+	if (ret) {
 		LOG_ERROR("OSBDM communication error: can't read");
 		return ERROR_FAIL;
 	}

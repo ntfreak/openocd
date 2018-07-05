@@ -23,6 +23,18 @@
 #include "log.h"
 #include "libusb0_common.h"
 
+static int jtag_libusb_error(int err)
+{
+	switch (err) {
+	case 0:
+		return ERROR_OK;
+	case -ETIMEDOUT:
+		return ERROR_TIMEOUT_REACHED;
+	default:
+		return ERROR_FAIL;
+	}
+}
+
 static bool jtag_libusb_match(struct jtag_libusb_device *dev,
 		const uint16_t vids[], const uint16_t pids[])
 {
@@ -130,15 +142,37 @@ int jtag_libusb_control_transfer(jtag_libusb_device_handle *dev, uint8_t request
 }
 
 int jtag_libusb_bulk_write(jtag_libusb_device_handle *dev, int ep, char *bytes,
-		int size, int timeout)
+		int size, int timeout, int *transferred)
 {
-	return usb_bulk_write(dev, ep, bytes, size, timeout);
+	int ret;
+
+	*transferred = 0;
+
+	ret = usb_bulk_write(dev, ep, bytes, size, timeout);
+
+	if (ret < 0) {
+		LOG_ERROR("usb_bulk_write error: %i", ret);
+		return jtag_libusb_error(ret);
+	}
+
+	return ERROR_OK;
 }
 
 int jtag_libusb_bulk_read(jtag_libusb_device_handle *dev, int ep, char *bytes,
-		int size, int timeout)
+		int size, int timeout, int *transferred)
 {
-	return usb_bulk_read(dev, ep, bytes, size, timeout);
+	int ret;
+
+	*transferred = 0;
+
+	ret = usb_bulk_read(dev, ep, bytes, size, timeout);
+
+	if (ret < 0) {
+		LOG_ERROR("usb_bulk_read error: %i", ret);
+		return jtag_libusb_error(ret);
+	}
+
+	return ERROR_OK;
 }
 
 int jtag_libusb_set_configuration(jtag_libusb_device_handle *devh,
