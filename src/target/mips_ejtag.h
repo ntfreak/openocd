@@ -130,7 +130,7 @@
 /* v2.0 - 1:4 Number of Break Channels. */
 #define EJTAG_V20_IMP_BCHANNELS_MASK	0xf
 #define EJTAG_V20_IMP_BCHANNELS_SHIFT	1
-#define EJTAG_DCR_MIPS64		(1 << 0)
+#define EJTAG_IMP_MIPS64		(1 << 0)
 
 /* Debug Control Register DCR */
 #define EJTAG_DCR				0xFF300000

@@ -349,7 +349,7 @@ static void ejtag_main_print_imp(struct mips_ejtag *ejtag_info)
 		EJTAG_IMP_HAS(EJTAG_IMP_ASID6) ? " ASID_6" : "",
 		EJTAG_IMP_HAS(EJTAG_IMP_MIPS16) ? " MIPS16" : "",
 		EJTAG_IMP_HAS(EJTAG_IMP_NODMA) ? " noDMA" : " DMA",
-		EJTAG_IMP_HAS(EJTAG_DCR_MIPS64) ? " MIPS64" : " MIPS32");
+		EJTAG_IMP_HAS(EJTAG_IMP_MIPS64) ? " MIPS64" : " MIPS32");
 
 	switch (ejtag_info->ejtag_version) {
 		case EJTAG_VERSION_20:
