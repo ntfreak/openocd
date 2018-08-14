@@ -116,6 +116,10 @@ static struct queue *queue_alloc(void)
 
 /* Initialize OSBDM device */
 #define OSBDM_CMD_INIT 0x11
+/* Initialize OSBDM device */
+#define OSBDM_CMD_HALT 0x20
+/* Request OSBDM version information */
+#define OSBDM_CMD_VER 0x50
 /* Execute special, not-BDM command. But only this
  * command is used for JTAG operation */
 #define OSBDM_CMD_SPECIAL 0x27
@@ -123,6 +127,8 @@ static struct queue *queue_alloc(void)
 #define OSBDM_CMD_SPECIAL_SWAP 0x05
 /* Reset control */
 #define OSBDM_CMD_SPECIAL_SRST 0x01
+/* JCOMP control */
+#define OSBDM_CMD_SPECIAL_JCOMP 0x02
 /* Maximum bit-length in one swap */
 #define OSBDM_SWAP_MAX (((OSBDM_USB_BUFSIZE - 6) / 5) * 16)
 
@@ -141,8 +147,20 @@ struct osbdm {
  */
 static struct osbdm osbdm_context;
 
+/*
+#define OSBDMDEBUG
+*/
+
 static int osbdm_send_and_recv(struct osbdm *osbdm)
 {
+#ifdef OSBDMDEBUG
+	int x;
+	LOG_DEBUG("OSBDM TX:");
+	printf("OSBDM TX:\n");
+	for (x = 0 ; x < osbdm->count ; x++)
+		printf("0x%02x ", osbdm->buffer[x]);
+	printf("\n");
+#endif
 	/* Send request */
 	int count, ret;
 
@@ -182,7 +200,13 @@ static int osbdm_send_and_recv(struct osbdm *osbdm)
 		LOG_ERROR("OSBDM communication error: reply command mismatch");
 		return ERROR_FAIL;
 	}
-
+#ifdef OSBDMDEBUG
+	LOG_DEBUG("OSBDM RX, size was %d", osbdm->count);
+	printf("OSBDM RX:\n");
+	for (x = 0 ; x < osbdm->count ; x++)
+		printf("0x%02x ", osbdm->buffer[x]);
+	printf("\n");
+#endif
 	return ERROR_OK;
 }
 
@@ -200,6 +224,28 @@ static int osbdm_srst(struct osbdm *osbdm, int srst)
 	osbdm->buffer[osbdm->count++] = 0;
 	/* SRST state */
 	osbdm->buffer[osbdm->count++] = (srst ? 0 : 0x08);
+
+	/* Sending data
+	 */
+	if (osbdm_send_and_recv(osbdm) != ERROR_OK)
+		return ERROR_FAIL;
+
+	return ERROR_OK;
+}
+
+static int osbdm_jcomp(struct osbdm *osbdm, int jcomp)
+{
+	osbdm->count = 0;
+	(void)memset(osbdm->buffer, 0, OSBDM_USB_BUFSIZE);
+
+	/* Composing request
+	 */
+	osbdm->buffer[osbdm->count++] = OSBDM_CMD_SPECIAL; /* Command */
+	osbdm->buffer[osbdm->count++] = OSBDM_CMD_SPECIAL_JCOMP; /* Subcommand */
+	/* Length in bytes - not used */
+	osbdm->buffer[osbdm->count++] = 0;
+	osbdm->buffer[osbdm->count++] = 0;
+	osbdm->buffer[osbdm->count++] = jcomp; /* 0 to set, 1 to clear */
 
 	/* Sending data
 	 */
@@ -576,6 +622,9 @@ static int osbdm_execute_command(
 			retval = ERROR_FAIL;
 		} else {
 			retval = osbdm_flush(osbdm, queue);
+			/* JCOMP setting critical on MPC5634M/OSBDM */
+			if (retval == ERROR_OK)
+				retval = osbdm_jcomp(osbdm, 0); /* Activate */
 			if (retval == ERROR_OK)
 				retval = osbdm_srst(osbdm, cmd->cmd.reset->srst);
 		}
@@ -683,6 +732,12 @@ static int osbdm_init(void)
 	/* Perform initialize command */
 	osbdm_context.count = 0;
 	osbdm_context.buffer[osbdm_context.count++] = OSBDM_CMD_INIT;
+	if (osbdm_send_and_recv(&osbdm_context) != ERROR_OK)
+		return ERROR_FAIL;
+
+	/* Get the version too, for testing */
+	osbdm_context.count = 0;
+	osbdm_context.buffer[osbdm_context.count++] = OSBDM_CMD_VER;
 	if (osbdm_send_and_recv(&osbdm_context) != ERROR_OK)
 		return ERROR_FAIL;
 
