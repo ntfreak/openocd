@@ -215,17 +215,18 @@ int interface_jtag_add_plain_ir_scan(int num_bits, const uint8_t *out_bits, uint
 
 int interface_jtag_add_tlr(void)
 {
-	tap_state_t state = TAP_RESET;
+	/* need to go through DR PAUSE to reset jtagc */
+	struct jtag_command *cmd1 = cmd_queue_alloc(sizeof(struct jtag_command));
+	cmd1->type = JTAG_TLR_RESET;
+	cmd1->cmd.statemove = cmd_queue_alloc(sizeof(struct statemove_command));
+	cmd1->cmd.statemove->end_state = TAP_DRPAUSE;
+	jtag_queue_command(cmd1);
 
-	/* allocate memory for a new list member */
-	struct jtag_command *cmd = cmd_queue_alloc(sizeof(struct jtag_command));
-
-	jtag_queue_command(cmd);
-
-	cmd->type = JTAG_TLR_RESET;
-
-	cmd->cmd.statemove = cmd_queue_alloc(sizeof(struct statemove_command));
-	cmd->cmd.statemove->end_state = state;
+	struct jtag_command *cmd2 = cmd_queue_alloc(sizeof(struct jtag_command));
+	cmd2->type = JTAG_TLR_RESET;
+	cmd2->cmd.statemove = cmd_queue_alloc(sizeof(struct statemove_command));
+	cmd2->cmd.statemove->end_state = TAP_RESET;
+	jtag_queue_command(cmd2);
 
 	return ERROR_OK;
 }
