@@ -96,6 +96,12 @@ int tap_move_ndx(tap_state_t astate)
 		case TAP_IRPAUSE:
 			ndx = 5;
 			break;
+		case TAP_IREXIT1:
+			ndx = 6;
+			break;
+		case TAP_DREXIT1:
+			ndx = 7;
+			break;
 		default:
 			LOG_ERROR("FATAL: unstable state \"%s\" in tap_move_ndx()",
 					tap_state_name(astate));
@@ -133,7 +139,7 @@ struct tms_sequences {
 
 #define B8(bits, count) {((uint8_t)B8__(HEX__(bits))), (count)}
 
-static const struct tms_sequences old_tms_seqs[6][6] = {	/* [from_state_ndx][to_state_ndx] */
+static const struct tms_sequences old_tms_seqs[8][6] = {	/* [from_state_ndx][to_state_ndx] */
 	/* value clocked to TMS to move from one of six stable states to another.
 	 * N.B. OOCD clocks TMS from LSB first, so read these right-to-left.
 	 * N.B. Reset only needs to be 0b11111, but in JLink an even byte of 1's is more stable.
@@ -148,9 +154,11 @@ static const struct tms_sequences old_tms_seqs[6][6] = {	/* [from_state_ndx][to_
 {B8(1111111, 7), B8(0110000, 7), B8(0100000, 7), B8(0010111, 7), B8(0011110, 7), B8(0101111, 7)},/* DRPAUSE */
 {B8(1111111, 7), B8(0110001, 7), B8(0000111, 7), B8(0010111, 7), B8(0000000, 7), B8(0000001, 7)},/* IRSHIFT */
 {B8(1111111, 7), B8(0110000, 7), B8(0011100, 7), B8(0010111, 7), B8(0011110, 7), B8(0101111, 7)},/* IRPAUSE */
+{B8(1111111, 7), B8(0110000, 7), B8(0011100, 7), B8(0010111, 7), B8(0011110, 7), B8(0101111, 7)},/* BAD */
+{B8(1111111, 7), B8(0110000, 7), B8(0011100, 7), B8(0010111, 7), B8(0011110, 7), B8(0101111, 7)},/* BAD */
 };
 
-static const struct tms_sequences short_tms_seqs[6][6] = { /* [from_state_ndx][to_state_ndx] */
+static const struct tms_sequences short_tms_seqs[8][6] = { /* [from_state_ndx][to_state_ndx] */
 	/* this is the table submitted by Jeff Williams on 3/30/2009 with this comment:
 
 	OK, I added Peter's version of the state table, and it works OK for
@@ -191,10 +199,12 @@ static const struct tms_sequences short_tms_seqs[6][6] = { /* [from_state_ndx][t
 {B8(1111111, 7), B8(011, 3),	 B8(00111, 5),	 B8(01, 2),		 B8(001111, 6),	 B8(0101111, 7)}, /* DRSHIFT */
 {B8(1111111, 7), B8(011, 3),	 B8(01, 2),		 B8(0, 1),		 B8(001111, 6),	 B8(0101111, 7)}, /* DRPAUSE */
 {B8(1111111, 7), B8(011, 3),	 B8(00111, 5),	 B8(010111, 6),	 B8(001111, 6),	 B8(01, 2)}, /* IRSHIFT */
-{B8(1111111, 7), B8(011, 3),	 B8(00111, 5),	 B8(010111, 6),	 B8(01, 2),		 B8(0, 1)} /* IRPAUSE */
+{B8(1111111, 7), B8(011, 3),	 B8(00111, 5),	 B8(010111, 6),	 B8(01, 2),		 B8(0, 1)}, /* IRPAUSE */
+{B8(1111111, 7), B8(01, 2),		 B8(0011, 4),	 B8(01011, 5),	 B8(010, 3),	 B8(0, 1)}, /* IREXIT1 */
+{B8(1111111, 7), B8(01, 2),		 B8(010, 3),	 B8(0, 1),		 B8(00111, 5),	 B8(010111, 6)}, /* DREXIT1 */
 };
 
-typedef const struct tms_sequences tms_table[6][6];
+typedef const struct tms_sequences tms_table[8][6];
 
 static tms_table *tms_seqs = &short_tms_seqs;
 
