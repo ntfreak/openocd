@@ -937,6 +937,14 @@ int default_interface_jtag_execute_queue(void)
 		return ERROR_FAIL;
 	}
 
+	if (!transport_is_jtag()) {
+		/* FIXME: This should not happen! */
+		/* assert(0); */
+		LOG_ERROR("JTAG API jtag_execute_queue() called on non JTAG interface");
+		if (!jtag->execute_queue)
+			return ERROR_OK;
+	}
+
 	return jtag->execute_queue();
 }
 

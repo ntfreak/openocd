@@ -31,6 +31,7 @@
 #endif
 
 #include <jtag/jtag.h>
+#include <transport/transport.h>
 #include "commands.h"
 
 struct cmd_queue_page {
@@ -48,6 +49,15 @@ static struct jtag_command **next_command_pointer = &jtag_command_queue;
 
 void jtag_queue_command(struct jtag_command *cmd)
 {
+	if (!transport_is_jtag()) {
+		/* FIXME: This should not happen! */
+		/* assert(0); */
+		LOG_ERROR("JTAG API jtag_queue_command() called on non JTAG interface");
+		/* To avoid memory leaks, we should free the queue and return */
+		/* jtag_command_queue_reset(); */
+		/* return; */
+	}
+
 	/* this command goes on the end, so ensure the queue terminates */
 	cmd->next = NULL;
 
