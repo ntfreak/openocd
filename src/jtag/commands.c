@@ -31,6 +31,7 @@
 #endif
 
 #include <jtag/jtag.h>
+#include <transport/transport.h>
 #include "commands.h"
 
 struct cmd_queue_page {
@@ -48,6 +49,19 @@ static struct jtag_command **next_command_pointer = &jtag_command_queue;
 
 void jtag_queue_command(struct jtag_command *cmd)
 {
+	if (!transport_is_jtag()) {
+		/*
+		 * FIXME: This should not happen!
+		 * There could be old code that queues jtag commands with non jtag interfaces so, for
+		 * the moment simply highlight it by log an error.
+		 * We should fix it quitting with assert(0) because it is an internal error, or returning
+		 * an error after call to jtag_command_queue_reset() to free the jtag queue and avoid
+		 * memory leaks.
+		 * The fix can be applied immediately after next release (v0.11.0 ?)
+		 */
+		LOG_ERROR("JTAG API jtag_queue_command() called on non JTAG interface");
+	}
+
 	/* this command goes on the end, so ensure the queue terminates */
 	cmd->next = NULL;
 

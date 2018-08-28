@@ -937,6 +937,19 @@ int default_interface_jtag_execute_queue(void)
 		return ERROR_FAIL;
 	}
 
+	if (!transport_is_jtag()) {
+		/*
+		 * FIXME: This should not happen!
+		 * There could be old code that queues jtag commands with non jtag interfaces so, for
+		 * the moment simply highlight it by log an error and return on empty execute_queue.
+		 * We should fix it quitting with assert(0) because it is an internal error.
+		 * The fix can be applied immediately after next release (v0.11.0 ?)
+		 */
+		LOG_ERROR("JTAG API jtag_execute_queue() called on non JTAG interface");
+		if (!jtag->execute_queue)
+			return ERROR_OK;
+	}
+
 	int result = jtag->execute_queue();
 
 #if !BUILD_ZY1000
