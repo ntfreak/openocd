@@ -31,6 +31,7 @@
 #endif
 
 #include "jtag.h"
+#include "swd.h"
 #include "minidriver.h"
 #include "interface.h"
 #include "interfaces.h"
@@ -48,6 +49,15 @@
 
 extern struct jtag_interface *jtag_interface;
 const char * const jtag_only[] = { "jtag", NULL };
+static const Jim_Nvp nvp_assert[] = {
+	{ .name = "assert", NVP_ASSERT },
+	{ .name = "deassert", NVP_DEASSERT },
+	{ .name = "T", NVP_ASSERT },
+	{ .name = "F", NVP_DEASSERT },
+	{ .name = "t", NVP_ASSERT },
+	{ .name = "f", NVP_DEASSERT },
+	{ .name = NULL, .value = -1 }
+};
 
 #define RESET_TEST_INDEPENDENT_TRST -1
 static const Jim_Nvp nvp_reset_config_includes[] = {
@@ -504,6 +514,57 @@ static const struct command_registration adapter_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
+static int jim_arp_init_reset(Jim_Interp *interp, int argc, Jim_Obj*const *argv)
+{
+	int e = ERROR_OK;
+	Jim_GetOptInfo goi;
+	Jim_GetOpt_Setup(&goi, interp, argc-1, argv + 1);
+	if (goi.argc != 0) {
+		Jim_WrongNumArgs(goi.interp, 1, goi.argv-1, "(no params)");
+		return JIM_ERR;
+	}
+	struct command_context *context = current_command_context(interp);
+	if (transport_is_jtag())
+		e = jtag_init_reset(context);
+	else if (transport_is_swd())
+		e = swd_init_reset(context);
+
+	if (e != ERROR_OK) {
+		Jim_Obj *eObj = Jim_NewIntObj(goi.interp, e);
+		Jim_SetResultFormatted(goi.interp, "error: %#s", eObj);
+		Jim_FreeNewObj(goi.interp, eObj);
+		return JIM_ERR;
+	}
+	return JIM_OK;
+}
+
+static int jim_arp_adapter_reset(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
+{
+	Jim_GetOptInfo goi;
+	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+
+	if (goi.argc != 1) {
+		Jim_WrongNumArgs(interp, 0, argv, "([tT]|[fF]|assert|deassert)");
+		return JIM_ERR;
+	}
+
+	Jim_Nvp *n;
+	int e = Jim_GetOpt_Nvp(&goi, nvp_assert, &n);
+	if (e != JIM_OK) {
+		Jim_GetOpt_NvpUnknown(&goi, nvp_assert, 1);
+		return e;
+	}
+
+	if (jtag_get_reset_config() & RESET_HAS_SRST) {
+		if (n->value == NVP_ASSERT)
+			adapter_assert_reset();
+		else
+			adapter_deassert_reset();
+	}
+
+	return JIM_OK;
+}
+
 static const struct command_registration interface_command_handlers[] = {
 	{
 		.name = "adapter",
@@ -563,6 +624,21 @@ static const struct command_registration interface_command_handlers[] = {
 		.mode = COMMAND_ANY,
 		.help = "List all built-in debug adapter interfaces (drivers)",
 		.usage = "",
+	},
+	{
+		.name = "arp_init_reset",
+		.mode = COMMAND_ANY,
+		.jim_handler = jim_arp_init_reset,
+		.help = "Uses TRST and SRST to try resetting everything on the JTAG scan chain."
+			" If SWD transport is selected command uses SRST only."
+			" SRST is left asserted if 'reset_config srst_no_gating'."
+	},
+	{
+		.name = "arp_adapter_reset",
+		.mode = COMMAND_ANY,
+		.jim_handler = jim_arp_adapter_reset,
+		.help = "Controls SRST line.",
+		.usage = "[assert|deassert]"
 	},
 	{
 		.name = "reset_config",

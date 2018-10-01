@@ -1090,28 +1090,12 @@ static int cortex_m_assert_reset(struct target *target)
 		return ERROR_OK;
 	}
 
-	/* some cores support connecting while srst is asserted
-	 * use that mode is it has been configured */
+	/* cannot talk to target if it wasn't examined yet */
+	if (!target_was_examined(target))
+		return ERROR_OK;
 
-	bool srst_asserted = false;
-
-	if (!target_was_examined(target)) {
-		if (jtag_reset_config & RESET_HAS_SRST) {
-			adapter_assert_reset();
-			if (target->reset_halt)
-				LOG_ERROR("Target not examined, will not halt after reset!");
-			return ERROR_OK;
-		} else {
-			LOG_ERROR("Target not examined, reset NOT asserted!");
-			return ERROR_FAIL;
-		}
-	}
-
-	if ((jtag_reset_config & RESET_HAS_SRST) &&
-	    (jtag_reset_config & RESET_SRST_NO_GATING)) {
-		adapter_assert_reset();
-		srst_asserted = true;
-	}
+	/* Some cores support connecting while srst is asserted.
+	 * If RESET_HAS_SRST and RESET_SRST_NO_GATING are configured, core is under SRST now */
 
 	/* Enable debug requests */
 	int retval;
@@ -1153,10 +1137,6 @@ static int cortex_m_assert_reset(struct target *target)
 	}
 
 	if (jtag_reset_config & RESET_HAS_SRST) {
-		/* default to asserting srst */
-		if (!srst_asserted)
-			adapter_assert_reset();
-
 		/* srst is asserted, ignore AP access errors */
 		retval = ERROR_OK;
 	} else {
@@ -1203,7 +1183,6 @@ static int cortex_m_assert_reset(struct target *target)
 	}
 
 	target->state = TARGET_RESET;
-	jtag_sleep(50000);
 
 	register_cache_invalidate(cortex_m->armv7m.arm.core_cache);
 
@@ -1227,8 +1206,8 @@ static int cortex_m_deassert_reset(struct target *target)
 	LOG_DEBUG("target->state: %s",
 		target_state_name(target));
 
-	/* deassert reset lines */
-	adapter_deassert_reset();
+	/* SRST was deasserted in the previous Tcl call to reset_deassert_initial */
+	/* adapter_deassert_reset(); is no more needed here */
 
 	enum reset_types jtag_reset_config = jtag_get_reset_config();
 
