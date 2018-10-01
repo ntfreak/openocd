@@ -1651,52 +1651,86 @@ static int aarch64_remove_breakpoint(struct target *target, struct breakpoint *b
 static int aarch64_assert_reset(struct target *target)
 {
 	struct armv8_common *armv8 = target_to_armv8(target);
+	enum reset_types jtag_reset_config = jtag_get_reset_config();
 
-	LOG_DEBUG(" ");
+	LOG_DEBUG("%s", target_name(target));
 
-	/* FIXME when halt is requested, make it work somehow... */
-
-	/* Issue some kind of warm reset. */
-	if (target_has_event_action(target, TARGET_EVENT_RESET_ASSERT))
+	if (target_has_event_action(target, TARGET_EVENT_RESET_ASSERT)) {
 		target_handle_event(target, TARGET_EVENT_RESET_ASSERT);
-	else if (jtag_get_reset_config() & RESET_HAS_SRST) {
-		/* REVISIT handle "pulls" cases, if there's
-		 * hardware that needs them to work.
-		 */
-		adapter_assert_reset();
-	} else {
-		LOG_ERROR("%s: how to reset?", target_name(target));
-		return ERROR_FAIL;
+		goto reset_assert_out;
 	}
 
-	/* registers are now invalid */
+	/* if target was not examined yet, bail out here */
+	if (!target_was_examined(target))
+		goto reset_assert_out2;
+
+	/*
+	 * ARMv8 has dedicated reset-catch functionality in EDECR,
+	 * use it to implement reset-halt
+	 */
+	if (target->reset_halt &&
+		(jtag_reset_config & RESET_SRST_NO_GATING)) {
+		int retval;
+		/* set reset-catch enabled */
+		retval = mem_ap_write_atomic_u32(armv8->debug_ap,
+				armv8->debug_base + CPUV8_DBG_EDECR, CPUV8_DBG_EDECR_RCE);
+		if (retval != ERROR_OK)
+			LOG_INFO("Failed to enable reset-catch on target %s, "
+				"reset halt will not work.", target_name(target));
+			/* don't propagate the error */
+	}
+
+reset_assert_out:
 	if (target_was_examined(target)) {
 		register_cache_invalidate(armv8->arm.core_cache);
 		register_cache_invalidate(armv8->arm.core_cache->next);
 	}
-
+ reset_assert_out2:
 	target->state = TARGET_RESET;
-
 	return ERROR_OK;
 }
 
 static int aarch64_deassert_reset(struct target *target)
 {
+	struct armv8_common *armv8 = target_to_armv8(target);
 	int retval;
 
-	LOG_DEBUG(" ");
+	LOG_DEBUG("%s", target_name(target));
 
-	/* be certain SRST is off */
-	adapter_deassert_reset();
-
+	/* can be called on unexamined target, add a safeguard */
 	if (!target_was_examined(target))
 		return ERROR_OK;
 
-	retval = aarch64_poll(target);
+	/* init debug access before polling target status, to clear OSLock */
+	retval = aarch64_init_debug_access(target);
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = aarch64_init_debug_access(target);
+	if (target->reset_halt) {
+		uint32_t val;
+
+		/* check if a reset-catch event is pending */
+		retval = mem_ap_read_atomic_u32(armv8->debug_ap,
+				armv8->debug_base + CPUV8_DBG_EDESR, &val);
+		if (retval != ERROR_OK) {
+			LOG_DEBUG("read EDESR failed");
+			return retval;
+		}
+		if (val & CPUV8_DBG_EDESR_RC) {
+			LOG_DEBUG("reset-catch event pending");
+			retval = mem_ap_write_atomic_u32(armv8->debug_ap,
+					armv8->debug_base + CPUV8_DBG_EDESR, CPUV8_DBG_EDESR_RC);
+			if (retval != ERROR_OK)
+				LOG_DEBUG("clearing reset-catch event failed");
+			/* set reset-catch disabled */
+			retval = mem_ap_write_atomic_u32(armv8->debug_ap,
+					armv8->debug_base + CPUV8_DBG_EDECR, 0);
+			if (retval != ERROR_OK)
+				LOG_DEBUG("disabling reset-catch failed");
+		}
+	}
+
+	retval = aarch64_poll(target);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -2349,8 +2383,7 @@ static int aarch64_examine(struct target *target)
 	int retval = ERROR_OK;
 
 	/* don't re-probe hardware after each reset */
-	if (!target_was_examined(target))
-		retval = aarch64_examine_first(target);
+	retval = aarch64_examine_first(target);
 
 	/* Configure core debug access */
 	if (retval == ERROR_OK)
