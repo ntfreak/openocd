@@ -1650,23 +1650,6 @@ static int cortex_a_assert_reset(struct target *target)
 	/* Issue some kind of warm reset. */
 	if (target_has_event_action(target, TARGET_EVENT_RESET_ASSERT))
 		target_handle_event(target, TARGET_EVENT_RESET_ASSERT);
-	else if (jtag_get_reset_config() & RESET_HAS_SRST) {
-		/* REVISIT handle "pulls" cases, if there's
-		 * hardware that needs them to work.
-		 */
-
-		/*
-		 * FIXME: fix reset when transport is SWD. This is a temporary
-		 * work-around for release v0.10 that is not intended to stay!
-		 */
-		if (transport_is_swd() ||
-				(target->reset_halt && (jtag_get_reset_config() & RESET_SRST_NO_GATING)))
-			adapter_assert_reset();
-
-	} else {
-		LOG_ERROR("%s: how to reset?", target_name(target));
-		return ERROR_FAIL;
-	}
 
 	/* registers are now invalid */
 	if (target_was_examined(target))
@@ -1681,27 +1664,22 @@ static int cortex_a_deassert_reset(struct target *target)
 {
 	int retval;
 
-	LOG_DEBUG(" ");
+	LOG_DEBUG("%s", target_name(target));
 
-	/* be certain SRST is off */
-	adapter_deassert_reset();
+	if (!target_was_examined(target))
+		return ERROR_OK;
 
-	if (target_was_examined(target)) {
-		retval = cortex_a_poll(target);
-		if (retval != ERROR_OK)
-			return retval;
-	}
+	retval = cortex_a_poll(target);
+	if (retval != ERROR_OK)
+		return retval;
 
 	if (target->reset_halt) {
 		if (target->state != TARGET_HALTED) {
 			LOG_WARNING("%s: ran after reset and before halt ...",
 				target_name(target));
-			if (target_was_examined(target)) {
-				retval = target_halt(target);
-				if (retval != ERROR_OK)
-					return retval;
-			} else
-				target->state = TARGET_UNKNOWN;
+			retval = target_halt(target);
+			if (retval != ERROR_OK)
+				return retval;
 		}
 	}
 
