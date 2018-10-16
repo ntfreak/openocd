@@ -91,6 +91,10 @@ static unsigned int jtag_delay;
 
 static bb_value_t bcm2835gpio_read(void)
 {
+	GPIO_SET = 0;
+	GPIO_SET = 0;
+	GPIO_SET = 0;
+
 	return (GPIO_LEV & 1<<tdo_gpio) ? BB_HIGH : BB_LOW;
 }
 
@@ -101,6 +105,7 @@ static int bcm2835gpio_write(int tck, int tms, int tdi)
 
 	GPIO_SET = set;
 	GPIO_CLR = clear;
+	GPIO_SET = 0;
 
 	for (unsigned int i = 0; i < jtag_delay; i++)
 		asm volatile ("");
@@ -115,6 +120,7 @@ static int bcm2835gpio_swd_write(int tck, int tms, int tdi)
 
 	GPIO_SET = set;
 	GPIO_CLR = clear;
+	GPIO_SET = 0;
 
 	for (unsigned int i = 0; i < jtag_delay; i++)
 		asm volatile ("");
@@ -140,6 +146,8 @@ static int bcm2835gpio_reset(int trst, int srst)
 
 	GPIO_SET = set;
 	GPIO_CLR = clear;
+	GPIO_SET = 0;
+
 
 	return ERROR_OK;
 }
@@ -508,6 +516,8 @@ static int bcm2835gpio_init(void)
 
 	GPIO_CLR = 1<<tdi_gpio | 1<<tck_gpio | 1<<swdio_gpio | 1<<swclk_gpio;
 	GPIO_SET = 1<<tms_gpio;
+	GPIO_SET = 0;
+
 
 	OUT_GPIO(tdi_gpio);
 	OUT_GPIO(tck_gpio);
@@ -517,11 +527,13 @@ static int bcm2835gpio_init(void)
 	if (trst_gpio != -1) {
 		trst_gpio_mode = MODE_GPIO(trst_gpio);
 		GPIO_SET = 1 << trst_gpio;
+		GPIO_SET = 0;
 		OUT_GPIO(trst_gpio);
 	}
 	if (srst_gpio != -1) {
 		srst_gpio_mode = MODE_GPIO(srst_gpio);
 		GPIO_SET = 1 << srst_gpio;
+		GPIO_SET = 0;
 		OUT_GPIO(srst_gpio);
 	}
 
