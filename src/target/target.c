@@ -3074,6 +3074,39 @@ int target_wait_state(struct target *target, enum target_state state, int ms)
 	return ERROR_OK;
 }
 
+/* wait for any of target states
+ */
+static int target_wait_multiple_states(struct target *target, unsigned int state_bits, int ms)
+{
+	int retval;
+	int64_t then = 0, cur;
+	bool once = true;
+
+	for (;;) {
+		retval = target_poll(target);
+		if (retval != ERROR_OK)
+			return retval;
+		if (state_bits & (1 << target->state))
+			break;
+		cur = timeval_ms();
+		if (once) {
+			once = false;
+			then = timeval_ms();
+			LOG_DEBUG("waiting for multiple states");
+		}
+
+		if (cur-then > 500)
+			keep_alive();
+
+		if ((cur-then) > ms) {
+			LOG_ERROR("timed out while waiting for multiple states");
+			return ERROR_FAIL;
+		}
+	}
+
+	return ERROR_OK;
+}
+
 COMMAND_HANDLER(handle_halt_command)
 {
 	LOG_DEBUG("-");
@@ -5231,34 +5264,39 @@ static int jim_target_wait_state(Jim_Interp *interp, int argc, Jim_Obj *const *a
 	Jim_GetOptInfo goi;
 	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
 
-	/* params:  <name>  statename timeoutmsecs */
-	if (goi.argc != 2) {
+	if (goi.argc < 2) {
 		const char *cmd_name = Jim_GetString(argv[0], NULL);
 		Jim_SetResultFormatted(goi.interp,
-				"%s <state_name> <timeout_in_msec>", cmd_name);
+				"%s <timeout_in_msec> <state_name>...", cmd_name);
 		return JIM_ERR;
 	}
 
-	Jim_Nvp *n;
-	int e = Jim_GetOpt_Nvp(&goi, nvp_target_state, &n);
-	if (e != JIM_OK) {
-		Jim_GetOpt_NvpUnknown(&goi, nvp_target_state, 1);
-		return e;
-	}
+	int e;
 	jim_wide a;
 	e = Jim_GetOpt_Wide(&goi, &a);
 	if (e != JIM_OK)
 		return e;
+
+	unsigned int status_bits = 0;
+	while (goi.argc) {
+		Jim_Nvp *n;
+		e = Jim_GetOpt_Nvp(&goi, nvp_target_state, &n);
+		if (e != JIM_OK) {
+			Jim_GetOpt_NvpUnknown(&goi, nvp_target_state, 1);
+			return e;
+		}
+		status_bits |= 1 << n->value;
+	}
 	struct target *target = Jim_CmdPrivData(interp);
 	if (!target->tap->enabled)
 		return jim_target_tap_disabled(interp);
 
-	e = target_wait_state(target, n->value, a);
+	e = target_wait_multiple_states(target, status_bits, a);
 	if (e != ERROR_OK) {
 		Jim_Obj *eObj = Jim_NewIntObj(interp, e);
 		Jim_SetResultFormatted(goi.interp,
-				"target: %s wait %s fails (%#s) %s",
-				target_name(target), n->name,
+				"target: %s wait fails (%#s) %s",
+				target_name(target),
 				eObj, target_strerror_safe(e));
 		Jim_FreeNewObj(interp, eObj);
 		return JIM_ERR;

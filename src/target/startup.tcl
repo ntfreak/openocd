@@ -216,7 +216,7 @@ proc ocd_process_reset_inner { MODE } {
 			# the JTAG tap reset signal might be hooked to a slow
 			# resistor/capacitor circuit - and it might take a while
 			# to charge
-			catch { $t arp_waitstate halted 1000 }
+			catch { $t arp_waitstate 1000 halted }
 
 			# Did we succeed?
 			if { [$t curstate] ne "halted" } {
