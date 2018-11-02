@@ -199,6 +199,8 @@ proc ocd_process_reset_inner { MODE } {
 	reset_deassert_initial $MODE
 	if { !$early_reset_init } {
 		if [using_jtag] { jtag arp_init }
+	}
+	if { !$early_reset_init || ![reset_config_includes srst_nogate]} {
 		dap init
 	}
 
