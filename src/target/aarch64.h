@@ -62,6 +62,11 @@ struct aarch64_common {
 	int brp_num_available;
 	struct aarch64_brp *brp_list;
 
+	/* Watchpoint register pairs */
+	int wp_num;
+	int wp_num_available;
+	struct aarch64_brp *wp_list;
+
 	struct armv8_common armv8_common;
 
 	enum aarch64_isrmasking_mode isrmasking_mode;
