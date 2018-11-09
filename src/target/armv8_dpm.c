@@ -1465,8 +1465,10 @@ int armv8_dpm_setup(struct arm_dpm *dpm)
 	}
 
 	/* watchpoint setup */
-	target->type->add_watchpoint = dpmv8_add_watchpoint;
-	target->type->remove_watchpoint = dpmv8_remove_watchpoint;
+	if (!target->type->add_watchpoint) {
+		target->type->add_watchpoint = dpmv8_add_watchpoint;
+		target->type->remove_watchpoint = dpmv8_remove_watchpoint;
+	}
 
 	/* FIXME add vector catch support */
 
