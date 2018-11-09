@@ -1621,7 +1621,6 @@ static int aarch64_add_hybrid_breakpoint(struct target *target,
 	return aarch64_set_hybrid_breakpoint(target, breakpoint);	/* ??? */
 }
 
-
 static int aarch64_remove_breakpoint(struct target *target, struct breakpoint *breakpoint)
 {
 	struct aarch64_common *aarch64 = target_to_aarch64(target);
@@ -1641,6 +1640,207 @@ static int aarch64_remove_breakpoint(struct target *target, struct breakpoint *b
 	}
 
 	return ERROR_OK;
+}
+
+/* Setup hardware Breakpoint Register Pair */
+static int aarch64_set_watchpoint(struct target *target,
+	struct watchpoint *watchpoint)
+{
+	int retval;
+	int wp_i = 0;
+	uint32_t control, offset, length;
+	struct aarch64_common *aarch64 = target_to_aarch64(target);
+	struct armv8_common *armv8 = &aarch64->armv8_common;
+	struct aarch64_brp *wp_list = aarch64->wp_list;
+
+	if (watchpoint->set) {
+		LOG_WARNING("watchpoint already set");
+		return ERROR_OK;
+	}
+
+	while (wp_list[wp_i].used && (wp_i < aarch64->wp_num))
+		wp_i++;
+	if (wp_i >= aarch64->wp_num) {
+		LOG_ERROR("ERROR Can not find free Watchpoint Register Pair");
+			return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
+	}
+
+	control = (1 << 0)      /* enable */
+		| (3 << 1)      /* both user and privileged access */
+		| (1 << 13);    /* higher mode control */
+
+	switch (watchpoint->rw) {
+	case WPT_READ:
+		control |= 1 << 3;
+		break;
+	case WPT_WRITE:
+		control |= 2 << 3;
+		break;
+	case WPT_ACCESS:
+		control |= 3 << 3;
+		break;
+	}
+
+	/* Match up to 8 bytes. */
+	offset = watchpoint->address & 7;
+	length = watchpoint->length;
+	if (offset + length >= sizeof(uint64_t)) {
+		length = sizeof(uint64_t) - offset;
+		LOG_WARNING("Adjust watchpoint match inside 8-byte boundary");
+	}
+	for (; length > 0; offset++, length--)
+		control |= (1 << offset) << 5;
+
+	wp_list[wp_i].value = watchpoint->address & 0xFFFFFFFFFFFFFFF8ULL;
+	wp_list[wp_i].control = control;
+
+	retval = aarch64_dap_write_memap_register_u32(target, armv8->debug_base
+			+ CPUV8_DBG_WVR_BASE + 16 * wp_list[wp_i].BRPn,
+			(uint32_t)(wp_list[wp_i].value & 0xFFFFFFFF));
+	if (retval != ERROR_OK)
+		return retval;
+	retval = aarch64_dap_write_memap_register_u32(target, armv8->debug_base
+			+ CPUV8_DBG_WVR_BASE + 4 + 16 * wp_list[wp_i].BRPn,
+			(uint32_t)(wp_list[wp_i].value >> 32));
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = aarch64_dap_write_memap_register_u32(target, armv8->debug_base
+			+ CPUV8_DBG_WCR_BASE + 16 * wp_list[wp_i].BRPn,
+			control);
+	if (retval != ERROR_OK)
+		return retval;
+	LOG_DEBUG("wp %i control 0x%0" PRIx32 " value 0x%" TARGET_PRIxADDR, wp_i,
+		wp_list[wp_i].control, wp_list[wp_i].value);
+
+	/* Ensure that halting debug mode is enable */
+	retval = aarch64_set_dscr_bits(target, DSCR_HDE, DSCR_HDE);
+	if (retval != ERROR_OK) {
+		LOG_DEBUG("Failed to set DSCR.HDE");
+		return retval;
+	}
+
+	wp_list[wp_i].used = 1;
+	watchpoint->set = wp_i + 1;
+
+	return ERROR_OK;
+}
+
+/* Clear hardware Watchpoint Register Pair */
+static int aarch64_unset_watchpoint(struct target *target,
+	struct watchpoint *watchpoint)
+{
+	int retval, wp_i;
+	struct aarch64_common *aarch64 = target_to_aarch64(target);
+	struct armv8_common *armv8 = &aarch64->armv8_common;
+	struct aarch64_brp *wp_list = aarch64->wp_list;
+
+	if (!watchpoint->set) {
+		LOG_WARNING("watchpoint not set");
+		return ERROR_OK;
+	}
+
+	wp_i = watchpoint->set - 1;
+	if ((wp_i < 0) || (wp_i >= aarch64->wp_num)) {
+		LOG_DEBUG("Invalid BRP number in watchpoint");
+		return ERROR_OK;
+	}
+	LOG_DEBUG("rbp %i control 0x%0" PRIx32 " value 0x%0" PRIx64, wp_i,
+		wp_list[wp_i].control, wp_list[wp_i].value);
+	wp_list[wp_i].used = 0;
+	wp_list[wp_i].value = 0;
+	wp_list[wp_i].control = 0;
+	retval = aarch64_dap_write_memap_register_u32(target, armv8->debug_base
+			+ CPUV8_DBG_WCR_BASE + 16 * wp_list[wp_i].BRPn,
+			wp_list[wp_i].control);
+	if (retval != ERROR_OK)
+		return retval;
+	retval = aarch64_dap_write_memap_register_u32(target, armv8->debug_base
+			+ CPUV8_DBG_WVR_BASE + 16 * wp_list[wp_i].BRPn,
+			wp_list[wp_i].value);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = aarch64_dap_write_memap_register_u32(target, armv8->debug_base
+			+ CPUV8_DBG_WVR_BASE + 4 + 16 * wp_list[wp_i].BRPn,
+			(uint32_t)wp_list[wp_i].value);
+	if (retval != ERROR_OK)
+		return retval;
+	watchpoint->set = 0;
+
+	return ERROR_OK;
+}
+
+static int aarch64_add_watchpoint(struct target *target,
+	struct watchpoint *watchpoint)
+{
+	int retval;
+	struct aarch64_common *aarch64 = target_to_aarch64(target);
+
+	if (aarch64->wp_num_available < 1) {
+		LOG_INFO("no watchpoint available");
+		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
+	}
+
+	retval = aarch64_set_watchpoint(target, watchpoint);
+	if (retval == ERROR_OK)
+		aarch64->wp_num_available--;
+
+	return retval;
+}
+
+static int aarch64_remove_watchpoint(struct target *target,
+	struct watchpoint *watchpoint)
+{
+	struct aarch64_common *aarch64 = target_to_aarch64(target);
+
+	if (watchpoint->set) {
+		aarch64_unset_watchpoint(target, watchpoint);
+		aarch64->wp_num_available++;
+	}
+
+	return ERROR_OK;
+}
+
+/**
+ * find out which watchpoint hits
+ * get exception address and compare the address to watchpoints
+ */
+int aarch64_hit_watchpoint(struct target *target,
+	struct watchpoint **hit_watchpoint)
+{
+	if (target->debug_reason != DBG_REASON_WATCHPOINT)
+		return ERROR_FAIL;
+
+	struct armv8_common *armv8 = target_to_armv8(target);
+
+	uint64_t exception_address;
+	struct watchpoint *wp;
+
+	exception_address = armv8->dpm.wp_pc;
+
+	if (exception_address == 0xFFFFFFFF)
+		return ERROR_FAIL;
+
+	/**********************************************************/
+	/* see if a watchpoint address matches a value read from  */
+	/* the EDWAR register. Testing shows that on some ARM CPUs*/
+	/* the EDWAR value needs to have 8 added to it so we add  */
+	/* that check as well not sure if that is a core bug)     */
+	/**********************************************************/
+	for (exception_address = armv8->dpm.wp_pc; exception_address <= (armv8->dpm.wp_pc + 8);
+		exception_address += 8) {
+		for (wp = target->watchpoints; wp; wp = wp->next) {
+			if ((exception_address >= wp->address) && (exception_address < (wp->address + wp->length))) {
+				*hit_watchpoint = wp;
+				if (exception_address != armv8->dpm.wp_pc)
+					LOG_DEBUG("watchpoint hit required EDWAR to be increased by 8");
+				return ERROR_OK;
+			}
+		}
+	}
+
+	return ERROR_FAIL;
 }
 
 /*
@@ -2334,7 +2534,20 @@ static int aarch64_examine_first(struct target *target)
 		aarch64->brp_list[i].BRPn = i;
 	}
 
-	LOG_DEBUG("Configured %i hw breakpoints", aarch64->brp_num);
+	/* Setup Watchpoint Register Pairs */
+	aarch64->wp_num = (uint32_t)((debug >> 20) & 0x0F) + 1;
+	aarch64->wp_num_available = aarch64->wp_num;
+	aarch64->wp_list = calloc(aarch64->wp_num, sizeof(struct aarch64_brp));
+	for (i = 0; i < aarch64->wp_num; i++) {
+		aarch64->wp_list[i].used = 0;
+		aarch64->wp_list[i].type = BRP_NORMAL;
+		aarch64->wp_list[i].value = 0;
+		aarch64->wp_list[i].control = 0;
+		aarch64->wp_list[i].BRPn = i;
+	}
+
+	LOG_DEBUG("Configured %i hw breakpoints, %i watchpoints",
+		aarch64->brp_num, aarch64->wp_num);
 
 	target->state = TARGET_UNKNOWN;
 	target->debug_reason = DBG_REASON_NOTHALTED;
@@ -2796,8 +3009,9 @@ struct target_type aarch64_target = {
 	.add_context_breakpoint = aarch64_add_context_breakpoint,
 	.add_hybrid_breakpoint = aarch64_add_hybrid_breakpoint,
 	.remove_breakpoint = aarch64_remove_breakpoint,
-	.add_watchpoint = NULL,
-	.remove_watchpoint = NULL,
+	.add_watchpoint = aarch64_add_watchpoint,
+	.remove_watchpoint = aarch64_remove_watchpoint,
+	.hit_watchpoint = aarch64_hit_watchpoint,
 
 	.commands = aarch64_command_handlers,
 	.target_create = aarch64_target_create,
