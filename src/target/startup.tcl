@@ -227,3 +227,39 @@ proc ftdi_location args {
 	echo "DEPRECATED! use 'adapter usb location' not 'ftdi_location'"
 	eval adapter usb location $args
 }
+
+# deprecated adapter cmds
+proc adapter_khz args {
+	echo "DEPRECATED! use 'adapter khz' not 'adapter_khz'"
+	eval adapter khz $args
+}
+
+proc adapter_name args {
+	echo "DEPRECATED! use 'adapter name' not 'adapter_name'"
+	eval adapter name $args
+}
+
+proc adapter_nsrst_delay args {
+	echo "DEPRECATED! use 'adapter srst delay' not 'adapter_nsrst_delay'"
+	eval adapter srst delay $args
+}
+
+proc adapter_nsrst_assert_width args {
+	echo "DEPRECATED! use 'adapter srst pulse_width' not 'adapter_nsrst_assert_width'"
+	eval adapter srst pulse_width $args
+}
+
+proc interface args {
+	echo "DEPRECATED! use 'adapter driver' not 'interface'"
+	eval adapter driver $args
+}
+
+proc  interface_transports args {
+	echo "DEPRECATED! use 'adapter transports' not 'interface_transports'"
+	eval adapter transports $args
+}
+
+proc  interface_list args {
+	echo "DEPRECATED! use 'adapter list' not 'interface_list'"
+	eval adapter list $args
+}
