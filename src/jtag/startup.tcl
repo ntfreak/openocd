@@ -125,13 +125,13 @@ proc jtag_khz args {
 }
 
 proc jtag_nsrst_delay args {
-	echo "DEPRECATED! use 'adapter_nsrst_delay' not 'jtag_nsrst_delay'"
-	eval adapter_nsrst_delay $args
+	echo "DEPRECATED! use 'adapter srst delay' not 'jtag_nsrst_delay'"
+	eval adapter srst delay $args
 }
 
 proc jtag_nsrst_assert_width args {
-	echo "DEPRECATED! use 'adapter_nsrst_assert_width' not 'jtag_nsrst_assert_width'"
-	eval adapter_nsrst_assert_width $args
+	echo "DEPRECATED! use 'adapter srst pulse_width' not 'jtag_nsrst_assert_width'"
+	eval adapter srst pulse_width $args
 }
 
 # stlink migration helpers
@@ -158,6 +158,36 @@ proc stlink_vid_pid args {
 proc stlink args {
 	echo "DEPRECATED! use 'hla' not 'stlink'"
 	eval hla $args
+}
+
+proc adapter_name args {
+	echo "DEPRECATED! use 'adapter name' not 'adapter_name'"
+	eval adapter name $args
+}
+
+proc adapter_nsrst_delay args {
+	echo "DEPRECATED! use 'adapter srst delay' not 'adapter_nsrst_delay'"
+	eval adapter srst delay $args
+}
+
+proc adapter_nsrst_assert_width args {
+	echo "DEPRECATED! use 'adapter srst pulse_width' not 'adapter_nsrst_assert_width'"
+	eval adapter srst pulse_width $args
+}
+
+proc interface args {
+	echo "DEPRECATED! use 'adapter driver' not 'interface'"
+	eval adapter driver $args
+}
+
+proc  interface_transports args {
+	echo "DEPRECATED! use 'adapter transports' not 'interface_transports'"
+	eval adapter transports $args
+}
+
+proc  interface_list args {
+	echo "DEPRECATED! use 'adapter list' not 'interface_list'"
+	eval adapter list $args
 }
 
 # END MIGRATION AIDS
