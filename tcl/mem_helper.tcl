@@ -40,3 +40,25 @@ proc mmw {reg setbits clearbits} {
 
 add_usage_text mmw "address setbits clearbits"
 add_help_text mmw "Modify word in memory. new_val = (old_val & ~clearbits) | setbits;"
+
+# mmh: "memory modify halfword", updates value of $reg
+#       $reg <== ((value & ~$clearbits) | $setbits)
+proc mmh {reg setbits clearbits} {
+	set old [mrh $reg]
+	set new [expr ($old & ~$clearbits) | $setbits]
+	mwh $reg $new
+}
+
+add_usage_text mmh "address setbits clearbits"
+add_help_text mmh "Modify halfword in memory. new_val = (old_val & ~clearbits) | setbits;"
+
+# mmb: "memory modify byte", updates value of $reg
+#       $reg <== ((value & ~$clearbits) | $setbits)
+proc mmb {reg setbits clearbits} {
+	set old [mrb $reg]
+	set new [expr ($old & ~$clearbits) | $setbits]
+	mwb $reg $new
+}
+
+add_usage_text mmb "address setbits clearbits"
+add_help_text mmb "Modify byte in memory. new_val = (old_val & ~clearbits) | setbits;"

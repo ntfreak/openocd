@@ -7926,6 +7926,21 @@ Otherwise, or if the optional @var{phys} flag is specified,
 If @var{count} is specified, fills that many units of consecutive address.
 @end deffn
 
+After source'ing @file{mem_helper.tcl} the following
+optional read-modify-write commands are available.
+
+@deffn Command mmw addr setmask clearmask
+@deffnx Command mmh addr setmask clearmask
+@deffnx Command mmb addr setmask clearmask
+Reads the specified @var{word} (32 bits),
+@var{halfword} (16 bits), or @var{byte} (8-bit) value,
+at the specified address @var{addr}. First clears bits according
+to @var{clearmask}, then sets bits according to @var{setmask}.
+Finally writes back the result.
+When the current target has an MMU which is present and active,
+@var{addr} is interpreted as a virtual address.
+@end deffn
+
 @anchor{imageaccess}
 @section Image loading commands
 @cindex image loading
