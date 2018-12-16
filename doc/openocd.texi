@@ -6794,8 +6794,9 @@ The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
 @deffn {Flash Driver} stm32l4x
-All members of the STM32L4 microcontroller families from STMicroelectronics
-include internal flash and use ARM Cortex-M4 cores.
+All members of the STM32L4 and STM32G4 microcontroller families from STMicroelectronics
+include internal flash and use ARM Cortex-M4 cores. Additionally this driver
+supports STM32G0 family with ARM Cortex-M0+ core.
 The driver automatically recognizes a number of these chips using
 the chip identification register, and autoconfigures itself.
 

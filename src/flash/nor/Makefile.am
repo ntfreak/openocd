@@ -81,4 +81,5 @@ NORHEADERS = \
 	%D%/non_cfi.h \
 	%D%/ocl.h \
 	%D%/spi.h \
+	%D%/stm32l4x.h \
 	%D%/msp432.h
