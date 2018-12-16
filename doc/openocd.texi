@@ -6893,8 +6893,10 @@ The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
 @deffn {Flash Driver} stm32l4x
-All members of the STM32L4 and STM32WB microcontroller families from STMicroelectronics
-include internal flash and use ARM Cortex-M4 cores.
+All members of the STM32L4, STM32L4+, STM32WB, STM32WL and STM32G4
+microcontroller families from STMicroelectronics include internal flash
+and use ARM Cortex-M4 cores.
+Additionally this driver supports STM32G0 family with ARM Cortex-M0+ core.
 The driver automatically recognizes a number of these chips using
 the chip identification register, and autoconfigures itself.
 
@@ -6904,7 +6906,8 @@ flash bank $_FLASHNAME stm32l4x 0 0 0 0 $_TARGETNAME
 
 Note that some devices have been found that have a flash size register that contains
 an invalid value, to workaround this issue you can override the probed value used by
-the flash driver.
+the flash driver. However, specifying a wrong value might lead to a completely
+wrong flash layout, so this feature must be used carefully.
 
 @example
 flash bank $_FLASHNAME stm32l4x 0x08000000 0x40000 0 0 $_TARGETNAME
@@ -6961,7 +6964,7 @@ This will effectively write protect all sectors in flash bank 1.
 @end deffn
 
 @deffn Command {stm32l4x option_load} num
-Forces a re-load of the option byte registers. Will cause a reset of the device.
+Forces a re-load of the option byte registers. Will cause a system reset of the device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 @end deffn
