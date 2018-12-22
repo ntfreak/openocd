@@ -89,7 +89,7 @@ enum nrf5_uicr_registers {
 
 enum nrf5_nvmc_registers {
 	NRF5_NVMC_BASE = 0x4001E000, /* Non-Volatile Memory
-				       * Controller Regsters */
+				       * Controller Registers */
 
 #define NRF5_NVMC_REG(offset) (NRF5_NVMC_BASE + offset)
 
@@ -114,9 +114,6 @@ struct nrf5_info {
 	struct nrf5_bank {
 		struct nrf5_info *chip;
 		bool probed;
-		int (*write) (struct flash_bank *bank,
-			      struct nrf5_info *chip,
-			      const uint8_t *buffer, uint32_t offset, uint32_t count);
 	} bank[2];
 	struct target *target;
 };
@@ -653,19 +650,17 @@ static const uint8_t nrf5_flash_write_code[] = {
 
 
 /* Start a low level flash write for the specified region */
-static int nrf5_ll_flash_write(struct nrf5_info *chip, uint32_t offset, const uint8_t *buffer, uint32_t bytes)
+static int nrf5_ll_flash_write(struct nrf5_info *chip, uint32_t address, const uint8_t *buffer, uint32_t bytes)
 {
 	struct target *target = chip->target;
 	uint32_t buffer_size = 8192;
 	struct working_area *write_algorithm;
 	struct working_area *source;
-	uint32_t address = NRF5_FLASH_BASE + offset;
 	struct reg_param reg_params[4];
 	struct armv7m_algorithm armv7m_info;
 	int retval = ERROR_OK;
 
-
-	LOG_DEBUG("Writing buffer to flash offset=0x%"PRIx32" bytes=0x%"PRIx32, offset, bytes);
+	LOG_DEBUG("Writing buffer to flash address=0x%"PRIx32" bytes=0x%"PRIx32, address, bytes);
 	assert(bytes % 4 == 0);
 
 	/* allocate working area with flash programming code */
@@ -674,7 +669,7 @@ static int nrf5_ll_flash_write(struct nrf5_info *chip, uint32_t offset, const ui
 		LOG_WARNING("no working area available, falling back to slow memory writes");
 
 		for (; bytes > 0; bytes -= 4) {
-			retval = target_write_memory(chip->target, offset, 4, 1, buffer);
+			retval = target_write_memory(target, address, 4, 1, buffer);
 			if (retval != ERROR_OK)
 				return retval;
 
@@ -682,16 +677,12 @@ static int nrf5_ll_flash_write(struct nrf5_info *chip, uint32_t offset, const ui
 			if (retval != ERROR_OK)
 				return retval;
 
-			offset += 4;
+			address += 4;
 			buffer += 4;
 		}
 
 		return ERROR_OK;
 	}
-
-	LOG_WARNING("using fast async flash loader. This is currently supported");
-	LOG_WARNING("only with ST-Link and CMSIS-DAP. If you have issues, add");
-	LOG_WARNING("\"set WORKAREASIZE 0\" before sourcing nrf51.cfg/nrf52.cfg to disable it");
 
 	retval = target_write_buffer(target, write_algorithm->address,
 				sizeof(nrf5_flash_write_code),
@@ -743,23 +734,23 @@ static int nrf5_ll_flash_write(struct nrf5_info *chip, uint32_t offset, const ui
 	return retval;
 }
 
-/* Check and erase flash sectors in specified range then start a low level page write.
-   start/end must be sector aligned.
-*/
-static int nrf5_write_pages(struct flash_bank *bank, uint32_t start, uint32_t end, const uint8_t *buffer)
+static int nrf5_write(struct flash_bank *bank, const uint8_t *buffer,
+					uint32_t offset, uint32_t count)
 {
-	int res = ERROR_FAIL;
-	struct nrf5_bank *nbank = bank->driver_priv;
-	struct nrf5_info *chip = nbank->chip;
+	struct nrf5_info *chip;
 
-	assert(start % chip->code_page_size == 0);
-	assert(end % chip->code_page_size == 0);
+	int res = nrf5_get_probed_chip_if_halted(bank, &chip);
+	if (res != ERROR_OK)
+		return res;
+
+	assert(offset % 4 == 0);
+	assert(count % 4 == 0);
 
 	res = nrf5_nvmc_write_enable(chip);
 	if (res != ERROR_OK)
 		goto error;
 
-	res = nrf5_ll_flash_write(chip, start, buffer, (end - start));
+	res = nrf5_ll_flash_write(chip, bank->base + offset, buffer, count);
 	if (res != ERROR_OK)
 		goto error;
 
@@ -785,111 +776,6 @@ static int nrf5_erase(struct flash_bank *bank, int first, int last)
 		res = nrf5_erase_page(bank, chip, &bank->sectors[s]);
 
 	return res;
-}
-
-static int nrf5_code_flash_write(struct flash_bank *bank,
-				  struct nrf5_info *chip,
-				  const uint8_t *buffer, uint32_t offset, uint32_t count)
-{
-
-	int res;
-	/* Need to perform reads to fill any gaps we need to preserve in the first page,
-	   before the start of buffer, or in the last page, after the end of buffer */
-	uint32_t first_page = offset/chip->code_page_size;
-	uint32_t last_page = DIV_ROUND_UP(offset+count, chip->code_page_size);
-
-	uint32_t first_page_offset = first_page * chip->code_page_size;
-	uint32_t last_page_offset = last_page * chip->code_page_size;
-
-	LOG_DEBUG("Padding write from 0x%08"PRIx32"-0x%08"PRIx32" as 0x%08"PRIx32"-0x%08"PRIx32,
-		offset, offset+count, first_page_offset, last_page_offset);
-
-	uint32_t page_cnt = last_page - first_page;
-	uint8_t buffer_to_flash[page_cnt*chip->code_page_size];
-
-	/* Fill in any space between start of first page and start of buffer */
-	uint32_t pre = offset - first_page_offset;
-	if (pre > 0) {
-		res = target_read_memory(bank->target,
-					first_page_offset,
-					1,
-					pre,
-					buffer_to_flash);
-		if (res != ERROR_OK)
-			return res;
-	}
-
-	/* Fill in main contents of buffer */
-	memcpy(buffer_to_flash+pre, buffer, count);
-
-	/* Fill in any space between end of buffer and end of last page */
-	uint32_t post = last_page_offset - (offset+count);
-	if (post > 0) {
-		/* Retrieve the full row contents from Flash */
-		res = target_read_memory(bank->target,
-					offset + count,
-					1,
-					post,
-					buffer_to_flash+pre+count);
-		if (res != ERROR_OK)
-			return res;
-	}
-
-	return nrf5_write_pages(bank, first_page_offset, last_page_offset, buffer_to_flash);
-}
-
-static int nrf5_uicr_flash_write(struct flash_bank *bank,
-				  struct nrf5_info *chip,
-				  const uint8_t *buffer, uint32_t offset, uint32_t count)
-{
-	int res;
-	uint8_t uicr[NRF5_UICR_SIZE];
-	struct flash_sector *sector = &bank->sectors[0];
-
-	if ((offset + count) > NRF5_UICR_SIZE)
-		return ERROR_FAIL;
-
-	res = target_read_memory(bank->target,
-				 NRF5_UICR_BASE,
-				 1,
-				 NRF5_UICR_SIZE,
-				 uicr);
-
-	if (res != ERROR_OK)
-		return res;
-
-	res = nrf5_erase_page(bank, chip, sector);
-	if (res != ERROR_OK)
-		return res;
-
-	res = nrf5_nvmc_write_enable(chip);
-	if (res != ERROR_OK)
-		return res;
-
-	memcpy(&uicr[offset], buffer, count);
-
-	res = nrf5_ll_flash_write(chip, NRF5_UICR_BASE, uicr, NRF5_UICR_SIZE);
-	if (res != ERROR_OK) {
-		nrf5_nvmc_read_only(chip);
-		return res;
-	}
-
-	return nrf5_nvmc_read_only(chip);
-}
-
-
-static int nrf5_write(struct flash_bank *bank, const uint8_t *buffer,
-		       uint32_t offset, uint32_t count)
-{
-	int res;
-	struct nrf5_bank *nbank = bank->driver_priv;
-	struct nrf5_info *chip;
-
-	res = nrf5_get_probed_chip_if_halted(bank, &chip);
-	if (res != ERROR_OK)
-		return res;
-
-	return nbank->write(bank, chip, buffer, offset, count);
 }
 
 static void nrf5_free_driver_priv(struct flash_bank *bank)
@@ -932,11 +818,9 @@ FLASH_BANK_COMMAND_HANDLER(nrf5_flash_bank_command)
 	switch (bank->base) {
 	case NRF5_FLASH_BASE:
 		nbank = &chip->bank[0];
-		nbank->write = nrf5_code_flash_write;
 		break;
 	case NRF5_UICR_BASE:
 		nbank = &chip->bank[1];
-		nbank->write = nrf5_uicr_flash_write;
 		break;
 	}
 	assert(nbank != NULL);
@@ -945,6 +829,7 @@ FLASH_BANK_COMMAND_HANDLER(nrf5_flash_bank_command)
 	nbank->chip = chip;
 	nbank->probed = false;
 	bank->driver_priv = nbank;
+	bank->write_start_alignment = bank->write_end_alignment = 4;
 
 	return ERROR_OK;
 }
