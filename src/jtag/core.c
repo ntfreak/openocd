@@ -1819,6 +1819,43 @@ bool transport_is_jtag(void)
 	return get_current_transport() == &jtag_transport;
 }
 
+int adapter_resets(int trst, int srst)
+{
+	if (transport_is_jtag()) {
+		if (srst == SRST_ASSERT && !(jtag_reset_config & RESET_HAS_SRST)) {
+			LOG_ERROR("adapter has no srst signal");
+			return ERROR_FAIL;
+		}
+
+		/* adapters without trst signal will eventually use tlr sequence */
+		jtag_add_reset(trst, srst);
+		return ERROR_OK;
+	} else if (transport_is_swd()) {
+		if (trst == TRST_ASSERT) {
+			LOG_ERROR("transport has no trst signal");
+			return ERROR_FAIL;
+		}
+
+		if (srst == SRST_ASSERT && !(jtag_reset_config & RESET_HAS_SRST)) {
+			LOG_ERROR("adapter has no srst signal");
+			return ERROR_FAIL;
+		}
+		swd_add_reset(srst);
+		return ERROR_OK;
+	}
+
+	if (trst == TRST_DEASSERT && srst == SRST_DEASSERT)
+		return ERROR_OK;
+
+	if (get_current_transport() == NULL)
+		LOG_ERROR("transport is not selected");
+	else
+		LOG_ERROR("reset is not supported on transport %s",
+			get_current_transport()->name);
+
+	return ERROR_FAIL;
+}
+
 void adapter_assert_reset(void)
 {
 	if (transport_is_jtag()) {
