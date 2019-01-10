@@ -67,4 +67,13 @@ int hl_interface_init_target(struct target *t);
 int hl_interface_init_reset(void);
 int hl_interface_override_target(const char **targetname);
 
+#if BUILD_HLADAPTER == 1
+int hl_interface_reset(int srst);
+#else
+static inline int hl_interface_reset(int srst)
+{
+	return ERROR_OK;
+}
+#endif
+
 #endif /* OPENOCD_JTAG_HLA_HLA_INTERFACE_H */

@@ -148,6 +148,21 @@ int hl_interface_init_reset(void)
 	return ERROR_OK;
 }
 
+/* FIXME: hla abuses of jtag_add_reset() to track srst status and for timings */
+int hl_interface_reset(int srst)
+{
+	int result;
+
+	if (srst == 1) {
+		jtag_add_reset(0, 1);
+		result = hl_if.layout->api->assert_srst(hl_if.handle, 0);
+	} else {
+		result = hl_if.layout->api->assert_srst(hl_if.handle, 1);
+		jtag_add_reset(0, 0);
+	}
+	return result;
+}
+
 static int hl_interface_khz(int khz, int *jtag_speed)
 {
 	if (hl_if.layout->api->speed == NULL)

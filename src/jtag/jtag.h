@@ -77,6 +77,14 @@ typedef enum tap_state {
 } tap_state_t;
 
 /**
+ * Defines arguments for reset functions
+ */
+#define SRST_DEASSERT   0
+#define SRST_ASSERT     1
+#define TRST_DEASSERT   0
+#define TRST_ASSERT     1
+
+/**
  * Function tap_state_name
  * Returns a string suitable for display representing the JTAG tap_state
  */

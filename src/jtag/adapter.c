@@ -411,6 +411,92 @@ COMMAND_HANDLER(handle_adapter_khz_command)
 	return retval;
 }
 
+COMMAND_HANDLER(handle_adapter_reset_de_assert)
+{
+	enum values {
+		VALUE_UNDEFINED = -1,
+		VALUE_DEASSERT  = 0,
+		VALUE_ASSERT    = 1,
+	};
+	enum values value;
+	enum values srst = VALUE_UNDEFINED;
+	enum values trst = VALUE_UNDEFINED;
+	enum reset_types jtag_reset_config = jtag_get_reset_config();
+	char *signal;
+
+	if (CMD_ARGC == 0) {
+		if (transport_is_jtag()) {
+			if (jtag_reset_config & RESET_HAS_TRST)
+				signal = jtag_get_trst() ? "asserted" : "deasserted";
+			else
+				signal = "not present";
+			command_print(CMD, "trst %s", signal);
+		}
+
+		if (jtag_reset_config & RESET_HAS_SRST)
+			signal = jtag_get_srst() ? "asserted" : "deasserted";
+		else
+			signal = "not present";
+		command_print(CMD, "srst %s", signal);
+
+		return ERROR_OK;
+	}
+
+	if (CMD_ARGC != 1 && CMD_ARGC != 3)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	value = (strcmp(CMD_NAME, "assert") == 0) ? VALUE_ASSERT : VALUE_DEASSERT;
+	if (strcmp(CMD_ARGV[0], "srst") == 0)
+		srst = value;
+	else if (strcmp(CMD_ARGV[0], "trst") == 0)
+		trst = value;
+	else
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	if (CMD_ARGC == 3) {
+		if (strcmp(CMD_ARGV[1], "assert") == 0)
+			value = VALUE_ASSERT;
+		else if (strcmp(CMD_ARGV[1], "deassert") == 0)
+			value = VALUE_DEASSERT;
+		else
+			return ERROR_COMMAND_SYNTAX_ERROR;
+
+		if (strcmp(CMD_ARGV[2], "srst") == 0 && srst == VALUE_UNDEFINED)
+			srst = value;
+		else if (strcmp(CMD_ARGV[2], "trst") == 0 && trst == VALUE_UNDEFINED)
+			trst = value;
+		else
+			return ERROR_COMMAND_SYNTAX_ERROR;
+	}
+
+	if (trst == VALUE_UNDEFINED) {
+		if (transport_is_jtag())
+			trst = jtag_get_trst() ? VALUE_ASSERT : VALUE_DEASSERT;
+		else
+			trst = VALUE_DEASSERT; /* unused, safe value */
+	}
+
+	if (srst == VALUE_UNDEFINED) {
+		if (jtag_reset_config & RESET_HAS_SRST)
+			srst = jtag_get_srst() ? VALUE_ASSERT : VALUE_DEASSERT;
+		else
+			srst = VALUE_DEASSERT; /* unused, safe value */
+	}
+
+	if (trst == VALUE_ASSERT && !transport_is_jtag()) {
+		LOG_ERROR("transport has no trst signal");
+		return ERROR_FAIL;
+	}
+
+	if (srst == VALUE_ASSERT && !(jtag_reset_config & RESET_HAS_SRST)) {
+		LOG_ERROR("adapter has no srst signal");
+		return ERROR_FAIL;
+	}
+
+	return adapter_resets((trst == VALUE_DEASSERT) ? TRST_DEASSERT : TRST_ASSERT,
+						  (srst == VALUE_DEASSERT) ? SRST_DEASSERT : SRST_ASSERT);
+}
+
 #ifndef HAVE_JTAG_MINIDRIVER_H
 #ifdef HAVE_LIBUSB_GET_PORT_NUMBERS
 COMMAND_HANDLER(handle_usb_location_command)
@@ -448,6 +534,20 @@ static const struct command_registration adapter_command_handlers[] = {
 		.chain = adapter_usb_command_handlers,
 	},
 #endif /* MINIDRIVER */
+	{
+		.name = "assert",
+		.handler = handle_adapter_reset_de_assert,
+		.mode = COMMAND_EXEC,
+		.help = "Controls SRST and TRST lines.",
+		.usage = "|deassert [srst|trst [assert|deassert srst|trst]]",
+	},
+	{
+		.name = "deassert",
+		.handler = handle_adapter_reset_de_assert,
+		.mode = COMMAND_EXEC,
+		.help = "Controls SRST and TRST lines.",
+		.usage = "|assert [srst|trst [deassert|assert srst|trst]]",
+	},
 	COMMAND_REGISTRATION_DONE
 };
 
