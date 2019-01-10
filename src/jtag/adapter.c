@@ -49,6 +49,22 @@
 extern struct jtag_interface *jtag_interface;
 const char * const jtag_only[] = { "jtag", NULL };
 
+enum nvp_assert_resets {
+	NVP_DEASSERT_ALL,
+	NVP_ASSERT_SRST,
+	NVP_ASSERT_TRST,
+};
+
+static const Jim_Nvp nvp_assert[] = {
+	{ .name = "srst", NVP_ASSERT_SRST },
+	{ .name = "SRST", NVP_ASSERT_SRST },
+	{ .name = "trst", NVP_ASSERT_TRST },
+	{ .name = "TRST", NVP_ASSERT_TRST },
+	{ .name = "none", NVP_DEASSERT_ALL },
+	{ .name = "false", NVP_DEASSERT_ALL },
+	{ .name = NULL, .value = -1 }
+};
+
 static int jim_adapter_name(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 {
 	Jim_GetOptInfo goi;
@@ -451,6 +467,60 @@ static const struct command_registration adapter_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
+static int jim_arp_adapter_reset_assert(Jim_Interp *interp, int argc,
+	Jim_Obj*const *argv)
+{
+	Jim_GetOptInfo goi;
+	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+	Jim_Nvp *n;
+	enum nvp_assert_resets arg1, arg2;
+	int e;
+
+	if (goi.argc != 1 && goi.argc != 2) {
+		Jim_WrongNumArgs(interp, 0, argv, "none | srst | trst | srst trst");
+		return JIM_ERR;
+	}
+
+	e = Jim_GetOpt_Nvp(&goi, nvp_assert, &n);
+	if (e != JIM_OK) {
+		Jim_GetOpt_NvpUnknown(&goi, nvp_assert, 1);
+		return e;
+	}
+	arg1 = n->value;
+
+	if (goi.argc == 0) {
+		switch (arg1) {
+			case NVP_DEASSERT_ALL:
+				e = adapter_resets(TRST_DEASSERT, SRST_DEASSERT);
+				break;
+			case NVP_ASSERT_SRST:
+				e = adapter_resets(TRST_DEASSERT, SRST_ASSERT);
+				break;
+			case NVP_ASSERT_TRST:
+			default:
+				e = adapter_resets(TRST_ASSERT, SRST_DEASSERT);
+				break;
+		}
+		return (e == ERROR_OK) ? JIM_OK : JIM_ERR;
+	}
+
+	e = Jim_GetOpt_Nvp(&goi, nvp_assert, &n);
+	if (e != JIM_OK) {
+		Jim_GetOpt_NvpUnknown(&goi, nvp_assert, 0);
+		return e;
+	}
+	arg2 = n->value;
+	/* valid combinations for dual params are "srst trst" and "trst srst" */
+	if (arg1 == NVP_DEASSERT_ALL || arg2 == NVP_DEASSERT_ALL || arg1 == arg2) {
+		Jim_SetResultFormatted(interp, "Invalid parameter combination: %#s %#s",
+			goi.argv[-2], goi.argv[-1]);
+		return JIM_ERR;
+	}
+
+	e = adapter_resets(TRST_ASSERT, SRST_ASSERT);
+	return (e == ERROR_OK) ? JIM_OK : JIM_ERR;
+}
+
 static const struct command_registration interface_command_handlers[] = {
 	{
 		.name = "adapter",
@@ -510,6 +580,13 @@ static const struct command_registration interface_command_handlers[] = {
 		.mode = COMMAND_ANY,
 		.help = "List all built-in debug adapter interfaces (drivers)",
 		.usage = "",
+	},
+	{
+		.name = "arp_adapter_reset_assert",
+		.mode = COMMAND_ANY,
+		.jim_handler = jim_arp_adapter_reset_assert,
+		.help = "Controls SRST and TRST lines.",
+		.usage = "none | srst | trst | srst trst"
 	},
 	{
 		.name = "reset_config",
