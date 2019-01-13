@@ -71,13 +71,18 @@ enum nrf5_ficr_registers {
 	NRF5_FICR_BLE_1MBIT2		= NRF5_FICR_REG(0x0F4),
 	NRF5_FICR_BLE_1MBIT3		= NRF5_FICR_REG(0x0F8),
 	NRF5_FICR_BLE_1MBIT4		= NRF5_FICR_REG(0x0FC),
+
+	/* Following registers are available on nRF52 and on nRF51 since rev 3 */
+	NRF5_FICR_INFO_PART			= NRF5_FICR_REG(0x100),
+	NRF5_FICR_INFO_VARIANT		= NRF5_FICR_REG(0x104),
+	NRF5_FICR_INFO_PACKAGE		= NRF5_FICR_REG(0x108),
+	NRF5_FICR_INFO_RAM			= NRF5_FICR_REG(0x10C),
+	NRF5_FICR_INFO_FLASH		= NRF5_FICR_REG(0x110),
 };
 
 enum nrf5_uicr_registers {
 	NRF5_UICR_BASE = 0x10001000, /* User Information
 				       * Configuration Regsters */
-
-	NRF5_UICR_SIZE = 0x100,
 
 #define NRF5_UICR_REG(offset) (NRF5_UICR_BASE + offset)
 
@@ -107,15 +112,12 @@ enum nrf5_nvmc_config_bits {
 
 };
 
-struct nrf5_info {
-	uint32_t code_page_size;
-	uint32_t refcount;
-
-	struct nrf5_bank {
-		struct nrf5_info *chip;
-		bool probed;
-	} bank[2];
-	struct target *target;
+struct nrf52_ficr_info {
+	uint32_t part;
+	uint32_t variant;
+	uint32_t package;
+	uint32_t ram;
+	uint32_t flash;
 };
 
 struct nrf5_device_spec {
@@ -123,6 +125,23 @@ struct nrf5_device_spec {
 	const char *part;
 	const char *variant;
 	const char *build_code;
+	unsigned int flash_size_kb;
+};
+
+struct nrf5_info {
+	uint32_t refcount;
+
+	struct nrf5_bank {
+		struct nrf5_info *chip;
+		bool probed;
+	} bank[2];
+	struct target *target;
+
+	/* chip identification stored in nrf5_probe() for use in nrf5_info() */
+	bool ficr_info_valid;
+	struct nrf52_ficr_info ficr_info;
+	const struct nrf5_device_spec *spec;
+	uint32_t hwid;
 	unsigned int flash_size_kb;
 };
 
@@ -207,6 +226,9 @@ static const struct nrf5_device_spec nrf5_known_devices_table[] = {
 	NRF5_DEVICE_DEF(0x007A, "51422", "CEAA", "C0",    256),
 	NRF5_DEVICE_DEF(0x0088, "51422", "CFAC", "A0",    256),
 
+	/* The driver fully autodects nRF52 series devices by FICR INFO,
+	 * no need for nRF52xxx HWIDs in this table */
+#if 0
 	/* nRF52810 Devices */
 	NRF5_DEVICE_DEF(0x0142, "52810", "QFAA", "B0",    192),
 	NRF5_DEVICE_DEF(0x0143, "52810", "QCAA", "C0",    192),
@@ -218,6 +240,21 @@ static const struct nrf5_device_spec nrf5_known_devices_table[] = {
 
 	/* nRF52840 Devices */
 	NRF5_DEVICE_DEF(0x0150, "52840", "QIAA", "C0",    1024),
+#endif
+};
+
+struct nrf5_device_package {
+	uint32_t package;
+	const char *code;
+};
+
+/* Newer devices have FICR INFO.PACKAGE.
+ * This table converts its value to two character code */
+static const struct nrf5_device_package nrf5_packages_table[] = {
+	{ 0x2000, "QF" },
+	{ 0x2001, "CH" },
+	{ 0x2002, "CI" },
+	{ 0x2005, "CK" },
 };
 
 static int nrf5_bank_is_probed(struct flash_bank *bank)
@@ -463,62 +500,177 @@ static int nrf5_protect(struct flash_bank *bank, int set, int first, int last)
 	return ERROR_OK;
 }
 
-static int nrf5_probe(struct flash_bank *bank)
+static bool nrf5_info_variant_to_str(uint32_t variant, char *bf)
 {
-	uint32_t hwid;
-	int res;
+	h_u32_to_be((uint8_t *)bf, variant);
+	bf[4] = '\0';
+	if (isalnum(bf[0]) && isalnum(bf[1]) && isalnum(bf[2]) && isalnum(bf[3]))
+		return true;
+
+	strcpy(bf, "xxxx");
+	return false;
+}
+
+static const char *nrf5_decode_info_package(uint32_t package)
+{
+	for (size_t i = 0; i < ARRAY_SIZE(nrf5_packages_table); i++) {
+		if (nrf5_packages_table[i].package == package)
+			return nrf5_packages_table[i].code;
+	}
+	return "xx";
+}
+
+static int nrf5_info(struct flash_bank *bank, char *buf, int buf_size)
+{
 	struct nrf5_bank *nbank = bank->driver_priv;
 	struct nrf5_info *chip = nbank->chip;
 
-	res = target_read_u32(chip->target, NRF5_FICR_CONFIGID, &hwid);
+	if (chip->spec) {
+		snprintf(buf, buf_size,
+				"nRF%s-%s(build code: %s) %ukB Flash",
+				chip->spec->part, chip->spec->variant, chip->spec->build_code,
+				chip->flash_size_kb);
+
+	} else if (chip->ficr_info_valid) {
+		char variant[5];
+		nrf5_info_variant_to_str(chip->ficr_info.variant, variant);
+		snprintf(buf, buf_size,
+				"nRF%" PRIx32 "-%s%.2s(build code: %s) %" PRIu32
+				"kB Flash, %" PRIu32 "kB RAM",
+				chip->ficr_info.part,
+				nrf5_decode_info_package(chip->ficr_info.package),
+				variant, &variant[2],
+				chip->flash_size_kb,
+				chip->ficr_info.ram);
+
+	} else {
+		snprintf(buf, buf_size, "nRF51xxx (HWID 0x%04" PRIx16 ") %ukB Flash",
+				chip->hwid, chip->flash_size_kb);
+	}
+	return ERROR_OK;
+}
+
+static int nrf5_read_ficr_info(struct nrf5_info *chip)
+{
+	int res;
+	struct target *target = chip->target;
+
+	chip->ficr_info_valid = false;
+
+	res = target_read_u32(target, NRF5_FICR_INFO_PART, &chip->ficr_info.part);
+	if (res != ERROR_OK) {
+		LOG_DEBUG("Couldn't read FICR INFO.PART register");
+		return res;
+	}
+
+	uint32_t series = chip->ficr_info.part & 0xfffff000;
+	if (!(series == 0x51000 || series == 0x52000)) {
+		LOG_DEBUG("FICR INFO likely not implemented. Invalid PART value 0x%08"
+				PRIx32, chip->ficr_info.part);
+		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
+	}
+
+	/* Now we know the device has FICR INFO filled by something relevant:
+	 * Although it is not documented, the tested nRF51 rev 3 devices
+	 * have FICR INFO.PART, RAM and FLASH of the same format as nRF52.
+	 * VARIANT and PACKAGE coding is unknown for a nRF51 device.
+	 * nRF52 devices have FICR INFO documented and always filled. */
+
+	res = target_read_u32(target, NRF5_FICR_INFO_VARIANT, &chip->ficr_info.variant);
+	if (res != ERROR_OK)
+		return res;
+
+	res = target_read_u32(target, NRF5_FICR_INFO_PACKAGE, &chip->ficr_info.package);
+	if (res != ERROR_OK)
+		return res;
+
+	res = target_read_u32(target, NRF5_FICR_INFO_RAM, &chip->ficr_info.ram);
+	if (res != ERROR_OK)
+		return res;
+
+	res = target_read_u32(target, NRF5_FICR_INFO_FLASH, &chip->ficr_info.flash);
+	if (res != ERROR_OK)
+		return res;
+
+	chip->ficr_info_valid = true;
+	return ERROR_OK;
+}
+
+static int nrf5_probe(struct flash_bank *bank)
+{
+	int res;
+	struct nrf5_bank *nbank = bank->driver_priv;
+	struct nrf5_info *chip = nbank->chip;
+	struct target *target = chip->target;
+
+	res = target_read_u32(target, NRF5_FICR_CONFIGID, &chip->hwid);
 	if (res != ERROR_OK) {
 		LOG_ERROR("Couldn't read CONFIGID register");
 		return res;
 	}
 
-	hwid &= 0xFFFF;	/* HWID is stored in the lower two
+	chip->hwid &= 0xFFFF;	/* HWID is stored in the lower two
 			 * bytes of the CONFIGID register */
 
-	const struct nrf5_device_spec *spec = NULL;
+	chip->spec = NULL;
 	for (size_t i = 0; i < ARRAY_SIZE(nrf5_known_devices_table); i++) {
-		if (hwid == nrf5_known_devices_table[i].hwid) {
-			spec = &nrf5_known_devices_table[i];
+		if (chip->hwid == nrf5_known_devices_table[i].hwid) {
+			chip->spec = &nrf5_known_devices_table[i];
 			break;
 		}
 	}
 
-	if (!chip->bank[0].probed && !chip->bank[1].probed) {
-		if (spec)
-			LOG_INFO("nRF%s-%s(build code: %s) %ukB Flash",
-				 spec->part, spec->variant, spec->build_code,
-				 spec->flash_size_kb);
-		else
-			LOG_WARNING("Unknown device (HWID 0x%08" PRIx32 ")", hwid);
+	/* Don't bail out on error for the case that some old engineering
+	 * sample has FICR INFO registers unreadable. We can proceed anyway. */
+	(void)nrf5_read_ficr_info(chip);
+
+	if (chip->spec && chip->ficr_info_valid) {
+		/* check if HWID table gives the same part as FICR INFO */
+		if (chip->ficr_info.part != strtoul(chip->spec->part, NULL, 16))
+			LOG_WARNING("HWID 0x%04" PRIx32 " mismatch: FICR INFO.PART %"
+						PRIx32, chip->hwid, chip->ficr_info.part);
 	}
 
+	/* The value stored in NRF5_FICR_CODEPAGESIZE is the number of bytes in one page of FLASH. */
+	uint32_t flash_page_size;
+	res = target_read_u32(chip->target, NRF5_FICR_CODEPAGESIZE,
+				&flash_page_size);
+	if (res != ERROR_OK) {
+		LOG_ERROR("Couldn't read code page size");
+		return res;
+	}
+
+	/* Note the register name is misleading,
+	 * NRF5_FICR_CODESIZE is the number of pages in flash memory, not the number of bytes! */
+	uint32_t num_sectors;
+	res = target_read_u32(chip->target, NRF5_FICR_CODESIZE, &num_sectors);
+	if (res != ERROR_OK) {
+		LOG_ERROR("Couldn't read code memory size");
+		return res;
+	}
+
+	chip->flash_size_kb = num_sectors * flash_page_size / 1024;
+
+	if (!chip->bank[0].probed && !chip->bank[1].probed) {
+		char buf[80];
+		nrf5_info(bank, buf, sizeof(buf));
+		if (!chip->spec && !chip->ficr_info_valid) {
+			LOG_INFO("Unknown device: %s", buf);
+		} else {
+			LOG_INFO("%s", buf);
+		}
+	}
+
+
 	if (bank->base == NRF5_FLASH_BASE) {
-		/* The value stored in NRF5_FICR_CODEPAGESIZE is the number of bytes in one page of FLASH. */
-		res = target_read_u32(chip->target, NRF5_FICR_CODEPAGESIZE,
-				&chip->code_page_size);
-		if (res != ERROR_OK) {
-			LOG_ERROR("Couldn't read code page size");
-			return res;
-		}
-
-		/* Note the register name is misleading,
-		 * NRF5_FICR_CODESIZE is the number of pages in flash memory, not the number of bytes! */
-		uint32_t num_sectors;
-		res = target_read_u32(chip->target, NRF5_FICR_CODESIZE, &num_sectors);
-		if (res != ERROR_OK) {
-			LOG_ERROR("Couldn't read code memory size");
-			return res;
-		}
-
 		bank->num_sectors = num_sectors;
-		bank->size = num_sectors * chip->code_page_size;
+		bank->size = num_sectors * flash_page_size;
 
-		if (spec && bank->size / 1024 != spec->flash_size_kb)
+		/* Sanity check */
+		if (chip->spec && chip->flash_size_kb != chip->spec->flash_size_kb)
 			LOG_WARNING("Chip's reported Flash capacity does not match expected one");
+		if (chip->ficr_info_valid && chip->flash_size_kb != chip->ficr_info.flash)
+			LOG_WARNING("Chip's reported Flash capacity does not match FICR INFO.FLASH");
 
 		bank->sectors = calloc(bank->num_sectors,
 				       sizeof((bank->sectors)[0]));
@@ -528,8 +680,8 @@ static int nrf5_probe(struct flash_bank *bank)
 		/* Fill out the sector information: all NRF5 sectors are the same size and
 		 * there is always a fixed number of them. */
 		for (int i = 0; i < bank->num_sectors; i++) {
-			bank->sectors[i].size = chip->code_page_size;
-			bank->sectors[i].offset	= i * chip->code_page_size;
+			bank->sectors[i].size = flash_page_size;
+			bank->sectors[i].offset	= i * flash_page_size;
 
 			/* mark as unknown */
 			bank->sectors[i].is_erased = -1;
@@ -540,7 +692,7 @@ static int nrf5_probe(struct flash_bank *bank)
 
 		chip->bank[0].probed = true;
 	} else {
-		bank->size = NRF5_UICR_SIZE;
+		bank->size = flash_page_size;
 		bank->num_sectors = 1;
 		bank->sectors = calloc(bank->num_sectors,
 				       sizeof((bank->sectors)[0]));
@@ -887,9 +1039,17 @@ COMMAND_HANDLER(nrf5_handle_mass_erase_command)
 	return ERROR_OK;
 }
 
-static int nrf5_info(struct flash_bank *bank, char *buf, int buf_size)
+COMMAND_HANDLER(nrf5_handle_info_command)
 {
 	int res;
+	struct flash_bank *bank = NULL;
+	struct target *target = get_current_target(CMD_CTX);
+
+	res = get_flash_bank_by_addr(target, NRF5_FLASH_BASE, true, &bank);
+	if (res != ERROR_OK)
+		return res;
+
+	assert(bank != NULL);
 
 	struct nrf5_info *chip;
 
@@ -960,7 +1120,7 @@ static int nrf5_info(struct flash_bank *bank, char *buf, int buf_size)
 		}
 	}
 
-	snprintf(buf, buf_size,
+	command_print(CMD,
 		 "\n[factory information control block]\n\n"
 		 "code page size: %"PRIu32"B\n"
 		 "code memory size: %"PRIu32"kB\n"
@@ -1017,6 +1177,13 @@ static const struct command_registration nrf5_exec_command_handlers[] = {
 		.handler	= nrf5_handle_mass_erase_command,
 		.mode		= COMMAND_EXEC,
 		.help		= "Erase all flash contents of the chip.",
+		.usage		= "",
+	},
+	{
+		.name		= "info",
+		.handler	= nrf5_handle_info_command,
+		.mode		= COMMAND_EXEC,
+		.help		= "Show FICR and UICR info.",
 		.usage		= "",
 	},
 	COMMAND_REGISTRATION_DONE
