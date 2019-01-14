@@ -132,13 +132,6 @@ static int hl_interface_reset(int req_trst, int req_srst)
 	return hl_if.layout->api->assert_srst(hl_if.handle, req_srst ? 0 : 1);
 }
 
-static int hl_interface_execute_queue(void)
-{
-	LOG_DEBUG("hl_interface_execute_queue: ignored");
-
-	return ERROR_OK;
-}
-
 int hl_interface_init_reset(void)
 {
 	/* in case the adapter has not already handled asserting srst
@@ -354,13 +347,11 @@ static const struct command_registration hl_interface_command_handlers[] = {
 
 struct jtag_interface hl_interface = {
 	.name = "hla",
-	.supported = 0,
 	.commands = hl_interface_command_handlers,
 	.transports = hl_transports,
 	.init = hl_interface_init,
 	.quit = hl_interface_quit,
 	.reset = hl_interface_reset,
-	.execute_queue = hl_interface_execute_queue,
 	.speed = &hl_interface_speed,
 	.khz = &hl_interface_khz,
 	.speed_div = &hl_interface_speed_div,
