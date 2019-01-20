@@ -748,46 +748,31 @@ static int nrf5_probe(struct flash_bank *bank)
 	}
 
 	if (bank->base == NRF5_FLASH_BASE) {
-		bank->num_sectors = num_sectors;
-		bank->size = num_sectors * flash_page_size;
-
 		/* Sanity check */
 		if (chip->spec && chip->flash_size_kb != chip->spec->flash_size_kb)
 			LOG_WARNING("Chip's reported Flash capacity does not match expected one");
 		if (chip->ficr_info_valid && chip->flash_size_kb != chip->ficr_info.flash)
 			LOG_WARNING("Chip's reported Flash capacity does not match FICR INFO.FLASH");
 
-		bank->sectors = calloc(bank->num_sectors,
-				       sizeof((bank->sectors)[0]));
+		bank->num_sectors = num_sectors;
+		bank->size = num_sectors * flash_page_size;
+
+		bank->sectors = alloc_block_array(0, flash_page_size, num_sectors);
 		if (!bank->sectors)
-			return ERROR_FLASH_BANK_NOT_PROBED;
-
-		/* Fill out the sector information: all NRF5 sectors are the same size and
-		 * there is always a fixed number of them. */
-		for (int i = 0; i < bank->num_sectors; i++) {
-			bank->sectors[i].size = flash_page_size;
-			bank->sectors[i].offset	= i * flash_page_size;
-
-			/* mark as unknown */
-			bank->sectors[i].is_erased = -1;
-			bank->sectors[i].is_protected = -1;
-		}
+			return ERROR_FAIL;
 
 		nrf5_protect_check(bank);
 
 		chip->bank[0].probed = true;
+
 	} else {
-		bank->size = flash_page_size;
 		bank->num_sectors = 1;
-		bank->sectors = calloc(bank->num_sectors,
-				       sizeof((bank->sectors)[0]));
+		bank->size = flash_page_size;
+
+		bank->sectors = alloc_block_array(0, flash_page_size, num_sectors);
 		if (!bank->sectors)
-			return ERROR_FLASH_BANK_NOT_PROBED;
+			return ERROR_FAIL;
 
-		bank->sectors[0].size = bank->size;
-		bank->sectors[0].offset	= 0;
-
-		bank->sectors[0].is_erased = 0;
 		bank->sectors[0].is_protected = 0;
 
 		chip->bank[1].probed = true;
