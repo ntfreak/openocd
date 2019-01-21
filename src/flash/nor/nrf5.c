@@ -157,6 +157,7 @@ struct nrf5_info {
 	uint32_t hwid;
 	enum nrf5_features features;
 	unsigned int flash_size_kb;
+	unsigned int ram_size_kb;
 };
 
 #define NRF51_DEVICE_DEF(id, pt, var, bcode, fsize) \
@@ -589,29 +590,31 @@ static int nrf5_info(struct flash_bank *bank, char *buf, int buf_size)
 {
 	struct nrf5_bank *nbank = bank->driver_priv;
 	struct nrf5_info *chip = nbank->chip;
+	int res;
 
 	if (chip->spec) {
-		snprintf(buf, buf_size,
-				"nRF%s-%s(build code: %s) %ukB Flash",
-				chip->spec->part, chip->spec->variant, chip->spec->build_code,
-				chip->flash_size_kb);
+		res = snprintf(buf, buf_size,
+				"nRF%s-%s(build code: %s)",
+				chip->spec->part, chip->spec->variant, chip->spec->build_code);
 
 	} else if (chip->ficr_info_valid) {
 		char variant[5];
 		nrf5_info_variant_to_str(chip->ficr_info.variant, variant);
-		snprintf(buf, buf_size,
-				"nRF%" PRIx32 "-%s%.2s(build code: %s) %" PRIu32
-				"kB Flash, %" PRIu32 "kB RAM",
+		res = snprintf(buf, buf_size,
+				"nRF%" PRIx32 "-%s%.2s(build code: %s)",
 				chip->ficr_info.part,
 				nrf5_decode_info_package(chip->ficr_info.package),
-				variant, &variant[2],
-				chip->flash_size_kb,
-				chip->ficr_info.ram);
+				variant, &variant[2]);
 
 	} else {
-		snprintf(buf, buf_size, "nRF51xxx (HWID 0x%04" PRIx16 ") %ukB Flash",
-				chip->hwid, chip->flash_size_kb);
+		res = snprintf(buf, buf_size, "nRF51xxx (HWID 0x%04" PRIx16 ")",
+				chip->hwid);
 	}
+	if (res <= 0)
+		return ERROR_FAIL;
+
+	snprintf(buf + res, buf_size - res, " %ukB Flash, %ukB RAM",
+				chip->flash_size_kb, chip->ram_size_kb);
 	return ERROR_OK;
 }
 
@@ -681,6 +684,39 @@ static int nrf5_read_ficr_info(struct nrf5_info *chip)
 	return ERROR_OK;
 }
 
+static int nrf5_get_ram_size(struct target *target, uint32_t *ram_size)
+{
+	int res;
+
+	*ram_size = 0;
+
+	uint32_t numramblock;
+	res = target_read_u32(target, NRF51_FICR_NUMRAMBLOCK, &numramblock);
+	if (res != ERROR_OK) {
+		LOG_DEBUG("Couldn't read FICR NUMRAMBLOCK register");
+		return res;
+	}
+
+	if (numramblock < 1 || numramblock > 4) {
+		LOG_DEBUG("FICR NUMRAMBLOCK strange value %" PRIx32, numramblock);
+		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
+	}
+
+	for (unsigned int i = 0; i < numramblock; i++) {
+		uint32_t sizeramblock;
+		res = target_read_u32(target, NRF51_FICR_SIZERAMBLOCK0 + sizeof(uint32_t)*i, &sizeramblock);
+		if (res != ERROR_OK) {
+			LOG_DEBUG("Couldn't read FICR NUMRAMBLOCK register");
+			return res;
+		}
+		if (sizeramblock < 1024 || sizeramblock > 65536)
+			LOG_DEBUG("FICR SIZERAMBLOCK strange value %" PRIx32, sizeramblock);
+		else
+			*ram_size += sizeramblock;
+	}
+	return res;
+}
+
 static int nrf5_probe(struct flash_bank *bank)
 {
 	int res;
@@ -718,6 +754,14 @@ static int nrf5_probe(struct flash_bank *bank)
 		if (chip->ficr_info.part != strtoul(chip->spec->part, NULL, 16))
 			LOG_WARNING("HWID 0x%04" PRIx32 " mismatch: FICR INFO.PART %"
 						PRIx32, chip->hwid, chip->ficr_info.part);
+	}
+
+	if (chip->ficr_info_valid) {
+		chip->ram_size_kb = chip->ficr_info.ram;
+	} else {
+		uint32_t ram_size;
+		nrf5_get_ram_size(target, &ram_size);
+		chip->ram_size_kb = ram_size / 1024;
 	}
 
 	/* The value stored in NRF5_FICR_CODEPAGESIZE is the number of bytes in one page of FLASH. */
