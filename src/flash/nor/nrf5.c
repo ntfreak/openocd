@@ -39,13 +39,15 @@ enum nrf5_ficr_registers {
 
 	NRF5_FICR_CODEPAGESIZE		= NRF5_FICR_REG(0x010),
 	NRF5_FICR_CODESIZE		= NRF5_FICR_REG(0x014),
-	NRF5_FICR_CLENR0		= NRF5_FICR_REG(0x028),
-	NRF5_FICR_PPFC			= NRF5_FICR_REG(0x02C),
-	NRF5_FICR_NUMRAMBLOCK		= NRF5_FICR_REG(0x034),
-	NRF5_FICR_SIZERAMBLOCK0	= NRF5_FICR_REG(0x038),
-	NRF5_FICR_SIZERAMBLOCK1	= NRF5_FICR_REG(0x03C),
-	NRF5_FICR_SIZERAMBLOCK2	= NRF5_FICR_REG(0x040),
-	NRF5_FICR_SIZERAMBLOCK3	= NRF5_FICR_REG(0x044),
+
+	NRF51_FICR_CLENR0		= NRF5_FICR_REG(0x028),
+	NRF51_FICR_PPFC			= NRF5_FICR_REG(0x02C),
+	NRF51_FICR_NUMRAMBLOCK		= NRF5_FICR_REG(0x034),
+	NRF51_FICR_SIZERAMBLOCK0	= NRF5_FICR_REG(0x038),
+	NRF51_FICR_SIZERAMBLOCK1	= NRF5_FICR_REG(0x03C),
+	NRF51_FICR_SIZERAMBLOCK2	= NRF5_FICR_REG(0x040),
+	NRF51_FICR_SIZERAMBLOCK3	= NRF5_FICR_REG(0x044),
+
 	NRF5_FICR_CONFIGID		= NRF5_FICR_REG(0x05C),
 	NRF5_FICR_DEVICEID0		= NRF5_FICR_REG(0x060),
 	NRF5_FICR_DEVICEID1		= NRF5_FICR_REG(0x064),
@@ -60,17 +62,18 @@ enum nrf5_ficr_registers {
 	NRF5_FICR_DEVICEADDRTYPE	= NRF5_FICR_REG(0x0A0),
 	NRF5_FICR_DEVICEADDR0		= NRF5_FICR_REG(0x0A4),
 	NRF5_FICR_DEVICEADDR1		= NRF5_FICR_REG(0x0A8),
-	NRF5_FICR_OVERRIDEN		= NRF5_FICR_REG(0x0AC),
-	NRF5_FICR_NRF_1MBIT0		= NRF5_FICR_REG(0x0B0),
-	NRF5_FICR_NRF_1MBIT1		= NRF5_FICR_REG(0x0B4),
-	NRF5_FICR_NRF_1MBIT2		= NRF5_FICR_REG(0x0B8),
-	NRF5_FICR_NRF_1MBIT3		= NRF5_FICR_REG(0x0BC),
-	NRF5_FICR_NRF_1MBIT4		= NRF5_FICR_REG(0x0C0),
-	NRF5_FICR_BLE_1MBIT0		= NRF5_FICR_REG(0x0EC),
-	NRF5_FICR_BLE_1MBIT1		= NRF5_FICR_REG(0x0F0),
-	NRF5_FICR_BLE_1MBIT2		= NRF5_FICR_REG(0x0F4),
-	NRF5_FICR_BLE_1MBIT3		= NRF5_FICR_REG(0x0F8),
-	NRF5_FICR_BLE_1MBIT4		= NRF5_FICR_REG(0x0FC),
+
+	NRF51_FICR_OVERRIDEN		= NRF5_FICR_REG(0x0AC),
+	NRF51_FICR_NRF_1MBIT0		= NRF5_FICR_REG(0x0B0),
+	NRF51_FICR_NRF_1MBIT1		= NRF5_FICR_REG(0x0B4),
+	NRF51_FICR_NRF_1MBIT2		= NRF5_FICR_REG(0x0B8),
+	NRF51_FICR_NRF_1MBIT3		= NRF5_FICR_REG(0x0BC),
+	NRF51_FICR_NRF_1MBIT4		= NRF5_FICR_REG(0x0C0),
+	NRF51_FICR_BLE_1MBIT0		= NRF5_FICR_REG(0x0EC),
+	NRF51_FICR_BLE_1MBIT1		= NRF5_FICR_REG(0x0F0),
+	NRF51_FICR_BLE_1MBIT2		= NRF5_FICR_REG(0x0F4),
+	NRF51_FICR_BLE_1MBIT3		= NRF5_FICR_REG(0x0F8),
+	NRF51_FICR_BLE_1MBIT4		= NRF5_FICR_REG(0x0FC),
 
 	/* Following registers are available on nRF52 and on nRF51 since rev 3 */
 	NRF5_FICR_INFO_PART			= NRF5_FICR_REG(0x100),
@@ -86,10 +89,10 @@ enum nrf5_uicr_registers {
 
 #define NRF5_UICR_REG(offset) (NRF5_UICR_BASE + offset)
 
-	NRF5_UICR_CLENR0	= NRF5_UICR_REG(0x000),
-	NRF5_UICR_RBPCONF	= NRF5_UICR_REG(0x004),
-	NRF5_UICR_XTALFREQ	= NRF5_UICR_REG(0x008),
-	NRF5_UICR_FWID		= NRF5_UICR_REG(0x010),
+	NRF51_UICR_CLENR0	= NRF5_UICR_REG(0x000),
+	NRF51_UICR_RBPCONF	= NRF5_UICR_REG(0x004),
+	NRF51_UICR_XTALFREQ	= NRF5_UICR_REG(0x008),
+	NRF51_UICR_FWID		= NRF5_UICR_REG(0x010),
 };
 
 enum nrf5_nvmc_registers {
@@ -479,7 +482,7 @@ static int nrf5_protect_check(struct flash_bank *bank)
 		return ERROR_FLASH_OPER_UNSUPPORTED;
 	}
 
-	res = target_read_u32(chip->target, NRF5_FICR_CLENR0,
+	res = target_read_u32(chip->target, NRF51_FICR_CLENR0,
 			      &clenr0);
 	if (res != ERROR_OK) {
 		LOG_ERROR("Couldn't read code region 0 size[FICR]");
@@ -487,7 +490,7 @@ static int nrf5_protect_check(struct flash_bank *bank)
 	}
 
 	if (clenr0 == 0xFFFFFFFF) {
-		res = target_read_u32(chip->target, NRF5_UICR_CLENR0,
+		res = target_read_u32(chip->target, NRF51_UICR_CLENR0,
 				      &clenr0);
 		if (res != ERROR_OK) {
 			LOG_ERROR("Couldn't read code region 0 size[UICR]");
@@ -526,7 +529,7 @@ static int nrf5_protect(struct flash_bank *bank, int set, int first, int last)
 		return ERROR_FAIL;
 	}
 
-	res = target_read_u32(chip->target, NRF5_FICR_PPFC,
+	res = target_read_u32(chip->target, NRF51_FICR_PPFC,
 			      &ppfc);
 	if (res != ERROR_OK) {
 		LOG_ERROR("Couldn't read PPFC register");
@@ -538,7 +541,7 @@ static int nrf5_protect(struct flash_bank *bank, int set, int first, int last)
 		return ERROR_FAIL;
 	}
 
-	res = target_read_u32(chip->target, NRF5_UICR_CLENR0,
+	res = target_read_u32(chip->target, NRF51_UICR_CLENR0,
 			      &clenr0);
 	if (res != ERROR_OK) {
 		LOG_ERROR("Couldn't read code region 0 size[UICR]");
@@ -546,7 +549,7 @@ static int nrf5_protect(struct flash_bank *bank, int set, int first, int last)
 	}
 
 	if (clenr0 == 0xFFFFFFFF) {
-		res = target_write_u32(chip->target, NRF5_UICR_CLENR0,
+		res = target_write_u32(chip->target, NRF51_UICR_CLENR0,
 				       clenr0);
 		if (res != ERROR_OK) {
 			LOG_ERROR("Couldn't write code region 0 size[UICR]");
@@ -815,7 +818,7 @@ static int nrf5_erase_page(struct flash_bank *bank,
 
 	if (bank->base == NRF5_UICR_BASE) {
 		uint32_t ppfc;
-		res = target_read_u32(chip->target, NRF5_FICR_PPFC,
+		res = target_read_u32(chip->target, NRF51_FICR_PPFC,
 				      &ppfc);
 		if (res != ERROR_OK) {
 			LOG_ERROR("Couldn't read PPFC register");
@@ -1076,7 +1079,7 @@ COMMAND_HANDLER(nrf5_handle_mass_erase_command)
 
 	uint32_t ppfc;
 
-	res = target_read_u32(target, NRF5_FICR_PPFC,
+	res = target_read_u32(target, NRF51_FICR_PPFC,
 			      &ppfc);
 	if (res != ERROR_OK) {
 		LOG_ERROR("Couldn't read PPFC register");
@@ -1133,13 +1136,13 @@ COMMAND_HANDLER(nrf5_handle_info_command)
 	} ficr[] = {
 		{ .address = NRF5_FICR_CODEPAGESIZE	},
 		{ .address = NRF5_FICR_CODESIZE	},
-		{ .address = NRF5_FICR_CLENR0		},
-		{ .address = NRF5_FICR_PPFC		},
-		{ .address = NRF5_FICR_NUMRAMBLOCK	},
-		{ .address = NRF5_FICR_SIZERAMBLOCK0	},
-		{ .address = NRF5_FICR_SIZERAMBLOCK1	},
-		{ .address = NRF5_FICR_SIZERAMBLOCK2	},
-		{ .address = NRF5_FICR_SIZERAMBLOCK3	},
+		{ .address = NRF51_FICR_CLENR0		},
+		{ .address = NRF51_FICR_PPFC		},
+		{ .address = NRF51_FICR_NUMRAMBLOCK	},
+		{ .address = NRF51_FICR_SIZERAMBLOCK0	},
+		{ .address = NRF51_FICR_SIZERAMBLOCK1	},
+		{ .address = NRF51_FICR_SIZERAMBLOCK2	},
+		{ .address = NRF51_FICR_SIZERAMBLOCK3	},
 		{ .address = NRF5_FICR_CONFIGID	},
 		{ .address = NRF5_FICR_DEVICEID0	},
 		{ .address = NRF5_FICR_DEVICEID1	},
@@ -1154,22 +1157,22 @@ COMMAND_HANDLER(nrf5_handle_info_command)
 		{ .address = NRF5_FICR_DEVICEADDRTYPE	},
 		{ .address = NRF5_FICR_DEVICEADDR0	},
 		{ .address = NRF5_FICR_DEVICEADDR1	},
-		{ .address = NRF5_FICR_OVERRIDEN	},
-		{ .address = NRF5_FICR_NRF_1MBIT0	},
-		{ .address = NRF5_FICR_NRF_1MBIT1	},
-		{ .address = NRF5_FICR_NRF_1MBIT2	},
-		{ .address = NRF5_FICR_NRF_1MBIT3	},
-		{ .address = NRF5_FICR_NRF_1MBIT4	},
-		{ .address = NRF5_FICR_BLE_1MBIT0	},
-		{ .address = NRF5_FICR_BLE_1MBIT1	},
-		{ .address = NRF5_FICR_BLE_1MBIT2	},
-		{ .address = NRF5_FICR_BLE_1MBIT3	},
-		{ .address = NRF5_FICR_BLE_1MBIT4	},
+		{ .address = NRF51_FICR_OVERRIDEN	},
+		{ .address = NRF51_FICR_NRF_1MBIT0	},
+		{ .address = NRF51_FICR_NRF_1MBIT1	},
+		{ .address = NRF51_FICR_NRF_1MBIT2	},
+		{ .address = NRF51_FICR_NRF_1MBIT3	},
+		{ .address = NRF51_FICR_NRF_1MBIT4	},
+		{ .address = NRF51_FICR_BLE_1MBIT0	},
+		{ .address = NRF51_FICR_BLE_1MBIT1	},
+		{ .address = NRF51_FICR_BLE_1MBIT2	},
+		{ .address = NRF51_FICR_BLE_1MBIT3	},
+		{ .address = NRF51_FICR_BLE_1MBIT4	},
 	}, uicr[] = {
-		{ .address = NRF5_UICR_CLENR0,		},
-		{ .address = NRF5_UICR_RBPCONF		},
-		{ .address = NRF5_UICR_XTALFREQ	},
-		{ .address = NRF5_UICR_FWID		},
+		{ .address = NRF51_UICR_CLENR0,		},
+		{ .address = NRF51_UICR_RBPCONF		},
+		{ .address = NRF51_UICR_XTALFREQ	},
+		{ .address = NRF51_UICR_FWID		},
 	};
 
 	for (size_t i = 0; i < ARRAY_SIZE(ficr); i++) {
