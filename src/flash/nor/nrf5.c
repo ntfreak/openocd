@@ -817,23 +817,25 @@ static int nrf5_erase_page(struct flash_bank *bank,
 	}
 
 	if (bank->base == NRF5_UICR_BASE) {
-		uint32_t ppfc;
-		res = target_read_u32(chip->target, NRF51_FICR_PPFC,
+		if (chip->features & NRF5_FEATURE_SERIES_51) {
+			uint32_t ppfc;
+			res = target_read_u32(chip->target, NRF51_FICR_PPFC,
 				      &ppfc);
-		if (res != ERROR_OK) {
-			LOG_ERROR("Couldn't read PPFC register");
-			return res;
-		}
+			if (res != ERROR_OK) {
+				LOG_ERROR("Couldn't read PPFC register");
+				return res;
+			}
 
-		if ((ppfc & 0xFF) == 0xFF) {
-			/* We can't erase the UICR.  Double-check to
-			   see if it's already erased before complaining. */
-			default_flash_blank_check(bank);
-			if (sector->is_erased == 1)
-				return ERROR_OK;
+			if ((ppfc & 0xFF) == 0xFF) {
+				/* We can't erase the UICR.  Double-check to
+				   see if it's already erased before complaining. */
+				default_flash_blank_check(bank);
+				if (sector->is_erased == 1)
+					return ERROR_OK;
 
-			LOG_ERROR("The chip was not pre-programmed with SoftDevice stack and UICR cannot be erased separately. Please issue mass erase before trying to write to this region");
-			return ERROR_FAIL;
+				LOG_ERROR("The chip was not pre-programmed with SoftDevice stack and UICR cannot be erased separately. Please issue mass erase before trying to write to this region");
+				return ERROR_FAIL;
+			}
 		}
 
 		res = nrf5_nvmc_generic_erase(chip,
@@ -1077,19 +1079,20 @@ COMMAND_HANDLER(nrf5_handle_mass_erase_command)
 	if (res != ERROR_OK)
 		return res;
 
-	uint32_t ppfc;
-
-	res = target_read_u32(target, NRF51_FICR_PPFC,
+	if (chip->features & NRF5_FEATURE_SERIES_51) {
+		uint32_t ppfc;
+		res = target_read_u32(target, NRF51_FICR_PPFC,
 			      &ppfc);
-	if (res != ERROR_OK) {
-		LOG_ERROR("Couldn't read PPFC register");
-		return res;
-	}
+		if (res != ERROR_OK) {
+			LOG_ERROR("Couldn't read PPFC register");
+			return res;
+		}
 
-	if ((ppfc & 0xFF) == 0x00) {
-		LOG_ERROR("Code region 0 size was pre-programmed at the factory, "
-			  "mass erase command won't work.");
-		return ERROR_FAIL;
+		if ((ppfc & 0xFF) == 0x00) {
+			LOG_ERROR("Code region 0 size was pre-programmed at the factory, "
+				  "mass erase command won't work.");
+			return ERROR_FAIL;
+		}
 	}
 
 	res = nrf5_erase_all(chip);
