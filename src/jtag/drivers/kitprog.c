@@ -844,35 +844,6 @@ static int kitprog_reset(int trst, int srst)
 	return retval;
 }
 
-static void kitprog_execute_sleep(struct jtag_command *cmd)
-{
-	jtag_sleep(cmd->cmd.sleep->us);
-}
-
-static void kitprog_execute_command(struct jtag_command *cmd)
-{
-	switch (cmd->type) {
-		case JTAG_SLEEP:
-			kitprog_execute_sleep(cmd);
-			break;
-		default:
-			LOG_ERROR("BUG: unknown JTAG command type encountered");
-			exit(-1);
-	}
-}
-
-static int kitprog_execute_queue(void)
-{
-	struct jtag_command *cmd = jtag_command_queue;
-
-	while (cmd != NULL) {
-		kitprog_execute_command(cmd);
-		cmd = cmd->next;
-	}
-
-	return ERROR_OK;
-}
-
 COMMAND_HANDLER(kitprog_handle_info_command)
 {
 	int retval = kitprog_get_info();
@@ -969,7 +940,6 @@ struct jtag_interface kitprog_interface = {
 	.commands = kitprog_command_handlers,
 	.transports = kitprog_transports,
 	.swd = &kitprog_swd,
-	.execute_queue = kitprog_execute_queue,
 	.init = kitprog_init,
 	.quit = kitprog_quit,
 	.reset = kitprog_reset,
