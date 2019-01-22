@@ -914,17 +914,21 @@ static int syncbb_execute_queue(void)
 	return retval;
 }
 
-struct jtag_interface ft232r_interface = {
-	.name = "ft232r",
-	.commands = ft232r_command_handlers,
-	.transports = jtag_only,
+static struct jtag_interface ft232r_interface = {
 	.supported = DEBUG_CAP_TMS_SEQ,
-
 	.execute_queue = syncbb_execute_queue,
+};
 
-	.speed = ft232r_speed,
+struct adapter_driver ft232r_adapter_driver = {
+	.name = "ft232r",
+	.transports = jtag_only,
+	.commands = ft232r_command_handlers,
+
 	.init = ft232r_init,
 	.quit = ft232r_quit,
-	.speed_div = ft232r_speed_div,
+	.speed = ft232r_speed,
 	.khz = ft232r_khz,
+	.speed_div = ft232r_speed_div,
+
+	.jtag_ops = &ft232r_interface,
 };

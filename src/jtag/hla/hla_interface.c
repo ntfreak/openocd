@@ -346,10 +346,11 @@ static const struct command_registration hl_interface_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-struct jtag_interface hl_interface = {
+struct adapter_driver hl_adapter_driver = {
 	.name = "hla",
-	.commands = hl_interface_command_handlers,
 	.transports = hl_transports,
+	.commands = hl_interface_command_handlers,
+
 	.init = hl_interface_init,
 	.quit = hl_interface_quit,
 	.reset = hl_interface_reset,
@@ -358,4 +359,6 @@ struct jtag_interface hl_interface = {
 	.speed_div = &hl_interface_speed_div,
 	.config_trace = &hl_interface_config_trace,
 	.poll_trace = &hl_interface_poll_trace,
+
+	/* no ops for HLA, targets hla_target and stm8 intercept them all */
 };

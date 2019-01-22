@@ -596,11 +596,16 @@ static void usbprog_jtag_tms_send(struct usbprog_jtag *usbprog_jtag)
 	}
 }
 
-struct jtag_interface usbprog_interface = {
+static struct jtag_interface usbprog_interface = {
+	.execute_queue = usbprog_execute_queue,
+};
+
+struct adapter_driver usbprog_adapter_driver = {
 	.name = "usbprog",
 	.transports = jtag_only,
 
-	.execute_queue = usbprog_execute_queue,
 	.init = usbprog_init,
-	.quit = usbprog_quit
+	.quit = usbprog_quit,
+
+	.jtag_ops = &usbprog_interface,
 };

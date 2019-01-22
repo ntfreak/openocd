@@ -2267,18 +2267,24 @@ static const struct swd_driver jlink_swd = {
 
 static const char * const jlink_transports[] = { "jtag", "swd", NULL };
 
-struct jtag_interface jlink_interface = {
-	.name = "jlink",
-	.commands = jlink_command_handlers,
-	.transports = jlink_transports,
-	.swd = &jlink_swd,
+static struct jtag_interface jlink_interface = {
 	.execute_queue = &jlink_execute_queue,
-	.speed = &jlink_speed,
-	.speed_div = &jlink_speed_div,
-	.khz = &jlink_khz,
+};
+
+struct adapter_driver jlink_adapter_driver = {
+	.name = "jlink",
+	.transports = jlink_transports,
+	.commands = jlink_command_handlers,
+
 	.init = &jlink_init,
 	.quit = &jlink_quit,
 	.reset = &jlink_reset_safe,
+	.speed = &jlink_speed,
+	.khz = &jlink_khz,
+	.speed_div = &jlink_speed_div,
 	.config_trace = &config_trace,
 	.poll_trace = &poll_trace,
+
+	.jtag_ops = &jlink_interface,
+	.swd_ops = &jlink_swd,
 };

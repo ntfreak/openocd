@@ -551,16 +551,22 @@ static int sysfsgpio_quit(void);
 
 static const char * const sysfsgpio_transports[] = { "jtag", "swd", NULL };
 
-struct jtag_interface sysfsgpio_interface = {
-	.name = "sysfsgpio",
+static struct jtag_interface sysfsgpio_interface = {
 	.supported = DEBUG_CAP_TMS_SEQ,
 	.execute_queue = bitbang_execute_queue,
+};
+
+struct adapter_driver sysfsgpio_adapter_driver = {
+	.name = "sysfsgpio",
 	.transports = sysfsgpio_transports,
-	.swd = &bitbang_swd,
 	.commands = sysfsgpio_command_handlers,
+
 	.init = sysfsgpio_init,
 	.quit = sysfsgpio_quit,
 	.reset = sysfsgpio_reset,
+
+	.jtag_ops = &sysfsgpio_interface,
+	.swd_ops = &bitbang_swd,
 };
 
 static struct bitbang_interface sysfsgpio_bitbang = {

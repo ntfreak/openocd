@@ -50,16 +50,20 @@ static int ep93xx_quit(void);
 
 struct timespec ep93xx_zzzz;
 
-struct jtag_interface ep93xx_interface = {
-	.name = "ep93xx",
-
+static struct jtag_interface ep93xx_interface = {
 	.supported = DEBUG_CAP_TMS_SEQ,
 	.execute_queue = bitbang_execute_queue,
+};
+
+struct adapter_driver ep93xx_adapter_driver = {
+	.name = "ep93xx",
 	.transports = jtag_only,
 
 	.init = ep93xx_init,
 	.quit = ep93xx_quit,
 	.reset = ep93xx_reset,
+
+	.jtag_ops = &ep93xx_interface,
 };
 
 static struct bitbang_interface ep93xx_bitbang = {

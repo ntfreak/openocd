@@ -1237,17 +1237,23 @@ int zy1000_init(void)
 	return ERROR_OK;
 }
 
-struct jtag_interface zy1000_interface = {
-	.name = "ZY1000",
+static struct jtag_interface zy1000_interface = {
 	.supported = DEBUG_CAP_TMS_SEQ,
 	.execute_queue = NULL,
-	.speed = zy1000_speed,
+};
+
+struct adapter_driver zy1000_adapter_driver = {
+	.name = "ZY1000",
 	.transports = jtag_only,
 	.commands = zy1000_commands,
+
 	.init = zy1000_init,
 	.quit = zy1000_quit,
+	.speed = zy1000_speed,
 	.khz = zy1000_khz,
 	.speed_div = zy1000_speed_div,
 	.power_dropout = zy1000_power_dropout,
 	.srst_asserted = zy1000_srst_asserted,
+
+	.jtag_ops = &zy1000_interface,
 };

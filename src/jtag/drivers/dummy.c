@@ -144,20 +144,22 @@ static const struct command_registration dummy_command_handlers[] = {
 /* The dummy driver is used to easily check the code path
  * where the target is unresponsive.
  */
-struct jtag_interface dummy_interface = {
-		.name = "dummy",
+static struct jtag_interface dummy_interface = {
+	.supported = DEBUG_CAP_TMS_SEQ,
+	.execute_queue = &bitbang_execute_queue,
+};
 
-		.supported = DEBUG_CAP_TMS_SEQ,
-		.commands = dummy_command_handlers,
-		.transports = jtag_only,
+struct adapter_driver dummy_adapter_driver = {
+	.name = "dummy",
+	.transports = jtag_only,
+	.commands = dummy_command_handlers,
 
-		.execute_queue = &bitbang_execute_queue,
+	.init = &dummy_init,
+	.quit = &dummy_quit,
+	.reset = &dummy_reset,
+	.speed = &dummy_speed,
+	.khz = &dummy_khz,
+	.speed_div = &dummy_speed_div,
 
-		.speed = &dummy_speed,
-		.khz = &dummy_khz,
-		.speed_div = &dummy_speed_div,
-
-		.init = &dummy_init,
-		.quit = &dummy_quit,
-		.reset = &dummy_reset,
-	};
+	.jtag_ops = &dummy_interface,
+};

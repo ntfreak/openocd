@@ -536,15 +536,21 @@ static const struct swd_driver buspirate_swd = {
 
 static const char * const buspirate_transports[] = { "jtag", "swd", NULL };
 
-struct jtag_interface buspirate_interface = {
-	.name = "buspirate",
+static struct jtag_interface buspirate_interface = {
 	.execute_queue = buspirate_execute_queue,
-	.commands = buspirate_command_handlers,
+};
+
+struct adapter_driver buspirate_adapter_driver = {
+	.name = "buspirate",
 	.transports = buspirate_transports,
-	.swd = &buspirate_swd,
+	.commands = buspirate_command_handlers,
+
 	.init = buspirate_init,
 	.quit = buspirate_quit,
 	.reset = buspirate_reset,
+
+	.jtag_ops = &buspirate_interface,
+	.swd_ops = &buspirate_swd,
 };
 
 /*************** jtag execute commands **********************/

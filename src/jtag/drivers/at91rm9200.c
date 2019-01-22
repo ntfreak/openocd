@@ -187,14 +187,20 @@ static const struct command_registration at91rm9200_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-struct jtag_interface at91rm9200_interface = {
-	.name = "at91rm9200",
+static struct jtag_interface at91rm9200_interface = {
 	.execute_queue = bitbang_execute_queue,
+};
+
+struct adapter_driver at91rm9200_adapter_driver = {
+	.name = "at91rm9200",
 	.transports = jtag_only,
 	.commands = at91rm9200_command_handlers,
+
 	.init = at91rm9200_init,
 	.quit = at91rm9200_quit,
 	.reset = at91rm9200_reset,
+
+	.jtag_ops = &at91rm9200_interface,
 };
 
 static int at91rm9200_init(void)

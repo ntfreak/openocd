@@ -234,13 +234,19 @@ static const struct command_registration opendous_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-struct jtag_interface opendous_interface = {
+static struct jtag_interface opendous_interface = {
+	.execute_queue = opendous_execute_queue,
+};
+
+struct adapter_driver opendous_adapter_driver = {
 	.name = "opendous",
 	.transports = jtag_only,
 	.commands = opendous_command_handlers,
-	.execute_queue = opendous_execute_queue,
+
 	.init = opendous_init,
 	.quit = opendous_quit,
+
+	.jtag_ops = &opendous_interface,
 };
 
 static int opendous_execute_queue(void)

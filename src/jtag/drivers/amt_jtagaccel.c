@@ -584,7 +584,11 @@ static const struct command_registration amtjtagaccel_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-struct jtag_interface amt_jtagaccel_interface = {
+static struct jtag_interface amt_jtagaccel_interface = {
+	.execute_queue = amt_jtagaccel_execute_queue,
+};
+
+struct adapter_driver amt_jtagaccel_adapter_driver = {
 	.name = "amt_jtagaccel",
 	.transports = jtag_only,
 	.commands = amtjtagaccel_command_handlers,
@@ -592,5 +596,6 @@ struct jtag_interface amt_jtagaccel_interface = {
 	.init = amt_jtagaccel_init,
 	.quit = amt_jtagaccel_quit,
 	.speed = amt_jtagaccel_speed,
-	.execute_queue = amt_jtagaccel_execute_queue,
+
+	.jtag_ops = &amt_jtagaccel_interface,
 };

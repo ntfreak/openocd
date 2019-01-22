@@ -368,9 +368,9 @@ static const struct command_registration swd_handlers[] = {
 
 static int swd_select(struct command_context *ctx)
 {
-	/* FIXME: only place where global 'jtag_interface' is still needed */
-	extern struct jtag_interface *jtag_interface;
-	const struct swd_driver *swd = jtag_interface->swd;
+	/* FIXME: only place where global 'adapter_driver' is still needed */
+	extern struct adapter_driver *adapter_driver;
+	const struct swd_driver *swd = adapter_driver->swd_ops;
 	int retval;
 
 	retval = register_commands(ctx, NULL, swd_handlers);

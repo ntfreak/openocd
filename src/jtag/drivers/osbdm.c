@@ -688,12 +688,16 @@ static int osbdm_init(void)
 	return ERROR_OK;
 }
 
-struct jtag_interface osbdm_interface = {
-	.name = "osbdm",
-
-	.transports = jtag_only,
+static struct jtag_interface osbdm_interface = {
 	.execute_queue = osbdm_execute_queue,
+};
+
+struct adapter_driver osbdm_adapter_driver = {
+	.name = "osbdm",
+	.transports = jtag_only,
 
 	.init = osbdm_init,
-	.quit = osbdm_quit
+	.quit = osbdm_quit,
+
+	.jtag_ops = &osbdm_interface,
 };

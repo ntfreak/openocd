@@ -427,19 +427,25 @@ static const struct command_registration imx_gpio_command_handlers[] = {
 
 static const char * const imx_gpio_transports[] = { "jtag", "swd", NULL };
 
-struct jtag_interface imx_gpio_interface = {
-	.name = "imx_gpio",
+static struct jtag_interface imx_gpio_interface = {
 	.supported = DEBUG_CAP_TMS_SEQ,
 	.execute_queue = bitbang_execute_queue,
+};
+
+struct adapter_driver imx_gpio_adapter_driver = {
+	.name = "imx_gpio",
 	.transports = imx_gpio_transports,
-	.swd = &bitbang_swd,
-	.speed = imx_gpio_speed,
-	.khz = imx_gpio_khz,
-	.speed_div = imx_gpio_speed_div,
 	.commands = imx_gpio_command_handlers,
+
 	.init = imx_gpio_init,
 	.quit = imx_gpio_quit,
 	.reset = imx_gpio_reset,
+	.speed = imx_gpio_speed,
+	.khz = imx_gpio_khz,
+	.speed_div = imx_gpio_speed_div,
+
+	.jtag_ops = &imx_gpio_interface,
+	.swd_ops = &bitbang_swd,
 };
 
 static bool imx_gpio_jtag_mode_possible(void)

@@ -235,7 +235,7 @@ int ulink_queue_stableclocks(struct ulink *device, struct jtag_command *cmd);
 int ulink_post_process_scan(struct ulink_cmd *ulink_cmd);
 int ulink_post_process_queue(struct ulink *device);
 
-/* JTAG driver functions (registered in struct jtag_interface) */
+/* adapter driver functions */
 static int ulink_execute_queue(void);
 static int ulink_khz(int khz, int *jtag_speed);
 static int ulink_speed(int speed);
@@ -2272,17 +2272,20 @@ static const struct command_registration ulink_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE,
 };
 
-struct jtag_interface ulink_interface = {
-	.name = "ulink",
-
-	.commands = ulink_command_handlers,
-	.transports = jtag_only,
-
+static struct jtag_interface ulink_interface = {
 	.execute_queue = ulink_execute_queue,
-	.khz = ulink_khz,
-	.speed = ulink_speed,
-	.speed_div = ulink_speed_div,
+};
+
+struct adapter_driver ulink_adapter_driver = {
+	.name = "ulink",
+	.transports = jtag_only,
+	.commands = ulink_command_handlers,
 
 	.init = ulink_init,
-	.quit = ulink_quit
+	.quit = ulink_quit,
+	.speed = ulink_speed,
+	.khz = ulink_khz,
+	.speed_div = ulink_speed_div,
+
+	.jtag_ops = &ulink_interface,
 };

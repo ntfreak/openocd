@@ -518,14 +518,20 @@ static const struct command_registration aice_command_handlers[] = {
 /***************************************************************************/
 /* End of Command handlers */
 
-struct jtag_interface aice_interface = {
+static struct jtag_interface aice_interface = {
+	.execute_queue = aice_execute_queue,
+};
+
+struct adapter_driver aice_adapter_driver = {
 	.name = "aice",
-	.commands = aice_command_handlers,
 	.transports = aice_transports,
+	.commands = aice_command_handlers,
+
 	.init = aice_init,
 	.quit = aice_quit,
-	.execute_queue = aice_execute_queue,
 	.speed = aice_speed,		/* set interface speed */
-	.speed_div = aice_speed_div,	/* return readable value */
 	.khz = aice_khz,		/* convert khz to interface speed value */
+	.speed_div = aice_speed_div,	/* return readable value */
+
+	.jtag_ops = &aice_interface,
 };

@@ -192,32 +192,34 @@ static inline tap_state_t jtag_debug_state_machine(const void *tms_buf,
  * debugging interface.
  */
 struct jtag_interface {
-	/** The name of the JTAG interface driver. */
-	const char * const name;
-
 	/**
 	 * Bit vector listing capabilities exposed by this driver.
 	 */
 	unsigned supported;
 #define DEBUG_CAP_TMS_SEQ	(1 << 0)
 
-	/** transports supported in C code (NULL terminated vector) */
-	const char * const *transports;
-
-	const struct swd_driver *swd;
-
 	/**
 	 * Execute queued commands.
 	 * @returns ERROR_OK on success, or an error code on failure.
 	 */
 	int (*execute_queue)(void);
+};
 
-	/**
-	 * Set the interface speed.
-	 * @param speed The new interface speed setting.
-	 * @returns ERROR_OK on success, or an error code on failure.
-	 */
-	int (*speed)(int speed);
+/**
+ * Represents a driver for a debugging interface
+ *
+ * @todo We need a per-instance structure too, and changes to pass
+ * that structure to the driver.  Instances can for example be in
+ * either SWD or JTAG modes.  This will help remove globals, and
+ * eventually to cope with systems which have more than one such
+ * debugging interface.
+ */
+struct adapter_driver {
+	/** The name of the interface driver. */
+	const char * const name;
+
+	/** transports supported in C code (NULL terminated vector) */
+	const char * const *transports;
 
 	/**
 	 * The interface driver may register additional commands to expose
@@ -259,6 +261,13 @@ struct jtag_interface {
 	 * @returns ERROR_OK on success, or an error code on failure.
 	 */
 	int (*reset)(int srst, int trst);
+
+	/**
+	 * Set the interface speed.
+	 * @param speed The new interface speed setting.
+	 * @returns ERROR_OK on success, or an error code on failure.
+	 */
+	int (*speed)(int speed);
 
 	/**
 	 * Returns JTAG maxium speed for KHz. 0 = RTCK. The function returns
@@ -336,6 +345,12 @@ struct jtag_interface {
 	 * @returns ERROR_OK on success, an error code on failure.
 	 */
 	int (*poll_trace)(uint8_t *buf, size_t *size);
+
+	/** Low-level JTAG APIs */
+	struct jtag_interface *jtag_ops;
+
+	/** Low-level SWD APIs */
+	const struct swd_driver *swd_ops;
 };
 
 extern const char * const jtag_only[];
