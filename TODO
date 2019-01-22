@@ -37,11 +37,34 @@ This section provides possible things to improve with OpenOCD's TCL support.
     - See src/jtag/core.c and src/jtag/tcl.c for an example.
     - allow some of these TCL command modules to be dynamically loadable?
 
-@section thelistjtag JTAG
+@section thelistadapter Adapter
 
-This section list issues that need to be resolved in the JTAG layer.
+This section list issues that need to be resolved in the Adapter layer.
 
-@subsection thelistjtagcore JTAG Core
+@subsection thelistadapterrework Code restructuring
+
+This section lists pending reworks to complete the restructure from the
+old JTAG centric implementation to a generic Adapter layer.
+This restructuring is very invasive and will prevent the merge of several
+changes pending in gerrit.
+
+- rename folder src/jtag/ to src/adapter/
+- rename var "jtag" to "adapter" in src/jtag/core.c
+- split content of src/adapter/ in the different protocols jtag.[ch],
+  swd.[ch], ...
+- wrap the calls to adapter->transport_ops->api() with transport_api()
+  and reduce the visibility of global var "adapter"
+- complete the migration of JTAG-only drivers to adapter->reset()
+- try to remove JTAG_SLEEP also from JTAG mode?
+- tap_set_state(TAP_RESET) is already done in src/jtag/core.c. No need
+  to replicate it in the drivers, apart in case the driver sets TRST
+  independently
+- separate SWIM from HLA and make it independent
+- add .hla_ops and .swim_ops to "adapter"
+- HLA is a API level (.hla_ops). Transport should simply be {jtag,swd},
+  not {hla_jtag,hla_swd}.
+
+@subsection thelistadapterjtagcore JTAG Core
 
 The following tasks have been suggested for cleaning up the JTAG layer:
 
@@ -63,9 +86,9 @@ The following tasks have been suggested for adding new core JTAG support:
   - (ab)use bit-banging JTAG interfaces to emulate SPI/UART
   - allow SPI to program flash, MCUs, etc.
 
-@subsection thelistjtaginterfaces JTAG Interfaces
+@subsection thelistadapterinterfaces Interface drivers
 
-There are some known bugs to fix in JTAG adapter drivers:
+There are some known bugs to fix in Interface drivers:
 
 - For JTAG_STATEMOVE to TAP_RESET, all drivers must ignore the current
   recorded state.  The tap_get_state() call won't necessarily return
@@ -106,10 +129,6 @@ is an OpenOCD which is built with a TCP/IP minidriver. The use
 of a minidriver is required to capture all the jtag_add_xxx()
 fn's at a high enough level and repackage these cmd's as
 TCP/IP packets handled by the server.
-
-@section thelistswd Serial Wire Debug
-
-- implement Serial Wire Debug interface
 
 @section thelistbs Boundary Scan Support
 
