@@ -36,9 +36,9 @@
 
 #include <jtag/interface.h>
 
-/** Dynamically load all JTAG interface modules from specified directory. */
-void jtag_interface_modules_load(const char *path);
+/** Dynamically load all adapter driver modules from specified directory. */
+void adapter_driver_modules_load(const char *path);
 
-extern struct jtag_interface *jtag_interfaces[];
+extern struct adapter_driver *adapter_drivers[];
 
 #endif /* OPENOCD_JTAG_INTERFACES_H */

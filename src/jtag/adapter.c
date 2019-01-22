@@ -46,7 +46,7 @@
  * Holds support for configuring debug adapters from TCl scripts.
  */
 
-extern struct jtag_interface *jtag_interface;
+struct adapter_driver *adapter_driver;
 const char * const jtag_only[] = { "jtag", NULL };
 
 static int jim_adapter_name(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
@@ -61,7 +61,7 @@ static int jim_adapter_name(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 		Jim_WrongNumArgs(goi.interp, 1, goi.argv-1, "(no params)");
 		return JIM_ERR;
 	}
-	const char *name = jtag_interface ? jtag_interface->name : NULL;
+	const char *name = adapter_driver ? adapter_driver->name : NULL;
 	Jim_SetResultString(goi.interp, name ? : "undefined", -1);
 	return JIM_OK;
 }
@@ -91,8 +91,8 @@ COMMAND_HANDLER(handle_interface_list_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	command_print(CMD, "The following debug interfaces are available:");
-	for (unsigned i = 0; NULL != jtag_interfaces[i]; i++) {
-		const char *name = jtag_interfaces[i]->name;
+	for (unsigned i = 0; NULL != adapter_drivers[i]; i++) {
+		const char *name = adapter_drivers[i]->name;
 		command_print(CMD, "%u: %s", i + 1, name);
 	}
 
@@ -104,7 +104,7 @@ COMMAND_HANDLER(handle_interface_command)
 	int retval;
 
 	/* check whether the interface is already configured */
-	if (jtag_interface) {
+	if (adapter_driver) {
 		LOG_WARNING("Interface already configured, ignoring");
 		return ERROR_OK;
 	}
@@ -113,20 +113,20 @@ COMMAND_HANDLER(handle_interface_command)
 	if (CMD_ARGC != 1 || CMD_ARGV[0][0] == '\0')
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
-	for (unsigned i = 0; NULL != jtag_interfaces[i]; i++) {
-		if (strcmp(CMD_ARGV[0], jtag_interfaces[i]->name) != 0)
+	for (unsigned i = 0; NULL != adapter_drivers[i]; i++) {
+		if (strcmp(CMD_ARGV[0], adapter_drivers[i]->name) != 0)
 			continue;
 
-		if (NULL != jtag_interfaces[i]->commands) {
+		if (NULL != adapter_drivers[i]->commands) {
 			retval = register_commands(CMD_CTX, NULL,
-					jtag_interfaces[i]->commands);
+					adapter_drivers[i]->commands);
 			if (ERROR_OK != retval)
 				return retval;
 		}
 
-		jtag_interface = jtag_interfaces[i];
+		adapter_driver = adapter_drivers[i];
 
-		return allow_transports(CMD_CTX, jtag_interface->transports);
+		return allow_transports(CMD_CTX, adapter_driver->transports);
 	}
 
 	/* no valid interface was found (i.e. the configuration option,

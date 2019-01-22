@@ -935,12 +935,14 @@ static const struct swd_driver kitprog_swd = {
 
 static const char * const kitprog_transports[] = { "swd", NULL };
 
-struct jtag_interface kitprog_interface = {
+struct adapter_driver kitprog_adapter_driver = {
 	.name = "kitprog",
-	.commands = kitprog_command_handlers,
 	.transports = kitprog_transports,
-	.swd = &kitprog_swd,
+	.commands = kitprog_command_handlers,
+
 	.init = kitprog_init,
 	.quit = kitprog_quit,
 	.reset = kitprog_reset,
+
+	.swd_ops = &kitprog_swd,
 };

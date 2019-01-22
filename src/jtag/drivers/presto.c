@@ -561,15 +561,20 @@ static int presto_jtag_quit(void)
 	return ERROR_OK;
 }
 
-struct jtag_interface presto_interface = {
+static struct jtag_interface presto_interface = {
+	.execute_queue = bitq_execute_queue,
+};
+
+struct adapter_driver presto_adapter_driver = {
 	.name = "presto",
 	.transports = jtag_only,
 	.commands = presto_command_handlers,
 
-	.execute_queue = bitq_execute_queue,
+	.init = presto_jtag_init,
+	.quit = presto_jtag_quit,
 	.speed = presto_jtag_speed,
 	.khz = presto_adapter_khz,
 	.speed_div = presto_jtag_speed_div,
-	.init = presto_jtag_init,
-	.quit = presto_jtag_quit,
+
+	.jtag_ops = &presto_interface,
 };

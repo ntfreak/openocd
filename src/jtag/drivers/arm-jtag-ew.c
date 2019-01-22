@@ -495,16 +495,22 @@ static const struct command_registration armjtagew_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-struct jtag_interface armjtagew_interface = {
-	.name = "arm-jtag-ew",
-	.commands = armjtagew_command_handlers,
-	.transports = jtag_only,
+static struct jtag_interface armjtagew_interface = {
 	.execute_queue = armjtagew_execute_queue,
-	.speed = armjtagew_speed,
-	.speed_div = armjtagew_speed_div,
-	.khz = armjtagew_khz,
+};
+
+struct adapter_driver armjtagew_adapter_driver = {
+	.name = "arm-jtag-ew",
+	.transports = jtag_only,
+	.commands = armjtagew_command_handlers,
+
 	.init = armjtagew_init,
 	.quit = armjtagew_quit,
+	.speed = armjtagew_speed,
+	.khz = armjtagew_khz,
+	.speed_div = armjtagew_speed_div,
+
+	.jtag_ops = &armjtagew_interface,
 };
 
 /**************************************************************************

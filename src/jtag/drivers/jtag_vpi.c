@@ -484,13 +484,18 @@ static const struct command_registration jtag_vpi_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-struct jtag_interface jtag_vpi_interface = {
-	.name = "jtag_vpi",
+static struct jtag_interface jtag_vpi_interface = {
 	.supported = DEBUG_CAP_TMS_SEQ,
-	.commands = jtag_vpi_command_handlers,
+	.execute_queue = jtag_vpi_execute_queue,
+};
+
+struct adapter_driver jtag_vpi_adapter_driver = {
+	.name = "jtag_vpi",
 	.transports = jtag_only,
+	.commands = jtag_vpi_command_handlers,
 
 	.init = jtag_vpi_init,
 	.quit = jtag_vpi_quit,
-	.execute_queue = jtag_vpi_execute_queue,
+
+	.jtag_ops = &jtag_vpi_interface,
 };

@@ -948,18 +948,23 @@ static const struct swd_driver vsllink_swd_driver = {
 	.run = vsllink_swd_run_queue,
 };
 
-struct jtag_interface vsllink_interface = {
-	.name = "vsllink",
+static struct jtag_interface vsllink_interface = {
 	.supported = DEBUG_CAP_TMS_SEQ,
-	.commands = vsllink_command_handlers,
+	.execute_queue = vsllink_execute_queue,
+};
+
+struct adapter_driver vsllink_adapter_driver = {
+	.name = "vsllink",
 	.transports = vsllink_transports,
-	.swd = &vsllink_swd_driver,
+	.commands = vsllink_command_handlers,
 
 	.init = vsllink_init,
 	.quit = vsllink_quit,
 	.reset = vsllink_reset,
-	.khz = vsllink_khz,
 	.speed = vsllink_speed,
+	.khz = vsllink_khz,
 	.speed_div = vsllink_speed_div,
-	.execute_queue = vsllink_execute_queue,
+
+	.jtag_ops = &vsllink_interface,
+	.swd_ops = &vsllink_swd_driver,
 };

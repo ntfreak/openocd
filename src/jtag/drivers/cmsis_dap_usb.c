@@ -1786,18 +1786,23 @@ static const struct swd_driver cmsis_dap_swd_driver = {
 
 static const char * const cmsis_dap_transport[] = { "swd", "jtag", NULL };
 
-struct jtag_interface cmsis_dap_interface = {
-	.name = "cmsis-dap",
+static struct jtag_interface cmsis_dap_interface = {
 	.supported = DEBUG_CAP_TMS_SEQ,
-	.commands = cmsis_dap_command_handlers,
-	.swd = &cmsis_dap_swd_driver,
-	.transports = cmsis_dap_transport,
-
 	.execute_queue = cmsis_dap_execute_queue,
-	.speed = cmsis_dap_speed,
-	.speed_div = cmsis_dap_speed_div,
-	.khz = cmsis_dap_khz,
+};
+
+struct adapter_driver cmsis_dap_adapter_driver = {
+	.name = "cmsis-dap",
+	.transports = cmsis_dap_transport,
+	.commands = cmsis_dap_command_handlers,
+
 	.init = cmsis_dap_init,
 	.quit = cmsis_dap_quit,
 	.reset = cmsis_dap_reset,
+	.speed = cmsis_dap_speed,
+	.khz = cmsis_dap_khz,
+	.speed_div = cmsis_dap_speed_div,
+
+	.jtag_ops = &cmsis_dap_interface,
+	.swd_ops = &cmsis_dap_swd_driver,
 };

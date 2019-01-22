@@ -1231,18 +1231,23 @@ static const struct swd_driver ftdi_swd = {
 
 static const char * const ftdi_transports[] = { "jtag", "swd", NULL };
 
-struct jtag_interface ftdi_interface = {
-	.name = "ftdi",
+static struct jtag_interface ftdi_interface = {
 	.supported = DEBUG_CAP_TMS_SEQ,
-	.commands = ftdi_command_handlers,
+	.execute_queue = ftdi_execute_queue,
+};
+
+struct adapter_driver ftdi_adapter_driver = {
+	.name = "ftdi",
 	.transports = ftdi_transports,
-	.swd = &ftdi_swd,
+	.commands = ftdi_command_handlers,
 
 	.init = ftdi_initialize,
 	.quit = ftdi_quit,
 	.reset = ftdi_reset,
 	.speed = ftdi_speed,
-	.speed_div = ftdi_speed_div,
 	.khz = ftdi_khz,
-	.execute_queue = ftdi_execute_queue,
+	.speed_div = ftdi_speed_div,
+
+	.jtag_ops = &ftdi_interface,
+	.swd_ops = &ftdi_swd,
 };

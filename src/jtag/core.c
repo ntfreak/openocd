@@ -126,10 +126,10 @@ static int rclk_fallback_speed_khz;
 static enum {CLOCK_MODE_UNSELECTED, CLOCK_MODE_KHZ, CLOCK_MODE_RCLK} clock_mode;
 static int jtag_speed;
 
-static struct jtag_interface *jtag;
+/* FIXME: change name to this variable, it is not anymore JTAG only */
+static struct adapter_driver *jtag;
 
-/* configuration */
-struct jtag_interface *jtag_interface;
+extern struct adapter_driver *adapter_driver;
 
 void jtag_set_flush_queue_sleep(int ms)
 {
@@ -503,7 +503,7 @@ int jtag_add_tms_seq(unsigned nbits, const uint8_t *seq, enum tap_state state)
 {
 	int retval;
 
-	if (!(jtag->supported & DEBUG_CAP_TMS_SEQ))
+	if (!(jtag->jtag_ops->supported & DEBUG_CAP_TMS_SEQ))
 		return ERROR_JTAG_NOT_IMPLEMENTED;
 
 	jtag_checks();
@@ -941,11 +941,11 @@ int default_interface_jtag_execute_queue(void)
 		/* FIXME: This should not happen! */
 		/* assert(0); */
 		LOG_ERROR("JTAG API jtag_execute_queue() called on non JTAG interface");
-		if (!jtag->execute_queue)
+		if (!jtag->jtag_ops || !jtag->jtag_ops->execute_queue)
 			return ERROR_OK;
 	}
 
-	return jtag->execute_queue();
+	return jtag->jtag_ops->execute_queue();
 }
 
 void jtag_execute_queue_noclear(void)
@@ -1444,7 +1444,7 @@ int adapter_init(struct command_context *cmd_ctx)
 	if (jtag)
 		return ERROR_OK;
 
-	if (!jtag_interface) {
+	if (!adapter_driver) {
 		/* nothing was previously specified by "interface" command */
 		LOG_ERROR("Debug Adapter has to be specified, "
 			"see \"interface\" command");
@@ -1452,10 +1452,10 @@ int adapter_init(struct command_context *cmd_ctx)
 	}
 
 	int retval;
-	retval = jtag_interface->init();
+	retval = adapter_driver->init();
 	if (retval != ERROR_OK)
 		return retval;
-	jtag = jtag_interface;
+	jtag = adapter_driver;
 
 	if (jtag->speed == NULL) {
 		LOG_INFO("This adapter doesn't support configurable speed");

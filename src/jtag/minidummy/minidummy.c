@@ -24,18 +24,24 @@
 #include <jtag/minidriver.h>
 #include <jtag/interface.h>
 
-struct jtag_interface minidummy_interface = {
-	.name = "minidummy",
+static struct jtag_interface minidummy_interface = {
 	.execute_queue = NULL,
-	.speed = NULL,
+};
+
+struct adapter_driver minidummy_adapter_driver = {
+	.name = "minidummy",
 	.transports = jtag_only,
 	.commands = NULL,
+
 	.init = NULL,
 	.quit = NULL,
+	.speed = NULL,
 	.khz = NULL,
 	.speed_div = NULL,
 	.power_dropout = NULL,
 	.srst_asserted = NULL,
+
+	.jtag_ops = &minidummy_interface,
 };
 
 int interface_jtag_execute_queue(void)

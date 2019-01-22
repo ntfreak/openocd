@@ -1660,13 +1660,19 @@ static int rlink_quit(void)
 	return ERROR_OK;
 }
 
-struct jtag_interface rlink_interface = {
+static struct jtag_interface rlink_interface = {
+	.execute_queue = rlink_execute_queue,
+};
+
+struct adapter_driver rlink_adapter_driver = {
 	.name = "rlink",
 	.transports = jtag_only,
+
 	.init = rlink_init,
 	.quit = rlink_quit,
 	.speed = rlink_speed,
-	.speed_div = rlink_speed_div,
 	.khz = rlink_khz,
-	.execute_queue = rlink_execute_queue,
+	.speed_div = rlink_speed_div,
+
+	.jtag_ops = &rlink_interface,
 };

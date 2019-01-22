@@ -2038,17 +2038,22 @@ static const struct swd_driver xds110_swd_driver = {
 
 static const char * const xds110_transport[] = { "swd", "jtag", NULL };
 
-struct jtag_interface xds110_interface = {
-	.name = "xds110",
-	.commands = xds110_command_handlers,
-	.swd = &xds110_swd_driver,
-	.transports = xds110_transport,
-
+static struct jtag_interface xds110_interface = {
 	.execute_queue = xds110_execute_queue,
-	.speed = xds110_speed,
-	.speed_div = xds110_speed_div,
-	.khz = xds110_khz,
+};
+
+struct adapter_driver xds110_adapter_driver = {
+	.name = "xds110",
+	.transports = xds110_transport,
+	.commands = xds110_command_handlers,
+
 	.init = xds110_init,
 	.quit = xds110_quit,
 	.reset = xds110_reset,
+	.speed = xds110_speed,
+	.khz = xds110_khz,
+	.speed_div = xds110_speed_div,
+
+	.jtag_ops = &xds110_interface,
+	.swd_ops = &xds110_swd_driver,
 };

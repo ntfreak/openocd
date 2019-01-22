@@ -892,17 +892,20 @@ static const struct command_registration openjtag_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-struct jtag_interface openjtag_interface = {
+static struct jtag_interface openjtag_interface = {
+	.execute_queue = openjtag_execute_queue,
+};
+
+struct adapter_driver openjtag_adapter_driver = {
 	.name = "openjtag",
 	.transports = jtag_only,
 	.commands = openjtag_command_handlers,
 
-	.execute_queue = openjtag_execute_queue,
-	.speed = openjtag_speed,
-	.speed_div = openjtag_speed_div,
-	.khz = openjtag_khz,
 	.init = openjtag_init,
 	.quit = openjtag_quit,
+	.speed = openjtag_speed,
+	.khz = openjtag_khz,
+	.speed_div = openjtag_speed_div,
+
+	.jtag_ops = &openjtag_interface,
 };
-
-
