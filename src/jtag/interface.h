@@ -347,6 +347,12 @@ struct adapter_driver {
 
 	/** Low-level SWD APIs */
 	const struct swd_driver *swd_ops;
+
+	/* DAP APIs over JTAG transport */
+	const struct dap_ops *dap_jtag_ops;
+
+	/* DAP APIs over SWD transport */
+	const struct dap_ops *dap_swd_ops;
 };
 
 extern const char * const jtag_only[];
