@@ -2052,7 +2052,8 @@ int adapter_assert_reset(void)
 		else
 			jtag_add_reset(0, 1);
 		return ERROR_OK;
-	} else if (transport_is_swd() || transport_is_hla())
+	} else if (transport_is_swd() || transport_is_hla() ||
+			   transport_is_dapdirect_jtag() || transport_is_dapdirect_swd())
 		return adapter_system_reset(1);
 	else if (get_current_transport() != NULL)
 		LOG_ERROR("reset is not supported on %s",
@@ -2067,7 +2068,8 @@ int adapter_deassert_reset(void)
 	if (transport_is_jtag()) {
 		jtag_add_reset(0, 0);
 		return ERROR_OK;
-	} else if (transport_is_swd() || transport_is_hla())
+	} else if (transport_is_swd() || transport_is_hla() ||
+			 transport_is_dapdirect_jtag() || transport_is_dapdirect_swd())
 		return adapter_system_reset(0);
 	else if (get_current_transport() != NULL)
 		LOG_ERROR("reset is not supported on %s",
