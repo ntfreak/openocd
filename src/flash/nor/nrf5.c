@@ -283,6 +283,8 @@ static const struct nrf5_device_package nrf5_packages_table[] = {
 	{ 0x2005, "CK" },
 };
 
+const struct flash_driver nrf5_flash, nrf51_flash;
+
 static int nrf5_bank_is_probed(struct flash_bank *bank)
 {
 	struct nrf5_bank *nbank = bank->driver_priv;
@@ -794,6 +796,8 @@ static int nrf5_probe(struct flash_bank *bank)
 		}
 	}
 
+	free(bank->sectors);
+
 	if (bank->base == NRF5_FLASH_BASE) {
 		/* Sanity check */
 		if (chip->spec && chip->flash_size_kb != chip->spec->flash_size_kb)
@@ -1063,9 +1067,31 @@ static void nrf5_free_driver_priv(struct flash_bank *bank)
 	}
 }
 
+static struct nrf5_info *nrf5_get_chip(struct target *target)
+{
+	struct flash_bank *bank_iter;
+
+	/* iterate over nrf5 banks of same target */
+	for (bank_iter = flash_bank_list(); bank_iter; bank_iter = bank_iter->next) {
+		if (bank_iter->driver != &nrf5_flash && bank_iter->driver != &nrf51_flash)
+			continue;
+
+		if (bank_iter->target != target)
+			continue;
+
+		struct nrf5_bank *nbank = bank_iter->driver_priv;
+		if (!nbank)
+			continue;
+
+		if (nbank->chip)
+			return nbank->chip;
+	}
+	return NULL;
+}
+
 FLASH_BANK_COMMAND_HANDLER(nrf5_flash_bank_command)
 {
-	static struct nrf5_info *chip;
+	struct nrf5_info *chip;
 	struct nrf5_bank *nbank = NULL;
 
 	switch (bank->base) {
@@ -1077,6 +1103,7 @@ FLASH_BANK_COMMAND_HANDLER(nrf5_flash_bank_command)
 		return ERROR_FAIL;
 	}
 
+	chip = nrf5_get_chip(bank->target);
 	if (!chip) {
 		/* Create a new chip */
 		chip = calloc(1, sizeof(*chip));
