@@ -158,6 +158,15 @@
 #define DP_APSEL_MAX        (255)
 #define DP_APSEL_INVALID    (-1)
 
+/* FIXME: not SWD specific; should be renamed, e.g. adiv5_special_seq */
+enum swd_special_seq {
+	LINE_RESET,
+	JTAG_TO_SWD,
+	SWD_TO_JTAG,
+	SWD_TO_DORMANT,
+	DORMANT_TO_SWD,
+};
+
 /**
  * This represents an ARM Debug Interface (v5) Access Port (AP).
  * Most common is a MEM-AP, for memory access.
@@ -285,6 +294,10 @@ struct adiv5_dap {
 struct dap_ops {
 	/** connect operation for SWD */
 	int (*connect)(struct adiv5_dap *dap);
+
+	/** send a sequence to the DAP */
+	int (*send_sequence)(struct adiv5_dap *dap, enum swd_special_seq seq);
+
 	/** DP register read. */
 	int (*queue_dp_read)(struct adiv5_dap *dap, unsigned reg,
 			uint32_t *data);
@@ -331,6 +344,21 @@ enum ap_type {
 	AP_TYPE_AXI_AP  = 0x4,  /* AXI Memory-AP */
 	AP_TYPE_AHB5_AP = 0x5,  /* AHB5 Memory-AP. */
 };
+
+/**
+ * Send an adi-v5 sequence to the DAP.
+ *
+ * @param dap The DAP used for reading.
+ * @param seq The sequence to send.
+ *
+ * @return ERROR_OK for success, else a fault code.
+ */
+static inline int dap_send_sequence(struct adiv5_dap *dap,
+		enum swd_special_seq seq)
+{
+	assert(dap->ops != NULL);
+	return dap->ops->send_sequence(dap, seq);
+}
 
 /**
  * Queue a DP register read.

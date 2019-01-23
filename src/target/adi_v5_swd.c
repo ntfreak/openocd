@@ -142,6 +142,14 @@ static int swd_connect(struct adiv5_dap *dap)
 	return status;
 }
 
+static int swd_send_sequence(struct adiv5_dap *dap, enum swd_special_seq seq)
+{
+	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
+	assert(swd);
+
+	return swd->switch_seq(seq);
+}
+
 static inline int check_sync(struct adiv5_dap *dap)
 {
 	return do_sync ? swd_run_inner(dap) : ERROR_OK;
@@ -320,6 +328,7 @@ static void swd_quit(struct adiv5_dap *dap)
 
 const struct dap_ops swd_dap_ops = {
 	.connect = swd_connect,
+	.send_sequence = swd_send_sequence,
 	.queue_dp_read = swd_queue_dp_read,
 	.queue_dp_write = swd_queue_dp_write,
 	.queue_ap_read = swd_queue_ap_read,

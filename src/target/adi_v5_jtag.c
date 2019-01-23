@@ -38,6 +38,7 @@
 #include "arm_adi_v5.h"
 #include <helper/time_support.h>
 #include <helper/list.h>
+#include <jtag/swd.h>
 
 /*#define DEBUG_WAIT*/
 
@@ -615,6 +616,28 @@ static int jtag_check_reconnect(struct adiv5_dap *dap)
 	return ERROR_OK;
 }
 
+static int jtag_send_sequence(struct adiv5_dap *dap, enum swd_special_seq seq)
+{
+	int retval;
+
+	switch (seq) {
+	case JTAG_TO_SWD:
+		retval =  jtag_add_tms_seq(swd_seq_jtag_to_swd_len,
+				swd_seq_jtag_to_swd, TAP_INVALID);
+		break;
+	case SWD_TO_JTAG:
+		retval = jtag_add_tms_seq(swd_seq_swd_to_jtag_len,
+				swd_seq_swd_to_jtag, TAP_RESET);
+		break;
+	default:
+		LOG_ERROR("Sequence %d not supported", seq);
+		return ERROR_FAIL;
+	}
+	if (retval == ERROR_OK)
+		retval = jtag_execute_queue();
+	return retval;
+}
+
 static int jtag_dp_q_read(struct adiv5_dap *dap, unsigned reg,
 		uint32_t *data)
 {
@@ -718,6 +741,7 @@ static int jtag_dp_sync(struct adiv5_dap *dap)
 */
 const struct dap_ops jtag_dp_ops = {
 	.connect             = jtag_connect,
+	.send_sequence       = jtag_send_sequence,
 	.queue_dp_read       = jtag_dp_q_read,
 	.queue_dp_write      = jtag_dp_q_write,
 	.queue_ap_read       = jtag_ap_q_read,
