@@ -63,6 +63,9 @@ hl_transport_stlink_subcommand_handlers[] = {
 static const struct command_registration
 hl_transport_jtag_subcommand_handlers[] = {
 	{
+	 .chain = hl_transport_stlink_subcommand_handlers,
+	 },
+	{
 	 .name = "init",
 	 .mode = COMMAND_ANY,
 	 .handler = hl_transport_jtag_command,
