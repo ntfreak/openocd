@@ -24,11 +24,12 @@ if [catch {transport select}] {
 }
 
 proc swj_newdap {chip tag args} {
- if [using_hla] {
-     eval hla newtap $chip $tag $args
- } elseif [using_jtag] {
+ if [using_jtag] {
      eval jtag newtap $chip $tag $args
  } elseif [using_swd] {
      eval swd newdap $chip $tag $args
+ } else {
+     echo "Error: transport '[ transport select ]' not supported by swj_newdap"
+     shutdown
  }
 }

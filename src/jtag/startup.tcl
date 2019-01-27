@@ -226,4 +226,13 @@ proc xds110_supply_voltage args {
 	eval xds110 supply $args
 }
 
+proc hla {cmd args} {
+        tailcall "hla $cmd" {*}$args
+}
+
+proc "hla newtap" {args} {
+	echo "DEPRECATED! use 'swj_newdap' not 'hla newtap'"
+	eval swj_newdap $args
+}
+
 # END MIGRATION AIDS
