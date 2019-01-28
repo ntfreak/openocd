@@ -274,6 +274,12 @@ struct adiv5_dap {
 	bool ti_be_32_quirks;
 
 	/**
+	 * STLINK adapter need to know if last AP operation was read or write, and
+	 * in case of write has to flush it with a dummy read from DP_RDBUFF
+	 */
+	bool stlink_flush_ap_write;
+
+	/**
 	 * Signals that an attempt to reestablish communication afresh
 	 * should be performed before the next access.
 	 */
