@@ -3096,6 +3096,29 @@ passed as is to the underlying adapter layout handler.
 @end deffn
 @end deffn
 
+@anchor{st_link_dap_interface}
+@deffn {Interface Driver} {st-link}
+This is a driver that supports STMicroelectronics adapters ST-LINK/V2
+(from firmware V2J24) and STLINK-V3, thanks to a new API that provides
+directly access the arm ADIv5 DAP.
+
+The new API provide access to multiple AP on the same DAP, but the
+maximum number of the AP port is limited by the specific firmware version
+(e.g. firmware V2J29 has 3 as maximum AP number, while V2J32 has 8).
+An error is returned for any AP number above the maximum allowed value.
+
+@emph{Note:} Either these same adapters and their older versions are
+also supported by @ref{hla_interface, the hla interface driver}.
+
+@deffn {Config Command} {st-link serial} serial
+Specifies the serial number of the adapter.
+@end deffn
+
+@deffn {Config Command} {st-link vid_pid} [vid pid]+
+Pairs of vendor IDs and product IDs of the device.
+@end deffn
+@end deffn
+
 @deffn {Interface Driver} {opendous}
 opendous-jtag is a freely programmable USB adapter.
 @end deffn
@@ -3204,9 +3227,10 @@ JTAG supports both debugging and boundary scan testing.
 Flash programming support is built on top of debug support.
 
 JTAG transport is selected with the command @command{transport select
-jtag}. Unless your adapter uses @ref{hla_interface,the hla interface
-driver}, in which case the command is @command{transport select
-hla_jtag}.
+jtag}. Unless your adapter uses either @ref{hla_interface,the hla interface
+driver} (in which case the command is @command{transport select hla_jtag})
+or @ref{st_link_dap_interface,the st-link interface driver} (in which case
+the command is @command{transport select dapdirect_jtag}).
 
 @subsection SWD Transport
 @cindex SWD
@@ -3219,9 +3243,10 @@ Flash programming support is built on top of debug support.
 (Some processors support both JTAG and SWD.)
 
 SWD transport is selected with the command @command{transport select
-swd}. Unless your adapter uses @ref{hla_interface,the hla interface
-driver}, in which case the command is @command{transport select
-hla_swd}.
+swd}. Unless your adapter uses either @ref{hla_interface,the hla interface
+driver} (in which case the command is @command{transport select hla_swd})
+or @ref{st_link_dap_interface,the st-link interface driver} (in which case
+the command is @command{transport select dapdirect_swd}).
 
 @deffn Command {swd newdap} ...
 Declares a single DAP which uses SWD transport.

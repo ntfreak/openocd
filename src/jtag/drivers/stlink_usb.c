@@ -31,11 +31,13 @@
 
 /* project specific includes */
 #include <helper/binarybuffer.h>
+#include <helper/bits.h>
 #include <jtag/interface.h>
 #include <jtag/hla/hla_layout.h>
 #include <jtag/hla/hla_transport.h>
 #include <jtag/hla/hla_interface.h>
 #include <target/target.h>
+#include <transport/transport.h>
 
 #include <target/cortex_m.h>
 
@@ -265,9 +267,13 @@ struct stlink_usb_handle_s {
 #define STLINK_DEBUG_APIV2_GET_TRACE_NB    0x42
 #define STLINK_DEBUG_APIV2_SWD_SET_FREQ    0x43
 #define STLINK_DEBUG_APIV2_JTAG_SET_FREQ   0x44
-
+#define STLINK_DEBUG_APIV2_READ_DAP_REG    0x45
+#define STLINK_DEBUG_APIV2_WRITE_DAP_REG   0x46
 #define STLINK_DEBUG_APIV2_READMEM_16BIT   0x47
 #define STLINK_DEBUG_APIV2_WRITEMEM_16BIT  0x48
+
+#define STLINK_DEBUG_APIV2_INIT_AP         0x4B
+#define STLINK_DEBUG_APIV2_CLOSE_AP_DBG    0x4C
 
 #define STLINK_APIV3_SET_COM_FREQ           0x61
 #define STLINK_APIV3_GET_COM_FREQ           0x62
@@ -277,6 +283,8 @@ struct stlink_usb_handle_s {
 #define STLINK_DEBUG_APIV2_DRIVE_NRST_LOW   0x00
 #define STLINK_DEBUG_APIV2_DRIVE_NRST_HIGH  0x01
 #define STLINK_DEBUG_APIV2_DRIVE_NRST_PULSE 0x02
+
+#define STLINK_DEBUG_PORT_ACCESS            0xffff
 
 #define STLINK_TRACE_SIZE               4096
 #define STLINK_TRACE_MAX_HZ             2000000
@@ -300,11 +308,14 @@ enum stlink_mode {
  * Map the relevant features, quirks and workaround for specific firmware
  * version of stlink
  */
-#define STLINK_F_HAS_TRACE              (1UL << 0)
-#define STLINK_F_HAS_SWD_SET_FREQ       (1UL << 1)
-#define STLINK_F_HAS_JTAG_SET_FREQ      (1UL << 2)
-#define STLINK_F_HAS_MEM_16BIT          (1UL << 3)
-#define STLINK_F_HAS_GETLASTRWSTATUS2   (1UL << 4)
+#define STLINK_F_HAS_TRACE              BIT(0)
+#define STLINK_F_HAS_SWD_SET_FREQ       BIT(1)
+#define STLINK_F_HAS_JTAG_SET_FREQ      BIT(2)
+#define STLINK_F_HAS_MEM_16BIT          BIT(3)
+#define STLINK_F_HAS_GETLASTRWSTATUS2   BIT(4)
+#define STLINK_F_HAS_DAP_REG            BIT(5)
+#define STLINK_F_QUIRK_JTAG_DP_READ     BIT(6)
+#define STLINK_F_HAS_AP_INIT            BIT(7)
 
 /* aliases */
 #define STLINK_F_HAS_TARGET_VOLT        STLINK_F_HAS_TRACE
@@ -992,12 +1003,23 @@ static int stlink_usb_version(void *handle)
 			flags |= STLINK_F_HAS_SWD_SET_FREQ;
 
 		/* API to set JTAG frequency from J24 */
-		if (h->version.jtag >= 24)
+		/* API to access DAP registers from J24 */
+		if (h->version.jtag >= 24) {
 			flags |= STLINK_F_HAS_JTAG_SET_FREQ;
+			flags |= STLINK_F_HAS_DAP_REG;
+		}
+
+		/* Quirk for read DP in JTAG mode (V2 only) from J24, fixed in J32 */
+		if (h->version.jtag >= 24 && h->version.jtag < 32)
+			flags |= STLINK_F_QUIRK_JTAG_DP_READ;
 
 		/* API to read/write memory at 16 bit from J26 */
 		if (h->version.jtag >= 26)
 			flags |= STLINK_F_HAS_MEM_16BIT;
+
+		/* API required to init AP before any AP access from J28 */
+		if (h->version.jtag >= 28)
+			flags |= STLINK_F_HAS_AP_INIT;
 
 		break;
 	case 3:
@@ -1013,8 +1035,14 @@ static int stlink_usb_version(void *handle)
 		/* preferred API to get last R/W status */
 		flags |= STLINK_F_HAS_GETLASTRWSTATUS2;
 
+		/* API to access DAP registers */
+		flags |= STLINK_F_HAS_DAP_REG;
+
 		/* API to read/write memory at 16 bit */
 		flags |= STLINK_F_HAS_MEM_16BIT;
+
+		/* API required to init AP before any AP access */
+		flags |= STLINK_F_HAS_AP_INIT;
 
 		break;
 	default:
@@ -2931,6 +2959,89 @@ int stlink_config_trace(void *handle, bool enabled,
 }
 
 /** */
+static int stlink_usb_init_access_port(void *handle, unsigned char ap_num)
+{
+	struct stlink_usb_handle_s *h = handle;
+
+	assert(handle != NULL);
+
+	if (!(h->version.flags & STLINK_F_HAS_AP_INIT))
+		return ERROR_COMMAND_NOTFOUND;
+
+	LOG_DEBUG_IO("init ap_num = %d", ap_num);
+	stlink_usb_init_buffer(handle, h->rx_ep, 16);
+	h->cmdbuf[h->cmdidx++] = STLINK_DEBUG_COMMAND;
+	h->cmdbuf[h->cmdidx++] = STLINK_DEBUG_APIV2_INIT_AP;
+	h->cmdbuf[h->cmdidx++] = ap_num;
+
+	return stlink_usb_xfer_errcheck(handle, h->databuf, 2);
+}
+
+/** */
+static int stlink_usb_close_access_port(void *handle, unsigned char ap_num)
+{
+	struct stlink_usb_handle_s *h = handle;
+
+	assert(handle != NULL);
+
+	if (!(h->version.flags & STLINK_F_HAS_AP_INIT))
+		return ERROR_COMMAND_NOTFOUND;
+
+	LOG_DEBUG_IO("close ap_num = %d", ap_num);
+	stlink_usb_init_buffer(handle, h->rx_ep, 16);
+	h->cmdbuf[h->cmdidx++] = STLINK_DEBUG_COMMAND;
+	h->cmdbuf[h->cmdidx++] = STLINK_DEBUG_APIV2_CLOSE_AP_DBG;
+	h->cmdbuf[h->cmdidx++] = ap_num;
+
+	return stlink_usb_xfer_errcheck(handle, h->databuf, 2);
+}
+
+/** */
+static int stlink_read_dap_register(void *handle, unsigned short dap_port,
+			unsigned short addr, uint32_t *val)
+{
+	struct stlink_usb_handle_s *h = handle;
+	int retval;
+
+	assert(handle != NULL);
+
+	if (!(h->version.flags & STLINK_F_HAS_DAP_REG))
+		return ERROR_COMMAND_NOTFOUND;
+
+	stlink_usb_init_buffer(handle, h->rx_ep, 16);
+	h->cmdbuf[h->cmdidx++] = STLINK_DEBUG_COMMAND;
+	h->cmdbuf[h->cmdidx++] = STLINK_DEBUG_APIV2_READ_DAP_REG;
+	h_u16_to_le(&h->cmdbuf[2], dap_port);
+	h_u16_to_le(&h->cmdbuf[4], addr);
+
+	retval = stlink_usb_xfer_errcheck(handle, h->databuf, 8);
+	*val = le_to_h_u32(h->databuf + 4);
+	LOG_DEBUG_IO("dap_port_read = %d, addr =  0x%x, value = 0x%x", dap_port, addr, *val);
+	return retval;
+}
+
+/** */
+static int stlink_write_dap_register(void *handle, unsigned short dap_port,
+			unsigned short addr, uint32_t val)
+{
+	struct stlink_usb_handle_s *h = handle;
+
+	assert(handle != NULL);
+
+	if (!(h->version.flags & STLINK_F_HAS_DAP_REG))
+		return ERROR_COMMAND_NOTFOUND;
+
+	LOG_DEBUG_IO("dap_write port = %d, addr = 0x%x, value = 0x%x", dap_port, addr, val);
+	stlink_usb_init_buffer(handle, h->rx_ep, 16);
+	h->cmdbuf[h->cmdidx++] = STLINK_DEBUG_COMMAND;
+	h->cmdbuf[h->cmdidx++] = STLINK_DEBUG_APIV2_WRITE_DAP_REG;
+	h_u16_to_le(&h->cmdbuf[2], dap_port);
+	h_u16_to_le(&h->cmdbuf[4], addr);
+	h_u32_to_le(&h->cmdbuf[6], val);
+	return stlink_usb_xfer_errcheck(handle, h->databuf, 2);
+}
+
+/** */
 struct hl_layout_api_s stlink_usb_layout_api = {
 	/** */
 	.open = stlink_usb_open,
@@ -2970,4 +3081,532 @@ struct hl_layout_api_s stlink_usb_layout_api = {
 	.config_trace = stlink_config_trace,
 	/** */
 	.poll_trace = stlink_usb_trace_read,
+};
+
+/*****************************************************************************
+ * DAP direct interface
+ */
+
+static struct stlink_usb_handle_s *stlink_dap_handle;
+static struct hl_interface_param_s stlink_dap_param;
+static DECLARE_BITMAP(opened_ap, DP_APSEL_MAX + 1);
+static int stlink_dap_error = ERROR_OK;
+
+static int stlink_dap_op_queue_dp_read(struct adiv5_dap *dap, unsigned reg,
+		uint32_t *data);
+
+/** */
+static int stlink_dap_record_error(int error)
+{
+	if (stlink_dap_error == ERROR_OK)
+		stlink_dap_error = error;
+	return ERROR_OK;
+}
+
+/** */
+static int stlink_dap_get_and_clear_error(void)
+{
+	int retval = stlink_dap_error;
+	stlink_dap_error = ERROR_OK;
+	return retval;
+}
+
+/** */
+static int stlink_dap_open_ap(unsigned short apsel)
+{
+	int retval;
+
+	/* nothing to do on old versions */
+	if (!(stlink_dap_handle->version.flags & STLINK_F_HAS_AP_INIT))
+		return ERROR_OK;
+
+	if (apsel > DP_APSEL_MAX)
+		return ERROR_FAIL;
+
+	if (test_bit(apsel, opened_ap))
+		return ERROR_OK;
+
+	retval = stlink_usb_init_access_port(stlink_dap_handle, apsel);
+	if (retval != ERROR_OK)
+		return retval;
+
+	LOG_DEBUG("AP %d enabled", apsel);
+	set_bit(apsel, opened_ap);
+	return ERROR_OK;
+}
+
+/** */
+static int stlink_dap_closeall_ap(void)
+{
+	int retval, apsel;
+
+	/* nothing to do on old versions */
+	if (!(stlink_dap_handle->version.flags & STLINK_F_HAS_AP_INIT))
+		return ERROR_OK;
+
+	for (apsel = 0; apsel <= DP_APSEL_MAX; apsel++) {
+		if (!test_bit(apsel, opened_ap))
+			continue;
+		retval = stlink_usb_close_access_port(stlink_dap_handle, apsel);
+		if (retval != ERROR_OK)
+			return retval;
+		clear_bit(apsel, opened_ap);
+	}
+	return ERROR_OK;
+}
+
+/** */
+static int stlink_dap_reinit_interface(void)
+{
+	int retval;
+	enum stlink_mode mode;
+
+	/*
+	 * On JTAG only, it should be enough to call stlink_usb_reset(). But on
+	 * some firmware version it does not work as expected, and there is no
+	 * equivalent for SWD.
+	 * At least for now, to reset the interface quit from JTAG/SWD mode then
+	 * select the mode again.
+	 */
+
+	mode = stlink_get_mode(stlink_dap_param.transport);
+	if (!stlink_dap_handle->reconnect_pending) {
+		stlink_dap_handle->reconnect_pending = true;
+		stlink_usb_mode_leave(stlink_dap_handle, mode);
+	}
+
+	retval = stlink_usb_mode_enter(stlink_dap_handle, mode);
+	if (retval != ERROR_OK)
+		return retval;
+
+	stlink_dap_handle->reconnect_pending = false;
+	/* on new FW, calling mode-leave closes all the opened AP; reopen them! */
+	if (stlink_dap_handle->version.flags & STLINK_F_HAS_AP_INIT)
+		for (int apsel = 0; apsel <= DP_APSEL_MAX; apsel++)
+			if (test_bit(apsel, opened_ap)) {
+				clear_bit(apsel, opened_ap);
+				stlink_dap_open_ap(apsel);
+			}
+	return ERROR_OK;
+}
+
+/** */
+static int stlink_dap_op_connect(struct adiv5_dap *dap)
+{
+	uint32_t idcode;
+	int retval;
+
+	LOG_INFO("stlink_dap_op_connect(%sconnect)", dap->do_reconnect ? "re" : "");
+
+	/* Check if we should reset srst already when connecting, but not if reconnecting. */
+	if (!dap->do_reconnect) {
+		enum reset_types jtag_reset_config = jtag_get_reset_config();
+
+		if (jtag_reset_config & RESET_CNCT_UNDER_SRST) {
+			if (jtag_reset_config & RESET_SRST_NO_GATING)
+				adapter_assert_reset();
+			else
+				LOG_WARNING("\'srst_nogate\' reset_config option is required");
+		}
+	}
+
+	dap->do_reconnect = false;
+	dap_invalidate_cache(dap);
+
+	retval = dap_dp_init(dap);
+	if (retval != ERROR_OK) {
+		dap->do_reconnect = true;
+		return retval;
+	}
+
+	retval = stlink_usb_idcode(stlink_dap_handle, &idcode);
+	if (retval == ERROR_OK)
+		LOG_INFO("%s %#8.8" PRIx32,
+			(stlink_dap_handle->transport == HL_TRANSPORT_JTAG) ? "JTAG IDCODE" : "SWD DPIDR",
+			idcode);
+	else
+		dap->do_reconnect = true;
+
+	return retval;
+}
+
+/** */
+static int stlink_dap_check_reconnect(struct adiv5_dap *dap)
+{
+	int retval;
+
+	if (!dap->do_reconnect)
+		return ERROR_OK;
+
+	retval = stlink_dap_reinit_interface();
+	if (retval != ERROR_OK)
+		return retval;
+
+	return stlink_dap_op_connect(dap);
+}
+
+/** */
+static int stlink_dap_op_send_sequence(struct adiv5_dap *dap, enum swd_special_seq seq)
+{
+	/* Ignore the request */
+	return ERROR_OK;
+}
+
+/** */
+static int stlink_dap_op_queue_dp_read(struct adiv5_dap *dap, unsigned reg,
+		uint32_t *data)
+{
+	uint32_t dummy;
+	int retval;
+
+	retval = stlink_dap_check_reconnect(dap);
+	if (retval != ERROR_OK)
+		return retval;
+
+	data = data ? : &dummy;
+	if (stlink_dap_handle->version.flags & STLINK_F_QUIRK_JTAG_DP_READ
+		&& stlink_dap_handle->transport == HL_TRANSPORT_JTAG) {
+		/* Quirk required in JTAG. Read RDBUFF to get the data */
+		retval = stlink_read_dap_register(stlink_dap_handle,
+					STLINK_DEBUG_PORT_ACCESS, reg, &dummy);
+		if (retval == ERROR_OK)
+			retval = stlink_read_dap_register(stlink_dap_handle,
+						STLINK_DEBUG_PORT_ACCESS, DP_RDBUFF, data);
+	} else {
+		retval = stlink_read_dap_register(stlink_dap_handle,
+					STLINK_DEBUG_PORT_ACCESS, reg, data);
+	}
+
+	return stlink_dap_record_error(retval);
+}
+
+/** */
+static int stlink_dap_op_queue_dp_write(struct adiv5_dap *dap, unsigned reg,
+		uint32_t data)
+{
+	int retval;
+
+	retval = stlink_dap_check_reconnect(dap);
+	if (retval != ERROR_OK)
+		return retval;
+
+	/* ST-Link does not like that we set CORUNDETECT */
+	if (reg == DP_CTRL_STAT)
+		data &= ~CORUNDETECT;
+
+	retval = stlink_write_dap_register(stlink_dap_handle,
+				STLINK_DEBUG_PORT_ACCESS, reg, data);
+	return stlink_dap_record_error(retval);
+}
+
+/** */
+static int stlink_dap_op_queue_ap_read(struct adiv5_ap *ap, unsigned reg,
+		uint32_t *data)
+{
+	struct adiv5_dap *dap = ap->dap;
+	uint32_t dummy;
+	int retval;
+
+	retval = stlink_dap_check_reconnect(dap);
+	if (retval != ERROR_OK)
+		return retval;
+
+	if (reg != AP_REG_IDR) {
+		retval = stlink_dap_open_ap(ap->ap_num);
+		if (retval != ERROR_OK)
+			return retval;
+	}
+	data = data ? : &dummy;
+	retval = stlink_read_dap_register(stlink_dap_handle, ap->ap_num, reg,
+				 data);
+	dap->stlink_flush_ap_write = false;
+	return stlink_dap_record_error(retval);
+}
+
+/** */
+static int stlink_dap_op_queue_ap_write(struct adiv5_ap *ap, unsigned reg,
+		uint32_t data)
+{
+	struct adiv5_dap *dap = ap->dap;
+	int retval;
+
+	retval = stlink_dap_check_reconnect(dap);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = stlink_dap_open_ap(ap->ap_num);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = stlink_write_dap_register(stlink_dap_handle, ap->ap_num, reg,
+				data);
+	dap->stlink_flush_ap_write = true;
+	return stlink_dap_record_error(retval);
+}
+
+/** */
+static int stlink_dap_op_queue_ap_abort(struct adiv5_dap *dap, uint8_t *ack)
+{
+	LOG_WARNING("stlink_dap_op_queue_ap_abort()");
+	return ERROR_OK;
+}
+
+/** */
+static int stlink_dap_op_run(struct adiv5_dap *dap)
+{
+	uint32_t ctrlstat, pwrmask;
+	int retval, saved_retval;
+
+	/* Here no LOG_DEBUG. This is called continuously! */
+
+	/*
+	 * ST-Link returns immediately after a DAP write, without waiting for it
+	 * to complete.
+	 * Run a dummy read to DP_RDBUFF, as suggested in
+	 * http://infocenter.arm.com/help/topic/com.arm.doc.faqs/ka16363.html
+	 */
+	if (dap->stlink_flush_ap_write) {
+		dap->stlink_flush_ap_write = false;
+		retval = stlink_dap_op_queue_dp_read(dap, DP_RDBUFF, NULL);
+		if (retval != ERROR_OK) {
+			dap->do_reconnect = true;
+			return retval;
+		}
+	}
+
+	saved_retval = stlink_dap_get_and_clear_error();
+
+	retval = stlink_dap_op_queue_dp_read(dap, DP_CTRL_STAT, &ctrlstat);
+	if (retval != ERROR_OK) {
+		dap->do_reconnect = true;
+		return retval;
+	}
+	retval = stlink_dap_get_and_clear_error();
+	if (retval != ERROR_OK) {
+		LOG_ERROR("Fail reading CTRL/STAT register. Force reconnect");
+		dap->do_reconnect = true;
+		return retval;
+	}
+
+	if (ctrlstat & SSTICKYERR) {
+		if (stlink_dap_param.transport == HL_TRANSPORT_JTAG)
+			retval = stlink_dap_op_queue_dp_write(dap, DP_CTRL_STAT,
+					ctrlstat & (dap->dp_ctrl_stat | SSTICKYERR));
+		else
+			retval = stlink_dap_op_queue_dp_write(dap, DP_ABORT, STKERRCLR);
+		if (retval != ERROR_OK) {
+			dap->do_reconnect = true;
+			return retval;
+		}
+		retval = stlink_dap_get_and_clear_error();
+		if (retval != ERROR_OK) {
+			dap->do_reconnect = true;
+			return retval;
+		}
+	}
+
+	/* check for power lost */
+	pwrmask = dap->dp_ctrl_stat & (CDBGPWRUPREQ | CSYSPWRUPREQ);
+	if ((ctrlstat & pwrmask) != pwrmask)
+		dap->do_reconnect = true;
+
+	return saved_retval;
+}
+
+/** */
+static void stlink_dap_op_quit(struct adiv5_dap *dap)
+{
+	int retval;
+
+	retval = stlink_dap_closeall_ap();
+	if (retval != ERROR_OK)
+		LOG_ERROR("Error closing APs");
+}
+
+/** */
+COMMAND_HANDLER(stlink_dap_serial_command)
+{
+	LOG_DEBUG("stlink_dap_serial_command");
+
+	if (CMD_ARGC != 1) {
+		LOG_ERROR("Expected exactly one argument for \"st-link serial <serial-number>\".");
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	}
+
+	if (stlink_dap_param.serial) {
+		LOG_WARNING("Command \"st-link serial\" already used. Replacing previous value");
+		free((void *)stlink_dap_param.serial);
+	}
+
+	stlink_dap_param.serial = strdup(CMD_ARGV[0]);
+	return ERROR_OK;
+}
+
+/** */
+COMMAND_HANDLER(stlink_dap_vid_pid)
+{
+	unsigned int i, max_usb_ids = HLA_MAX_USB_IDS;
+
+	if (CMD_ARGC > max_usb_ids * 2) {
+		LOG_WARNING("ignoring extra IDs in vid_pid "
+			"(maximum is %d pairs)", max_usb_ids);
+		CMD_ARGC = max_usb_ids * 2;
+	}
+	if (CMD_ARGC < 2 || (CMD_ARGC & 1)) {
+		LOG_WARNING("incomplete vid_pid configuration directive");
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	}
+	for (i = 0; i < CMD_ARGC; i += 2) {
+		COMMAND_PARSE_NUMBER(u16, CMD_ARGV[i], stlink_dap_param.vid[i / 2]);
+		COMMAND_PARSE_NUMBER(u16, CMD_ARGV[i + 1], stlink_dap_param.pid[i / 2]);
+	}
+
+	/* null termination */
+	stlink_dap_param.vid[i / 2] = stlink_dap_param.pid[i / 2] = 0;
+
+	return ERROR_OK;
+}
+
+/** */
+static const struct command_registration stlink_dap_subcommand_handlers[] = {
+	{
+		.name = "serial",
+		.handler = stlink_dap_serial_command,
+		.mode = COMMAND_CONFIG,
+		.help = "set the serial number of the adapter",
+		.usage = "<serial_number>",
+	},
+	{
+		.name = "vid_pid",
+		.handler = stlink_dap_vid_pid,
+		.mode = COMMAND_CONFIG,
+		.help = "USB VID and PID of the adapter",
+		.usage = "(vid pid)+",
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
+/** */
+static const struct command_registration stlink_dap_command_handlers[] = {
+	{
+		.name = "st-link",
+		.mode = COMMAND_ANY,
+		.help = "perform st-link management",
+		.chain = stlink_dap_subcommand_handlers,
+		.usage = "",
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
+/** */
+static int stlink_dap_init(void)
+{
+	enum reset_types jtag_reset_config = jtag_get_reset_config();
+	int retval;
+
+	LOG_DEBUG("stlink_dap_init()");
+
+	if (jtag_reset_config & RESET_CNCT_UNDER_SRST) {
+		if (jtag_reset_config & RESET_SRST_NO_GATING)
+			stlink_dap_param.connect_under_reset = true;
+		else
+			LOG_WARNING("\'srst_nogate\' reset_config option is required");
+	}
+
+	if (transport_is_dapdirect_swd())
+		stlink_dap_param.transport = HL_TRANSPORT_SWD;
+	else if (transport_is_dapdirect_jtag())
+		stlink_dap_param.transport = HL_TRANSPORT_JTAG;
+	else {
+		LOG_ERROR("Unsupported transport");
+		return ERROR_FAIL;
+	}
+
+	retval = stlink_usb_open(&stlink_dap_param, (void **)&stlink_dap_handle);
+	if (retval != ERROR_OK)
+		return retval;
+
+	if (!(stlink_dap_handle->version.flags & STLINK_F_HAS_DAP_REG)) {
+		LOG_ERROR("ST-Link version does not support DAP direct transport");
+		return ERROR_FAIL;
+	}
+	return ERROR_OK;
+}
+
+/** */
+static int stlink_dap_quit(void)
+{
+	LOG_DEBUG("stlink_dap_quit()");
+
+	free((void *)stlink_dap_param.serial);
+	stlink_dap_param.serial = NULL;
+
+	return stlink_usb_close(stlink_dap_handle);
+}
+
+/** */
+static int stlink_dap_reset(int req_trst, int req_srst)
+{
+	LOG_DEBUG("stlink_dap_reset(%d)", req_srst);
+	return stlink_usb_assert_srst(stlink_dap_handle,
+		req_srst ? STLINK_DEBUG_APIV2_DRIVE_NRST_LOW
+				 : STLINK_DEBUG_APIV2_DRIVE_NRST_HIGH);
+}
+
+/** */
+static int stlink_dap_speed(int speed)
+{
+	if (speed == 0) {
+		LOG_ERROR("RTCK not supported. Set nonzero adapter_khz.");
+		return ERROR_JTAG_NOT_IMPLEMENTED;
+	}
+
+	stlink_dap_param.initial_interface_speed = speed;
+	stlink_speed(stlink_dap_handle, speed, false);
+	return ERROR_OK;
+}
+
+/** */
+static int stlink_dap_khz(int khz, int *jtag_speed)
+{
+	*jtag_speed = khz;
+	return ERROR_OK;
+}
+
+/** */
+static int stlink_dap_speed_div(int speed, int *khz)
+{
+	*khz = speed;
+	return ERROR_OK;
+}
+
+static const struct dap_ops stlink_dap_ops = {
+	.connect = stlink_dap_op_connect,
+	.send_sequence = stlink_dap_op_send_sequence,
+	.queue_dp_read = stlink_dap_op_queue_dp_read,
+	.queue_dp_write = stlink_dap_op_queue_dp_write,
+	.queue_ap_read = stlink_dap_op_queue_ap_read,
+	.queue_ap_write = stlink_dap_op_queue_ap_write,
+	.queue_ap_abort = stlink_dap_op_queue_ap_abort,
+	.run = stlink_dap_op_run,
+	.sync = NULL, /* optional */
+	.quit = stlink_dap_op_quit, /* optional */
+};
+
+static const char *const stlink_dap_transport[] = { "dapdirect_jtag", "dapdirect_swd", NULL };
+
+struct adapter_driver stlink_dap_adapter_driver = {
+	.name = "st-link",
+	.transports = stlink_dap_transport,
+	.commands = stlink_dap_command_handlers,
+
+	.init = stlink_dap_init,
+	.quit = stlink_dap_quit,
+	.reset = stlink_dap_reset,
+	.speed = stlink_dap_speed,
+	.khz = stlink_dap_khz,
+	.speed_div = stlink_dap_speed_div,
+
+	.dap_jtag_ops = &stlink_dap_ops,
+	.dap_swd_ops = &stlink_dap_ops,
 };
