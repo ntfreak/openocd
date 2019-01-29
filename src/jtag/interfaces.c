@@ -129,7 +129,7 @@ extern struct adapter_driver aice_adapter_driver;
 #if BUILD_BCM2835GPIO == 1
 extern struct adapter_driver bcm2835gpio_adapter_driver;
 #endif
-#if BUILD_CMSIS_DAP == 1
+#if BUILD_CMSIS_DAP_USB == 1 || BUILD_CMSIS_DAP_HID == 1
 extern struct adapter_driver cmsis_dap_adapter_driver;
 #endif
 #if BUILD_KITPROG == 1
@@ -246,7 +246,7 @@ struct adapter_driver *adapter_drivers[] = {
 #if BUILD_BCM2835GPIO == 1
 		&bcm2835gpio_adapter_driver,
 #endif
-#if BUILD_CMSIS_DAP == 1
+#if BUILD_CMSIS_DAP_USB == 1 || BUILD_CMSIS_DAP_HID == 1
 		&cmsis_dap_adapter_driver,
 #endif
 #if BUILD_KITPROG == 1
