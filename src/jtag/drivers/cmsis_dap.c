@@ -1,4 +1,7 @@
 /***************************************************************************
+ *   Copyright (C) 2018 by Mickaël Thomas                                  *
+ *   mickael9@gmail.com                                                    *
+ *                                                                         *
  *   Copyright (C) 2016 by Maksym Hilliaka                                 *
  *   oter@frozen-team.com                                                  *
  *                                                                         *
@@ -38,12 +41,26 @@
 #include <jtag/commands.h>
 #include <jtag/tcl.h>
 
-#include <hidapi.h>
+#include "cmsis_dap.h"
 
-/*
- * See CMSIS-DAP documentation:
- * Version 0.01 - Beta.
- */
+#if BUILD_CMSIS_DAP_USB == 1
+const struct cmsis_dap_backend cmsis_dap_usb_backend;
+extern const struct command_registration cmsis_dap_usb_subcommand_handlers[];
+#endif
+
+#if BUILD_CMSIS_DAP_HID == 1
+const struct cmsis_dap_backend cmsis_dap_hid_backend;
+#endif
+
+static const struct cmsis_dap_backend *const cmsis_dap_backends[] = {
+#if BUILD_CMSIS_DAP_USB == 1
+	&cmsis_dap_usb_backend,
+#endif
+
+#if BUILD_CMSIS_DAP_HID == 1
+	&cmsis_dap_hid_backend,
+#endif
+};
 
 /* USB Config */
 
@@ -52,6 +69,7 @@
  * PID 0xf001: LPC-Link-II CMSIS_DAP
  * PID 0xf002: OPEN-SDA CMSIS_DAP (Freedom Board)
  * PID 0x2722: Keil ULINK2 CMSIS-DAP
+ * PID 0x2750: Keil ULINKplus CMSIS-DAP
  *
  * VID 0x0d28: mbed Software
  * PID 0x0204: MBED CMSIS-DAP
@@ -61,10 +79,10 @@
 /* vid = pid = 0 marks the end of the list */
 static uint16_t cmsis_dap_vid[MAX_USB_IDS + 1] = { 0 };
 static uint16_t cmsis_dap_pid[MAX_USB_IDS + 1] = { 0 };
-static wchar_t *cmsis_dap_serial;
+static char *cmsis_dap_serial;
+static int cmsis_dap_backend = -1;
 static bool swd_mode;
 
-#define PACKET_SIZE       (64 + 1)	/* 64 bytes plus report id */
 #define USB_TIMEOUT       1000
 
 /* CMSIS-DAP General Commands */
@@ -163,14 +181,6 @@ static const char * const info_caps_str[] = {
 /* max clock speed (kHz) */
 #define DAP_MAX_CLOCK             5000
 
-struct cmsis_dap {
-	hid_device *dev_handle;
-	uint16_t packet_size;
-	int packet_count;
-	uint8_t *packet_buffer;
-	uint8_t caps;
-	uint8_t mode;
-};
 
 struct pending_transfer_result {
 	uint8_t cmd;
@@ -223,91 +233,10 @@ static uint8_t output_pins = SWJ_PIN_SRST | SWJ_PIN_TRST;
 
 static struct cmsis_dap *cmsis_dap_handle;
 
-static int cmsis_dap_usb_open(void)
+
+static int cmsis_dap_open(void)
 {
-	hid_device *dev = NULL;
-	int i;
-	struct hid_device_info *devs, *cur_dev;
-	unsigned short target_vid, target_pid;
-	bool found = false;
-
-	target_vid = 0;
-	target_pid = 0;
-
-	if (hid_init() != 0) {
-		LOG_ERROR("unable to open HIDAPI");
-		return ERROR_FAIL;
-	}
-
-	/*
-	 * The CMSIS-DAP specification stipulates:
-	 * "The Product String must contain "CMSIS-DAP" somewhere in the string. This is used by the
-	 * debuggers to identify a CMSIS-DAP compliant Debug Unit that is connected to a host computer."
-	 */
-	devs = hid_enumerate(0x0, 0x0);
-	cur_dev = devs;
-	while (NULL != cur_dev) {
-		if (0 == cmsis_dap_vid[0]) {
-			if (NULL == cur_dev->product_string) {
-				LOG_DEBUG("Cannot read product string of device 0x%x:0x%x",
-					  cur_dev->vendor_id, cur_dev->product_id);
-			} else {
-				if (wcsstr(cur_dev->product_string, L"CMSIS-DAP")) {
-					/* if the user hasn't specified VID:PID *and*
-					 * product string contains "CMSIS-DAP", pick it
-					 */
-					found = true;
-				}
-			}
-		} else {
-			/* otherwise, exhaustively compare against all VID:PID in list */
-			for (i = 0; cmsis_dap_vid[i] || cmsis_dap_pid[i]; i++) {
-				if ((cmsis_dap_vid[i] == cur_dev->vendor_id) && (cmsis_dap_pid[i] == cur_dev->product_id))
-					found = true;
-			}
-
-			if (cmsis_dap_vid[i] || cmsis_dap_pid[i])
-				found = true;
-		}
-
-		/* LPC-LINK2 has cmsis-dap on interface 0 and other HID functions on other interfaces */
-		if (cur_dev->vendor_id == 0x1fc9 && cur_dev->product_id == 0x0090 && cur_dev->interface_number != 0)
-			found = false;
-
-		if (found) {
-			/* we have found an adapter, so exit further checks */
-			/* check serial number matches if given */
-			if (cmsis_dap_serial != NULL) {
-				if ((cur_dev->serial_number != NULL) && wcscmp(cmsis_dap_serial, cur_dev->serial_number) == 0) {
-					break;
-				}
-			} else
-				break;
-
-			found = false;
-		}
-
-		cur_dev = cur_dev->next;
-	}
-
-	if (NULL != cur_dev) {
-		target_vid = cur_dev->vendor_id;
-		target_pid = cur_dev->product_id;
-	}
-
-	if (target_vid == 0 && target_pid == 0) {
-		LOG_ERROR("unable to find CMSIS-DAP device");
-		hid_free_enumeration(devs);
-		return ERROR_FAIL;
-	}
-
-	dev = hid_open_path(cur_dev->path);
-	hid_free_enumeration(devs);
-
-	if (dev == NULL) {
-		LOG_ERROR("unable to open CMSIS-DAP device 0x%x:0x%x", target_vid, target_pid);
-		return ERROR_FAIL;
-	}
+	const struct cmsis_dap_backend *backend = NULL;
 
 	struct cmsis_dap *dap = malloc(sizeof(struct cmsis_dap));
 	if (dap == NULL) {
@@ -315,42 +244,55 @@ static int cmsis_dap_usb_open(void)
 		return ERROR_FAIL;
 	}
 
-	dap->dev_handle = dev;
 	dap->caps = 0;
 	dap->mode = 0;
+	dap->packet_size = 0; /* initialized by backend */
 
-	cmsis_dap_handle = dap;
+	if (cmsis_dap_backend >= 0) {
+		/* Use forced backend */
+		backend = cmsis_dap_backends[cmsis_dap_backend];
+		if (backend->open(dap, cmsis_dap_vid, cmsis_dap_pid, cmsis_dap_serial) != ERROR_OK)
+			backend = NULL;
+	} else {
+		/* Try all backends */
+		for (unsigned int i = 0; i < ARRAY_SIZE(cmsis_dap_backends); i++) {
+			backend = cmsis_dap_backends[i];
+			if (backend->open(dap, cmsis_dap_vid, cmsis_dap_pid, cmsis_dap_serial) == ERROR_OK)
+				break;
+			else
+				backend = NULL;
+		}
+	}
 
-	/* allocate default packet buffer, may be changed later.
-	 * currently with HIDAPI we have no way of getting the output report length
-	 * without this info we cannot communicate with the adapter.
-	 * For the moment we ahve to hard code the packet size */
-
-	int packet_size = PACKET_SIZE;
-
-	/* atmel cmsis-dap uses 512 byte reports */
-	/* except when it doesn't e.g. with mEDBG on SAMD10 Xplained
-	 * board */
-	/* TODO: HID report descriptor should be parsed instead of
-	 * hardcoding a match by VID */
-	if (target_vid == 0x03eb && target_pid != 0x2145 && target_pid != 0x2175)
-		packet_size = 512 + 1;
-
-	cmsis_dap_handle->packet_buffer = malloc(packet_size);
-	cmsis_dap_handle->packet_size = packet_size;
-
-	if (cmsis_dap_handle->packet_buffer == NULL) {
-		LOG_ERROR("unable to allocate memory");
+	if (backend == NULL) {
+		LOG_ERROR("unable to find a matching CMSIS-DAP device");
+		free(dap);
 		return ERROR_FAIL;
 	}
+
+	assert(dap->packet_size > 0);
+
+	dap->backend = backend;
+	dap->packet_buffer = malloc(dap->packet_size);
+
+	if (dap->packet_buffer == NULL) {
+		LOG_ERROR("unable to allocate memory");
+		dap->backend->close(dap);
+		free(dap);
+		return ERROR_FAIL;
+	}
+
+	cmsis_dap_handle = dap;
 
 	return ERROR_OK;
 }
 
-static void cmsis_dap_usb_close(struct cmsis_dap *dap)
+static void cmsis_dap_close(struct cmsis_dap *dap)
 {
-	hid_close(dap->dev_handle);
-	hid_exit();
+	if (dap->backend) {
+		dap->backend->close(dap);
+		dap->backend = NULL;
+	}
 
 	free(cmsis_dap_handle->packet_buffer);
 	free(cmsis_dap_handle);
@@ -364,47 +306,27 @@ static void cmsis_dap_usb_close(struct cmsis_dap *dap)
 	}
 }
 
-static int cmsis_dap_usb_write(struct cmsis_dap *dap, int txlen)
-{
-#ifdef CMSIS_DAP_JTAG_DEBUG
-	LOG_DEBUG("cmsis-dap usb xfer cmd=%02X", dap->packet_buffer[1]);
-#endif
-	/* Pad the rest of the TX buffer with 0's */
-	memset(dap->packet_buffer + txlen, 0, dap->packet_size - txlen);
-
-	/* write data to device */
-	int retval = hid_write(dap->dev_handle, dap->packet_buffer, dap->packet_size);
-	if (retval == -1) {
-		LOG_ERROR("error writing data: %ls", hid_error(dap->dev_handle));
-		return ERROR_FAIL;
-	}
-
-	return ERROR_OK;
-}
-
 /* Send a message and receive the reply */
-static int cmsis_dap_usb_xfer(struct cmsis_dap *dap, int txlen)
+static int cmsis_dap_xfer(struct cmsis_dap *dap, int txlen)
 {
 	if (pending_fifo_block_count) {
 		LOG_ERROR("pending %d blocks, flushing", pending_fifo_block_count);
 		while (pending_fifo_block_count) {
-			hid_read_timeout(dap->dev_handle, dap->packet_buffer, dap->packet_size, 10);
+			dap->backend->read(dap, 10);
 			pending_fifo_block_count--;
 		}
 		pending_fifo_put_idx = 0;
 		pending_fifo_get_idx = 0;
 	}
 
-	int retval = cmsis_dap_usb_write(dap, txlen);
-	if (retval != ERROR_OK)
+	int retval = dap->backend->write(dap, txlen, USB_TIMEOUT);
+	if (retval < 0)
 		return retval;
 
 	/* get reply */
-	retval = hid_read_timeout(dap->dev_handle, dap->packet_buffer, dap->packet_size, USB_TIMEOUT);
-	if (retval == -1 || retval == 0) {
-		LOG_DEBUG("error reading data: %ls", hid_error(dap->dev_handle));
-		return ERROR_FAIL;
-	}
+	retval = dap->backend->read(dap, USB_TIMEOUT);
+	if (retval < 0)
+		return retval;
 
 	return ERROR_OK;
 }
@@ -422,7 +344,7 @@ static int cmsis_dap_cmd_DAP_SWJ_Pins(uint8_t pins, uint8_t mask, uint32_t delay
 	buffer[5] = (delay >> 8) & 0xff;
 	buffer[6] = (delay >> 16) & 0xff;
 	buffer[7] = (delay >> 24) & 0xff;
-	retval = cmsis_dap_usb_xfer(cmsis_dap_handle, 8);
+	retval = cmsis_dap_xfer(cmsis_dap_handle, 8);
 
 	if (retval != ERROR_OK) {
 		LOG_ERROR("CMSIS-DAP command CMD_DAP_SWJ_PINS failed.");
@@ -448,7 +370,7 @@ static int cmsis_dap_cmd_DAP_SWJ_Clock(uint32_t swj_clock)
 	buffer[3] = (swj_clock >> 8) & 0xff;
 	buffer[4] = (swj_clock >> 16) & 0xff;
 	buffer[5] = (swj_clock >> 24) & 0xff;
-	retval = cmsis_dap_usb_xfer(cmsis_dap_handle, 6);
+	retval = cmsis_dap_xfer(cmsis_dap_handle, 6);
 
 	if (retval != ERROR_OK || buffer[1] != DAP_OK) {
 		LOG_ERROR("CMSIS-DAP command CMD_DAP_SWJ_CLOCK failed.");
@@ -477,7 +399,7 @@ static int cmsis_dap_cmd_DAP_SWJ_Sequence(uint8_t s_len, const uint8_t *sequence
 	buffer[2] = s_len;
 	bit_copy(&buffer[3], 0, sequence, 0, s_len);
 
-	retval = cmsis_dap_usb_xfer(cmsis_dap_handle, DIV_ROUND_UP(s_len, 8) + 3);
+	retval = cmsis_dap_xfer(cmsis_dap_handle, DIV_ROUND_UP(s_len, 8) + 3);
 
 	if (retval != ERROR_OK || buffer[1] != DAP_OK)
 		return ERROR_FAIL;
@@ -493,7 +415,7 @@ static int cmsis_dap_cmd_DAP_Info(uint8_t info, uint8_t **data)
 	buffer[0] = 0;	/* report number */
 	buffer[1] = CMD_DAP_INFO;
 	buffer[2] = info;
-	retval = cmsis_dap_usb_xfer(cmsis_dap_handle, 3);
+	retval = cmsis_dap_xfer(cmsis_dap_handle, 3);
 
 	if (retval != ERROR_OK) {
 		LOG_ERROR("CMSIS-DAP command CMD_INFO failed.");
@@ -514,7 +436,7 @@ static int cmsis_dap_cmd_DAP_LED(uint8_t led, uint8_t state)
 	buffer[1] = CMD_DAP_LED;
 	buffer[2] = led;
 	buffer[3] = state;
-	retval = cmsis_dap_usb_xfer(cmsis_dap_handle, 4);
+	retval = cmsis_dap_xfer(cmsis_dap_handle, 4);
 
 	if (retval != ERROR_OK || buffer[1] != 0x00) {
 		LOG_ERROR("CMSIS-DAP command CMD_LED failed.");
@@ -532,7 +454,7 @@ static int cmsis_dap_cmd_DAP_Connect(uint8_t mode)
 	buffer[0] = 0;	/* report number */
 	buffer[1] = CMD_DAP_CONNECT;
 	buffer[2] = mode;
-	retval = cmsis_dap_usb_xfer(cmsis_dap_handle, 3);
+	retval = cmsis_dap_xfer(cmsis_dap_handle, 3);
 
 	if (retval != ERROR_OK) {
 		LOG_ERROR("CMSIS-DAP command CMD_CONNECT failed.");
@@ -554,7 +476,7 @@ static int cmsis_dap_cmd_DAP_Disconnect(void)
 
 	buffer[0] = 0;	/* report number */
 	buffer[1] = CMD_DAP_DISCONNECT;
-	retval = cmsis_dap_usb_xfer(cmsis_dap_handle, 2);
+	retval = cmsis_dap_xfer(cmsis_dap_handle, 2);
 
 	if (retval != ERROR_OK || buffer[1] != DAP_OK) {
 		LOG_ERROR("CMSIS-DAP command CMD_DISCONNECT failed.");
@@ -576,7 +498,7 @@ static int cmsis_dap_cmd_DAP_TFER_Configure(uint8_t idle, uint16_t retry_count, 
 	buffer[4] = (retry_count >> 8) & 0xff;
 	buffer[5] = match_retry & 0xff;
 	buffer[6] = (match_retry >> 8) & 0xff;
-	retval = cmsis_dap_usb_xfer(cmsis_dap_handle, 7);
+	retval = cmsis_dap_xfer(cmsis_dap_handle, 7);
 
 	if (retval != ERROR_OK || buffer[1] != DAP_OK) {
 		LOG_ERROR("CMSIS-DAP command CMD_TFER_Configure failed.");
@@ -594,7 +516,7 @@ static int cmsis_dap_cmd_DAP_SWD_Configure(uint8_t cfg)
 	buffer[0] = 0;	/* report number */
 	buffer[1] = CMD_DAP_SWD_CONFIGURE;
 	buffer[2] = cfg;
-	retval = cmsis_dap_usb_xfer(cmsis_dap_handle, 3);
+	retval = cmsis_dap_xfer(cmsis_dap_handle, 3);
 
 	if (retval != ERROR_OK || buffer[1] != DAP_OK) {
 		LOG_ERROR("CMSIS-DAP command CMD_SWD_Configure failed.");
@@ -614,7 +536,7 @@ static int cmsis_dap_cmd_DAP_Delay(uint16_t delay_us)
 	buffer[1] = CMD_DAP_DELAY;
 	buffer[2] = delay_us & 0xff;
 	buffer[3] = (delay_us >> 8) & 0xff;
-	retval = cmsis_dap_usb_xfer(cmsis_dap_handle, 4);
+	retval = cmsis_dap_xfer(cmsis_dap_handle, 4);
 
 	if (retval != ERROR_OK || buffer[1] != DAP_OK) {
 		LOG_ERROR("CMSIS-DAP command CMD_Delay failed.");
@@ -684,9 +606,14 @@ static void cmsis_dap_swd_write_from_queue(struct cmsis_dap *dap)
 		}
 	}
 
-	queued_retval = cmsis_dap_usb_write(dap, idx);
-	if (queued_retval != ERROR_OK)
+	int retval = dap->backend->write(dap, idx, USB_TIMEOUT);
+
+	if (retval < 0) {
+		queued_retval = retval;
 		goto skip;
+	} else {
+		queued_retval = ERROR_OK;
+	}
 
 	pending_fifo_put_idx = (pending_fifo_put_idx + 1) % dap->packet_count;
 	pending_fifo_block_count++;
@@ -708,12 +635,12 @@ static void cmsis_dap_swd_read_process(struct cmsis_dap *dap, int timeout_ms)
 		LOG_ERROR("no pending write");
 
 	/* get reply */
-	int retval = hid_read_timeout(dap->dev_handle, dap->packet_buffer, dap->packet_size, timeout_ms);
-	if (retval == 0 && timeout_ms < USB_TIMEOUT)
+	int retval = dap->backend->read(dap, timeout_ms);
+	if (retval == ERROR_TIMEOUT_REACHED && timeout_ms < USB_TIMEOUT)
 		return;
 
-	if (retval == -1 || retval == 0) {
-		LOG_DEBUG("error reading data: %ls", hid_error(dap->dev_handle));
+	if (retval <= 0) {
+		LOG_DEBUG("error reading data");
 		queued_retval = ERROR_FAIL;
 		goto skip;
 	}
@@ -969,7 +896,7 @@ static int cmsis_dap_init(void)
 	int retval;
 	uint8_t *data;
 
-	retval = cmsis_dap_usb_open();
+	retval = cmsis_dap_open();
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -1048,7 +975,7 @@ static int cmsis_dap_init(void)
 		LOG_DEBUG("CMSIS-DAP: Packet Count = %d", pkt_cnt);
 	}
 
-	LOG_DEBUG("Allocating FIFO for %d pending HID requests", cmsis_dap_handle->packet_count);
+	LOG_DEBUG("Allocating FIFO for %d pending packets", cmsis_dap_handle->packet_count);
 	for (int i = 0; i < cmsis_dap_handle->packet_count; i++) {
 		pending_fifo[i].transfers = malloc(pending_queue_len * sizeof(struct pending_transfer_result));
 		if (!pending_fifo[i].transfers) {
@@ -1120,7 +1047,7 @@ static int cmsis_dap_quit(void)
 	cmsis_dap_cmd_DAP_LED(LED_ID_RUN, LED_OFF);
 	cmsis_dap_cmd_DAP_LED(LED_ID_CONNECT, LED_OFF);
 
-	cmsis_dap_usb_close(cmsis_dap_handle);
+	cmsis_dap_close(cmsis_dap_handle);
 
 	return ERROR_OK;
 }
@@ -1261,7 +1188,7 @@ static void cmsis_dap_flush(void)
 #endif
 
 	/* send command to USB device */
-	int retval = cmsis_dap_usb_xfer(cmsis_dap_handle, queued_seq_buf_end + 3);
+	int retval = cmsis_dap_xfer(cmsis_dap_handle, queued_seq_buf_end + 3);
 	if (retval != ERROR_OK || buffer[1] != DAP_OK) {
 		LOG_ERROR("CMSIS-DAP command CMD_DAP_JTAG_SEQ failed.");
 		exit(-1);
@@ -1668,7 +1595,7 @@ COMMAND_HANDLER(cmsis_dap_handle_cmd_command)
 	for (i = 0; i < CMD_ARGC; i++)
 		buffer[i + 1] = strtoul(CMD_ARGV[i], NULL, 16);
 
-	retval = cmsis_dap_usb_xfer(cmsis_dap_handle, CMD_ARGC + 1);
+	retval = cmsis_dap_xfer(cmsis_dap_handle, CMD_ARGC + 1);
 
 	if (retval != ERROR_OK) {
 		LOG_ERROR("CMSIS-DAP command failed.");
@@ -1713,20 +1640,31 @@ COMMAND_HANDLER(cmsis_dap_handle_vid_pid_command)
 
 COMMAND_HANDLER(cmsis_dap_handle_serial_command)
 {
+	if (CMD_ARGC == 1)
+		cmsis_dap_serial = strdup(CMD_ARGV[0]);
+	else
+		LOG_ERROR("expected exactly one argument to cmsis_dap_serial <serial-number>");
+
+	return ERROR_OK;
+}
+
+COMMAND_HANDLER(cmsis_dap_handle_backend_command)
+{
 	if (CMD_ARGC == 1) {
-		size_t len = mbstowcs(NULL, CMD_ARGV[0], 0);
-		cmsis_dap_serial = calloc(len + 1, sizeof(wchar_t));
-		if (cmsis_dap_serial == NULL) {
-			LOG_ERROR("unable to allocate memory");
-			return ERROR_OK;
-		}
-		if (mbstowcs(cmsis_dap_serial, CMD_ARGV[0], len + 1) == (size_t)-1) {
-			free(cmsis_dap_serial);
-			cmsis_dap_serial = NULL;
-			LOG_ERROR("unable to convert serial");
+		if (strcmp(CMD_ARGV[0], "auto") == 0) {
+			cmsis_dap_backend = -1; /* autoselect */
+		} else {
+			for (unsigned int i = 0; i < ARRAY_SIZE(cmsis_dap_backends); i++) {
+				if (strcasecmp(cmsis_dap_backends[i]->name, CMD_ARGV[0]) == 0) {
+					cmsis_dap_backend = i;
+					return ERROR_OK;
+				}
+			}
+
+			LOG_ERROR("invalid backend argument to cmsis_dap_backend <backend>");
 		}
 	} else {
-		LOG_ERROR("expected exactly one argument to cmsis_dap_serial <serial-number>");
+		LOG_ERROR("expected exactly one argument to cmsis_dap_backend <backend>");
 	}
 
 	return ERROR_OK;
@@ -1750,6 +1688,7 @@ static const struct command_registration cmsis_dap_subcommand_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
+
 static const struct command_registration cmsis_dap_command_handlers[] = {
 	{
 		.name = "cmsis-dap",
@@ -1772,6 +1711,22 @@ static const struct command_registration cmsis_dap_command_handlers[] = {
 		.help = "set the serial number of the adapter",
 		.usage = "serial_string",
 	},
+	{
+		.name = "cmsis_dap_backend",
+		.handler = &cmsis_dap_handle_backend_command,
+		.mode = COMMAND_CONFIG,
+		.help = "set the communication backend to use (USB bulk or HID).",
+		.usage = "(auto | usb_bulk | hid)",
+	},
+#if BUILD_CMSIS_DAP_USB
+	{
+		.name = "cmsis_dap_usb",
+		.chain = cmsis_dap_usb_subcommand_handlers,
+		.mode = COMMAND_ANY,
+		.help = "USB bulk backend-specific commands",
+		.usage = "<cmd>",
+	},
+#endif
 	COMMAND_REGISTRATION_DONE
 };
 

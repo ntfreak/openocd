@@ -170,8 +170,15 @@ endif
 if OPENJTAG
 DRIVERFILES += %D%/openjtag.c
 endif
-if CMSIS_DAP
-DRIVERFILES += %D%/cmsis_dap_usb.c
+if CMSIS_DAP_HID
+DRIVERFILES += %D%/cmsis_dap_usb_hid.c
+DRIVERFILES += %D%/cmsis_dap.c
+endif
+if CMSIS_DAP_USB
+DRIVERFILES += %D%/cmsis_dap_usb_bulk.c
+if !CMSIS_DAP_HID
+DRIVERFILES += %D%/cmsis_dap.c
+endif
 endif
 if IMX_GPIO
 DRIVERFILES += %D%/imx_gpio.c
@@ -189,6 +196,7 @@ DRIVERHEADERS = \
 	%D%/jtag_usb_common.h \
 	%D%/libftdi_helper.h \
 	%D%/libusb_helper.h \
+	%D%/cmsis_dap.h \
 	%D%/minidriver_imp.h \
 	%D%/mpsse.h \
 	%D%/rlink.h \
