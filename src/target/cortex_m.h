@@ -215,6 +215,8 @@ struct cortex_m_common {
 
 	struct armv7m_common armv7m;
 
+	bool slow_register_read;	/* A register has not been ready, poll S_REGRDY */
+
 	int apsel;
 
 	/* Whether this target has the erratum that makes C_MASKINTS not apply to
