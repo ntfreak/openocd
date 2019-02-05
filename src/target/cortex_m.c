@@ -89,6 +89,124 @@ static int cortexm_dap_read_coreregister_u32(struct target *target,
 	return retval;
 }
 
+static int cortex_m_dap_read_all_regs(struct target *target)
+{
+	struct armv7m_common *armv7m = target_to_armv7m(target);
+	int retval;
+	uint32_t dcrdr;
+
+	/* because the DCB_DCRDR is used for the emulated dcc channel
+	 * we have to save/restore the DCB_DCRDR when used */
+	if (target->dbg_msg_enabled) {
+		retval = mem_ap_read_u32(armv7m->debug_ap, DCB_DCRDR, &dcrdr);
+		if (retval != ERROR_OK)
+			return retval;
+	}
+
+	int i;
+	struct reg *r;
+	uint32_t r_vals[ARMV7M_PSP+1];
+	uint32_t ctrl_faultmsk_basepri_primask;
+	for (i = ARMV7M_R0; i <= ARMV7M_PSP; i++) {
+		retval = mem_ap_write_u32(armv7m->debug_ap, DCB_DCRSR, i);
+		if (retval != ERROR_OK)
+			return retval;
+
+		retval = mem_ap_read_u32(armv7m->debug_ap, DCB_DCRDR, &r_vals[i]);
+		if (retval != ERROR_OK)
+			return retval;
+	}
+
+	/* Control / Faultmask / Basepri / Primask */
+	retval = mem_ap_write_u32(armv7m->debug_ap, DCB_DCRSR, 0x14);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = mem_ap_read_u32(armv7m->debug_ap, DCB_DCRDR, &ctrl_faultmsk_basepri_primask);
+	if (retval != ERROR_OK)
+		return retval;
+
+	uint32_t fp_vals[32];
+	uint32_t fpscr;
+	if (armv7m->fp_feature != FP_NONE) {
+		for (i = 0; i < 32; i++) {
+			retval = mem_ap_write_u32(armv7m->debug_ap, DCB_DCRSR, i + 0x40);
+			if (retval != ERROR_OK)
+				return retval;
+
+			retval = mem_ap_read_u32(armv7m->debug_ap, DCB_DCRDR, &fp_vals[i]);
+			if (retval != ERROR_OK)
+				return retval;
+		}
+
+		/* FPSCR */
+		retval = mem_ap_write_u32(armv7m->debug_ap, DCB_DCRSR, 0x21);
+		if (retval != ERROR_OK)
+			return retval;
+
+		retval = mem_ap_read_u32(armv7m->debug_ap, DCB_DCRDR, &fpscr);
+		if (retval != ERROR_OK)
+			return retval;
+
+	}
+
+	retval = dap_run(armv7m->debug_ap->dap);
+	if (retval != ERROR_OK)
+		return retval;
+
+	if (target->dbg_msg_enabled) {
+		/* restore DCB_DCRDR - this needs to be in a separate
+		 * transaction otherwise the emulated DCC channel breaks */
+		retval = mem_ap_write_atomic_u32(armv7m->debug_ap, DCB_DCRDR, dcrdr);
+		if (retval != ERROR_OK)
+			return retval;
+	}
+
+	for (i = ARMV7M_R0; i <= ARMV7M_PSP; i++) {
+		r = &armv7m->arm.core_cache->reg_list[i];
+		buf_set_u32(r->value, 0, 32, r_vals[i]);
+		r->valid = true;
+		r->dirty = false;
+	}
+
+	r = &armv7m->arm.core_cache->reg_list[ARMV7M_PRIMASK];
+	buf_set_u32(r->value, 0, 8, ctrl_faultmsk_basepri_primask);
+	r->valid = true;
+	r->dirty = false;
+
+	r = &armv7m->arm.core_cache->reg_list[ARMV7M_BASEPRI];
+	buf_set_u32(r->value, 0, 8, ctrl_faultmsk_basepri_primask >> 8);
+	r->valid = true;
+	r->dirty = false;
+
+	r = &armv7m->arm.core_cache->reg_list[ARMV7M_FAULTMASK];
+	buf_set_u32(r->value, 0, 8, ctrl_faultmsk_basepri_primask >> 16);
+	r->valid = true;
+	r->dirty = false;
+
+	r = &armv7m->arm.core_cache->reg_list[ARMV7M_CONTROL];
+	buf_set_u32(r->value, 0, 8, ctrl_faultmsk_basepri_primask >> 24);
+	r->valid = true;
+	r->dirty = false;
+
+	if (armv7m->fp_feature != FP_NONE) {
+		for (i = 0; i < 16; i++) {
+			r = &armv7m->arm.core_cache->reg_list[ARMV7M_NUM_CORE_REGS_NOFP + i];
+			buf_set_u32(r->value, 0, 32, fp_vals[2*i]);
+			buf_set_u32(r->value + 4, 0, 32, fp_vals[2*i + 1]);
+			r->valid = true;
+			r->dirty = false;
+		}
+
+		r = register_get_by_name(armv7m->arm.core_cache, "fpscr", 1);
+		buf_set_u32(r->value, 0, 32, fpscr);
+		r->valid = true;
+		r->dirty = false;
+	}
+
+	return retval;
+}
+
 static int cortexm_dap_write_coreregister_u32(struct target *target,
 	uint32_t value, int regnum)
 {
@@ -471,7 +589,6 @@ static int cortex_m_examine_exception_reason(struct target *target)
 
 static int cortex_m_debug_entry(struct target *target)
 {
-	int i;
 	uint32_t xPSR;
 	int retval;
 	struct cortex_m_common *cortex_m = target_to_cm(target);
@@ -494,15 +611,7 @@ static int cortex_m_debug_entry(struct target *target)
 	if (retval != ERROR_OK)
 		return retval;
 
-	/* Examine target state and mode
-	 * First load register accessible through core debug port */
-	int num_regs = arm->core_cache->num_regs;
-
-	for (i = 0; i < num_regs; i++) {
-		r = &armv7m->arm.core_cache->reg_list[i];
-		if (!r->valid)
-			arm->read_core_reg(target, r, i, ARM_MODE_ANY);
-	}
+	cortex_m_dap_read_all_regs(target);
 
 	r = arm->cpsr;
 	xPSR = buf_get_u32(r->value, 0, 32);
