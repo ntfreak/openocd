@@ -133,6 +133,11 @@ static int load_usb_blaster_firmware(struct libusb_device_handle *libusb_dev,
 		return ERROR_FAIL;
 	}
 
+	if (libusb_claim_interface(libusb_dev, 0)) {
+		LOG_ERROR("unable to claim interface");
+		return ERROR_JTAG_INIT_FAILED;
+	}
+
 	ublast2_firmware_image.base_address = 0;
 	ublast2_firmware_image.base_address_set = false;
 
@@ -228,6 +233,12 @@ static int ublast2_libusb_init(struct ublast_lowlevel *low)
 		}
 	}
 
+	if (libusb_claim_interface(low->libusb_dev, 0)) {
+		LOG_ERROR("unable to claim interface");
+		jtag_libusb_close(low->libusb_dev);
+		return ERROR_JTAG_INIT_FAILED;
+	}
+
 	char buffer[5];
 	jtag_libusb_control_transfer(low->libusb_dev,
 				     LIBUSB_REQUEST_TYPE_VENDOR |
@@ -246,6 +257,9 @@ static int ublast2_libusb_init(struct ublast_lowlevel *low)
 
 static int ublast2_libusb_quit(struct ublast_lowlevel *low)
 {
+	if (libusb_release_interface(low->libusb_dev, 0))
+		LOG_ERROR("usb release interface failed");
+
 	jtag_libusb_close(low->libusb_dev);
 	return ERROR_OK;
 };
