@@ -383,7 +383,7 @@ COMMAND_HANDLER(handle_adapter_srst_pulse_width_command)
 	return ERROR_OK;
 }
 
-COMMAND_HANDLER(handle_adapter_khz_command)
+COMMAND_HANDLER(handle_adapter_speed_command)
 {
 	if (CMD_ARGC > 1)
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -465,8 +465,8 @@ static const struct command_registration adapter_command_handlers[] = {
 		.usage = "driver_name",
 	},
 	{
-		.name = "khz",
-		.handler = handle_adapter_khz_command,
+		.name = "speed",
+		.handler = handle_adapter_speed_command,
 		.mode = COMMAND_ANY,
 		.help = "With an argument, change to the specified maximum "
 			"jtag speed.  For JTAG, 0 KHz signifies adaptive "

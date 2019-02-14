@@ -1571,7 +1571,7 @@ solution just avoids using that instruction with JTAG debuggers.
 If both the chip and the board support adaptive clocking,
 use the @command{jtag_rclk}
 command, in case your board is used with JTAG adapter which
-also supports it. Otherwise use @command{adapter khz}.
+also supports it. Otherwise use @command{adapter speed}.
 Set the slow rate at the beginning of the reset sequence,
 and the faster rate as soon as the clocks are at full speed.
 
@@ -1611,12 +1611,12 @@ proc init_board @{@} @{
     reset_config trst_and_srst trst_pulls_srst
 
     $_TARGETNAME configure -event reset-start @{
-        adapter khz 100
+        adapter speed 100
     @}
 
     $_TARGETNAME configure -event reset-init @{
         enable_fast_clock
-        adapter khz 10000
+        adapter speed 10000
     @}
 @}
 @end example
@@ -2990,7 +2990,7 @@ you may encounter a problem.
 @deffn Command {parport_toggling_time} [nanoseconds]
 Displays how many nanoseconds the hardware needs to toggle TCK;
 the parport driver uses this value to obey the
-@command{adapter khz} configuration.
+@command{adapter speed} configuration.
 When the optional @var{nanoseconds} parameter is given,
 that setting is changed before displaying the current value.
 
@@ -3001,7 +3001,7 @@ To measure the toggling time with a logic analyzer or a digital storage
 oscilloscope, follow the procedure below:
 @example
 > parport_toggling_time 1000
-> adapter khz 500
+> adapter speed 500
 @end example
 This sets the maximum JTAG clock speed of the hardware, but
 the actual speed probably deviates from the requested 500 kHz.
@@ -3012,14 +3012,14 @@ Update the setting to match your measurement:
 @example
 > parport_toggling_time <measured nanoseconds>
 @end example
-Now the clock speed will be a better match for @command{adapter khz rate}
+Now the clock speed will be a better match for @command{adapter speed} rate
 commands given in OpenOCD scripts and event handlers.
 
 You can do something similar with many digital multimeters, but note
 that you'll probably need to run the clock continuously for several
 seconds before it decides what clock rate to show. Adjust the
 toggling time up or down until the measured clock rate is a good
-match for the adapter khz rate you specified; be conservative.
+match for the @command{adapter speed} rate you specified; be conservative.
 @end quotation
 @end deffn
 
@@ -3282,10 +3282,10 @@ However, it introduces delays to synchronize clocks; so it
 may not be the fastest solution.
 
 @b{NOTE:} Script writers should consider using @command{jtag_rclk}
-instead of @command{adapter khz}, but only for (ARM) cores and boards
+instead of @command{adapter speed}, but only for (ARM) cores and boards
 which support adaptive clocking.
 
-@deffn {Command} adapter khz max_speed_kHz
+@deffn {Command} adapter speed max_speed_kHz
 A non-zero speed is in KHZ. Hence: 3000 is 3mhz.
 JTAG interfaces usually support a limited number of
 speeds. The speed actually used won't be faster
@@ -4841,7 +4841,7 @@ the target clocks are fully set up.)
 before @command{reset-assert-pre} is called.
 
 This is the most robust place to use @command{jtag_rclk}
-or @command{adapter khz} to switch to a low JTAG clock rate,
+or @command{adapter speed} to switch to a low JTAG clock rate,
 when reset disables PLLs needed to use a fast clock.
 @item @b{resume-start}
 @* Before any target is resumed
@@ -10602,7 +10602,7 @@ To set the JTAG frequency use the command:
 
 @example
 # Example: 1.234MHz
-adapter khz 1234
+adapter speed 1234
 @end example
 
 
