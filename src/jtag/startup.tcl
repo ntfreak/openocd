@@ -120,8 +120,8 @@ proc jtag_ntrst_assert_width args {
 # FIXME phase these aids out after about April 2011
 #
 proc jtag_khz args {
-	echo "DEPRECATED! use 'adapter_khz' not 'jtag_khz'"
-	eval adapter_khz $args
+	echo "DEPRECATED! use 'adapter speed' not 'jtag_khz'"
+	eval adapter speed $args
 }
 
 proc jtag_nsrst_delay args {
@@ -158,6 +158,11 @@ proc stlink_vid_pid args {
 proc stlink args {
 	echo "DEPRECATED! use 'hla' not 'stlink'"
 	eval hla $args
+}
+
+proc adapter_khz args {
+	echo "DEPRECATED! use 'adapter speed' not 'adapter_khz'"
+	eval adapter speed $args
 }
 
 proc adapter_name args {
