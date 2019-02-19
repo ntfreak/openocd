@@ -199,7 +199,6 @@ COMMAND_HANDLER(handle_flash_erase_check_command)
 	if (ERROR_OK != retval)
 		return retval;
 
-	int j;
 	retval = p->driver->erase_check(p);
 	if (retval == ERROR_OK)
 		command_print(CMD, "successfully checked erase state");
@@ -211,7 +210,7 @@ COMMAND_HANDLER(handle_flash_erase_check_command)
 			p->base);
 	}
 
-	for (j = 0; j < p->num_sectors; j++) {
+	for (unsigned int j = 0; j < p->num_sectors; j++) {
 		char *erase_state;
 
 		if (p->sectors[j].is_erased == 0)
@@ -325,7 +324,7 @@ COMMAND_HANDLER(handle_flash_erase_command)
 		return ERROR_FAIL;
 	}
 
-	if (!(last <= (uint32_t)(p->num_sectors - 1))) {
+	if (!(last <= (p->num_sectors - 1))) {
 		command_print(CMD, "ERROR: "
 			"last sector must be <= %" PRIu32,
 			p->num_sectors - 1);
@@ -1007,11 +1006,10 @@ COMMAND_HANDLER(handle_flash_verify_bank_command)
 void flash_set_dirty(void)
 {
 	struct flash_bank *c;
-	int i;
 
 	/* set all flash to require erasing */
 	for (c = flash_bank_list(); c; c = c->next) {
-		for (i = 0; i < c->num_sectors; i++)
+		for (unsigned int i = 0; i < c->num_sectors; i++)
 			c->sectors[i].is_erased = 0;
 	}
 }
@@ -1243,8 +1241,8 @@ COMMAND_HANDLER(handle_flash_bank_command)
 	c->driver = driver;
 	COMMAND_PARSE_NUMBER(target_addr, CMD_ARGV[1], c->base);
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[2], c->size);
-	COMMAND_PARSE_NUMBER(int, CMD_ARGV[3], c->chip_width);
-	COMMAND_PARSE_NUMBER(int, CMD_ARGV[4], c->bus_width);
+	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[3], c->chip_width);
+	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[4], c->bus_width);
 	c->default_padded_value = c->erased_value = 0xff;
 	c->minimal_write_gap = FLASH_WRITE_GAP_SECTOR;
 

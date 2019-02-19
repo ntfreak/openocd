@@ -232,17 +232,17 @@ static uint32_t lpc288x_system_ready(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int lpc288x_erase(struct flash_bank *bank, int first, int last)
+static int lpc288x_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	uint32_t status;
-	int sector;
 	struct target *target = bank->target;
 
 	status = lpc288x_system_ready(bank);	/* probed? halted? */
 	if (status != ERROR_OK)
 		return status;
 
-	if ((first < 0) || (last < first) || (last >= bank->num_sectors)) {
+	if ((last < first) || (last >= bank->num_sectors)) {
 		LOG_INFO("Bad sector range");
 		return ERROR_FLASH_SECTOR_INVALID;
 	}
@@ -250,7 +250,7 @@ static int lpc288x_erase(struct flash_bank *bank, int first, int last)
 	/* Configure the flash controller timing */
 	lpc288x_set_flash_clk(bank);
 
-	for (sector = first; sector <= last; sector++) {
+	for (unsigned int sector = first; sector <= last; sector++) {
 		if (lpc288x_wait_status_busy(bank, 1000) != ERROR_OK)
 			return ERROR_FLASH_OPERATION_FAILED;
 
@@ -272,7 +272,6 @@ static int lpc288x_write(struct flash_bank *bank, const uint8_t *buffer, uint32_
 	struct target *target = bank->target;
 	uint32_t bytes_remaining = count;
 	uint32_t first_sector, last_sector, sector, page;
-	int i;
 
 	/* probed? halted? */
 	status = lpc288x_system_ready(bank);
@@ -283,7 +282,7 @@ static int lpc288x_write(struct flash_bank *bank, const uint8_t *buffer, uint32_
 	first_sector = last_sector = 0xffffffff;
 
 	/* validate the write range... */
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		if ((offset >= bank->sectors[i].offset) &&
 				(offset < (bank->sectors[i].offset + bank->sectors[i].size)) &&
 				(first_sector == 0xffffffff)) {
@@ -379,9 +378,10 @@ static int lpc288x_probe(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int lpc288x_protect(struct flash_bank *bank, int set, int first, int last)
+static int lpc288x_protect(struct flash_bank *bank, bool set,
+		unsigned int first, unsigned int last)
 {
-	int lockregion, status;
+	int status;
 	uint32_t value;
 	struct target *target = bank->target;
 
@@ -390,13 +390,13 @@ static int lpc288x_protect(struct flash_bank *bank, int set, int first, int last
 	if (status != ERROR_OK)
 		return status;
 
-	if ((first < 0) || (last < first) || (last >= bank->num_sectors))
+	if ((last < first) || (last >= bank->num_sectors))
 		return ERROR_FLASH_SECTOR_INVALID;
 
 	/* Configure the flash controller timing */
 	lpc288x_set_flash_clk(bank);
 
-	for (lockregion = first; lockregion <= last; lockregion++) {
+	for (unsigned int lockregion = first; lockregion <= last; lockregion++) {
 		if (set) {
 			/* write an odd value to base addy to protect... */
 			value = 0x01;

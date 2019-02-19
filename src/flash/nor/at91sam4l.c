@@ -125,7 +125,7 @@ struct sam4l_info {
 	uint32_t page_size;
 	int num_pages;
 	int sector_size;
-	int pages_per_sector;
+	unsigned int pages_per_sector;
 
 	bool probed;
 	struct target *target;
@@ -335,7 +335,7 @@ static int sam4l_probe(struct flash_bank *bank)
 
 	/* Fill out the sector information: all SAM4L sectors are the same size and
 	 * there is always a fixed number of them. */
-	for (int i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		bank->sectors[i].size = chip->sector_size;
 		bank->sectors[i].offset = i * chip->sector_size;
 		/* mark as unknown */
@@ -375,13 +375,14 @@ static int sam4l_protect_check(struct flash_bank *bank)
 		return res;
 
 	st >>= 16; /* There are 16 lock region bits in the upper half word */
-	for (int i = 0; i < bank->num_sectors; i++)
+	for (unsigned int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_protected = !!(st & (1<<i));
 
 	return ERROR_OK;
 }
 
-static int sam4l_protect(struct flash_bank *bank, int set, int first, int last)
+static int sam4l_protect(struct flash_bank *bank, bool set, unsigned int first,
+		unsigned int last)
 {
 	struct sam4l_info *chip = (struct sam4l_info *)bank->driver_priv;
 
@@ -406,7 +407,7 @@ static int sam4l_protect(struct flash_bank *bank, int set, int first, int last)
 	/* Try to lock or unlock each sector in the range.	This is done by locking
 	 * a region containing one page in that sector, we arbitrarily choose the 0th
 	 * page in the sector. */
-	for (int i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		int res;
 
 		res = sam4l_flash_command(bank->target,
@@ -420,7 +421,8 @@ static int sam4l_protect(struct flash_bank *bank, int set, int first, int last)
 	return ERROR_OK;
 }
 
-static int sam4l_erase(struct flash_bank *bank, int first, int last)
+static int sam4l_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	int ret;
 	struct sam4l_info *chip = (struct sam4l_info *)bank->driver_priv;
@@ -456,9 +458,9 @@ static int sam4l_erase(struct flash_bank *bank, int first, int last)
 		LOG_DEBUG("Erasing sectors %d through %d...\n", first, last);
 
 		/* For each sector... */
-		for (int i = first; i <= last; i++) {
+		for (unsigned int i = first; i <= last; i++) {
 			/* For each page in that sector... */
-			for (int j = 0; j < chip->pages_per_sector; j++) {
+			for (unsigned int j = 0; j < chip->pages_per_sector; j++) {
 				int pn = i * chip->pages_per_sector + j;
 				bool is_erased = false;
 

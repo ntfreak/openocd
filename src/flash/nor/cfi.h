@@ -154,8 +154,9 @@ struct cfi_fixup {
 	const void *param;
 };
 
-int cfi_erase(struct flash_bank *bank, int first, int last);
-int cfi_protect(struct flash_bank *bank, int set, int first, int last);
+int cfi_erase(struct flash_bank *bank, unsigned int first, unsigned int last);
+int cfi_protect(struct flash_bank *bank, bool set, unsigned int first,
+	unsigned int last);
 int cfi_probe(struct flash_bank *bank);
 int cfi_auto_probe(struct flash_bank *bank);
 int cfi_protect_check(struct flash_bank *bank);

@@ -114,13 +114,11 @@ static void fill_sector_table(struct flash_bank *bank)
 	/* Note: is_erased and is_protected fields must be set here to an unknown
 	 * state, they will be correctly filled from other API calls. */
 
-	int i = 0;
-
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		bank->sectors[i].is_erased              = -1;
 		bank->sectors[i].is_protected   = -1;
 	}
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		bank->sectors[i].size   = XCF_DATA_SECTOR_SIZE;
 		bank->sectors[i].offset = i * XCF_DATA_SECTOR_SIZE;
 	}
@@ -218,10 +216,10 @@ static int sector_state(uint8_t wrpt, int sector)
 		return 1;
 }
 
-static uint8_t fill_select_block(int first, int last)
+static uint8_t fill_select_block(unsigned int first, unsigned int last)
 {
 	uint8_t ret = 0;
-	for (int i = first; i <= last; i++)
+	for (unsigned int i = first; i <= last; i++)
 		ret |= 1 << i;
 	return ret;
 }
@@ -319,23 +317,26 @@ static int isc_program_register(struct flash_bank *bank, const uint8_t *cmd,
 		return isc_wait_erase_program(bank, timeout_ms);
 }
 
-static int isc_clear_protect(struct flash_bank *bank, int first, int last)
+static int isc_clear_protect(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	uint8_t select_block[3] = {0x0, 0x0, 0x0};
 	select_block[0] = fill_select_block(first, last);
 	return isc_set_register(bank, CMD_XSC_UNLOCK, select_block, 24, 0);
 }
 
-static int isc_set_protect(struct flash_bank *bank, int first, int last)
+static int isc_set_protect(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	uint8_t wrpt[2] = {0xFF, 0xFF};
-	for (int i = first; i <= last; i++)
+	for (unsigned int i = first; i <= last; i++)
 		wrpt[0] &= ~(1 << i);
 
 	return isc_program_register(bank, CMD_XSC_DATA_WRPT, wrpt, 16, 0);
 }
 
-static int isc_erase_sectors(struct flash_bank *bank, int first, int last)
+static int isc_erase_sectors(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	uint8_t select_block[3] = {0, 0, 0};
 	select_block[0] = fill_select_block(first, last);
@@ -438,7 +439,7 @@ static int read_write_data(struct flash_bank *bank, const uint8_t *w_buffer,
 		goto EXIT;
 	}
 
-	if ((offset + count) > (uint32_t)(bank->num_sectors * XCF_DATA_SECTOR_SIZE)) {
+	if ((offset + count) > (bank->num_sectors * XCF_DATA_SECTOR_SIZE)) {
 		ret = ERROR_FLASH_DST_OUT_OF_BANK;
 		goto EXIT;
 	}
@@ -491,7 +492,7 @@ static int read_write_data(struct flash_bank *bank, const uint8_t *w_buffer,
 	/* Set 'done' flags for all data sectors because driver supports
 	 * only single revision. */
 	if (write_flag) {
-		for (int i = 0; i < bank->num_sectors; i++) {
+		for (unsigned int i = 0; i < bank->num_sectors; i++) {
 			ret = isc_set_data_done(bank, i);
 			if (ERROR_OK != ret)
 				goto EXIT;
@@ -511,12 +512,12 @@ static uint16_t isc_read_ccb(struct flash_bank *bank)
 	return le_to_h_u16(ccb);
 }
 
-static int gucr_num(const struct flash_bank *bank)
+static unsigned int gucr_num(const struct flash_bank *bank)
 {
 	return bank->num_sectors;
 }
 
-static int sucr_num(const struct flash_bank *bank)
+static unsigned int sucr_num(const struct flash_bank *bank)
 {
 	return bank->num_sectors + 1;
 }
@@ -666,7 +667,7 @@ static int xcf_protect_check(struct flash_bank *bank)
 	isc_read_register(bank, CMD_XSC_DATA_WRPT, wrpt, 16);
 	isc_leave(bank);
 
-	for (int i = 0; i < bank->num_sectors; i++)
+	for (unsigned int i = 0; i < bank->num_sectors; i++)
 		bank->sectors[i].is_protected = sector_state(wrpt[0], i);
 
 	return ERROR_OK;
@@ -697,13 +698,14 @@ static int xcf_erase_check(struct flash_bank *bank)
 
 	isc_leave(bank);
 
-	for (int i = 0; i < bank->num_sectors; i++)
+	for (unsigned int i = 0; i < bank->num_sectors; i++)
 		bank->sectors[i].is_erased = sector_state(blankreg, i);
 
 	return ERROR_OK;
 }
 
-static int xcf_erase(struct flash_bank *bank, int first, int last)
+static int xcf_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	if ((first >= bank->num_sectors)
 		|| (last >= bank->num_sectors)
@@ -729,7 +731,8 @@ static int xcf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t of
 	return read_write_data(bank, buffer, NULL, true, offset, count);
 }
 
-static int xcf_protect(struct flash_bank *bank, int set, int first, int last)
+static int xcf_protect(struct flash_bank *bank, bool set, unsigned int first,
+		unsigned int last)
 {
 	int ret;
 

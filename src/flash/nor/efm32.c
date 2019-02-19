@@ -359,7 +359,7 @@ FLASH_BANK_COMMAND_HANDLER(efm32x_flash_bank_command)
 
 /* set or reset given bits in a register */
 static int efm32x_set_reg_bits(struct flash_bank *bank, uint32_t reg,
-	uint32_t bitmask, int set)
+	uint32_t bitmask, bool set)
 {
 	int ret = 0;
 	uint32_t reg_val = 0;
@@ -467,10 +467,10 @@ static int efm32x_erase_page(struct flash_bank *bank, uint32_t addr)
 		EFM32_MSC_STATUS_BUSY_MASK, 0);
 }
 
-static int efm32x_erase(struct flash_bank *bank, int first, int last)
+static int efm32x_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
-	int i = 0;
 	int ret = 0;
 
 	if (TARGET_HALTED != target->state) {
@@ -485,7 +485,7 @@ static int efm32x_erase(struct flash_bank *bank, int first, int last)
 		return ret;
 	}
 
-	for (i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		ret = efm32x_erase_page(bank, bank->sectors[i].offset);
 		if (ERROR_OK != ret)
 			LOG_ERROR("Failed to erase page %d", i);
@@ -600,7 +600,7 @@ static int efm32x_get_page_lock(struct flash_bank *bank, size_t page)
 	return (dw & mask) ? 0 : 1;
 }
 
-static int efm32x_set_page_lock(struct flash_bank *bank, size_t page, int set)
+static int efm32x_set_page_lock(struct flash_bank *bank, size_t page, bool set)
 {
 	struct efm32x_flash_bank *efm32x_info = bank->driver_priv;
 	uint32_t *dw = &efm32x_info->lb_page[page >> 5];
@@ -616,10 +616,10 @@ static int efm32x_set_page_lock(struct flash_bank *bank, size_t page, int set)
 	return ERROR_OK;
 }
 
-static int efm32x_protect(struct flash_bank *bank, int set, int first, int last)
+static int efm32x_protect(struct flash_bank *bank, bool set, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
-	int i = 0;
 	int ret = 0;
 
 	if (!set) {
@@ -632,7 +632,7 @@ static int efm32x_protect(struct flash_bank *bank, int set, int first, int last)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	for (i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		ret = efm32x_set_page_lock(bank, i, set);
 		if (ERROR_OK != ret) {
 			LOG_ERROR("Failed to set lock on page %d", i);
@@ -1030,7 +1030,6 @@ static int efm32x_protect_check(struct flash_bank *bank)
 {
 	struct target *target = bank->target;
 	int ret = 0;
-	int i = 0;
 
 	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -1045,7 +1044,7 @@ static int efm32x_protect_check(struct flash_bank *bank)
 
 	assert(NULL != bank->sectors);
 
-	for (i = 0; i < bank->num_sectors; i++)
+	for (unsigned int i = 0; i < bank->num_sectors; i++)
 		bank->sectors[i].is_protected = efm32x_get_page_lock(bank, i);
 
 	return ERROR_OK;

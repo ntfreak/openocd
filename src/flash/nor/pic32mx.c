@@ -271,8 +271,7 @@ static int pic32mx_protect_check(struct flash_bank *bank)
 
 	uint32_t config0_address;
 	uint32_t devcfg0;
-	int s;
-	int num_pages;
+	unsigned int s, num_pages;
 
 	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -321,10 +320,10 @@ static int pic32mx_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int pic32mx_erase(struct flash_bank *bank, int first, int last)
+static int pic32mx_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
-	int i;
 	uint32_t status;
 
 	if (bank->target->state != TARGET_HALTED) {
@@ -345,7 +344,7 @@ static int pic32mx_erase(struct flash_bank *bank, int first, int last)
 		return ERROR_OK;
 	}
 
-	for (i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		target_write_u32(target, PIC32MX_NVMADDR, Virt2Phys(bank->base + bank->sectors[i].offset));
 
 		status = pic32mx_nvm_exec(bank, NVMCON_OP_PAGE_ERASE, 10);
@@ -360,7 +359,8 @@ static int pic32mx_erase(struct flash_bank *bank, int first, int last)
 	return ERROR_OK;
 }
 
-static int pic32mx_protect(struct flash_bank *bank, int set, int first, int last)
+static int pic32mx_protect(struct flash_bank *bank, bool set,
+		unsigned int first, unsigned int last)
 {
 	struct target *target = bank->target;
 

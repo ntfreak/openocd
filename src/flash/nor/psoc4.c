@@ -157,7 +157,7 @@ const struct psoc4_chip_family psoc4_families[] = {
 struct psoc4_flash_bank {
 	uint32_t row_size;
 	uint32_t user_bank_size;
-	int num_macros;
+	unsigned int num_macros;
 	bool probed;
 	uint8_t cmd_program_row;
 	uint16_t family_id;
@@ -496,16 +496,14 @@ static int psoc4_protect_check(struct flash_bank *bank)
 
 	uint32_t prot_addr = PSOC4_SFLASH_MACRO0;
 	int retval;
-	int s = 0;
-	int m, i;
 	uint8_t bf[PSOC4_ROWS_PER_MACRO/8];
 
-	for (m = 0; m < psoc4_info->num_macros; m++, prot_addr += PSOC4_SFLASH_MACRO_SIZE) {
+	for (unsigned int m = 0; m < psoc4_info->num_macros; m++, prot_addr += PSOC4_SFLASH_MACRO_SIZE) {
 		retval = target_read_memory(target, prot_addr, 4, PSOC4_ROWS_PER_MACRO/32, bf);
 		if (retval != ERROR_OK)
 			return retval;
 
-		for (i = 0; i < PSOC4_ROWS_PER_MACRO && s < bank->num_sectors; i++, s++)
+		for (unsigned int i = 0, s = 0; i < PSOC4_ROWS_PER_MACRO && s < bank->num_sectors; i++, s++)
 			bank->sectors[s].is_protected = bf[i/8] & (1 << (i%8)) ? 1 : 0;
 	}
 
@@ -515,7 +513,6 @@ static int psoc4_protect_check(struct flash_bank *bank)
 
 static int psoc4_mass_erase(struct flash_bank *bank)
 {
-	int i;
 	int retval = psoc4_flash_prepare(bank);
 	if (retval != ERROR_OK)
 		return retval;
@@ -528,14 +525,15 @@ static int psoc4_mass_erase(struct flash_bank *bank)
 
 	if (retval == ERROR_OK)
 		/* set all sectors as erased */
-		for (i = 0; i < bank->num_sectors; i++)
+		for (unsigned int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_erased = 1;
 
 	return retval;
 }
 
 
-static int psoc4_erase(struct flash_bank *bank, int first, int last)
+static int psoc4_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct psoc4_flash_bank *psoc4_info = bank->driver_priv;
 	if (psoc4_info->cmd_program_row == PSOC4_CMD_WRITE_ROW) {
@@ -552,7 +550,8 @@ static int psoc4_erase(struct flash_bank *bank, int first, int last)
 }
 
 
-static int psoc4_protect(struct flash_bank *bank, int set, int first, int last)
+static int psoc4_protect(struct flash_bank *bank, bool set, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
 	struct psoc4_flash_bank *psoc4_info = bank->driver_priv;
@@ -567,8 +566,8 @@ static int psoc4_protect(struct flash_bank *bank, int set, int first, int last)
 	uint32_t *sysrq_buffer = NULL;
 	const int param_sz = 8;
 	int chip_prot = PSOC4_CHIP_PROT_OPEN;
-	int i, m, sect;
-	int num_bits = bank->num_sectors;
+	unsigned int i;
+	unsigned int num_bits = bank->num_sectors;
 
 	if (num_bits > PSOC4_ROWS_PER_MACRO)
 		num_bits = PSOC4_ROWS_PER_MACRO;
@@ -584,7 +583,7 @@ static int psoc4_protect(struct flash_bank *bank, int set, int first, int last)
 	for (i = first; i <= last && i < bank->num_sectors; i++)
 		bank->sectors[i].is_protected = set;
 
-	for (m = 0, sect = 0; m < psoc4_info->num_macros; m++) {
+	for (unsigned int m = 0, sect = 0; m < psoc4_info->num_macros; m++) {
 		uint8_t *p = (uint8_t *)(sysrq_buffer + 2);
 		memset(p, 0, prot_sz);
 		for (i = 0; i < num_bits && sect < bank->num_sectors; i++, sect++) {

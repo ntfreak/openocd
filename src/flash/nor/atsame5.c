@@ -230,7 +230,7 @@ static const struct samd_part *samd_find_part(uint32_t id)
 
 static int same5_protect_check(struct flash_bank *bank)
 {
-	int res, prot_block;
+	int res;
 	uint32_t lock;
 
 	res = target_read_u32(bank->target,
@@ -239,7 +239,7 @@ static int same5_protect_check(struct flash_bank *bank)
 		return res;
 
 	/* Lock bits are active-low */
-	for (prot_block = 0; prot_block < bank->num_prot_blocks; prot_block++)
+	for (unsigned int prot_block = 0; prot_block < bank->num_prot_blocks; prot_block++)
 		bank->prot_blocks[prot_block].is_protected = !(lock & (1u<<prot_block));
 
 	return ERROR_OK;
@@ -559,10 +559,10 @@ static int same5_modify_user_row(struct target *target, uint32_t value,
 			buf_val, buf_mask, 0, 8);
 }
 
-static int same5_protect(struct flash_bank *bank, int set, int first_prot_bl, int last_prot_bl)
+static int same5_protect(struct flash_bank *bank, bool set, unsigned int first,
+		unsigned int last)
 {
 	int res = ERROR_OK;
-	int prot_block;
 
 	/* We can issue lock/unlock region commands with the target running but
 	 * the settings won't persist unless we're able to modify the LOCK regions
@@ -572,7 +572,7 @@ static int same5_protect(struct flash_bank *bank, int set, int first_prot_bl, in
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	for (prot_block = first_prot_bl; prot_block <= last_prot_bl; prot_block++) {
+	for (unsigned int prot_block = first; prot_block <= last; prot_block++) {
 		if (set != bank->prot_blocks[prot_block].is_protected) {
 			/* Load an address that is within this protection block (we use offset 0) */
 			res = target_write_u32(bank->target,
@@ -596,7 +596,7 @@ static int same5_protect(struct flash_bank *bank, int set, int first_prot_bl, in
 	const uint8_t unlock[4] = { 0xff, 0xff, 0xff, 0xff };
 	uint8_t mask[4] = { 0, 0, 0, 0 };
 
-	buf_set_u32(mask, first_prot_bl, last_prot_bl + 1 - first_prot_bl, 0xffffffff);
+	buf_set_u32(mask, first, last + 1 - first, 0xffffffff);
 
 	res = same5_modify_user_row_masked(bank->target,
 			set ? lock : unlock, mask, 8, 4);
@@ -611,9 +611,10 @@ exit:
 	return res;
 }
 
-static int same5_erase(struct flash_bank *bank, int first_sect, int last_sect)
+static int same5_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
-	int res, s;
+	int res;
 	struct samd_info *chip = (struct samd_info *)bank->driver_priv;
 
 	if (bank->target->state != TARGET_HALTED) {
@@ -626,7 +627,7 @@ static int same5_erase(struct flash_bank *bank, int first_sect, int last_sect)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	/* For each sector to be erased */
-	for (s = first_sect; s <= last_sect; s++) {
+	for (unsigned int s = first; s <= last; s++) {
 		res = same5_erase_block(bank->target, bank->sectors[s].offset);
 		if (res != ERROR_OK) {
 			LOG_ERROR("SAM: failed to erase sector %d at 0x%08" PRIx32, s, bank->sectors[s].offset);

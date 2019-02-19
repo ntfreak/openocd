@@ -702,16 +702,14 @@ FLASH_BANK_COMMAND_HANDLER(at91sam7_flash_bank_command)
 	uint32_t bank_size;
 	uint32_t ext_freq = 0;
 
-	int chip_width;
-	int bus_width;
-	int banks_num;
-	int num_sectors;
+	unsigned int chip_width;
+	unsigned int bus_width;
+	unsigned int banks_num;
+	unsigned int num_sectors;
 
 	uint16_t pages_per_sector;
 	uint16_t page_size;
 	uint16_t num_nvmbits;
-
-	int bnk, sec;
 
 	at91sam7_info = malloc(sizeof(struct at91sam7_flash_bank));
 	t_bank->driver_priv = at91sam7_info;
@@ -729,11 +727,11 @@ FLASH_BANK_COMMAND_HANDLER(at91sam7_flash_bank_command)
 
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[1], base_address);
 
-	COMMAND_PARSE_NUMBER(int, CMD_ARGV[3], chip_width);
-	COMMAND_PARSE_NUMBER(int, CMD_ARGV[4], bus_width);
+	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[3], chip_width);
+	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[4], bus_width);
 
-	COMMAND_PARSE_NUMBER(int, CMD_ARGV[8], banks_num);
-	COMMAND_PARSE_NUMBER(int, CMD_ARGV[9], num_sectors);
+	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[8], banks_num);
+	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[9], num_sectors);
 	COMMAND_PARSE_NUMBER(u16, CMD_ARGV[10], pages_per_sector);
 	COMMAND_PARSE_NUMBER(u16, CMD_ARGV[11], page_size);
 	COMMAND_PARSE_NUMBER(u16, CMD_ARGV[12], num_nvmbits);
@@ -754,7 +752,7 @@ FLASH_BANK_COMMAND_HANDLER(at91sam7_flash_bank_command)
 	/* calculate bank size  */
 	bank_size = num_sectors * pages_per_sector * page_size;
 
-	for (bnk = 0; bnk < banks_num; bnk++) {
+	for (unsigned int bnk = 0; bnk < banks_num; bnk++) {
 		if (bnk > 0) {
 			if (!t_bank->next) {
 				/* create a new bank element */
@@ -780,7 +778,7 @@ FLASH_BANK_COMMAND_HANDLER(at91sam7_flash_bank_command)
 
 		/* allocate sectors */
 		t_bank->sectors = malloc(num_sectors * sizeof(struct flash_sector));
-		for (sec = 0; sec < num_sectors; sec++) {
+		for (unsigned int sec = 0; sec < num_sectors; sec++) {
 			t_bank->sectors[sec].offset = sec * pages_per_sector * page_size;
 			t_bank->sectors[sec].size = pages_per_sector * page_size;
 			t_bank->sectors[sec].is_erased = -1;
@@ -801,10 +799,10 @@ FLASH_BANK_COMMAND_HANDLER(at91sam7_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int at91sam7_erase(struct flash_bank *bank, int first, int last)
+static int at91sam7_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct at91sam7_flash_bank *at91sam7_info = bank->driver_priv;
-	int sec;
 	uint32_t nbytes, pos;
 	uint8_t *buffer;
 	uint8_t erase_all;
@@ -817,7 +815,7 @@ static int at91sam7_erase(struct flash_bank *bank, int first, int last)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if ((first < 0) || (last < first) || (last >= bank->num_sectors))
+	if ((last < first) || (last >= bank->num_sectors))
 		return ERROR_FLASH_SECTOR_INVALID;
 
 	erase_all = 0;
@@ -847,16 +845,16 @@ static int at91sam7_erase(struct flash_bank *bank, int first, int last)
 	}
 
 	/* mark erased sectors */
-	for (sec = first; sec <= last; sec++)
+	for (unsigned int sec = first; sec <= last; sec++)
 		bank->sectors[sec].is_erased = 1;
 
 	return ERROR_OK;
 }
 
-static int at91sam7_protect(struct flash_bank *bank, int set, int first, int last)
+static int at91sam7_protect(struct flash_bank *bank, bool set,
+		unsigned int first, unsigned int last)
 {
 	uint32_t cmd;
-	int sector;
 	uint32_t pagen;
 
 	struct at91sam7_flash_bank *at91sam7_info = bank->driver_priv;
@@ -869,14 +867,14 @@ static int at91sam7_protect(struct flash_bank *bank, int set, int first, int las
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if ((first < 0) || (last < first) || (last >= bank->num_sectors))
+	if ((last < first) || (last >= bank->num_sectors))
 		return ERROR_FLASH_SECTOR_INVALID;
 
 	/* Configure the flash controller timing */
 	at91sam7_read_clock_info(bank);
 	at91sam7_set_flash_mode(bank, FMR_TIMING_NVBITS);
 
-	for (sector = first; sector <= last; sector++) {
+	for (unsigned int sector = first; sector <= last; sector++) {
 		if (set)
 			cmd = SLB;
 		else

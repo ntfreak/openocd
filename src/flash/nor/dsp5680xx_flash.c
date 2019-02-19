@@ -48,9 +48,8 @@ static int dsp5680xx_build_sector_list(struct flash_bank *bank)
 	uint32_t offset = HFM_FLASH_BASE_ADDR;
 
 	bank->sectors = malloc(sizeof(struct flash_sector) * bank->num_sectors);
-	int i;
 
-	for (i = 0; i < bank->num_sectors; ++i) {
+	for (unsigned int i = 0; i < bank->num_sectors; ++i) {
 		bank->sectors[i].offset = i * HFM_SECTOR_SIZE;
 		bank->sectors[i].size = HFM_SECTOR_SIZE;
 		offset += bank->sectors[i].size;
@@ -120,8 +119,8 @@ static int dsp5680xx_flash_protect_check(struct flash_bank *bank)
  *
  * @return
  */
-static int dsp5680xx_flash_protect(struct flash_bank *bank, int set, int first,
-				   int last)
+static int dsp5680xx_flash_protect(struct flash_bank *bank, bool set,
+		unsigned int first, unsigned int last)
 {
 /**
  * This applies security to flash module after next reset, it does
@@ -204,7 +203,8 @@ static int dsp5680xx_probe(struct flash_bank *bank)
  *
  * @return
  */
-static int dsp5680xx_flash_erase(struct flash_bank *bank, int first, int last)
+static int dsp5680xx_flash_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	int retval;
 
@@ -212,14 +212,14 @@ static int dsp5680xx_flash_erase(struct flash_bank *bank, int first, int last)
 	if ((!(first | last)) || ((first == 0) && (last == (HFM_SECTOR_COUNT - 1))))
 		last = HFM_SECTOR_COUNT - 1;
 	if (retval == ERROR_OK)
-		for (int i = first; i <= last; i++)
+		for (unsigned int i = first; i <= last; i++)
 			bank->sectors[i].is_erased = 1;
 	else
 		/**
 		 * If an error occurred unknown status
 		 *is set even though some sector could have been correctly erased.
 		 */
-		for (int i = first; i <= last; i++)
+		for (unsigned int i = first; i <= last; i++)
 			bank->sectors[i].is_erased = -1;
 	return retval;
 }

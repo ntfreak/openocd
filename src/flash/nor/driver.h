@@ -104,7 +104,8 @@ struct flash_driver {
 	 * @param last The number of the last sector to erase, typically N-1.
 	 * @returns ERROR_OK if successful; otherwise, an error code.
 	 */
-	int (*erase)(struct flash_bank *bank, int first, int last);
+	int (*erase)(struct flash_bank *bank, unsigned int first,
+		unsigned int last);
 
 	/**
 	 * Bank/sector protection routine (target-specific).
@@ -118,12 +119,13 @@ struct flash_driver {
 	 * be larger than the first..last range.
 	 *
 	 * @param bank The bank to protect or unprotect.
-	 * @param set If non-zero, enable protection; if 0, disable it.
+	 * @param set Indicates whether to enable or disable protection.
 	 * @param first The first sector to (un)protect, typicaly 0.
 	 * @param last The last sector to (un)project, typically N-1.
 	 * @returns ERROR_OK if successful; otherwise, an error code.
 	 */
-	int (*protect)(struct flash_bank *bank, int set, int first, int last);
+	int (*protect)(struct flash_bank *bank, bool set, unsigned int first,
+		unsigned int last);
 
 	/**
 	 * Program data into the flash.  Note CPU address will be

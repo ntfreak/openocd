@@ -138,7 +138,7 @@ static int str7x_build_block_list(struct flash_bank *bank)
 	struct str7x_flash_bank *str7x_info = bank->driver_priv;
 
 	int i;
-	int num_sectors;
+	unsigned int num_sectors;
 	int b0_sectors = 0, b1_sectors = 0;
 
 	switch (bank->size) {
@@ -306,7 +306,6 @@ static int str7x_protect_check(struct flash_bank *bank)
 	struct str7x_flash_bank *str7x_info = bank->driver_priv;
 	struct target *target = bank->target;
 
-	int i;
 	uint32_t flash_flags;
 
 	if (bank->target->state != TARGET_HALTED) {
@@ -319,7 +318,7 @@ static int str7x_protect_check(struct flash_bank *bank)
 	if (retval != ERROR_OK)
 		return retval;
 
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		if (flash_flags & str7x_info->sector_bits[i])
 			bank->sectors[i].is_protected = 0;
 		else
@@ -329,12 +328,12 @@ static int str7x_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int str7x_erase(struct flash_bank *bank, int first, int last)
+static int str7x_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct str7x_flash_bank *str7x_info = bank->driver_priv;
 	struct target *target = bank->target;
 
-	int i;
 	uint32_t cmd;
 	uint32_t sectors = 0;
 	int err;
@@ -344,7 +343,7 @@ static int str7x_erase(struct flash_bank *bank, int first, int last)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	for (i = first; i <= last; i++)
+	for (unsigned int i = first; i <= last; i++)
 		sectors |= str7x_info->sector_bits[i];
 
 	LOG_DEBUG("sectors: 0x%" PRIx32 "", sectors);
@@ -377,17 +376,17 @@ static int str7x_erase(struct flash_bank *bank, int first, int last)
 	if (err != ERROR_OK)
 		return err;
 
-	for (i = first; i <= last; i++)
+	for (unsigned int i = first; i <= last; i++)
 		bank->sectors[i].is_erased = 1;
 
 	return ERROR_OK;
 }
 
-static int str7x_protect(struct flash_bank *bank, int set, int first, int last)
+static int str7x_protect(struct flash_bank *bank, bool set, unsigned int first,
+		unsigned int last)
 {
 	struct str7x_flash_bank *str7x_info = bank->driver_priv;
 	struct target *target = bank->target;
-	int i;
 	uint32_t cmd;
 	uint32_t protect_blocks;
 
@@ -399,7 +398,7 @@ static int str7x_protect(struct flash_bank *bank, int set, int first, int last)
 	protect_blocks = 0xFFFFFFFF;
 
 	if (set) {
-		for (i = first; i <= last; i++)
+		for (unsigned int i = first; i <= last; i++)
 			protect_blocks &= ~(str7x_info->sector_bits[i]);
 	}
 
@@ -568,7 +567,6 @@ static int str7x_write(struct flash_bank *bank, const uint8_t *buffer,
 	uint32_t cmd;
 	int retval;
 	uint32_t check_address = offset;
-	int i;
 
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -580,7 +578,7 @@ static int str7x_write(struct flash_bank *bank, const uint8_t *buffer,
 		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
 	}
 
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		uint32_t sec_start = bank->sectors[i].offset;
 		uint32_t sec_end = sec_start + bank->sectors[i].size;
 

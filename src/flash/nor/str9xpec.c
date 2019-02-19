@@ -74,7 +74,8 @@ struct str9xpec_flash_controller {
 	uint8_t options[8];
 };
 
-static int str9xpec_erase_area(struct flash_bank *bank, int first, int last);
+static int str9xpec_erase_area(struct flash_bank *bank, unsigned int first,
+		unsigned int last);
 static int str9xpec_set_address(struct flash_bank *bank, uint8_t sector);
 static int str9xpec_write_options(struct flash_bank *bank);
 
@@ -210,7 +211,7 @@ static int str9xpec_build_block_list(struct flash_bank *bank)
 	struct str9xpec_flash_controller *str9xpec_info = bank->driver_priv;
 
 	int i;
-	int num_sectors;
+	unsigned int num_sectors;
 	int b0_sectors = 0, b1_sectors = 0;
 	uint32_t offset = 0;
 	int b1_size = 0x2000;
@@ -303,12 +304,12 @@ FLASH_BANK_COMMAND_HANDLER(str9xpec_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int str9xpec_blank_check(struct flash_bank *bank, int first, int last)
+static int str9xpec_blank_check(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct scan_field field;
 	uint8_t status;
 	struct jtag_tap *tap;
-	int i;
 	uint8_t *buffer = NULL;
 
 	struct str9xpec_flash_controller *str9xpec_info = bank->driver_priv;
@@ -325,7 +326,7 @@ static int str9xpec_blank_check(struct flash_bank *bank, int first, int last)
 
 	LOG_DEBUG("blank check: first_bank: %i, last_bank: %i", first, last);
 
-	for (i = first; i <= last; i++)
+	for (unsigned int i = first; i <= last; i++)
 		buf_set_u32(buffer, str9xpec_info->sector_bits[i], 1, 1);
 
 	/* execute ISC_BLANK_CHECK command */
@@ -348,7 +349,7 @@ static int str9xpec_blank_check(struct flash_bank *bank, int first, int last)
 
 	status = str9xpec_isc_status(tap);
 
-	for (i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		if (buf_get_u32(buffer, str9xpec_info->sector_bits[i], 1))
 			bank->sectors[i].is_erased = 0;
 		else
@@ -367,13 +368,12 @@ static int str9xpec_blank_check(struct flash_bank *bank, int first, int last)
 static int str9xpec_protect_check(struct flash_bank *bank)
 {
 	uint8_t status;
-	int i;
 
 	struct str9xpec_flash_controller *str9xpec_info = bank->driver_priv;
 
 	status = str9xpec_read_config(bank);
 
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		if (buf_get_u32(str9xpec_info->options, str9xpec_info->sector_bits[i], 1))
 			bank->sectors[i].is_protected = 1;
 		else
@@ -385,12 +385,12 @@ static int str9xpec_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int str9xpec_erase_area(struct flash_bank *bank, int first, int last)
+static int str9xpec_erase_area(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct scan_field field;
 	uint8_t status;
 	struct jtag_tap *tap;
-	int i;
 	uint8_t *buffer = NULL;
 
 	struct str9xpec_flash_controller *str9xpec_info = bank->driver_priv;
@@ -410,12 +410,12 @@ static int str9xpec_erase_area(struct flash_bank *bank, int first, int last)
 	/* last bank: 0xFF signals a full erase (unlock complete device) */
 	/* last bank: 0xFE signals a option byte erase */
 	if (last == 0xFF) {
-		for (i = 0; i < 64; i++)
+		for (unsigned int i = 0; i < 64; i++)
 			buf_set_u32(buffer, i, 1, 1);
 	} else if (last == 0xFE)
 		buf_set_u32(buffer, 49, 1, 1);
 	else {
-		for (i = first; i <= last; i++)
+		for (unsigned int i = first; i <= last; i++)
 			buf_set_u32(buffer, str9xpec_info->sector_bits[i], 1, 1);
 	}
 
@@ -444,7 +444,8 @@ static int str9xpec_erase_area(struct flash_bank *bank, int first, int last)
 	return status;
 }
 
-static int str9xpec_erase(struct flash_bank *bank, int first, int last)
+static int str9xpec_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	int status;
 
@@ -504,10 +505,10 @@ static int str9xpec_unlock_device(struct flash_bank *bank)
 	return status;
 }
 
-static int str9xpec_protect(struct flash_bank *bank, int set, int first, int last)
+static int str9xpec_protect(struct flash_bank *bank, bool set,
+		unsigned int first, unsigned int last)
 {
 	uint8_t status;
-	int i;
 
 	struct str9xpec_flash_controller *str9xpec_info = bank->driver_priv;
 
@@ -527,7 +528,7 @@ static int str9xpec_protect(struct flash_bank *bank, int set, int first, int las
 			status = str9xpec_unlock_device(bank);
 		}
 	} else {
-		for (i = first; i <= last; i++) {
+		for (unsigned int i = first; i <= last; i++) {
 			if (set)
 				buf_set_u32(str9xpec_info->options, str9xpec_info->sector_bits[i], 1, 1);
 			else
@@ -575,9 +576,8 @@ static int str9xpec_write(struct flash_bank *bank, const uint8_t *buffer,
 	struct jtag_tap *tap;
 	struct scan_field field;
 	uint8_t *scanbuf;
-	int i;
-	int first_sector = 0;
-	int last_sector = 0;
+	unsigned int first_sector = 0;
+	unsigned int last_sector = 0;
 
 	tap = str9xpec_info->tap;
 
@@ -592,7 +592,7 @@ static int str9xpec_write(struct flash_bank *bank, const uint8_t *buffer,
 		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
 	}
 
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		uint32_t sec_start = bank->sectors[i].offset;
 		uint32_t sec_end = sec_start + bank->sectors[i].size;
 
@@ -621,7 +621,7 @@ static int str9xpec_write(struct flash_bank *bank, const uint8_t *buffer,
 
 	LOG_DEBUG("ISC_PROGRAM");
 
-	for (i = first_sector; i <= last_sector; i++) {
+	for (unsigned int i = first_sector; i <= last_sector; i++) {
 		str9xpec_set_address(bank, str9xpec_info->sector_bits[i]);
 
 		dwords_remaining = dwords_remaining < (bank->sectors[i].size/8)

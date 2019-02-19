@@ -18,6 +18,8 @@
 #ifndef OPENOCD_FLASH_NOR_IMP_H
 #define OPENOCD_FLASH_NOR_IMP_H
 
+#include <stdbool.h>
+
 /* this is an internal header */
 #include "core.h"
 #include "driver.h"
@@ -35,8 +37,10 @@ void flash_bank_add(struct flash_bank *bank);
  */
 struct flash_bank *flash_bank_list(void);
 
-int flash_driver_erase(struct flash_bank *bank, int first, int last);
-int flash_driver_protect(struct flash_bank *bank, int set, int first, int last);
+int flash_driver_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last);
+int flash_driver_protect(struct flash_bank *bank, bool set, unsigned int first,
+		unsigned int last);
 int flash_driver_write(struct flash_bank *bank,
 		uint8_t *buffer, uint32_t offset, uint32_t count);
 int flash_driver_read(struct flash_bank *bank,
@@ -44,6 +48,6 @@ int flash_driver_read(struct flash_bank *bank,
 
 /* write (optional verify) an image to flash memory of the given target */
 int flash_write_unlock(struct target *target, struct image *image,
-		uint32_t *written, int erase, bool unlock);
+		uint32_t *written, bool erase, bool unlock);
 
 #endif /* OPENOCD_FLASH_NOR_IMP_H */

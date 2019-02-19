@@ -209,21 +209,20 @@ static int max32xxx_protect_check(struct flash_bank *bank)
 {
 	struct max32xxx_flash_bank *info = bank->driver_priv;
 	struct target *target = bank->target;
-	int i;
 	uint32_t temp_reg;
 
 	if (info->probed == 0)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	if (!info->max326xx) {
-		for (i = 0; i < bank->num_sectors; i++)
+		for (unsigned i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_protected = -1;
 
 		return ERROR_FLASH_OPER_UNSUPPORTED;
 	}
 
 	/* Check the protection */
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned i = 0; i < bank->num_sectors; i++) {
 		if (i%32 == 0)
 			target_read_u32(target, info->flc_base + FLSH_PROT + ((i/32)*4), &temp_reg);
 
@@ -235,9 +234,9 @@ static int max32xxx_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int max32xxx_erase(struct flash_bank *bank, int first, int last)
+static int max32xxx_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
-	int banknr;
 	uint32_t flsh_cn, flsh_int;
 	struct max32xxx_flash_bank *info = bank->driver_priv;
 	struct target *target = bank->target;
@@ -252,7 +251,7 @@ static int max32xxx_erase(struct flash_bank *bank, int first, int last)
 	if (info->probed == 0)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
-	if ((first < 0) || (last < first) || (last >= bank->num_sectors))
+	if ((last < first) || (last >= bank->num_sectors))
 		return ERROR_FLASH_SECTOR_INVALID;
 
 	if ((first == 0) && (last == (bank->num_sectors - 1)))
@@ -265,7 +264,7 @@ static int max32xxx_erase(struct flash_bank *bank, int first, int last)
 		return retval;
 
 	int erased = 0;
-	for (banknr = first; banknr <= last; banknr++) {
+	for (unsigned int banknr = first; banknr <= last; banknr++) {
 
 		/* Check the protection */
 		if (bank->sectors[banknr].is_protected == 1) {
@@ -322,11 +321,11 @@ static int max32xxx_erase(struct flash_bank *bank, int first, int last)
 	return ERROR_OK;
 }
 
-static int max32xxx_protect(struct flash_bank *bank, int set, int first, int last)
+static int max32xxx_protect(struct flash_bank *bank, bool set,
+		unsigned int first, unsigned int last)
 {
 	struct max32xxx_flash_bank *info = bank->driver_priv;
 	struct target *target = bank->target;
-	int page;
 	uint32_t temp_reg;
 
 	if (bank->target->state != TARGET_HALTED) {
@@ -340,11 +339,11 @@ static int max32xxx_protect(struct flash_bank *bank, int set, int first, int las
 	if (!info->max326xx)
 		return ERROR_FLASH_OPER_UNSUPPORTED;
 
-	if ((first < 0) || (last < first) || (last >= bank->num_sectors))
+	if ((last < first) || (last >= bank->num_sectors))
 		return ERROR_FLASH_SECTOR_INVALID;
 
 	/* Setup the protection on the pages given */
-	for (page = first; page <= last; page++) {
+	for (unsigned int page = first; page <= last; page++) {
 		if (set) {
 			/* Set the write/erase bit for this page */
 			target_read_u32(target, info->flc_base + FLSH_PROT + (page/32), &temp_reg);
@@ -662,7 +661,7 @@ static int max32xxx_probe(struct flash_bank *bank)
 	bank->num_sectors = info->flash_size / info->sector_size;
 	bank->sectors = calloc(bank->num_sectors, sizeof(struct flash_sector));
 
-	for (int i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		bank->sectors[i].offset = i * info->sector_size;
 		bank->sectors[i].size = info->sector_size;
 		bank->sectors[i].is_erased = -1;
@@ -713,7 +712,7 @@ static int max32xxx_mass_erase(struct flash_bank *bank)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	int not_protected = 0;
-	for (int i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		if (bank->sectors[i].is_protected == 1)
 			LOG_WARNING("Flash sector %d is protected", i);
 		else
@@ -767,7 +766,6 @@ static int max32xxx_mass_erase(struct flash_bank *bank)
 
 COMMAND_HANDLER(max32xxx_handle_mass_erase_command)
 {
-	int i;
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
 
@@ -781,7 +779,7 @@ COMMAND_HANDLER(max32xxx_handle_mass_erase_command)
 
 	if (max32xxx_mass_erase(bank) == ERROR_OK) {
 		/* set all sectors as erased */
-		for (i = 0; i < bank->num_sectors; i++)
+		for (unsigned i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_erased = 1;
 
 		command_print(CMD, "max32xxx mass erase complete");
@@ -908,7 +906,6 @@ COMMAND_HANDLER(max32xxx_handle_protection_check_command)
 	struct flash_bank *bank;
 	int retval;
 	struct max32xxx_flash_bank *info;
-	int i;
 
 	if (CMD_ARGC < 1) {
 		command_print(CMD, "max32xxx protection_check <bank>");
@@ -928,7 +925,7 @@ COMMAND_HANDLER(max32xxx_handle_protection_check_command)
 	}
 
 	LOG_WARNING("s:<sector number> a:<address> p:<protection bit>");
-	for (i = 0; i < bank->num_sectors; i += 4) {
+	for (unsigned i = 0; i < bank->num_sectors; i += 4) {
 		LOG_WARNING("s:%03d a:0x%06x p:%d | s:%03d a:0x%06x p:%d | s:%03d a:0x%06x p:%d | s:%03d a:0x%06x p:%d",
 		(i+0), (i+0)*info->sector_size, bank->sectors[(i+0)].is_protected,
 		(i+1), (i+1)*info->sector_size, bank->sectors[(i+1)].is_protected,

@@ -498,12 +498,12 @@ static int ath79_erase_sector(struct flash_bank *bank, int sector)
 	return wait_till_ready(bank, ATH79_MAX_TIMEOUT);
 }
 
-static int ath79_erase(struct flash_bank *bank, int first, int last)
+static int ath79_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
 	struct ath79_flash_bank *ath79_info = bank->driver_priv;
 	int retval = ERROR_OK;
-	int sector;
 
 	LOG_DEBUG("%s: from sector %d to sector %d", __func__, first, last);
 
@@ -512,7 +512,7 @@ static int ath79_erase(struct flash_bank *bank, int first, int last)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if ((first < 0) || (last < first) || (last >= bank->num_sectors)) {
+	if ((last < first) || (last >= bank->num_sectors)) {
 		LOG_ERROR("Flash sector invalid");
 		return ERROR_FLASH_SECTOR_INVALID;
 	}
@@ -525,14 +525,14 @@ static int ath79_erase(struct flash_bank *bank, int first, int last)
 	if (ath79_info->dev->erase_cmd == 0x00)
 		return ERROR_FLASH_OPER_UNSUPPORTED;
 
-	for (sector = first; sector <= last; sector++) {
+	for (unsigned sector = first; sector <= last; sector++) {
 		if (bank->sectors[sector].is_protected) {
 			LOG_ERROR("Flash sector %d protected", sector);
 			return ERROR_FAIL;
 		}
 	}
 
-	for (sector = first; sector <= last; sector++) {
+	for (unsigned int sector = first; sector <= last; sector++) {
 		retval = ath79_erase_sector(bank, sector);
 		if (retval != ERROR_OK)
 			break;
@@ -542,12 +542,10 @@ static int ath79_erase(struct flash_bank *bank, int first, int last)
 	return retval;
 }
 
-static int ath79_protect(struct flash_bank *bank, int set,
-			 int first, int last)
+static int ath79_protect(struct flash_bank *bank, bool set,
+		unsigned int first, unsigned int last)
 {
-	int sector;
-
-	for (sector = first; sector <= last; sector++)
+	for (unsigned int sector = first; sector <= last; sector++)
 		bank->sectors[sector].is_protected = set;
 	return ERROR_OK;
 }
@@ -648,7 +646,6 @@ static int ath79_write(struct flash_bank *bank, const uint8_t *buffer,
 		       uint32_t offset, uint32_t count)
 {
 	struct target *target = bank->target;
-	int sector;
 
 	LOG_DEBUG("%s: offset=0x%08" PRIx32 " count=0x%08" PRIx32,
 		  __func__, offset, count);
@@ -664,7 +661,7 @@ static int ath79_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	/* Check sector protection */
-	for (sector = 0; sector < bank->num_sectors; sector++) {
+	for (unsigned int sector = 0; sector < bank->num_sectors; sector++) {
 		/* Start offset in or before this sector? */
 		/* End offset in or behind this sector? */
 		struct flash_sector *bs = &bank->sectors[sector];
@@ -845,7 +842,7 @@ static int ath79_probe(struct flash_bank *bank)
 		return ERROR_FAIL;
 	}
 
-	for (int sector = 0; sector < bank->num_sectors; sector++) {
+	for (unsigned int sector = 0; sector < bank->num_sectors; sector++) {
 		sectors[sector].offset = sector * sectorsize;
 		sectors[sector].size = sectorsize;
 		sectors[sector].is_erased = 0;

@@ -313,13 +313,13 @@ static int smi_erase_sector(struct flash_bank *bank, int sector)
 	return ERROR_OK;
 }
 
-static int stmsmi_erase(struct flash_bank *bank, int first, int last)
+static int stmsmi_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
 	struct stmsmi_flash_bank *stmsmi_info = bank->driver_priv;
 	uint32_t io_base = stmsmi_info->io_base;
 	int retval = ERROR_OK;
-	int sector;
 
 	LOG_DEBUG("%s: from sector %d to sector %d", __func__, first, last);
 
@@ -328,7 +328,7 @@ static int stmsmi_erase(struct flash_bank *bank, int first, int last)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if ((first < 0) || (last < first) || (last >= bank->num_sectors)) {
+	if ((last < first) || (last >= bank->num_sectors)) {
 		LOG_ERROR("Flash sector invalid");
 		return ERROR_FLASH_SECTOR_INVALID;
 	}
@@ -338,7 +338,7 @@ static int stmsmi_erase(struct flash_bank *bank, int first, int last)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 	}
 
-	for (sector = first; sector <= last; sector++) {
+	for (unsigned int sector = first; sector <= last; sector++) {
 		if (bank->sectors[sector].is_protected) {
 			LOG_ERROR("Flash sector %d protected", sector);
 			return ERROR_FAIL;
@@ -348,7 +348,7 @@ static int stmsmi_erase(struct flash_bank *bank, int first, int last)
 	if (stmsmi_info->dev->erase_cmd == 0x00)
 		return ERROR_FLASH_OPER_UNSUPPORTED;
 
-	for (sector = first; sector <= last; sector++) {
+	for (unsigned int sector = first; sector <= last; sector++) {
 		retval = smi_erase_sector(bank, sector);
 		if (retval != ERROR_OK)
 			break;
@@ -360,12 +360,10 @@ static int stmsmi_erase(struct flash_bank *bank, int first, int last)
 	return retval;
 }
 
-static int stmsmi_protect(struct flash_bank *bank, int set,
-	int first, int last)
+static int stmsmi_protect(struct flash_bank *bank, bool set,
+		unsigned int first, unsigned int last)
 {
-	int sector;
-
-	for (sector = first; sector <= last; sector++)
+	for (unsigned int sector = first; sector <= last; sector++)
 		bank->sectors[sector].is_protected = set;
 	return ERROR_OK;
 }
@@ -402,7 +400,6 @@ static int stmsmi_write(struct flash_bank *bank, const uint8_t *buffer,
 	struct stmsmi_flash_bank *stmsmi_info = bank->driver_priv;
 	uint32_t io_base = stmsmi_info->io_base;
 	uint32_t cur_count, page_size, page_offset;
-	int sector;
 	int retval = ERROR_OK;
 
 	LOG_DEBUG("%s: offset=0x%08" PRIx32 " count=0x%08" PRIx32,
@@ -419,7 +416,7 @@ static int stmsmi_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	/* Check sector protection */
-	for (sector = 0; sector < bank->num_sectors; sector++) {
+	for (unsigned int sector = 0; sector < bank->num_sectors; sector++) {
 		/* Start offset in or before this sector? */
 		/* End offset in or behind this sector? */
 		if ((offset <
@@ -609,7 +606,7 @@ static int stmsmi_probe(struct flash_bank *bank)
 		return ERROR_FAIL;
 	}
 
-	for (int sector = 0; sector < bank->num_sectors; sector++) {
+	for (unsigned int sector = 0; sector < bank->num_sectors; sector++) {
 		sectors[sector].offset = sector * sectorsize;
 		sectors[sector].size = sectorsize;
 		sectors[sector].is_erased = -1;
