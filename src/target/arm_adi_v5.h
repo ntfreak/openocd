@@ -155,6 +155,11 @@
 #define DP_SELECT_DPBANK 0x0000000F
 #define DP_SELECT_INVALID 0x00FFFF00 /* Reserved bits one */
 
+#define DP_TARGETSEL_INVALID 0xFFFFFFFF
+#define DP_TARGETSEL_DPID_MASK 0x0FFFFFFF
+#define DP_TARGETSEL_INSTANCEID_MASK 0xF0000000
+#define DP_TARGETSEL_INSTANCEID_SHIFT 28
+
 #define DP_APSEL_MAX        (255)
 #define DP_APSEL_INVALID    (-1)
 
@@ -592,6 +597,7 @@ extern int dap_info_command(struct command_invocation *cmd,
 extern int dap_register_commands(struct command_context *cmd_ctx);
 extern const char *adiv5_dap_name(struct adiv5_dap *self);
 extern const struct swd_driver *adiv5_dap_swd_driver(struct adiv5_dap *self);
+extern void *adiv5_dap_swd_transport_private(struct adiv5_dap *self);
 extern int dap_cleanup_all(void);
 
 struct adiv5_private_config {

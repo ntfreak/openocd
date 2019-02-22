@@ -1092,6 +1092,12 @@ static int ftdi_swd_run_queue(void)
 	}
 
 	for (size_t i = 0; i < swd_cmd_queue_length; i++) {
+		if (0 == ((swd_cmd_queue[i].cmd ^ swd_cmd(false, false, DP_TARGETSEL)) &
+				(SWD_CMD_APnDP|SWD_CMD_RnW|SWD_CMD_A32))) {
+			/* Targetsel has no ack so force it */
+			buf_set_u32(swd_cmd_queue[i].trn_ack_data_parity_trn, 1, 3, SWD_ACK_OK);
+		}
+
 		int ack = buf_get_u32(swd_cmd_queue[i].trn_ack_data_parity_trn, 1, 3);
 
 		LOG_DEBUG_IO("%s %s %s reg %X = %08"PRIx32,
@@ -1122,6 +1128,10 @@ static int ftdi_swd_run_queue(void)
 	}
 
 skip:
+	/* Defensive cleanup - seems like a bad idea to have potentially stale pointers sticking around */
+	for (size_t i = 0; i < swd_cmd_queue_length; i++)
+		swd_cmd_queue[i].dst = NULL;
+
 	swd_cmd_queue_length = 0;
 	retval = queued_retval;
 	queued_retval = ERROR_OK;
@@ -1202,7 +1212,7 @@ static int ftdi_swd_switch_seq(enum swd_special_seq seq)
 {
 	switch (seq) {
 	case LINE_RESET:
-		LOG_DEBUG("SWD line reset");
+		LOG_DEBUG_IO("SWD line reset");
 		ftdi_swd_swdio_en(true);
 		mpsse_clock_data_out(mpsse_ctx, swd_seq_line_reset, 0, swd_seq_line_reset_len, SWD_MODE);
 		break;
@@ -1215,6 +1225,16 @@ static int ftdi_swd_switch_seq(enum swd_special_seq seq)
 		LOG_DEBUG("SWD-to-JTAG");
 		ftdi_swd_swdio_en(true);
 		mpsse_clock_data_out(mpsse_ctx, swd_seq_swd_to_jtag, 0, swd_seq_swd_to_jtag_len, SWD_MODE);
+		break;
+	case DORMANT_TO_SWD:
+		LOG_DEBUG("DORMANT-to-SWD");
+		ftdi_swd_swdio_en(true);
+		mpsse_clock_data_out(mpsse_ctx, swd_seq_dormant_to_swd, 0, swd_seq_dormant_to_swd_len, SWD_MODE);
+		break;
+	case SWD_TO_DORMANT:
+		LOG_DEBUG("SWD-to-DORMANT");
+		ftdi_swd_swdio_en(true);
+		mpsse_clock_data_out(mpsse_ctx, swd_seq_swd_to_dormant, 0, swd_seq_swd_to_dormant_len, SWD_MODE);
 		break;
 	default:
 		LOG_ERROR("Sequence %d not supported", seq);

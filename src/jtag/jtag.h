@@ -152,6 +152,10 @@ struct jtag_tap {
 
 	struct jtag_tap_event_action *event_action;
 
+	/* Value to use with DP_TARGETSEL in SWD multidrop mode, otherwise
+	 * DP_TARGETSEL_INVALID*/
+	uint32_t multidrop_targetsel;
+
 	struct jtag_tap *next_tap;
 	/* private pointer to support none-jtag specific functions */
 	void *priv;
