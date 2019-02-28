@@ -316,6 +316,7 @@ enum stlink_mode {
 #define STLINK_F_HAS_DAP_REG            BIT(5)
 #define STLINK_F_QUIRK_JTAG_DP_READ     BIT(6)
 #define STLINK_F_HAS_AP_INIT            BIT(7)
+#define STLINK_F_HAS_DPBANKSEL          BIT(8)
 
 /* aliases */
 #define STLINK_F_HAS_TARGET_VOLT        STLINK_F_HAS_TRACE
@@ -1021,6 +1022,10 @@ static int stlink_usb_version(void *handle)
 		if (h->version.jtag >= 28)
 			flags |= STLINK_F_HAS_AP_INIT;
 
+		/* Banked regs (DPv1 & DPv2) support from V2J32 */
+		if (h->version.jtag >= 32)
+			flags |= STLINK_F_HAS_DPBANKSEL;
+
 		break;
 	case 3:
 		/* all STLINK-V3 use api-v3 */
@@ -1043,6 +1048,10 @@ static int stlink_usb_version(void *handle)
 
 		/* API required to init AP before any AP access */
 		flags |= STLINK_F_HAS_AP_INIT;
+
+		/* Banked regs (DPv1 & DPv2) support from V3J2 */
+		if (h->version.jtag >= 2)
+			flags |= STLINK_F_HAS_DPBANKSEL;
 
 		break;
 	default:
@@ -3243,6 +3252,12 @@ static int stlink_dap_op_queue_dp_read(struct adiv5_dap *dap, unsigned reg,
 	uint32_t dummy;
 	int retval;
 
+	if (!(stlink_dap_handle->version.flags & STLINK_F_HAS_DPBANKSEL))
+		if (reg & 0x000000F0) {
+			LOG_ERROR("Banked DP registers not supported in current STLink FW");
+			return ERROR_COMMAND_NOTFOUND;
+		}
+
 	retval = stlink_dap_check_reconnect(dap);
 	if (retval != ERROR_OK)
 		return retval;
@@ -3269,6 +3284,18 @@ static int stlink_dap_op_queue_dp_write(struct adiv5_dap *dap, unsigned reg,
 		uint32_t data)
 {
 	int retval;
+
+	if (!(stlink_dap_handle->version.flags & STLINK_F_HAS_DPBANKSEL))
+		if (reg & 0x000000F0) {
+			LOG_ERROR("Banked DP registers not supported in current STLink FW");
+			return ERROR_COMMAND_NOTFOUND;
+		}
+
+	if (reg == DP_SELECT && (data & DP_SELECT_DPBANK) != 0) {
+		/* ignored if STLINK_F_HAS_DPBANKSEL, not properly managed otherwise */
+		LOG_DEBUG("Ignoring DPBANKSEL while write SELECT");
+		data &= ~DP_SELECT_DPBANK;
+	}
 
 	retval = stlink_dap_check_reconnect(dap);
 	if (retval != ERROR_OK)
