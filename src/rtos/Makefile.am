@@ -11,7 +11,7 @@ noinst_LTLIBRARIES += %D%/librtos.la
 	%D%/ThreadX.c \
 	%D%/eCos.c \
 	%D%/linux.c \
-	%D%/ChibiOS.c \
+	%D%/chibios.c \
 	%D%/chromium-ec.c \
 	%D%/embKernel.c \
 	%D%/mqx.c \

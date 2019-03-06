@@ -31,7 +31,7 @@ extern struct rtos_type FreeRTOS_rtos;
 extern struct rtos_type ThreadX_rtos;
 extern struct rtos_type eCos_rtos;
 extern struct rtos_type Linux_os;
-extern struct rtos_type ChibiOS_rtos;
+extern struct rtos_type chibios_rtos;
 extern struct rtos_type chromium_ec_rtos;
 extern struct rtos_type embKernel_rtos;
 extern struct rtos_type mqx_rtos;
@@ -44,7 +44,7 @@ static struct rtos_type *rtos_types[] = {
 	&FreeRTOS_rtos,
 	&eCos_rtos,
 	&Linux_os,
-	&ChibiOS_rtos,
+	&chibios_rtos,
 	&chromium_ec_rtos,
 	&embKernel_rtos,
 	&mqx_rtos,

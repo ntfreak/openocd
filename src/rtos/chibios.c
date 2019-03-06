@@ -39,7 +39,7 @@
  *
  * @details Definition copied from os/kernel/include/chregistry.h of ChibiOS/RT.
  */
-struct ChibiOS_chdebug {
+struct chibios_chdebug {
 	char      ch_identifier[4];       /**< @brief Always set to "main".       */
 	uint8_t   ch_zero;                /**< @brief Must be zero.               */
 	uint8_t   ch_size;                /**< @brief Size of this structure.     */
@@ -69,26 +69,26 @@ struct ChibiOS_chdebug {
 /**
  * @brief ChibiOS thread states.
  */
-static const char * const ChibiOS_thread_states[] = { "READY", "CURRENT",
+static const char * const chibios_thread_states[] = { "READY", "CURRENT",
 "WTSTART", "SUSPENDED", "QUEUED", "WTSEM", "WTMTX", "WTCOND", "SLEEPING",
 "WTEXIT", "WTOREVT", "WTANDEVT", "SNDMSGQ", "SNDMSG", "WTMSG", "FINAL"
 };
 
-#define CHIBIOS_NUM_STATES (sizeof(ChibiOS_thread_states)/sizeof(char *))
+#define CHIBIOS_NUM_STATES (sizeof(chibios_thread_states)/sizeof(char *))
 
 /* Maximum ChibiOS thread name. There is no real limit set by ChibiOS but 64
  * chars ought to be enough.
  */
 #define CHIBIOS_THREAD_NAME_STR_SIZE (64)
 
-struct ChibiOS_params {
+struct chibios_params {
 	const char *target_name;
 
-	struct ChibiOS_chdebug *signature;
+	struct chibios_chdebug *signature;
 	const struct rtos_register_stacking *stacking_info;
 };
 
-static struct ChibiOS_params ChibiOS_params_list[] = {
+static struct chibios_params chibios_params_list[] = {
 	{
 	"cortex_m",							/* target_name */
 	0,
@@ -100,23 +100,23 @@ static struct ChibiOS_params ChibiOS_params_list[] = {
 	NULL,									/* stacking_info */
 	}
 };
-#define CHIBIOS_NUM_PARAMS ((int)(sizeof(ChibiOS_params_list)/sizeof(struct ChibiOS_params)))
+#define CHIBIOS_NUM_PARAMS ((int)(sizeof(chibios_params_list)/sizeof(struct chibios_params)))
 
-static bool ChibiOS_detect_rtos(struct target *target);
-static int ChibiOS_create(struct target *target);
-static int ChibiOS_update_threads(struct rtos *rtos);
-static int ChibiOS_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
+static bool chibios_detect_rtos(struct target *target);
+static int chibios_create(struct target *target);
+static int chibios_update_threads(struct rtos *rtos);
+static int chibios_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 		struct rtos_reg **reg_list, int *num_regs);
-static int ChibiOS_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[]);
+static int chibios_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[]);
 
-struct rtos_type ChibiOS_rtos = {
-	.name = "ChibiOS",
+struct rtos_type chibios_rtos = {
+	.name = "chibios",
 
-	.detect_rtos = ChibiOS_detect_rtos,
-	.create = ChibiOS_create,
-	.update_threads = ChibiOS_update_threads,
-	.get_thread_reg_list = ChibiOS_get_thread_reg_list,
-	.get_symbol_list_to_lookup = ChibiOS_get_symbol_list_to_lookup,
+	.detect_rtos = chibios_detect_rtos,
+	.create = chibios_create,
+	.update_threads = chibios_update_threads,
+	.get_thread_reg_list = chibios_get_thread_reg_list,
+	.get_symbol_list_to_lookup = chibios_get_symbol_list_to_lookup,
 };
 
 
@@ -125,13 +125,13 @@ struct rtos_type ChibiOS_rtos = {
  * use whatever is available.
  */
 
-enum ChibiOS_symbol_values {
-	ChibiOS_VAL_rlist = 0,
-	ChibiOS_VAL_ch = 1,
-	ChibiOS_VAL_ch_debug = 2
+enum chibios_symbol_values {
+	CHIBIOS_VAL_RLIST = 0,
+	CHIBIOS_VAL_CH = 1,
+	CHIBIOS_VAL_CH_DEBUG = 2
 };
 
-static symbol_table_elem_t ChibiOS_symbol_list[] = {
+static symbol_table_elem_t chibios_symbol_list[] = {
 	{ "rlist", 0, true},		/* Thread ready list */
 	{ "ch", 0, true},			/* System data structure */
 	{ "ch_debug", 0, false},	/* Memory Signature containing offsets of fields in rlist */
@@ -141,13 +141,13 @@ static symbol_table_elem_t ChibiOS_symbol_list[] = {
 /* Offset of the rlist structure within the system data structure (ch) */
 #define CH_RLIST_OFFSET 0x00
 
-static int ChibiOS_update_memory_signature(struct rtos *rtos)
+static int chibios_update_memory_signature(struct rtos *rtos)
 {
 	int retval;
-	struct ChibiOS_params *param;
-	struct ChibiOS_chdebug *signature;
+	struct chibios_params *param;
+	struct chibios_chdebug *signature;
 
-	param = (struct ChibiOS_params *) rtos->rtos_specific_params;
+	param = (struct chibios_params *) rtos->rtos_specific_params;
 
 	/* Free existing memory description.*/
 	if (param->signature) {
@@ -162,7 +162,7 @@ static int ChibiOS_update_memory_signature(struct rtos *rtos)
 	}
 
 	retval = target_read_buffer(rtos->target,
-								rtos->symbols[ChibiOS_VAL_ch_debug].address,
+								rtos->symbols[CHIBIOS_VAL_CH_DEBUG].address,
 								sizeof(*signature),
 								(uint8_t *) signature);
 	if (retval != ERROR_OK) {
@@ -217,7 +217,7 @@ errfree:
 }
 
 
-static int ChibiOS_update_stacking(struct rtos *rtos)
+static int chibios_update_stacking(struct rtos *rtos)
 {
 	/* Sometimes the stacking can not be determined only by looking at the
 	 * target name but only a runtime.
@@ -234,15 +234,15 @@ static int ChibiOS_update_stacking(struct rtos *rtos)
 	 *  - Since no threads are running during startup, the problem is solved
 	 *    by delaying stacking detection until there are more threads
 	 *    available than the current execution. In which case
-	 *    ChibiOS_get_thread_reg_list is called.
+	 *    chibios_get_thread_reg_list is called.
 	 */
 	int retval;
 
 	if (!rtos->rtos_specific_params)
 		return -1;
 
-	struct ChibiOS_params *param;
-	param = (struct ChibiOS_params *) rtos->rtos_specific_params;
+	struct chibios_params *param;
+	param = (struct chibios_params *) rtos->rtos_specific_params;
 
 	/* Check for armv7m with *enabled* FPU, i.e. a Cortex-M4  */
 	struct armv7m_common *armv7m_target = target_to_armv7m(rtos->target);
@@ -274,10 +274,10 @@ static int ChibiOS_update_stacking(struct rtos *rtos)
 	return -1;
 }
 
-static int ChibiOS_update_threads(struct rtos *rtos)
+static int chibios_update_threads(struct rtos *rtos)
 {
 	int retval;
-	const struct ChibiOS_params *param;
+	const struct chibios_params *param;
 	int tasks_found = 0;
 	int rtos_valid = -1;
 
@@ -289,10 +289,10 @@ static int ChibiOS_update_threads(struct rtos *rtos)
 		return -3;
 	}
 
-	param = (const struct ChibiOS_params *) rtos->rtos_specific_params;
+	param = (const struct chibios_params *) rtos->rtos_specific_params;
 	/* Update the memory signature saved in the target memory */
 	if (!param->signature) {
-		retval = ChibiOS_update_memory_signature(rtos);
+		retval = chibios_update_memory_signature(rtos);
 		if (retval != ERROR_OK) {
 			LOG_ERROR("Reading the memory signature of ChibiOS/RT failed");
 			return retval;
@@ -305,10 +305,10 @@ static int ChibiOS_update_threads(struct rtos *rtos)
 	/* ChibiOS does not save the current thread count. We have to first
 	 * parse the double linked thread list to check for errors and the number of
 	 * threads. */
-	const uint32_t rlist = rtos->symbols[ChibiOS_VAL_rlist].address ?
-		rtos->symbols[ChibiOS_VAL_rlist].address :
-		rtos->symbols[ChibiOS_VAL_ch].address + CH_RLIST_OFFSET /* ChibiOS3 */;
-	const struct ChibiOS_chdebug *signature = param->signature;
+	const uint32_t rlist = rtos->symbols[CHIBIOS_VAL_RLIST].address ?
+		rtos->symbols[CHIBIOS_VAL_RLIST].address :
+		rtos->symbols[CHIBIOS_VAL_CH].address + CH_RLIST_OFFSET /* ChibiOS3 */;
+	const struct chibios_chdebug *signature = param->signature;
 	uint32_t current;
 	uint32_t previous;
 	uint32_t older;
@@ -426,19 +426,19 @@ static int ChibiOS_update_threads(struct rtos *rtos)
 		strcpy(curr_thrd_details->thread_name_str, tmp_str);
 
 		/* State info */
-		uint8_t threadState;
+		uint8_t thread_state;
 		const char *state_desc;
 
 		retval = target_read_u8(rtos->target,
-								current + signature->cf_off_state, &threadState);
+								current + signature->cf_off_state, &thread_state);
 		if (retval != ERROR_OK) {
 			LOG_ERROR("Error reading thread state from ChibiOS target");
 			return retval;
 		}
 
 
-		if (threadState < CHIBIOS_NUM_STATES)
-			state_desc = ChibiOS_thread_states[threadState];
+		if (thread_state < CHIBIOS_NUM_STATES)
+			state_desc = chibios_thread_states[thread_state];
 		else
 			state_desc = "Unknown";
 
@@ -465,25 +465,25 @@ static int ChibiOS_update_threads(struct rtos *rtos)
 	return 0;
 }
 
-static int ChibiOS_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
+static int chibios_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 		struct rtos_reg **reg_list, int *num_regs)
 {
 	int retval;
-	const struct ChibiOS_params *param;
+	const struct chibios_params *param;
 	uint32_t stack_ptr = 0;
 
 	if ((rtos == NULL) || (thread_id == 0) ||
 			(rtos->rtos_specific_params == NULL))
 		return -1;
 
-	param = (const struct ChibiOS_params *) rtos->rtos_specific_params;
+	param = (const struct chibios_params *) rtos->rtos_specific_params;
 
 	if (!param->signature)
 		return -1;
 
 	/* Update stacking if it can only be determined from runtime information */
 	if ((param->stacking_info == 0) &&
-		(ChibiOS_update_stacking(rtos) != ERROR_OK)) {
+		(chibios_update_stacking(rtos) != ERROR_OK)) {
 		LOG_ERROR("Failed to determine exact stacking for the target type %s", rtos->target->type->name);
 		return -1;
 	}
@@ -499,24 +499,24 @@ static int ChibiOS_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	return rtos_generic_stack_read(rtos->target, param->stacking_info, stack_ptr, reg_list, num_regs);
 }
 
-static int ChibiOS_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
+static int chibios_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
 {
-	*symbol_list = malloc(sizeof(ChibiOS_symbol_list));
+	*symbol_list = malloc(sizeof(chibios_symbol_list));
 
 	if (*symbol_list == NULL)
 		return ERROR_FAIL;
 
-	memcpy(*symbol_list, ChibiOS_symbol_list, sizeof(ChibiOS_symbol_list));
+	memcpy(*symbol_list, chibios_symbol_list, sizeof(chibios_symbol_list));
 	return 0;
 }
 
-static bool ChibiOS_detect_rtos(struct target *target)
+static bool chibios_detect_rtos(struct target *target)
 {
 	if ((target->rtos->symbols != NULL) &&
-			((target->rtos->symbols[ChibiOS_VAL_rlist].address != 0) ||
-			 (target->rtos->symbols[ChibiOS_VAL_ch].address != 0))) {
+			((target->rtos->symbols[CHIBIOS_VAL_RLIST].address != 0) ||
+			 (target->rtos->symbols[CHIBIOS_VAL_CH].address != 0))) {
 
-		if (target->rtos->symbols[ChibiOS_VAL_ch_debug].address == 0) {
+		if (target->rtos->symbols[CHIBIOS_VAL_CH_DEBUG].address == 0) {
 			LOG_INFO("It looks like the target may be running ChibiOS "
 					"without ch_debug.");
 			return false;
@@ -529,11 +529,11 @@ static bool ChibiOS_detect_rtos(struct target *target)
 	return false;
 }
 
-static int ChibiOS_create(struct target *target)
+static int chibios_create(struct target *target)
 {
 	int i = 0;
 	while ((i < CHIBIOS_NUM_PARAMS) &&
-			(0 != strcmp(ChibiOS_params_list[i].target_name, target->type->name))) {
+			(0 != strcmp(chibios_params_list[i].target_name, target->type->name))) {
 		i++;
 	}
 	if (i >= CHIBIOS_NUM_PARAMS) {
@@ -542,6 +542,6 @@ static int ChibiOS_create(struct target *target)
 		return -1;
 	}
 
-	target->rtos->rtos_specific_params = (void *) &ChibiOS_params_list[i];
+	target->rtos->rtos_specific_params = (void *) &chibios_params_list[i];
 	return 0;
 }
