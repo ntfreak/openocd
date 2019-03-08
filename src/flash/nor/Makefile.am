@@ -64,6 +64,7 @@ NOR_DRIVERS = \
 	%D%/str9x.c \
 	%D%/str9xpec.c \
 	%D%/tms470.c \
+	%D%/uwp5661.c \
 	%D%/virtual.c \
 	%D%/w600.c \
 	%D%/xcf.c \
@@ -80,4 +81,5 @@ NORHEADERS = \
 	%D%/non_cfi.h \
 	%D%/ocl.h \
 	%D%/spi.h \
-	%D%/msp432.h
+	%D%/msp432.h \
+	%D%/uwp5661.h
