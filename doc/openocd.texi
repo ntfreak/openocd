@@ -9743,6 +9743,20 @@ the target, the exception catch must be disabled again with @command{$target_nam
 Issuing the command without options prints the current configuration.
 @end deffn
 
+@deffn Command {aarch64 mrs} [sysreg|op0 op1 CRn CRm op2]
+Read the system register encoded with
+@var{op0}, @var{op1}, @var{CRn}, @var{CRm}, @var{op2} or
+with name @var{sysreg}
+using the MRS instruction. Run without arguments to list all system registers.
+@end deffn
+
+@deffn Command {aarch64 msr} [sysreg value|op0 op1 CRn CRm op2 value]
+Write @var{value} to the system register encoded with
+@var{op0}, @var{op1}, @var{CRn}, @var{CRm}, @var{op2} or
+with name @var{sysreg}
+using the MSR instruction. Run without arguments to list all system registers.
+@end deffn
+
 @section EnSilica eSi-RISC Architecture
 
 eSi-RISC is a highly configurable microprocessor architecture for embedded systems
