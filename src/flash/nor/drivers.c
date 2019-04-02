@@ -66,6 +66,7 @@ extern const struct flash_driver psoc5lp_flash;
 extern const struct flash_driver psoc5lp_eeprom_flash;
 extern const struct flash_driver psoc5lp_nvl_flash;
 extern const struct flash_driver psoc6_flash;
+extern const struct flash_driver sh_qspi_flash;
 extern const struct flash_driver sim3x_flash;
 extern const struct flash_driver stellaris_flash;
 extern const struct flash_driver stm32f1x_flash;
@@ -136,6 +137,7 @@ static const struct flash_driver * const flash_drivers[] = {
 	&psoc5lp_eeprom_flash,
 	&psoc5lp_nvl_flash,
 	&psoc6_flash,
+	&sh_qspi_flash,
 	&sim3x_flash,
 	&stellaris_flash,
 	&stm32f1x_flash,
