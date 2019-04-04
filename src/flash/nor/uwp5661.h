@@ -28,19 +28,23 @@
 
 #define BIT(x) (1 << (x))
 
-#define FUNC_3					(3<<4)
-#define FUNC_MSK				(7<<4)
+#define FUNC_3                  (3<<4)
+#define FUNC_MSK                (7<<4)
 
 /* CMD_READ_STATUS1 */
 #define STATUS_WIP              BIT(0)
 
-/* CMD_READ_STATUS3 */
-#define STATUS_ADS		BIT(0)
+/* CMD_READ_STATUS2 */
+#define STATUS_QE               BIT(1)
 
-#define CONFIG_SYS_HZ                       1000
+/* CMD_READ_STATUS3 */
+#define STATUS_ADS              BIT(0)
+
+#define CONFIG_SYS_HZ                       10000
 #define CACHE_CMD_TIMEOUT                   (1   * CONFIG_SYS_HZ)
 #define SFC_DRVREQ_TIMEOUT                  (1   * CONFIG_SYS_HZ)
 #define SPI_FLASH_ADS_TIMEOUT               (2   * CONFIG_SYS_HZ)
+#define SFC_FLASH_WST_TIMEOUT               (2   * CONFIG_SYS_HZ)
 #define SPI_FLASH_PAGE_PROG_TIMEOUT         (20  * CONFIG_SYS_HZ)
 #define SPI_FLASH_SECTOR_ERASE_TIMEOUT      (125 * CONFIG_SYS_HZ)
 
@@ -93,6 +97,7 @@
 
 /* REG_AON_CLK_RF_CGM_ARM_CFG */
 #define CGM_ARM_XTAL_MHZ			0
+#define CGM_ARM_416_MHZ				5
 
 /* REG_AON_CLK_RF_CGM_MTX_CFG */
 #define CGM_MTX_DIV_1		(0<<8)
@@ -100,9 +105,6 @@
 
 /* REG_AON_CLK_RF_CGM_SFC_2X_CFG */
 #define CLK_SFC_2X_XTAL_MHZ			0
-#define CLK_SFC_2X_133_MHZ			1
-#define CLK_SFC_2X_139_MHZ			2
-#define CLK_SFC_2X_160_MHZ			3
 #define CLK_SFC_2X_208_MHZ			4
 
 /* REG_AON_CLK_RF_CGM_SFC_1X_CFG */
@@ -110,28 +112,11 @@
 
 #define SFC_CMD_CFG         (BASE_AON_SFC_CFG + 0x0000)
 #define SFC_SOFT_REQ        (BASE_AON_SFC_CFG + 0x0004)
-#define SFC_TBUF_CLR        (BASE_AON_SFC_CFG + 0x0008)
 #define SFC_INT_CLR         (BASE_AON_SFC_CFG + 0x000C)
-#define SFC_STATUS          (BASE_AON_SFC_CFG + 0x0010)
-#define SFC_CS_TIMING_CFG   (BASE_AON_SFC_CFG + 0x0014)
-#define SFC_RD_SAMPLE_CFG   (BASE_AON_SFC_CFG + 0x0018)
 #define SFC_CLK_CFG         (BASE_AON_SFC_CFG + 0x001C)
-#define SFC_CS_CFG          (BASE_AON_SFC_CFG + 0x0020)
-#define SFC_ENDIAN_CFG      (BASE_AON_SFC_CFG + 0x0024)
-#define SFC_IO_DLY_CFG      (BASE_AON_SFC_CFG + 0x0028)
-#define SFC_WP_HLD_INIT     (BASE_AON_SFC_CFG + 0x002C)
 #define SFC_CMD_BUF0        (BASE_AON_SFC_CFG + 0x0040)
 #define SFC_CMD_BUF1        (BASE_AON_SFC_CFG + 0x0044)
 #define SFC_CMD_BUF2        (BASE_AON_SFC_CFG + 0x0048)
-#define SFC_CMD_BUF3        (BASE_AON_SFC_CFG + 0x004C)
-#define SFC_CMD_BUF4        (BASE_AON_SFC_CFG + 0x0050)
-#define SFC_CMD_BUF5        (BASE_AON_SFC_CFG + 0x0054)
-#define SFC_CMD_BUF6        (BASE_AON_SFC_CFG + 0x0058)
-#define SFC_CMD_BUF7        (BASE_AON_SFC_CFG + 0x005C)
-#define SFC_CMD_BUF8        (BASE_AON_SFC_CFG + 0x0060)
-#define SFC_CMD_BUF9        (BASE_AON_SFC_CFG + 0x0064)
-#define SFC_CMD_BUF10       (BASE_AON_SFC_CFG + 0x0068)
-#define SFC_CMD_BUF11       (BASE_AON_SFC_CFG + 0x006C)
 #define SFC_TYPE_BUF0       (BASE_AON_SFC_CFG + 0x0070)
 #define SFC_TYPE_BUF1       (BASE_AON_SFC_CFG + 0x0074)
 #define SFC_TYPE_BUF2       (BASE_AON_SFC_CFG + 0x0078)
@@ -153,7 +138,6 @@
 #define SHIFT_INT_CLR                   0
 
 /* SFC_CLK_CFG */
-#define SFC_CLK_OUT_DIV_2               BIT(0)
 #define SFC_CLK_SAMPLE_2X_EN            BIT(7)
 #define SFC_CLK_SAMPLE_2X_PHASE_1       BIT(8)
 #define SFC_CLK_OUT_2X_EN               BIT(9)
@@ -169,8 +153,8 @@
 #define TYPE_BUF_DEFAULT_VALUE			0
 
 /* SFC_IEN */
-#define CS1_INT 0x000000FF
-#define CS0_INT 0x00000000
+#define INT_EN                  0x000000FF
+#define INT_DIS                 0x00000000
 
 
 #define CMD_READ_ID             0x9f
@@ -182,6 +166,7 @@
 #define CMD_WRITE_ENABLE        0x06
 #define CMD_NORMAL_READ         0x03
 #define CMD_FAST_READ           0x0B
+#define CMD_4IO_READ            0xEB
 
 #define CMD_ENTER_4ADDR         0xB7
 #define CMD_EXIT_4ADDR          0xE9
@@ -194,6 +179,8 @@
 #define CMD_PAGE_PROGRAM        0x02
 
 #define CMD_SECTOR_ERASE        0x20
+#define CMD_32K_ERASE           0x52
+#define CMD_64K_ERASE           0xD8
 #define CMD_CHIP_ERASE          0xC7
 
 enum cmd_mode {
@@ -253,15 +240,6 @@ enum info_buf_index {
 	INFO_BUF_1,
 	INFO_BUF_2,
 	INFO_BUF_MAX
-};
-
-enum read_cmd_type {
-	READ_SPI = 0,
-	READ_SPI_FAST,
-	READ_SPI_2IO,
-	READ_SPI_4IO,
-	READ_QPI_FAST,
-	READ_QPI_4IO,
 };
 
 struct sfc_cmd_des {
