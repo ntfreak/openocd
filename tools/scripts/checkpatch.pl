@@ -78,7 +78,7 @@ Version: $V
 
 Options:
   -q, --quiet                quiet
-  --no-tree                  run without a kernel tree
+  --no-tree                  run without an openocd tree
   --no-signoff               do not check for 'Signed-off-by' line
   --patch                    treat FILE as patchfile (default)
   --emacs                    emacs compile window format
@@ -105,7 +105,7 @@ Options:
                              requires --strict for use with --file
   --min-conf-desc-length=n   set the min description length, if shorter, warn
   --tab-size=n               set the number of spaces for tab (default $tabsize)
-  --root=PATH                PATH to the kernel tree root
+  --root=PATH                PATH to the openocd tree root
   --no-summary               suppress the per-file summary
   --mailback                 only produce a report in case of warnings/errors
   --summary-file             include the filename in summary
@@ -340,14 +340,15 @@ if ($tree) {
 	} else {
 		if (top_of_kernel_tree('.')) {
 			$root = '.';
-		} elsif ($0 =~ m@(.*)/scripts/[^/]*$@ &&
+		# OpenOCD specific
+		} elsif ($0 =~ m@(.*)/tools/scripts/[^/]*$@ &&
 						top_of_kernel_tree($1)) {
 			$root = $1;
 		}
 	}
 
 	if (!defined $root) {
-		print "Must be run from the top-level dir. of a kernel tree\n";
+		print "Must be run from the top-level dir. of an openocd tree\n";
 		exit(2);
 	}
 }
@@ -1230,9 +1231,9 @@ sub top_of_kernel_tree {
 	my ($root) = @_;
 
 	my @tree_check = (
-		"COPYING", "CREDITS", "Kbuild", "MAINTAINERS", "Makefile",
-		"README", "Documentation", "arch", "include", "drivers",
-		"fs", "init", "ipc", "kernel", "lib", "scripts",
+		# OpenOCD specific
+		"AUTHORS", "BUGS", "COPYING", "HACKING", "Makefile.am",
+		"README", "contrib", "doc", "src", "tcl", "testing", "tools",
 	);
 
 	foreach my $check (@tree_check) {
