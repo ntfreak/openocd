@@ -73,6 +73,13 @@ struct cfi_flash_bank {
 	unsigned buf_write_timeout;
 	unsigned block_erase_timeout;
 	unsigned chip_erase_timeout;
+
+	/* memory accessors */
+	int (*write_mem)(struct flash_bank *bank, target_addr_t addr,
+			 uint32_t size, uint32_t count,
+			 const uint8_t *buffer);
+	int (*read_mem)(struct flash_bank *bank, target_addr_t addr,
+			uint32_t size, uint32_t count, uint8_t *buffer);
 };
 
 /* Intel primary extended query table
