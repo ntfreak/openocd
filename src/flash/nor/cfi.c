@@ -131,18 +131,25 @@ static inline uint32_t flash_address(struct flash_bank *bank, int sector, uint32
 	}
 }
 
-static int cfi_target_write_memory(struct flash_bank *bank, target_addr_t addr,
-				   uint32_t size, uint32_t count,
-				   const uint8_t *buffer)
+int cfi_target_write_memory(struct flash_bank *bank, target_addr_t addr,
+			    uint32_t size, uint32_t count,
+			    const uint8_t *buffer)
 {
-	return target_write_memory(bank->target, addr, size, count, buffer);
+	struct cfi_flash_bank *cfi_info = bank->driver_priv;
+	if (cfi_info->write_mem)
+		return cfi_info->write_mem(bank, addr, size, count, buffer);
+	else
+		return target_write_memory(bank->target, addr, size, count, buffer);
 }
 
-static int cfi_target_read_memory(struct flash_bank *bank, target_addr_t addr,
-				  uint32_t size, uint32_t count,
-				  uint8_t *buffer)
+int cfi_target_read_memory(struct flash_bank *bank, target_addr_t addr,
+			   uint32_t size, uint32_t count, uint8_t *buffer)
 {
-	return target_read_memory(bank->target, addr, size, count, buffer);
+	struct cfi_flash_bank *cfi_info = bank->driver_priv;
+	if (cfi_info->read_mem)
+		return cfi_info->read_mem(bank, addr, size, count, buffer);
+	else
+		return target_read_memory(bank->target, addr, size, count, buffer);
 }
 
 static void cfi_command(struct flash_bank *bank, uint8_t cmd, uint8_t *cmd_buf)
