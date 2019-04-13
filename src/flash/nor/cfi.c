@@ -34,9 +34,6 @@
 #include <helper/binarybuffer.h>
 #include <target/algorithm.h>
 
-#define CFI_MAX_BUS_WIDTH       4
-#define CFI_MAX_CHIP_WIDTH      4
-
 /* defines internal maximum size for code fragment in cfi_intel_write_block() */
 #define CFI_MAX_INTEL_CODESIZE 256
 
@@ -112,7 +109,7 @@ static void cfi_fixup(struct flash_bank *bank, const struct cfi_fixup *fixups)
 	}
 }
 
-static inline uint32_t cfi_flash_address(struct flash_bank *bank, int sector, uint32_t offset)
+uint32_t cfi_flash_address(struct flash_bank *bank, int sector, uint32_t offset)
 {
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 
@@ -143,8 +140,8 @@ static int cfi_target_write_memory(struct flash_bank *bank, target_addr_t addr,
 	}
 }
 
-static int cfi_target_read_memory(struct flash_bank *bank, target_addr_t addr,
-				  uint32_t count, uint8_t *buffer)
+int cfi_target_read_memory(struct flash_bank *bank, target_addr_t addr,
+			   uint32_t count, uint8_t *buffer)
 {
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 	if (cfi_info->read_mem) {
@@ -175,7 +172,7 @@ static void cfi_command(struct flash_bank *bank, uint8_t cmd, uint8_t *cmd_buf)
 	}
 }
 
-static int cfi_send_command(struct flash_bank *bank, uint8_t cmd, uint32_t address)
+int cfi_send_command(struct flash_bank *bank, uint8_t cmd, uint32_t address)
 {
 	uint8_t command[CFI_MAX_BUS_WIDTH];
 
@@ -298,7 +295,7 @@ static int cfi_query_u32(struct flash_bank *bank, int sector, uint32_t offset, u
 	return ERROR_OK;
 }
 
-static int cfi_reset(struct flash_bank *bank)
+int cfi_reset(struct flash_bank *bank)
 {
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 	int retval = ERROR_OK;
@@ -379,7 +376,7 @@ static int cfi_intel_wait_status_busy(struct flash_bank *bank, int timeout, uint
 	return retval;
 }
 
-static int cfi_spansion_wait_status_busy(struct flash_bank *bank, int timeout)
+int cfi_spansion_wait_status_busy(struct flash_bank *bank, int timeout)
 {
 	uint8_t status, oldstatus;
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
@@ -819,14 +816,12 @@ static int cfi_intel_info(struct flash_bank *bank, char *buf, int buf_size)
 	return ERROR_OK;
 }
 
-/* flash_bank cfi <base> <size> <chip_width> <bus_width> <target#> [options]
- */
-FLASH_BANK_COMMAND_HANDLER(cfi_flash_bank_command)
+int cfi_flash_bank_cmd(struct flash_bank *bank, unsigned int argc, const char **argv)
 {
 	struct cfi_flash_bank *cfi_info;
 	int bus_swap = 0;
 
-	if (CMD_ARGC < 6)
+	if (argc < 6)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	/* both widths must:
@@ -856,14 +851,14 @@ FLASH_BANK_COMMAND_HANDLER(cfi_flash_bank_command)
 	cfi_info->not_cfi = 0;
 	cfi_info->data_swap = 0;
 
-	for (unsigned i = 6; i < CMD_ARGC; i++) {
-		if (strcmp(CMD_ARGV[i], "x16_as_x8") == 0)
+	for (unsigned i = 6; i < argc; i++) {
+		if (strcmp(argv[i], "x16_as_x8") == 0)
 			cfi_info->x16_as_x8 = 1;
-		else if (strcmp(CMD_ARGV[i], "data_swap") == 0)
+		else if (strcmp(argv[i], "data_swap") == 0)
 			cfi_info->data_swap = 1;
-		else if (strcmp(CMD_ARGV[i], "bus_swap") == 0)
+		else if (strcmp(argv[i], "bus_swap") == 0)
 			bus_swap = 1;
-		else if (strcmp(CMD_ARGV[i], "jedec_probe") == 0)
+		else if (strcmp(argv[i], "jedec_probe") == 0)
 			cfi_info->jedec_probe = 1;
 	}
 
@@ -878,6 +873,13 @@ FLASH_BANK_COMMAND_HANDLER(cfi_flash_bank_command)
 	cfi_info->qry[0] = 0xff;
 
 	return ERROR_OK;
+}
+
+/* flash_bank cfi <base> <size> <chip_width> <bus_width> <target#> [options]
+ */
+FLASH_BANK_COMMAND_HANDLER(cfi_flash_bank_command)
+{
+	return cfi_flash_bank_cmd(bank, CMD_ARGC, CMD_ARGV);
 }
 
 static int cfi_intel_erase(struct flash_bank *bank, int first, int last)
@@ -918,7 +920,7 @@ static int cfi_intel_erase(struct flash_bank *bank, int first, int last)
 	return cfi_send_command(bank, 0xff, cfi_flash_address(bank, 0, 0x0));
 }
 
-static int cfi_spansion_unlock_seq(struct flash_bank *bank)
+int cfi_spansion_unlock_seq(struct flash_bank *bank)
 {
 	int retval;
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
@@ -975,7 +977,7 @@ static int cfi_spansion_erase(struct flash_bank *bank, int first, int last)
 	return cfi_send_command(bank, 0xf0, cfi_flash_address(bank, 0, 0x0));
 }
 
-static int cfi_erase(struct flash_bank *bank, int first, int last)
+int cfi_erase(struct flash_bank *bank, int first, int last)
 {
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 
@@ -1118,7 +1120,7 @@ static int cfi_intel_protect(struct flash_bank *bank, int set, int first, int la
 	return cfi_send_command(bank, 0xff, cfi_flash_address(bank, 0, 0x0));
 }
 
-static int cfi_protect(struct flash_bank *bank, int set, int first, int last)
+int cfi_protect(struct flash_bank *bank, int set, int first, int last)
 {
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 
@@ -2220,7 +2222,7 @@ static int cfi_spansion_write_words(struct flash_bank *bank, const uint8_t *word
 	return ERROR_OK;
 }
 
-static int cfi_write_word(struct flash_bank *bank, uint8_t *word, uint32_t address)
+int cfi_write_word(struct flash_bank *bank, uint8_t *word, uint32_t address)
 {
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 
@@ -2591,7 +2593,7 @@ static int cfi_query_string(struct flash_bank *bank, int address)
 	return ERROR_OK;
 }
 
-static int cfi_probe(struct flash_bank *bank)
+int cfi_probe(struct flash_bank *bank)
 {
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 	struct target *target = bank->target;
@@ -2927,7 +2929,7 @@ static int cfi_probe(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int cfi_auto_probe(struct flash_bank *bank)
+int cfi_auto_probe(struct flash_bank *bank)
 {
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 	if (cfi_info->probed)
@@ -2995,7 +2997,7 @@ static int cfi_spansion_protect_check(struct flash_bank *bank)
 	return cfi_send_command(bank, 0xf0, cfi_flash_address(bank, 0, 0x0));
 }
 
-static int cfi_protect_check(struct flash_bank *bank)
+int cfi_protect_check(struct flash_bank *bank)
 {
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 
@@ -3023,7 +3025,7 @@ static int cfi_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size)
+int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size)
 {
 	int printed;
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
