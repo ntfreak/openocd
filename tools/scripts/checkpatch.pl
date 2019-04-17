@@ -3223,6 +3223,8 @@ sub process {
 
 # Check for various typo / spelling mistakes
 		if (defined($misspellings) &&
+		    # OpenOCD specific: don't check spelling on spelling_file
+		    index($spelling_file, $realfile) + length($realfile) != length($spelling_file) &&
 		    ($in_commit_log || $line =~ /^(?:\+|Subject:)/i)) {
 			while ($rawline =~ /(?:^|[^\w\-'`])($misspellings)(?:[^\w\-'`]|$)/gi) {
 				my $typo = $1;
