@@ -898,6 +898,23 @@ static int cfi_intel_erase(struct flash_bank *bank, int first, int last)
 	return cfi_send_command(bank, 0xff, flash_address(bank, 0, 0x0));
 }
 
+static int cfi_spansion_unlock_seq(struct flash_bank *bank)
+{
+	int retval;
+	struct cfi_flash_bank *cfi_info = bank->driver_priv;
+	struct cfi_spansion_pri_ext *pri_ext = cfi_info->pri_ext;
+
+	retval = cfi_send_command(bank, 0xaa, flash_address(bank, 0, pri_ext->_unlock1));
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = cfi_send_command(bank, 0x55, flash_address(bank, 0, pri_ext->_unlock2));
+	if (retval != ERROR_OK)
+		return retval;
+
+	return ERROR_OK;
+}
+
 static int cfi_spansion_erase(struct flash_bank *bank, int first, int last)
 {
 	int retval;
@@ -906,11 +923,7 @@ static int cfi_spansion_erase(struct flash_bank *bank, int first, int last)
 	int i;
 
 	for (i = first; i <= last; i++) {
-		retval = cfi_send_command(bank, 0xaa, flash_address(bank, 0, pri_ext->_unlock1));
-		if (retval != ERROR_OK)
-			return retval;
-
-		retval = cfi_send_command(bank, 0x55, flash_address(bank, 0, pri_ext->_unlock2));
+		retval = cfi_spansion_unlock_seq(bank);
 		if (retval != ERROR_OK)
 			return retval;
 
@@ -918,11 +931,7 @@ static int cfi_spansion_erase(struct flash_bank *bank, int first, int last)
 		if (retval != ERROR_OK)
 			return retval;
 
-		retval = cfi_send_command(bank, 0xaa, flash_address(bank, 0, pri_ext->_unlock1));
-		if (retval != ERROR_OK)
-			return retval;
-
-		retval = cfi_send_command(bank, 0x55, flash_address(bank, 0, pri_ext->_unlock2));
+		retval = cfi_spansion_unlock_seq(bank);
 		if (retval != ERROR_OK)
 			return retval;
 
@@ -2102,11 +2111,7 @@ static int cfi_spansion_write_word(struct flash_bank *bank, uint8_t *word, uint3
 	struct cfi_spansion_pri_ext *pri_ext = cfi_info->pri_ext;
 	struct target *target = bank->target;
 
-	retval = cfi_send_command(bank, 0xaa, flash_address(bank, 0, pri_ext->_unlock1));
-	if (retval != ERROR_OK)
-		return retval;
-
-	retval = cfi_send_command(bank, 0x55, flash_address(bank, 0, pri_ext->_unlock2));
+	retval = cfi_spansion_unlock_seq(bank);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -2137,7 +2142,6 @@ static int cfi_spansion_write_words(struct flash_bank *bank, const uint8_t *word
 	int retval;
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 	struct target *target = bank->target;
-	struct cfi_spansion_pri_ext *pri_ext = cfi_info->pri_ext;
 
 	/* Calculate buffer size and boundary mask
 	 * buffersize is (buffer size per chip) * (number of chips)
@@ -2163,11 +2167,7 @@ static int cfi_spansion_write_words(struct flash_bank *bank, const uint8_t *word
 	}
 
 	/* Unlock */
-	retval = cfi_send_command(bank, 0xaa, flash_address(bank, 0, pri_ext->_unlock1));
-	if (retval != ERROR_OK)
-		return retval;
-
-	retval = cfi_send_command(bank, 0x55, flash_address(bank, 0, pri_ext->_unlock2));
+	retval = cfi_spansion_unlock_seq(bank);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -2958,11 +2958,7 @@ static int cfi_spansion_protect_check(struct flash_bank *bank)
 	struct cfi_spansion_pri_ext *pri_ext = cfi_info->pri_ext;
 	int i;
 
-	retval = cfi_send_command(bank, 0xaa, flash_address(bank, 0, pri_ext->_unlock1));
-	if (retval != ERROR_OK)
-		return retval;
-
-	retval = cfi_send_command(bank, 0x55, flash_address(bank, 0, pri_ext->_unlock2));
+	retval = cfi_spansion_unlock_seq(bank);
 	if (retval != ERROR_OK)
 		return retval;
 
