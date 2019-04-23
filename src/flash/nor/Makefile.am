@@ -60,6 +60,7 @@ NOR_DRIVERS = \
 	%D%/stm32lx.c \
 	%D%/stm32l4x.c \
 	%D%/stm32h7x.c \
+	%D%/stm32g0x.c \
 	%D%/str7x.c \
 	%D%/str9x.c \
 	%D%/str9xpec.c \
