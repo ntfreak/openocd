@@ -8,7 +8,7 @@ OBJDUMP=$(CROSS_COMPILE)objdump
 
 CFLAGS = -static -nostartfiles -mlittle-endian -Wa,-EL
 
-all: stm32f1x.inc stm32f2x.inc stm32h7x.inc stm32l4x.inc stm32lx.inc
+all: stm32f1x.inc stm32f2x.inc stm32h7x.inc stm32l4x.inc stm32lx.inc stm32g0x.inc
 
 .PHONY: clean
 
