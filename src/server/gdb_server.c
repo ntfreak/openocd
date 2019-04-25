@@ -2786,9 +2786,6 @@ static bool gdb_handle_vcont_packet(struct connection *connection, const char *p
 			}
 
 			if (target->rtos != NULL) {
-				/* FIXME: why is this necessary? rtos state should be up-to-date here already! */
-				rtos_update_threads(target);
-
 				target->rtos->gdb_target_for_threadid(connection, thread_id, &ct);
 
 				/*
@@ -2873,6 +2870,11 @@ static bool gdb_handle_vcont_packet(struct connection *connection, const char *p
 			retval = target_step(ct, current_pc, 0, 0);
 			if (retval == ERROR_TARGET_NOT_HALTED)
 				LOG_INFO("target %s was not halted when step was requested", target_name(ct));
+
+			if (target->rtos != NULL) {
+				/* After executing the 'step' command, update the rtos threads */
+				rtos_update_threads(target);
+			}
 
 			/* if step was successful send a reply back to gdb */
 			if (retval == ERROR_OK) {
