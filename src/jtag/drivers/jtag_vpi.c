@@ -54,15 +54,38 @@ int sockfd;
 struct sockaddr_in serv_addr;
 
 struct vpi_cmd {
-	int cmd;
+	uint32_t cmd;
 	unsigned char buffer_out[XFERT_MAX_SIZE];
 	unsigned char buffer_in[XFERT_MAX_SIZE];
-	int length;
-	int nb_bits;
+	uint32_t length;
+	uint32_t nb_bits;
 };
+
+static int is_host_little_endian(void)
+{
+	return (htonl(25) != 25);
+}
+
+static uint32_t from_little_endian_u32(uint32_t val)
+{
+	return is_host_little_endian() ? val : htonl(val);
+}
+
+static uint32_t to_little_endian_u32(uint32_t val)
+{
+	return from_little_endian_u32(val);
+}
 
 static int jtag_vpi_send_cmd(struct vpi_cmd *vpi)
 {
+	/* Always use little endian when transmitting/receiving jtag_vpi cmds.
+
+	   The choice of little endian goes against usual networking conventions
+	   but is intentional to remain compatible with most older OpenOCD builds
+	   (i.e. builds on little-endian platforms). */
+	vpi->cmd = to_little_endian_u32(vpi->cmd);
+	vpi->length = to_little_endian_u32(vpi->length);
+	vpi->nb_bits = to_little_endian_u32(vpi->nb_bits);
 	int retval = write_socket(sockfd, vpi, sizeof(struct vpi_cmd));
 	if (retval <= 0)
 		return ERROR_FAIL;
@@ -75,6 +98,11 @@ static int jtag_vpi_receive_cmd(struct vpi_cmd *vpi)
 	int retval = read_socket(sockfd, vpi, sizeof(struct vpi_cmd));
 	if (retval < (int)sizeof(struct vpi_cmd))
 		return ERROR_FAIL;
+
+	/* Always use little endian when transmitting/receiving jtag_vpi cmds. */
+	vpi->cmd = from_little_endian_u32(vpi->cmd);
+	vpi->length = from_little_endian_u32(vpi->length);
+	vpi->nb_bits = from_little_endian_u32(vpi->nb_bits);
 
 	return ERROR_OK;
 }
