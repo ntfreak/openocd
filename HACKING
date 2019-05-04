@@ -171,9 +171,13 @@ while(!done) {
 @endcode
    \note use "git add ." before commit to add new files.
 
+   \note check @ref checkpatch for hint about checkpatch script
+
    Comment template, notice the short first line w/topic. The topic field
    should identify the main part or subsystem the patch touches. Check
-   git log for examples.
+   git log for examples. Each comment's line is limited at 75 characters;
+   since 75 it's too short for a URL, you can put the URL in a separate
+   line preceded by 'Link: '.
 @code
 topic: Short comment
 <blank line>
@@ -200,6 +204,63 @@ git push review
 @endcode
 
 Further reading: http://www.coreboot.org/Git
+
+@section checkpatch About checkpatch script
+
+OpenOCD source code includes the script checkpatch to let developers
+verify their patches before submitting them for review (see @ref gerrit).
+
+The script checkpatch verifies the SPDX tag for new files against a very
+short list of license tags.
+If the license of your contribution is not listed there, but compatible
+with OpenOCD license, please alert the maintainers or add the missing
+license in the first patch of your patch series.
+
+Every patch for OpenOCD project that is submitted for review on Gerrit
+is tested by Jenkins. Jenkins will run the checkpatch script to analyze
+each patch.
+If the script highlights either errors or warnings, Gerrit will add the
+score "-1" to the patch and maintainers will probably ignore the patch,
+waiting for the developer to send a fixed version.
+
+The script checkpatch has been originally developed for the Linux kernel
+source code, thus includes specific tests and checks related to Linux
+coding style and to Linux code structure. While the script has been
+adapted for OpenOCD specificities, it still includes some Linux related
+test. It is then possible that it triggers sometimes some <em>false
+positive</em>!
+
+If you think that the error identified by checkpatch is a false
+positive, please report it to the openocd-devel mailing list or prepare
+a patch for fixing checkpatch and send it to Gerrit for review.
+
+\attention The procedure below is allowed only for <em>exceptional
+cases</em>. Do not use it to submit normal patches.
+
+There are <em>exceptional cases</em> in which you need to skip some of
+the tests from checkpatch in order to pass the approval from Gerrit.
+
+For example, a fix for checkpatch could be seen as a wrong patch from
+checkpatch itself, thus creating a deadlock in the submit process.
+
+Only for <em>exceptional cases</em>, it is allowed to submit patches
+altogether to Gerrit in a special series:
+
+- at first a patch that changes the file ".checkpatch.conf" in order
+  to temporarily disable the specific test that fails in the following
+  patches. This patch would not be merged in OpenOCD code;
+- then the patches to commit in OpenOCD and that fails on unmodified
+  checkpatch.
+
+With the sequence above, Gerrit will use the modified configuration for
+checkpatch while testing the following patches, thus ignoring the tests
+that produce false positives.
+
+If you are really forced to do so, please inform the maintainers by
+writing in the commit message of the first patch what are the reasons
+for skipping the test.
+Also please put by yourself a score "-1" to the first patch to prevent
+it to get merged.
 
 @section timeline When can I expect my contribution to be committed?
 
