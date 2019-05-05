@@ -212,7 +212,6 @@ int arm_dpm_read_reg(struct arm_dpm *dpm, struct reg *r, unsigned regnum)
 			break;
 		case ARM_VFP_V3_D0 ... ARM_VFP_V3_D31:
 			return dpm_read_reg_u64(dpm, r, regnum);
-			break;
 		case ARM_VFP_V3_FPSCR:
 			/* "VMRS r0, FPSCR"; then return via DCC */
 			retval = dpm->instr_read_data_r0(dpm,
@@ -294,7 +293,6 @@ static int dpm_write_reg(struct arm_dpm *dpm, struct reg *r, unsigned regnum)
 			break;
 		case ARM_VFP_V3_D0 ... ARM_VFP_V3_D31:
 			return dpm_write_reg_u64(dpm, r, regnum);
-			break;
 		case ARM_VFP_V3_FPSCR:
 			/* move to r0 from DCC, then "VMSR FPSCR, r0" */
 			retval = dpm->instr_write_data_r0(dpm,

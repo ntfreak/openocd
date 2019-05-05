@@ -666,10 +666,8 @@ uint32_t abstract_register_size(unsigned width)
 			return set_field(0, AC_ACCESS_REGISTER_SIZE, 2);
 		case 64:
 			return set_field(0, AC_ACCESS_REGISTER_SIZE, 3);
-			break;
 		case 128:
 			return set_field(0, AC_ACCESS_REGISTER_SIZE, 4);
-			break;
 		default:
 			LOG_ERROR("Unsupported register width: %d", width);
 			return 0;

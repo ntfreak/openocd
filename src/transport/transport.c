@@ -290,7 +290,6 @@ static int jim_transport_select(Jim_Interp *interp, int argc, Jim_Obj * const *a
 			}
 			Jim_SetResultString(interp, session->name, -1);
 			return JIM_OK;
-			break;
 		case 2:	/* assign */
 			if (session) {
 				if (!strcmp(session->name, argv[1]->bytes)) {
@@ -327,7 +326,6 @@ static int jim_transport_select(Jim_Interp *interp, int argc, Jim_Obj * const *a
 
 			LOG_ERROR("Debug adapter doesn't support '%s' transport", argv[1]->bytes);
 			return JIM_ERR;
-			break;
 		default:
 			Jim_WrongNumArgs(interp, 1, argv, "[too many parameters]");
 			return JIM_ERR;

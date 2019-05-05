@@ -765,58 +765,40 @@ static const char *ulink_cmd_id_string(uint8_t id)
 	switch (id) {
 	case CMD_SCAN_IN:
 		return "CMD_SCAN_IN";
-		break;
 	case CMD_SLOW_SCAN_IN:
 		return "CMD_SLOW_SCAN_IN";
-		break;
 	case CMD_SCAN_OUT:
 		return "CMD_SCAN_OUT";
-		break;
 	case CMD_SLOW_SCAN_OUT:
 		return "CMD_SLOW_SCAN_OUT";
-		break;
 	case CMD_SCAN_IO:
 		return "CMD_SCAN_IO";
-		break;
 	case CMD_SLOW_SCAN_IO:
 		return "CMD_SLOW_SCAN_IO";
-		break;
 	case CMD_CLOCK_TMS:
 		return "CMD_CLOCK_TMS";
-		break;
 	case CMD_SLOW_CLOCK_TMS:
 		return "CMD_SLOW_CLOCK_TMS";
-		break;
 	case CMD_CLOCK_TCK:
 		return "CMD_CLOCK_TCK";
-		break;
 	case CMD_SLOW_CLOCK_TCK:
 		return "CMD_SLOW_CLOCK_TCK";
-		break;
 	case CMD_SLEEP_US:
 		return "CMD_SLEEP_US";
-		break;
 	case CMD_SLEEP_MS:
 		return "CMD_SLEEP_MS";
-		break;
 	case CMD_GET_SIGNALS:
 		return "CMD_GET_SIGNALS";
-		break;
 	case CMD_SET_SIGNALS:
 		return "CMD_SET_SIGNALS";
-		break;
 	case CMD_CONFIGURE_TCK_FREQ:
 		return "CMD_CONFIGURE_TCK_FREQ";
-		break;
 	case CMD_SET_LEDS:
 		return "CMD_SET_LEDS";
-		break;
 	case CMD_TEST:
 		return "CMD_TEST";
-		break;
 	default:
 		return "CMD_UNKNOWN";
-		break;
 	}
 }
 

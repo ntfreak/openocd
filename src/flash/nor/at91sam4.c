@@ -2482,7 +2482,6 @@ FLASH_BANK_COMMAND_HANDLER(sam4_flash_bank_command)
 				((unsigned int)(bank->base)),
 				((unsigned int)(FLASH_BANK_BASE_S)));
 			return ERROR_FAIL;
-			break;
 
 		/* at91sam4s series only has bank 0*/
 		/* at91sam4sd series has the same address for bank 0 (FLASH_BANK0_BASE_SD)*/
@@ -3101,10 +3100,8 @@ COMMAND_HANDLER(sam4_handle_gpnvm_command)
 	switch (CMD_ARGC) {
 		default:
 			return ERROR_COMMAND_SYNTAX_ERROR;
-			break;
 		case 0:
 			goto showall;
-			break;
 		case 1:
 			who = -1;
 			break;
@@ -3188,7 +3185,6 @@ COMMAND_HANDLER(sam4_handle_slowclk_command)
 			/* error */
 			command_print(CMD, "Too many parameters");
 			return ERROR_COMMAND_SYNTAX_ERROR;
-			break;
 	}
 	command_print(CMD, "Slowclk freq: %d.%03dkhz",
 		(int)(pChip->cfg.slow_freq / 1000),

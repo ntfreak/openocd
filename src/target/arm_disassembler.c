@@ -2309,7 +2309,6 @@ static int evaluate_data_proc_thumb(uint16_t opcode,
 							address, opcode);
 				}
 				return ERROR_OK;
-				break;
 		}
 	} else {
 		switch (op) {

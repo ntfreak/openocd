@@ -481,20 +481,15 @@ static const char *protection_to_str(uint8_t protection)
 	switch (protection) {
 		case PROTECTION_VIRGIN:
 			return "VIRGIN";
-			break;
 		case PROTECTION_NORMAL:
 			return "NORMAL";
-			break;
 		case PROTECTION_SECURE:
 			return "SECURE";
-			break;
 		case PROTECTION_DEAD:
 			return "DEAD";
-			break;
 		case PROTECTION_UNKNOWN:
 		default:
 			return "UNKNOWN";
-			break;
 	}
 }
 

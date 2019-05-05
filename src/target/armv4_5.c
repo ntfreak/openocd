@@ -1223,7 +1223,6 @@ int arm_get_gdb_reg_list(struct target *target,
 		(*reg_list)[25] = arm->cpsr;
 
 		return ERROR_OK;
-		break;
 
 	case REG_CLASS_ALL:
 		switch (arm->core_type) {
@@ -1273,12 +1272,10 @@ int arm_get_gdb_reg_list(struct target *target,
 		}
 
 		return ERROR_OK;
-		break;
 
 	default:
 		LOG_ERROR("not a valid register class type in query.");
 		return ERROR_FAIL;
-		break;
 	}
 }
 

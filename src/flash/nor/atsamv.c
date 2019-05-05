@@ -375,7 +375,6 @@ static int samv_probe(struct flash_bank *bank)
 		default:
 			LOG_ERROR("unrecognized flash size code: %d", nvm_size_code);
 			return ERROR_FAIL;
-			break;
 	}
 
 	struct samv_flash_bank *samv_info = bank->driver_priv;
@@ -645,7 +644,6 @@ COMMAND_HANDLER(samv_handle_gpnvm_command)
 	switch (CMD_ARGC) {
 		case 0:
 			goto showall;
-			break;
 		case 1:
 			who = -1;
 			break;
@@ -660,7 +658,6 @@ COMMAND_HANDLER(samv_handle_gpnvm_command)
 			break;
 		default:
 			return ERROR_COMMAND_SYNTAX_ERROR;
-			break;
 	}
 
 	uint32_t v;

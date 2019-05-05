@@ -434,10 +434,8 @@ static int aducm360_write_block(struct flash_bank *bank,
 	switch (choice) {
 	case 0:
 		return aducm360_write_block_sync(bank, buffer, offset, count);
-		break;
 	case 1:
 		return aducm360_write_block_async(bank, buffer, offset, count);
-		break;
 	default:
 		LOG_ERROR("aducm360_write_block was cancelled (no writing method was chosen)!");
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;

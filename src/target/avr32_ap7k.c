@@ -464,7 +464,6 @@ static int avr32_ap7k_read_memory(struct target *target, target_addr_t address,
 			break;
 		case 1:
 			return avr32_jtag_read_memory8(&ap7k->jtag, address, count, buffer);
-			break;
 		default:
 			break;
 	}
@@ -505,7 +504,6 @@ static int avr32_ap7k_write_memory(struct target *target, target_addr_t address,
 			break;
 		case 1:
 			return avr32_jtag_write_memory8(&ap7k->jtag, address, count, buffer);
-			break;
 		default:
 			break;
 	}

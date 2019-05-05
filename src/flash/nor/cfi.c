@@ -989,10 +989,8 @@ int cfi_erase(struct flash_bank *bank, int first, int last)
 		case 1:
 		case 3:
 			return cfi_intel_erase(bank, first, last);
-			break;
 		case 2:
 			return cfi_spansion_erase(bank, first, last);
-			break;
 		default:
 			LOG_ERROR("cfi primary command set %i unsupported", cfi_info->pri_id);
 			break;
@@ -1128,7 +1126,6 @@ int cfi_protect(struct flash_bank *bank, int set, int first, int last)
 		case 1:
 		case 3:
 			return cfi_intel_protect(bank, set, first, last);
-			break;
 		default:
 			LOG_WARNING("protect: cfi primary command set %i unsupported", cfi_info->pri_id);
 			return ERROR_OK;
@@ -1144,13 +1141,10 @@ static uint32_t cfi_command_val(struct flash_bank *bank, uint8_t cmd)
 	switch (bank->bus_width) {
 		case 1:
 			return buf[0];
-			break;
 		case 2:
 			return target_buffer_get_u16(target, buf);
-			break;
 		case 4:
 			return target_buffer_get_u32(target, buf);
-			break;
 		default:
 			LOG_ERROR("Unsupported bank buswidth %d, can't do block memory writes",
 					bank->bus_width);
@@ -2222,10 +2216,8 @@ int cfi_write_word(struct flash_bank *bank, uint8_t *word, uint32_t address)
 		case 1:
 		case 3:
 			return cfi_intel_write_word(bank, word, address);
-			break;
 		case 2:
 			return cfi_spansion_write_word(bank, word, address);
-			break;
 		default:
 			LOG_ERROR("cfi primary command set %i unsupported", cfi_info->pri_id);
 			break;
@@ -2249,10 +2241,8 @@ static int cfi_write_words(struct flash_bank *bank, const uint8_t *word,
 		case 1:
 		case 3:
 			return cfi_intel_write_words(bank, word, wordcount, address);
-			break;
 		case 2:
 			return cfi_spansion_write_words(bank, word, wordcount, address);
-			break;
 		default:
 			LOG_ERROR("cfi primary command set %i unsupported", cfi_info->pri_id);
 			break;
@@ -2998,10 +2988,8 @@ int cfi_protect_check(struct flash_bank *bank)
 		case 1:
 		case 3:
 			return cfi_intel_protect_check(bank);
-			break;
 		case 2:
 			return cfi_spansion_protect_check(bank);
-			break;
 		default:
 			LOG_ERROR("cfi primary command set %i unsupported", cfi_info->pri_id);
 			break;

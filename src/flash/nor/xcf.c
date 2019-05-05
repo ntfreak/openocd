@@ -625,7 +625,6 @@ static int xcf_probe(struct flash_bank *bank)
 		default:
 			LOG_ERROR("Unknown flash device ID 0x%X", id);
 			return ERROR_FAIL;
-			break;
 	}
 
 	bank->sectors = malloc(bank->num_sectors * sizeof(struct flash_sector));

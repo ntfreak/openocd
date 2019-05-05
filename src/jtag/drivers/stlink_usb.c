@@ -2677,7 +2677,6 @@ static int stlink_speed(void *handle, int khz, bool query)
 	switch (h->transport) {
 	case HL_TRANSPORT_SWIM:
 		return stlink_speed_swim(handle, khz, query);
-		break;
 	case HL_TRANSPORT_SWD:
 		if (h->version.jtag_api == STLINK_JTAG_API_V3)
 			return stlink_speed_v3(handle, false, khz, query);

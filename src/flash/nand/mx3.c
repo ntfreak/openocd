@@ -685,7 +685,6 @@ static int do_data_output(struct nand_device *nand)
 				case 2 << 2:
 					LOG_DEBUG("main area readed with more than 1 (incorrectable) error");
 					return ERROR_NAND_OPERATION_FAILED;
-					break;
 				}
 				switch (ecc_status & 0x0003) {
 				case 1:
@@ -694,7 +693,6 @@ static int do_data_output(struct nand_device *nand)
 				case 2:
 					LOG_DEBUG("main area readed with more than 1 (incorrectable) error");
 					return ERROR_NAND_OPERATION_FAILED;
-					break;
 				}
 			}
 			break;

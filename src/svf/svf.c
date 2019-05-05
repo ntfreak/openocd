@@ -1310,7 +1310,6 @@ XXR_common:
 		case PIOMAP:
 			LOG_ERROR("PIO and PIOMAP are not supported");
 			return ERROR_FAIL;
-			break;
 		case RUNTEST:
 			/* RUNTEST [run_state] run_count run_clk [min_time SEC [MAXIMUM max_time
 			 * SEC]] [ENDSTATE end_state] */
@@ -1532,7 +1531,6 @@ XXR_common:
 		default:
 			LOG_ERROR("invalid svf command: %s", argus[0]);
 			return ERROR_FAIL;
-			break;
 	}
 
 	if (!svf_quiet) {

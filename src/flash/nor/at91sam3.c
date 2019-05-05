@@ -3068,7 +3068,6 @@ FLASH_BANK_COMMAND_HANDLER(sam3_flash_bank_command)
 		    ((unsigned int)(FLASH_BANK1_BASE_256K_AX)),
 		    ((unsigned int)(FLASH_BANK1_BASE_512K_AX)));
 			return ERROR_FAIL;
-			break;
 
 		/* at91sam3s and at91sam3n series only has bank 0*/
 		/* at91sam3u and at91sam3ax series has the same address for bank 0*/
@@ -3621,10 +3620,8 @@ COMMAND_HANDLER(sam3_handle_gpnvm_command)
 	switch (CMD_ARGC) {
 		default:
 			return ERROR_COMMAND_SYNTAX_ERROR;
-			break;
 		case 0:
 			goto showall;
-			break;
 		case 1:
 			who = -1;
 			break;
@@ -3708,7 +3705,6 @@ COMMAND_HANDLER(sam3_handle_slowclk_command)
 			/* error */
 			command_print(CMD, "Too many parameters");
 			return ERROR_COMMAND_SYNTAX_ERROR;
-			break;
 	}
 	command_print(CMD, "Slowclk freq: %d.%03dkhz",
 		(int)(pChip->cfg.slow_freq / 1000),
