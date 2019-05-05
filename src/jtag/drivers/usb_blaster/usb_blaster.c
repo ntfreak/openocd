@@ -1042,8 +1042,8 @@ static const struct command_registration ublast_command_handlers[] = {
 		.name = "usb_blaster_vid_pid",
 		.handler = ublast_handle_vid_pid_command,
 		.mode = COMMAND_CONFIG,
-		.help = "the vendor ID and product ID of the USB-Blaster and " \
-			"vendor ID and product ID of the uninitialized device " \
+		.help = "the vendor ID and product ID of the USB-Blaster and "
+			"vendor ID and product ID of the uninitialized device "
 			"for USB-Blaster II",
 		.usage = "vid pid vid_uninit pid_uninit",
 	},

@@ -107,7 +107,7 @@ static int armjtagew_execute_queue(void)
 		switch (cmd->type) {
 			case JTAG_RUNTEST:
 				LOG_DEBUG_IO("runtest %i cycles, end in %i",
-						cmd->cmd.runtest->num_cycles, \
+						cmd->cmd.runtest->num_cycles,
 						cmd->cmd.runtest->end_state);
 
 				armjtagew_end_state(cmd->cmd.runtest->end_state);
@@ -122,8 +122,8 @@ static int armjtagew_execute_queue(void)
 				break;
 
 			case JTAG_PATHMOVE:
-				LOG_DEBUG_IO("pathmove: %i states, end in %i", \
-						cmd->cmd.pathmove->num_states, \
+				LOG_DEBUG_IO("pathmove: %i states, end in %i",
+						cmd->cmd.pathmove->num_states,
 						cmd->cmd.pathmove->path[cmd->cmd.pathmove->num_states - 1]);
 
 				armjtagew_path_move(cmd->cmd.pathmove->num_states,
@@ -459,10 +459,10 @@ static int armjtagew_get_version_info(void)
 	auxinfo[256] = '\0';
 
 	LOG_INFO(
-		"ARM-JTAG-EW firmware version %d.%d, hardware revision %c, SN=%s, Additional info: %s",	\
+		"ARM-JTAG-EW firmware version %d.%d, hardware revision %c, SN=%s, Additional info: %s",
 		usb_in_buffer[1],
-		usb_in_buffer[0], \
-		isgraph(usb_in_buffer[2]) ? usb_in_buffer[2] : 'X', \
+		usb_in_buffer[0],
+		isgraph(usb_in_buffer[2]) ? usb_in_buffer[2] : 'X',
 		sn,
 		auxinfo);
 
@@ -750,7 +750,7 @@ static int armjtagew_usb_write(struct armjtagew *armjtagew, int out_length)
 		return -1;
 	}
 
-	result = usb_bulk_write(armjtagew->usb_handle, ARMJTAGEW_EPT_BULK_OUT, \
+	result = usb_bulk_write(armjtagew->usb_handle, ARMJTAGEW_EPT_BULK_OUT,
 			(char *)usb_out_buffer, out_length, ARMJTAGEW_USB_TIMEOUT);
 
 	LOG_DEBUG_IO("armjtagew_usb_write, out_length = %d, result = %d", out_length, result);
@@ -764,7 +764,7 @@ static int armjtagew_usb_write(struct armjtagew *armjtagew, int out_length)
 /* Read data from USB into in_buffer. */
 static int armjtagew_usb_read(struct armjtagew *armjtagew, int exp_in_length)
 {
-	int result = usb_bulk_read(armjtagew->usb_handle, ARMJTAGEW_EPT_BULK_IN, \
+	int result = usb_bulk_read(armjtagew->usb_handle, ARMJTAGEW_EPT_BULK_IN,
 			(char *)usb_in_buffer, exp_in_length, ARMJTAGEW_USB_TIMEOUT);
 
 	LOG_DEBUG_IO("armjtagew_usb_read, result = %d", result);

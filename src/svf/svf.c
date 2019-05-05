@@ -1540,8 +1540,8 @@ XXR_common:
 
 	if (debug_level >= LOG_LVL_DEBUG) {
 		/* for convenient debugging, execute tap if possible */
-		if ((svf_buffer_index > 0) && \
-				(((command != STATE) && (command != RUNTEST)) || \
+		if ((svf_buffer_index > 0) &&
+				(((command != STATE) && (command != RUNTEST)) ||
 						((command == STATE) && (num_of_argu == 2)))) {
 			if (ERROR_OK != svf_execute_tap())
 				return ERROR_FAIL;
@@ -1555,8 +1555,8 @@ XXR_common:
 		/* for fast executing, execute tap if necessary */
 		/* half of the buffer is for the next command */
 		if (((svf_buffer_index >= SVF_MAX_BUFFER_SIZE_TO_COMMIT) ||
-				(svf_check_tdo_para_index >= SVF_CHECK_TDO_PARA_SIZE / 2)) && \
-				(((command != STATE) && (command != RUNTEST)) || \
+				(svf_check_tdo_para_index >= SVF_CHECK_TDO_PARA_SIZE / 2)) &&
+				(((command != STATE) && (command != RUNTEST)) ||
 						((command == STATE) && (num_of_argu == 2))))
 			return svf_execute_tap();
 	}

@@ -182,7 +182,7 @@ static int fespi_read_reg(struct flash_bank *bank, uint32_t *value, target_addr_
 }
 
 static int fespi_write_reg(struct flash_bank *bank, target_addr_t address, uint32_t value)
-{								\
+{
 	struct target *target = bank->target;
 	struct fespi_flash_bank *fespi_info = bank->driver_priv;
 

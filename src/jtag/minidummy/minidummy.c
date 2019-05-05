@@ -170,7 +170,7 @@ void embeddedice_write_dcc(struct jtag_tap *tap, int reg_addr, const uint8_t *bu
 int arm11_run_instr_data_to_core_noack_inner(struct jtag_tap *tap, uint32_t opcode,
 		uint32_t *data, size_t count)
 {
-	int arm11_run_instr_data_to_core_noack_inner_default(struct jtag_tap *tap, \
+	int arm11_run_instr_data_to_core_noack_inner_default(struct jtag_tap *tap,
 			uint32_t opcode, uint32_t *data, size_t count);
 	return arm11_run_instr_data_to_core_noack_inner_default(tap, opcode, data, count);
 }

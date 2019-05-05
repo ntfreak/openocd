@@ -1525,7 +1525,7 @@ COMMAND_HANDLER(jlink_handle_config_mac_address_command)
 	} else if (CMD_ARGC == 1) {
 		str = CMD_ARGV[0];
 
-		if ((strlen(str) != 17) || (str[2] != ':' || str[5] != ':' || \
+		if ((strlen(str) != 17) || (str[2] != ':' || str[5] != ':' ||
 				str[8] != ':' || str[11] != ':' || str[14] != ':')) {
 			command_print(CMD, "Invalid MAC address format.");
 			return ERROR_COMMAND_SYNTAX_ERROR;

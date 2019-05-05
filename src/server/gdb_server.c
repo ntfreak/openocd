@@ -1004,7 +1004,7 @@ static int gdb_new_connection(struct connection *connection)
 				continue;
 			retval = get_flash_bank_by_num(i, &p);
 			if (retval != ERROR_OK) {
-				LOG_ERROR("Connect failed. Consider setting up a gdb-attach event for the target " \
+				LOG_ERROR("Connect failed. Consider setting up a gdb-attach event for the target "
 						"to prepare target for GDB connect, or use 'gdb_memory_map disable'.");
 				return retval;
 			}
@@ -2857,7 +2857,7 @@ static bool gdb_handle_vcont_packet(struct connection *connection, const char *p
 			if (gdb_connection->sync) {
 				gdb_connection->sync = false;
 				if (ct->state == TARGET_HALTED) {
-					LOG_DEBUG("stepi ignored. GDB will now fetch the register state " \
+					LOG_DEBUG("stepi ignored. GDB will now fetch the register state "
 									"from the target.");
 					gdb_sig_halted(connection);
 					log_remove_callback(gdb_log_callback, connection);
@@ -3330,7 +3330,7 @@ static int gdb_input_inner(struct connection *connection)
 								"Waiting for target to halt.");
 						already_running = true;
 					} else if (target->state != TARGET_HALTED) {
-						LOG_WARNING("The target is not in the halted nor running stated, " \
+						LOG_WARNING("The target is not in the halted nor running stated, "
 								"stepi/continue ignored.");
 						nostep = true;
 					} else if ((packet[0] == 's') && gdb_con->sync) {
@@ -3339,7 +3339,7 @@ static int gdb_input_inner(struct connection *connection)
 						 * make only the single stepping have the sync feature...
 						 */
 						nostep = true;
-						LOG_DEBUG("stepi ignored. GDB will now fetch the register state " \
+						LOG_DEBUG("stepi ignored. GDB will now fetch the register state "
 								"from the target.");
 					}
 					gdb_con->sync = false;

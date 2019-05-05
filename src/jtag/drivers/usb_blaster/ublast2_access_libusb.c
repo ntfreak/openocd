@@ -45,7 +45,7 @@ static int ublast2_libusb_read(struct ublast_lowlevel *low, uint8_t *buf,
 	int ret, tmp = 0;
 
 	ret = jtag_libusb_bulk_read(low->libusb_dev,
-					    USBBLASTER_EPIN | \
+					    USBBLASTER_EPIN |
 					    LIBUSB_ENDPOINT_IN,
 					    (char *)buf,
 					    size,
@@ -61,7 +61,7 @@ static int ublast2_libusb_write(struct ublast_lowlevel *low, uint8_t *buf,
 	int ret, tmp = 0;
 
 	ret = jtag_libusb_bulk_write(low->libusb_dev,
-						USBBLASTER_EPOUT | \
+						USBBLASTER_EPOUT |
 						LIBUSB_ENDPOINT_OUT,
 						(char *)buf,
 						size,
@@ -106,7 +106,7 @@ static int ublast2_write_firmware_section(struct libusb_device_handle *libusb_de
 			chunk_size = bytes_remaining;
 
 		jtag_libusb_control_transfer(libusb_dev,
-					     LIBUSB_REQUEST_TYPE_VENDOR | \
+					     LIBUSB_REQUEST_TYPE_VENDOR |
 					     LIBUSB_ENDPOINT_OUT,
 					     USBBLASTER_CTRL_LOAD_FIRM,
 					     addr,
@@ -152,7 +152,7 @@ static int load_usb_blaster_firmware(struct libusb_device_handle *libusb_dev,
 
 	char value = CPU_RESET;
 	jtag_libusb_control_transfer(libusb_dev,
-				     LIBUSB_REQUEST_TYPE_VENDOR | \
+				     LIBUSB_REQUEST_TYPE_VENDOR |
 				     LIBUSB_ENDPOINT_OUT,
 				     USBBLASTER_CTRL_LOAD_FIRM,
 				     EZUSB_CPUCS,
@@ -173,7 +173,7 @@ static int load_usb_blaster_firmware(struct libusb_device_handle *libusb_dev,
 
 	value = !CPU_RESET;
 	jtag_libusb_control_transfer(libusb_dev,
-				     LIBUSB_REQUEST_TYPE_VENDOR | \
+				     LIBUSB_REQUEST_TYPE_VENDOR |
 				     LIBUSB_ENDPOINT_OUT,
 				     USBBLASTER_CTRL_LOAD_FIRM,
 				     EZUSB_CPUCS,
@@ -230,7 +230,7 @@ static int ublast2_libusb_init(struct ublast_lowlevel *low)
 
 	char buffer[5];
 	jtag_libusb_control_transfer(low->libusb_dev,
-				     LIBUSB_REQUEST_TYPE_VENDOR | \
+				     LIBUSB_REQUEST_TYPE_VENDOR |
 				     LIBUSB_ENDPOINT_IN,
 				     USBBLASTER_CTRL_READ_REV,
 				     0,

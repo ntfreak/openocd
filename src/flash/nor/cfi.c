@@ -2895,7 +2895,7 @@ int cfi_probe(struct flash_bank *bank)
 		}
 		if (offset != (cfi_info->dev_size * bank->bus_width / bank->chip_width)) {
 			LOG_WARNING(
-				"CFI size is 0x%" PRIx32 ", but total sector size is 0x%" PRIx32 "", \
+				"CFI size is 0x%" PRIx32 ", but total sector size is 0x%" PRIx32 "",
 				(cfi_info->dev_size * bank->bus_width / bank->chip_width),
 				offset);
 		}

@@ -814,7 +814,7 @@ static int kinetis_ke_protect_check(struct flash_bank *bank)
 
 		kinfo->protection_size = 0;
 	} else {
-		LOG_WARNING("Flash protected. FPOPEN=%i FPLDIS=%i FPHDIS=%i FPLS=%i FPHS=%i", \
+		LOG_WARNING("Flash protected. FPOPEN=%i FPLDIS=%i FPHDIS=%i FPLS=%i FPHS=%i",
 					fpopen ? 1 : 0, fpldis ? 1 : 0, fphdis ? 1 : 0, fpls, fphs);
 
 		/* Retrieve which region is protected and how much */

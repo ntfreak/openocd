@@ -1028,7 +1028,7 @@ COMMAND_HANDLER(handle_flash_padded_value_command)
 
 	COMMAND_PARSE_NUMBER(u8, CMD_ARGV[1], p->default_padded_value);
 
-	command_print(CMD, "Default padded value set to 0x%" PRIx8 " for flash bank %u", \
+	command_print(CMD, "Default padded value set to 0x%" PRIx8 " for flash bank %u",
 			p->default_padded_value, p->bank_number);
 
 	return retval;

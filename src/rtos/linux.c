@@ -1379,8 +1379,8 @@ static int linux_thread_packet(struct connection *connection, char const *packet
 						 target->rtos->
 						 current_threadid)
 				&& (target->rtos->current_threadid != -1))
-					LOG_WARNING("WARNING! current GDB thread do not match" \
-							"current thread running." \
+					LOG_WARNING("WARNING! current GDB thread do not match"
+							"current thread running."
 							"Switch thread in GDB to threadid %d",
 							(int)ct->threadid);
 

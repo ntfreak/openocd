@@ -493,7 +493,7 @@ static int nds32_parse_mem(struct nds32 *nds32, uint32_t opcode, uint32_t addres
 			switch (sub_opcode & 0x7) {
 				case 0: /* LB */
 					nds32_parse_type_3(opcode, &(instruction->info.rt),
-							&(instruction->info.ra), \
+							&(instruction->info.ra),
 							&(instruction->info.rb), &(instruction->info.imm));
 					instruction->type = NDS32_INSN_LOAD_STORE;
 					nds32_get_mapped_reg(nds32, instruction->info.ra, &val_ra);

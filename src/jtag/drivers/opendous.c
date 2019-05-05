@@ -259,7 +259,7 @@ static int opendous_execute_queue(void)
 	while (cmd != NULL) {
 		switch (cmd->type) {
 			case JTAG_RUNTEST:
-				LOG_DEBUG_IO("runtest %i cycles, end in %i", cmd->cmd.runtest->num_cycles, \
+				LOG_DEBUG_IO("runtest %i cycles, end in %i", cmd->cmd.runtest->num_cycles,
 					cmd->cmd.runtest->end_state);
 
 				if (cmd->cmd.runtest->end_state != -1)
@@ -276,8 +276,8 @@ static int opendous_execute_queue(void)
 				break;
 
 			case JTAG_PATHMOVE:
-				LOG_DEBUG_IO("pathmove: %i states, end in %i", \
-					cmd->cmd.pathmove->num_states, \
+				LOG_DEBUG_IO("pathmove: %i states, end in %i",
+					cmd->cmd.pathmove->num_states,
 					cmd->cmd.pathmove->path[cmd->cmd.pathmove->num_states - 1]);
 
 				opendous_path_move(cmd->cmd.pathmove->num_states, cmd->cmd.pathmove->path);
@@ -770,7 +770,7 @@ int opendous_usb_write(struct opendous_jtag *opendous_jtag, int out_length)
 			LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | LIBUSB_ENDPOINT_OUT,
 			FUNC_WRITE_DATA, 0, 0, (char *) usb_out_buffer, out_length, OPENDOUS_USB_TIMEOUT);
 	} else {
-		jtag_libusb_bulk_write(opendous_jtag->usb_handle, OPENDOUS_WRITE_ENDPOINT, \
+		jtag_libusb_bulk_write(opendous_jtag->usb_handle, OPENDOUS_WRITE_ENDPOINT,
 			(char *)usb_out_buffer, out_length, OPENDOUS_USB_TIMEOUT, &result);
 	}
 #ifdef _DEBUG_USB_COMMS_

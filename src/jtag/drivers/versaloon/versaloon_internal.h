@@ -91,7 +91,7 @@ struct versaloon_pending_t {
 	void *extra_data;
 	versaloon_callback_t callback;
 };
-extern struct versaloon_pending_t \
+extern struct versaloon_pending_t
 	versaloon_pending[VERSALOON_MAX_PENDING_NUMBER];
 extern uint16_t versaloon_pending_idx;
 void versaloon_set_pending_id(uint32_t id);

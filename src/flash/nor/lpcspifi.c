@@ -177,8 +177,8 @@ static int lpcspifi_set_hw_mode(struct flash_bank *bank)
 	retval = target_alloc_working_area(target, sizeof(spifi_init_code)
 		+ SPIFI_INIT_STACK_SIZE, &spifi_init_algorithm);
 	if (retval != ERROR_OK) {
-		LOG_ERROR("Insufficient working area to initialize SPIFI "\
-			"module. You must allocate at least %zdB of working "\
+		LOG_ERROR("Insufficient working area to initialize SPIFI "
+			"module. You must allocate at least %zdB of working "
 			"area in order to use this driver.",
 			sizeof(spifi_init_code) + SPIFI_INIT_STACK_SIZE
 		);
@@ -452,7 +452,7 @@ static int lpcspifi_erase(struct flash_bank *bank, int first, int last)
 	 * it, use a bulk erase instead of going sector-by-sector. */
 	if (first == 0 && last == (bank->num_sectors - 1)
 		&& lpcspifi_info->dev->chip_erase_cmd != lpcspifi_info->dev->erase_cmd) {
-		LOG_DEBUG("Chip supports the bulk erase command."\
+		LOG_DEBUG("Chip supports the bulk erase command."
 		" Will use bulk erase instead of sector-by-sector erase.");
 		retval = lpcspifi_bulk_erase(bank);
 
@@ -525,7 +525,7 @@ static int lpcspifi_erase(struct flash_bank *bank, int first, int last)
 	retval = target_alloc_working_area(target, sizeof(lpcspifi_flash_erase_code),
 		&erase_algorithm);
 	if (retval != ERROR_OK) {
-		LOG_ERROR("Insufficient working area. You must configure a working"\
+		LOG_ERROR("Insufficient working area. You must configure a working"
 			" area of at least %zdB in order to erase SPIFI flash.",
 			sizeof(lpcspifi_flash_erase_code));
 		return retval;
@@ -685,7 +685,7 @@ static int lpcspifi_write(struct flash_bank *bank, const uint8_t *buffer,
 
 	if (target_alloc_working_area(target, sizeof(lpcspifi_flash_write_code),
 			&write_algorithm) != ERROR_OK) {
-		LOG_ERROR("Insufficient working area. You must configure"\
+		LOG_ERROR("Insufficient working area. You must configure"
 			" a working area > %zdB in order to write to SPIFI flash.",
 			sizeof(lpcspifi_flash_write_code));
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
@@ -707,15 +707,15 @@ static int lpcspifi_write(struct flash_bank *bank, const uint8_t *buffer,
 		 * space, free the algorithm */
 		target_free_working_area(target, write_algorithm);
 
-		LOG_ERROR("Insufficient working area. Please allocate at least"\
+		LOG_ERROR("Insufficient working area. Please allocate at least"
 			" %zdB of working area to enable flash writes.",
 			sizeof(lpcspifi_flash_write_code) + 1
 		);
 
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 	} else if (fifo_size < page_size)
-		LOG_WARNING("Working area size is limited; flash writes may be"\
-			" slow. Increase working area size to at least %zdB"\
+		LOG_WARNING("Working area size is limited; flash writes may be"
+			" slow. Increase working area size to at least %zdB"
 			" to reduce write times.",
 			(size_t)(sizeof(lpcspifi_flash_write_code) + page_size)
 		);

@@ -563,7 +563,7 @@ static int mrvlqspi_flash_erase(struct flash_bank *bank, int first, int last)
 	if (first == 0 && last == (bank->num_sectors - 1)
 		&& mrvlqspi_info->dev->chip_erase_cmd !=
 					mrvlqspi_info->dev->erase_cmd) {
-		LOG_DEBUG("Chip supports the bulk erase command."\
+		LOG_DEBUG("Chip supports the bulk erase command."
 		" Will use bulk erase instead of sector-by-sector erase.");
 		retval = mrvlqspi_bulk_erase(bank);
 		if (retval == ERROR_OK) {
@@ -681,7 +681,7 @@ static int mrvlqspi_flash_write(struct flash_bank *bank, const uint8_t *buffer,
 
 	if (target_alloc_working_area(target, sizeof(mrvlqspi_flash_write_code),
 			&write_algorithm) != ERROR_OK) {
-		LOG_ERROR("Insufficient working area. You must configure"\
+		LOG_ERROR("Insufficient working area. You must configure"
 			" a working area > %zdB in order to write to SPIFI flash.",
 			sizeof(mrvlqspi_flash_write_code));
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
@@ -703,15 +703,15 @@ static int mrvlqspi_flash_write(struct flash_bank *bank, const uint8_t *buffer,
 		 * space, free the algorithm */
 		target_free_working_area(target, write_algorithm);
 
-		LOG_ERROR("Insufficient working area. Please allocate at least"\
+		LOG_ERROR("Insufficient working area. Please allocate at least"
 			" %zdB of working area to enable flash writes.",
 			sizeof(mrvlqspi_flash_write_code) + 1
 		);
 
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 	} else if (fifo_size < page_size)
-		LOG_WARNING("Working area size is limited; flash writes may be"\
-			" slow. Increase working area size to at least %zdB"\
+		LOG_WARNING("Working area size is limited; flash writes may be"
+			" slow. Increase working area size to at least %zdB"
 			" to reduce write times.",
 			(size_t)(sizeof(mrvlqspi_flash_write_code) + page_size)
 		);

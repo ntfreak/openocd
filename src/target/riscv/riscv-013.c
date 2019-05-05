@@ -3712,13 +3712,13 @@ int riscv013_test_compliance(struct target *target)
 	But at any rate, this is not legal and should cause an error. */
 	COMPLIANCE_WRITE(target, DMI_COMMAND, 0xAAAAAAAA);
 	COMPLIANCE_READ(target, &testvar_read, DMI_ABSTRACTCS);
-	COMPLIANCE_TEST(get_field(testvar_read, DMI_ABSTRACTCS_CMDERR) == CMDERR_NOT_SUPPORTED, \
+	COMPLIANCE_TEST(get_field(testvar_read, DMI_ABSTRACTCS_CMDERR) == CMDERR_NOT_SUPPORTED,
 			"Illegal COMMAND should result in UNSUPPORTED");
 	COMPLIANCE_WRITE(target, DMI_ABSTRACTCS, DMI_ABSTRACTCS_CMDERR);
 
 	COMPLIANCE_WRITE(target, DMI_COMMAND, 0x55555555);
 	COMPLIANCE_READ(target, &testvar_read, DMI_ABSTRACTCS);
-	COMPLIANCE_TEST(get_field(testvar_read, DMI_ABSTRACTCS_CMDERR) == CMDERR_NOT_SUPPORTED, \
+	COMPLIANCE_TEST(get_field(testvar_read, DMI_ABSTRACTCS_CMDERR) == CMDERR_NOT_SUPPORTED,
 			"Illegal COMMAND should result in UNSUPPORTED");
 	COMPLIANCE_WRITE(target, DMI_ABSTRACTCS, DMI_ABSTRACTCS_CMDERR);
 

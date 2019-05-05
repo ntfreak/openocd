@@ -383,7 +383,7 @@ static int jim_arc_get_core_reg(Jim_Interp *interp, int argc, Jim_Obj * const *a
 	/* Register number */
 	JIM_CHECK_RETVAL(arc_cmd_jim_get_uint32(&goi, &regnum));
 	if (regnum > CORE_REG_MAX_NUMBER || regnum == CORE_R61_NUM || regnum == CORE_R62_NUM) {
-		Jim_SetResultFormatted(goi.interp, "Core register number %i " \
+		Jim_SetResultFormatted(goi.interp, "Core register number %i "
 			"is invalid. Must less then 64 and not 61 and 62.", regnum);
 		return JIM_ERR;
 	}
@@ -426,7 +426,7 @@ static int jim_arc_set_core_reg(Jim_Interp *interp, int argc, Jim_Obj * const *a
 	/* Register number */
 	JIM_CHECK_RETVAL(arc_cmd_jim_get_uint32(&goi, &regnum));
 	if (regnum > CORE_REG_MAX_NUMBER || regnum == CORE_R61_NUM || regnum == CORE_R62_NUM) {
-		Jim_SetResultFormatted(goi.interp, "Core register number %i " \
+		Jim_SetResultFormatted(goi.interp, "Core register number %i "
 			"is invalid. Must less then 64 and not 61 and 62.", regnum);
 		return JIM_ERR;
 	}
@@ -447,9 +447,9 @@ static const struct command_registration arc_jtag_command_group[] = {
 		.name = "get-aux-reg",
 		.jim_handler = jim_arc_get_aux_reg,
 		.mode = COMMAND_EXEC,
-		.help = "Get AUX register by number. This command does a " \
-			"raw JTAG request that bypasses OpenOCD register cache "\
-			"and thus is unsafe and can have unexpected consequences. "\
+		.help = "Get AUX register by number. This command does a "
+			"raw JTAG request that bypasses OpenOCD register cache "
+			"and thus is unsafe and can have unexpected consequences. "
 			"Use at your own risk.",
 		.usage = "arc jtag get-aux-reg <regnum>"
 	},
@@ -457,9 +457,9 @@ static const struct command_registration arc_jtag_command_group[] = {
 		.name = "set-aux-reg",
 		.jim_handler = jim_arc_set_aux_reg,
 		.mode = COMMAND_EXEC,
-		.help = "Set AUX register by number. This command does a " \
-			"raw JTAG request that bypasses OpenOCD register cache "\
-			"and thus is unsafe and can have unexpected consequences. "\
+		.help = "Set AUX register by number. This command does a "
+			"raw JTAG request that bypasses OpenOCD register cache "
+			"and thus is unsafe and can have unexpected consequences. "
 			"Use at your own risk.",
 		.usage = "arc jtag set-aux-reg <regnum> <value>"
 	},
@@ -467,9 +467,9 @@ static const struct command_registration arc_jtag_command_group[] = {
 		.name = "get-core-reg",
 		.jim_handler = jim_arc_get_core_reg,
 		.mode = COMMAND_EXEC,
-		.help = "Get/Set core register by number. This command does a " \
-			"raw JTAG request that bypasses OpenOCD register cache "\
-			"and thus is unsafe and can have unexpected consequences. "\
+		.help = "Get/Set core register by number. This command does a "
+			"raw JTAG request that bypasses OpenOCD register cache "
+			"and thus is unsafe and can have unexpected consequences. "
 			"Use at your own risk.",
 		.usage = "arc jtag get-core-reg <regnum> [<value>]"
 	},
@@ -477,9 +477,9 @@ static const struct command_registration arc_jtag_command_group[] = {
 		.name = "set-core-reg",
 		.jim_handler = jim_arc_set_core_reg,
 		.mode = COMMAND_EXEC,
-		.help = "Get/Set core register by number. This command does a " \
-			"raw JTAG request that bypasses OpenOCD register cache "\
-			"and thus is unsafe and can have unexpected consequences. "\
+		.help = "Get/Set core register by number. This command does a "
+			"raw JTAG request that bypasses OpenOCD register cache "
+			"and thus is unsafe and can have unexpected consequences. "
 			"Use at your own risk.",
 		.usage = "arc jtag set-core-reg <regnum> [<value>]"
 	},

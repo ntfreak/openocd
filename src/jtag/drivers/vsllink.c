@@ -292,7 +292,7 @@ static int vsllink_interface_init(void)
 	libusb_init(&vsllink_handle->libusb_ctx);
 
 	if (ERROR_OK != vsllink_usb_open(vsllink_handle)) {
-		LOG_ERROR("Can't find USB JTAG Interface!" \
+		LOG_ERROR("Can't find USB JTAG Interface!"
 			"Please check connection and permissions.");
 		return ERROR_JTAG_INIT_FAILED;
 	}
