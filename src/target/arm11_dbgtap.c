@@ -1183,7 +1183,7 @@ int arm11_dpm_init(struct arm11_common *arm11, uint32_t didr)
 
 	/* alloc enough to enable all breakpoints and watchpoints at once */
 	arm11->bpwp_actions = calloc(2 * (dpm->nbp + dpm->nwp),
-			sizeof *arm11->bpwp_actions);
+			sizeof(*arm11->bpwp_actions));
 	if (!arm11->bpwp_actions)
 		return ERROR_FAIL;
 

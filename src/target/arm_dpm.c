@@ -1096,8 +1096,8 @@ int arm_dpm_setup(struct arm_dpm *dpm)
 
 	dpm->nbp = 1 + ((dpm->didr >> 24) & 0xf);
 	dpm->nwp = 1 + ((dpm->didr >> 28) & 0xf);
-	dpm->dbp = calloc(dpm->nbp, sizeof *dpm->dbp);
-	dpm->dwp = calloc(dpm->nwp, sizeof *dpm->dwp);
+	dpm->dbp = calloc(dpm->nbp, sizeof(*dpm->dbp));
+	dpm->dwp = calloc(dpm->nwp, sizeof(*dpm->dwp));
 
 	if (!dpm->dbp || !dpm->dwp) {
 		free(dpm->dbp);

@@ -1105,7 +1105,7 @@ static int arm11_target_create(struct target *target, Jim_Interp *interp)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 
-	arm11 = calloc(1, sizeof *arm11);
+	arm11 = calloc(1, sizeof(*arm11));
 	if (!arm11)
 		return ERROR_FAIL;
 

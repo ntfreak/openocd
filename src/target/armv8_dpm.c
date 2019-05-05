@@ -1471,10 +1471,10 @@ int armv8_dpm_setup(struct arm_dpm *dpm)
 	/* FIXME add vector catch support */
 
 	dpm->nbp = 1 + ((dpm->didr >> 12) & 0xf);
-	dpm->dbp = calloc(dpm->nbp, sizeof *dpm->dbp);
+	dpm->dbp = calloc(dpm->nbp, sizeof(*dpm->dbp));
 
 	dpm->nwp = 1 + ((dpm->didr >> 20) & 0xf);
-	dpm->dwp = calloc(dpm->nwp, sizeof *dpm->dwp);
+	dpm->dwp = calloc(dpm->nwp, sizeof(*dpm->dwp));
 
 	if (!dpm->dbp || !dpm->dwp) {
 		free(dpm->dbp);

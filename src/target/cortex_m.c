@@ -1980,7 +1980,7 @@ static void cortex_m_dwt_addreg(struct target *t, struct reg *r, const struct dw
 {
 	struct dwt_reg_state *state;
 
-	state = calloc(1, sizeof *state);
+	state = calloc(1, sizeof(*state));
 	if (!state)
 		return;
 	state->addr = d->addr;
@@ -2021,7 +2021,7 @@ fail0:
 		return;
 	}
 
-	cache = calloc(1, sizeof *cache);
+	cache = calloc(1, sizeof(*cache));
 	if (!cache) {
 fail1:
 		free(cm->dwt_comparator_list);
@@ -2029,7 +2029,7 @@ fail1:
 	}
 	cache->name = "Cortex-M DWT registers";
 	cache->num_regs = 2 + cm->dwt_num_comp * 3;
-	cache->reg_list = calloc(cache->num_regs, sizeof *cache->reg_list);
+	cache->reg_list = calloc(cache->num_regs, sizeof(*cache->reg_list));
 	if (!cache->reg_list) {
 		free(cache);
 		goto fail1;

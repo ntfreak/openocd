@@ -1269,7 +1269,7 @@ static int jtag_examine_chain(void)
 			 * REVISIT create a jtag_alloc(chip, tap) routine, and
 			 * share it with jim_newtap_cmd().
 			 */
-			tap = calloc(1, sizeof *tap);
+			tap = calloc(1, sizeof(*tap));
 			if (!tap) {
 				retval = ERROR_FAIL;
 				goto out;

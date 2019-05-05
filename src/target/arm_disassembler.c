@@ -2672,7 +2672,7 @@ static int evaluate_load_store_multiple_thumb(uint16_t opcode,
 			instruction->type = ARM_STM;
 			mnemonic = "STM";
 		}
-		snprintf(ptr_name, sizeof ptr_name, "r%i%s, ", Rn, wback);
+		snprintf(ptr_name, sizeof(ptr_name), "r%i%s, ", Rn, wback);
 	} else {/* push/pop */
 		Rn = 13;/* SP */
 		if (L) {

@@ -358,7 +358,7 @@ static int kitprog_get_version(void)
 	unsigned char command[3] = {HID_TYPE_START | HID_TYPE_WRITE, 0x00, HID_COMMAND_VERSION};
 	unsigned char data[64];
 
-	ret = kitprog_hid_command(command, sizeof command, data, sizeof data);
+	ret = kitprog_hid_command(command, sizeof(command), data, sizeof(data));
 	if (ret != ERROR_OK)
 		return ret;
 
@@ -376,7 +376,7 @@ static int kitprog_get_millivolts(void)
 	unsigned char command[3] = {HID_TYPE_START | HID_TYPE_READ, 0x00, HID_COMMAND_POWER};
 	unsigned char data[64];
 
-	ret = kitprog_hid_command(command, sizeof command, data, sizeof data);
+	ret = kitprog_hid_command(command, sizeof(command), data, sizeof(data));
 	if (ret != ERROR_OK)
 		return ret;
 
@@ -603,7 +603,7 @@ static int kitprog_generic_acquire(void)
 	 * will take the Cortex-M3 out of reset and enable debugging.
 	 */
 	for (int i = 0; i < 2; i++) {
-		for (uint8_t j = 0; j < sizeof devices && acquire_count == i; j++) {
+		for (uint8_t j = 0; j < sizeof(devices) && acquire_count == i; j++) {
 			retval = kitprog_acquire_psoc(devices[j], ACQUIRE_MODE_RESET, 3);
 			if (retval != ERROR_OK) {
 				LOG_DEBUG("Aquisition function failed for device 0x%02x.", devices[j]);
