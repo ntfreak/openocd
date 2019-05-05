@@ -135,7 +135,7 @@ static int embKernel_create(struct target *target)
 }
 
 static int embKernel_get_tasks_details(struct rtos *rtos, int64_t iterable, const struct embKernel_params *param,
-		struct thread_detail *details, const char* state_str)
+		struct thread_detail *details, const char *state_str)
 {
 	int64_t task = 0;
 	int retval = target_read_buffer(rtos->target, iterable + param->iterable_task_owner_offset, param->pointer_width,

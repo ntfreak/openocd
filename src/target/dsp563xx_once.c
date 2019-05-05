@@ -46,7 +46,7 @@
 #define JTAG_INSTR_BYPASS		0x0F
 
 /** */
-static inline int dsp563xx_write_dr(struct jtag_tap *tap, uint8_t * dr_in, uint8_t * dr_out, int dr_len, int rti)
+static inline int dsp563xx_write_dr(struct jtag_tap *tap, uint8_t *dr_in, uint8_t *dr_out, int dr_len, int rti)
 {
 	jtag_add_plain_dr_scan(dr_len, dr_out, dr_in, TAP_IDLE);
 
@@ -54,13 +54,13 @@ static inline int dsp563xx_write_dr(struct jtag_tap *tap, uint8_t * dr_in, uint8
 }
 
 /** */
-static inline int dsp563xx_write_dr_u8(struct jtag_tap *tap, uint8_t * dr_in, uint8_t dr_out, int dr_len, int rti)
+static inline int dsp563xx_write_dr_u8(struct jtag_tap *tap, uint8_t *dr_in, uint8_t dr_out, int dr_len, int rti)
 {
 	return dsp563xx_write_dr(tap, dr_in, &dr_out, dr_len, rti);
 }
 
 /** */
-static inline int dsp563xx_write_dr_u32(struct jtag_tap *tap, uint32_t * dr_in, uint32_t dr_out, int dr_len, int rti)
+static inline int dsp563xx_write_dr_u32(struct jtag_tap *tap, uint32_t *dr_in, uint32_t dr_out, int dr_len, int rti)
 {
 	return dsp563xx_write_dr(tap, (uint8_t *) dr_in, (uint8_t *) &dr_out, dr_len, rti);
 }
@@ -79,19 +79,19 @@ static inline int dsp563xx_once_ir_exec(struct jtag_tap *tap, int flush, uint8_t
 }
 
 /* IR and DR functions */
-static inline int dsp563xx_write_ir(struct jtag_tap *tap, uint8_t * ir_in, uint8_t * ir_out, int ir_len, int rti)
+static inline int dsp563xx_write_ir(struct jtag_tap *tap, uint8_t *ir_in, uint8_t *ir_out, int ir_len, int rti)
 {
 	jtag_add_plain_ir_scan(tap->ir_length, ir_out, ir_in, TAP_IDLE);
 
 	return ERROR_OK;
 }
 
-static inline int dsp563xx_write_ir_u8(struct jtag_tap *tap, uint8_t * ir_in, uint8_t ir_out, int ir_len, int rti)
+static inline int dsp563xx_write_ir_u8(struct jtag_tap *tap, uint8_t *ir_in, uint8_t ir_out, int ir_len, int rti)
 {
 	return dsp563xx_write_ir(tap, ir_in, &ir_out, ir_len, rti);
 }
 
-static inline int dsp563xx_jtag_sendinstr(struct jtag_tap *tap, uint8_t * ir_in, uint8_t ir_out)
+static inline int dsp563xx_jtag_sendinstr(struct jtag_tap *tap, uint8_t *ir_in, uint8_t ir_out)
 {
 	return dsp563xx_write_ir_u8(tap, ir_in, ir_out, tap->ir_length, 1);
 }
@@ -195,7 +195,7 @@ int dsp563xx_once_read_register(struct jtag_tap *tap, int flush, struct once_reg
 }
 
 /** once read register with register len */
-int dsp563xx_once_reg_read_ex(struct jtag_tap *tap, int flush, uint8_t reg, uint8_t len, uint32_t * data)
+int dsp563xx_once_reg_read_ex(struct jtag_tap *tap, int flush, uint8_t reg, uint8_t len, uint32_t *data)
 {
 	int err;
 
@@ -212,7 +212,7 @@ int dsp563xx_once_reg_read_ex(struct jtag_tap *tap, int flush, uint8_t reg, uint
 }
 
 /** once read register */
-int dsp563xx_once_reg_read(struct jtag_tap *tap, int flush, uint8_t reg, uint32_t * data)
+int dsp563xx_once_reg_read(struct jtag_tap *tap, int flush, uint8_t reg, uint32_t *data)
 {
 	int err;
 

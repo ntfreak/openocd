@@ -315,7 +315,7 @@ static inline struct dsp5680xx_common *target_to_dsp5680xx(struct target
  *
  * @return
  */
-int dsp5680xx_f_wr(struct target *target, const uint8_t * buffer, uint32_t address,
+int dsp5680xx_f_wr(struct target *target, const uint8_t *buffer, uint32_t address,
 		uint32_t count, int is_flash_lock);
 
 /**
@@ -329,7 +329,7 @@ int dsp5680xx_f_wr(struct target *target, const uint8_t * buffer, uint32_t addre
  *
  * @return
  */
-int dsp5680xx_f_erase_check(struct target *target, uint8_t * erased,
+int dsp5680xx_f_erase_check(struct target *target, uint8_t *erased,
 		uint32_t sector);
 
 /**
@@ -354,7 +354,7 @@ int dsp5680xx_f_erase(struct target *target, int first, int last);
  *
  * @return
  */
-int dsp5680xx_f_protect_check(struct target *target, uint16_t * protected);
+int dsp5680xx_f_protect_check(struct target *target, uint16_t *protected);
 
 /**
  * Writes the flash security words with a specific value. The chip's security will be

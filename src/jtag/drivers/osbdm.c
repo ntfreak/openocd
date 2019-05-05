@@ -297,7 +297,7 @@ static int osbdm_swap(struct osbdm *osbdm, void *tms, void *tdi,
 	return ERROR_OK;
 }
 
-static int osbdm_flush(struct osbdm *osbdm, struct queue* queue)
+static int osbdm_flush(struct osbdm *osbdm, struct queue *queue)
 {
 	uint8_t tms[DIV_ROUND_UP(OSBDM_SWAP_MAX, 8)];
 	uint8_t tdi[DIV_ROUND_UP(OSBDM_SWAP_MAX, 8)];

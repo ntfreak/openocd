@@ -2281,7 +2281,7 @@ static int target_read_buffer_default(struct target *target, target_addr_t addre
 	return ERROR_OK;
 }
 
-int target_checksum_memory(struct target *target, target_addr_t address, uint32_t size, uint32_t* crc)
+int target_checksum_memory(struct target *target, target_addr_t address, uint32_t size, uint32_t *crc)
 {
 	uint8_t *buffer;
 	int retval;

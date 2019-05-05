@@ -154,7 +154,7 @@ static int dsp5680xx_flash_protect(struct flash_bank *bank, int set, int first,
  *
  * @return
  */
-static int dsp5680xx_flash_write(struct flash_bank *bank, const uint8_t* buffer,
+static int dsp5680xx_flash_write(struct flash_bank *bank, const uint8_t *buffer,
 				 uint32_t offset, uint32_t count)
 {
 	int retval;

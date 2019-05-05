@@ -76,9 +76,9 @@ int dsp563xx_once_target_status(struct jtag_tap *tap);
 /** once read registers */
 int dsp563xx_once_read_register(struct jtag_tap *tap, int flush, struct once_reg *regs, int len);
 /** once read register */
-int dsp563xx_once_reg_read_ex(struct jtag_tap *tap, int flush, uint8_t reg, uint8_t len, uint32_t * data);
+int dsp563xx_once_reg_read_ex(struct jtag_tap *tap, int flush, uint8_t reg, uint8_t len, uint32_t *data);
 /** once read register */
-int dsp563xx_once_reg_read(struct jtag_tap *tap, int flush, uint8_t reg, uint32_t * data);
+int dsp563xx_once_reg_read(struct jtag_tap *tap, int flush, uint8_t reg, uint32_t *data);
 /** once write register */
 int dsp563xx_once_reg_write(struct jtag_tap *tap, int flush, uint8_t reg, uint32_t data);
 /** single word instruction */

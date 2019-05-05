@@ -145,7 +145,7 @@ static int avr_deassert_reset(struct target *target)
 	return ERROR_OK;
 }
 
-int avr_jtag_senddat(struct jtag_tap *tap, uint32_t* dr_in, uint32_t dr_out,
+int avr_jtag_senddat(struct jtag_tap *tap, uint32_t *dr_in, uint32_t dr_out,
 		int len)
 {
 	return mcu_write_dr_u32(tap, dr_in, dr_out, len, 1);

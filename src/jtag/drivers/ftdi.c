@@ -213,7 +213,7 @@ static int ftdi_set_signal(const struct signal *s, char value)
 	return ERROR_OK;
 }
 
-static int ftdi_get_signal(const struct signal *s, uint16_t * value_out)
+static int ftdi_get_signal(const struct signal *s, uint16_t *value_out)
 {
 	uint8_t data_low = 0;
 	uint8_t data_high = 0;

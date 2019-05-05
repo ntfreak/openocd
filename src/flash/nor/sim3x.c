@@ -471,7 +471,7 @@ static int sim3x_write_block(struct flash_bank *bank, const uint8_t *buf,
 	return ret;
 }
 
-static int sim3x_flash_write(struct flash_bank *bank, const uint8_t * buffer, uint32_t offset, uint32_t count)
+static int sim3x_flash_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t offset, uint32_t count)
 {
 	int ret;
 	struct target *target;

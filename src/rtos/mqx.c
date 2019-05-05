@@ -106,7 +106,7 @@ static int mqx_valid_address_check(
 )
 {
 	enum mqx_arch arch_type = ((struct mqx_params *)rtos->rtos_specific_params)->target_arch;
-	const char * targetname = ((struct mqx_params *)rtos->rtos_specific_params)->target_name;
+	const char *targetname = ((struct mqx_params *)rtos->rtos_specific_params)->target_name;
 
 	/* Cortex-M address range */
 	if (arch_type == mqx_arch_cortexm) {

@@ -2031,7 +2031,7 @@ static int lookup_add_arch_defined_types(char const **arch_defined_types_list[],
 
 static int gdb_generate_reg_type_description(struct target *target,
 		char **tdesc, int *pos, int *size, struct reg_data_type *type,
-		char const **arch_defined_types_list[], int * num_arch_defined_types)
+		char const **arch_defined_types_list[], int *num_arch_defined_types)
 {
 	int retval = ERROR_OK;
 

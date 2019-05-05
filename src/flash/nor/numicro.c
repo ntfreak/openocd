@@ -1216,7 +1216,7 @@ static int numicro_init_isp(struct target *target)
 	return ERROR_OK;
 }
 
-static uint32_t numicro_fmc_cmd(struct target *target, uint32_t cmd, uint32_t addr, uint32_t wdata, uint32_t* rdata)
+static uint32_t numicro_fmc_cmd(struct target *target, uint32_t cmd, uint32_t addr, uint32_t wdata, uint32_t *rdata)
 {
 	uint32_t timeout, status;
 	int retval = ERROR_OK;
@@ -1649,7 +1649,7 @@ static int numicro_write(struct flash_bank *bank, const uint8_t *buffer,
 	return ERROR_OK;
 }
 
-static int numicro_get_cpu_type(struct target *target, const struct numicro_cpu_type** cpu)
+static int numicro_get_cpu_type(struct target *target, const struct numicro_cpu_type **cpu)
 {
 	uint32_t part_id;
 	int retval = ERROR_OK;
