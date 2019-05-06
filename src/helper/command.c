@@ -1219,9 +1219,9 @@ static const struct command_registration command_subcommand_handlers[] = {
 		.mode = COMMAND_ANY,
 		.jim_handler = jim_command_mode,
 		.usage = "[command_name ...]",
-		.help = "Returns the command modes allowed by a  command:"
-			"'any', 'config', or 'exec'.  If no command is"
-			"specified, returns the current command mode.  "
+		.help = "Returns the command modes allowed by a command: "
+			"'any', 'config', or 'exec'. If no command is "
+			"specified, returns the current command mode. "
 			"Returns 'unknown' if an unknown command is given. "
 			"Command can be multiple tokens.",
 	},

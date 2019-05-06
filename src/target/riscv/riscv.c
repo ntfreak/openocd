@@ -1858,13 +1858,13 @@ static const struct command_registration riscv_exec_command_handlers[] = {
 		.name = "test_sba_config_reg",
 		.handler = riscv_test_sba_config_reg,
 		.mode = COMMAND_ANY,
-		.usage = "riscv test_sba_config_reg legal_address num_words"
+		.usage = "riscv test_sba_config_reg legal_address num_words "
 			"illegal_address run_sbbusyerror_test[on/off]",
-		.help = "Perform a series of tests on the SBCS register."
-			"Inputs are a legal, 128-byte aligned address and a number of words to"
-			"read/write starting at that address (i.e., address range [legal address,"
-			"legal_address+word_size*num_words) must be legally readable/writable)"
-			", an illegal, 128-byte aligned address for error flag/handling cases,"
+		.help = "Perform a series of tests on the SBCS register. "
+			"Inputs are a legal, 128-byte aligned address and a number of words to "
+			"read/write starting at that address (i.e., address range [legal address, "
+			"legal_address+word_size*num_words) must be legally readable/writable), "
+			"an illegal, 128-byte aligned address for error flag/handling cases, "
 			"and whether sbbusyerror test should be run."
 	},
 	{

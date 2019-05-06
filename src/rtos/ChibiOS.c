@@ -200,7 +200,7 @@ static int ChibiOS_update_memory_signature(struct rtos *rtos)
 	/* Currently, we have the inherent assumption that all address pointers
 	 * are 32 bit wide. */
 	if (signature->ch_ptrsize != sizeof(uint32_t)) {
-		LOG_ERROR("ChibiOS/RT target memory signature claims an address"
+		LOG_ERROR("ChibiOS/RT target memory signature claims an address "
 				  "width unequal to 32 bits!");
 		free(signature);
 		return -1;

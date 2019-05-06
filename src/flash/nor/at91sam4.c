@@ -3206,7 +3206,7 @@ static const struct command_registration at91sam4_exec_command_handlers[] = {
 		.name = "info",
 		.handler = sam4_handle_info_command,
 		.mode = COMMAND_EXEC,
-		.help = "Print information about the current at91sam4 chip"
+		.help = "Print information about the current at91sam4 chip "
 			"and its flash configuration.",
 		.usage = "",
 	},
