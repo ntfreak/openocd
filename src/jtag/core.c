@@ -1872,7 +1872,7 @@ void jtag_set_verify(bool enable)
 	jtag_verify = enable;
 }
 
-bool jtag_will_verify()
+bool jtag_will_verify(void)
 {
 	return jtag_verify;
 }
@@ -1882,7 +1882,7 @@ void jtag_set_verify_capture_ir(bool enable)
 	jtag_verify_capture_ir = enable;
 }
 
-bool jtag_will_verify_capture_ir()
+bool jtag_will_verify_capture_ir(void)
 {
 	return jtag_verify_capture_ir;
 }

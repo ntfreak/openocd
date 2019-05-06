@@ -486,7 +486,7 @@ int interface_jtag_add_plain_dr_scan(int num_bits,
 	return ERROR_OK;
 }
 
-int interface_jtag_add_tlr()
+int interface_jtag_add_tlr(void)
 {
 	setCurrentState(TAP_RESET);
 	return ERROR_OK;

@@ -401,7 +401,7 @@ char *alloc_printf(const char *format, ...)
  * fast when invoked more often than every 500ms.
  *
  */
-void keep_alive()
+void keep_alive(void)
 {
 	current_time = timeval_ms();
 	if (current_time-last_time > 1000) {
@@ -436,7 +436,7 @@ void keep_alive()
 }
 
 /* reset keep alive timer without sending message */
-void kept_alive()
+void kept_alive(void)
 {
 	current_time = timeval_ms();
 	last_time = current_time;

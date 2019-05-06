@@ -683,7 +683,7 @@ static int armjtagew_tap_execute(void)
 /****************************************************************************
  * JLink USB low-level functions */
 
-static struct armjtagew *armjtagew_usb_open()
+static struct armjtagew *armjtagew_usb_open(void)
 {
 	usb_init();
 

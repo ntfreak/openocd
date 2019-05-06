@@ -45,7 +45,7 @@ void tap_set_state_impl(tap_state_t new_state)
 	state_follower = new_state;
 }
 
-tap_state_t tap_get_state()
+tap_state_t tap_get_state(void)
 {
 	return state_follower;
 }
@@ -64,7 +64,7 @@ void tap_set_end_state(tap_state_t new_end_state)
 	end_state_follower = new_end_state;
 }
 
-tap_state_t tap_get_end_state()
+tap_state_t tap_get_end_state(void)
 {
 	return end_state_follower;
 }
