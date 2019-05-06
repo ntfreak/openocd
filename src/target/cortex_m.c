@@ -966,8 +966,7 @@ static int cortex_m_step(struct target *target, int current,
 				/* Re-enable interrupts if appropriate */
 				cortex_m_write_debug_halt_mask(target, C_HALT, 0);
 				cortex_m_set_maskints_for_halt(target);
-			}
-			else {
+			} else {
 
 				/* Set a temporary break point */
 				if (breakpoint) {

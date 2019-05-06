@@ -1369,8 +1369,7 @@ COMMAND_HANDLER(stm32x_handle_options_write_command)
 			COMMAND_PARSE_NUMBER(u16, CMD_ARGV[1], useropt);
 			CMD_ARGC--;
 			CMD_ARGV++;
-		}
-		else if (stm32x_info->has_dual_banks) {
+		} else if (stm32x_info->has_dual_banks) {
 			if (strcmp("BOOT0", CMD_ARGV[0]) == 0)
 				optionbyte |= (1 << 3);
 			else if (strcmp("BOOT1", CMD_ARGV[0]) == 0)
