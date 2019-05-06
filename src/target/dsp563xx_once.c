@@ -66,7 +66,8 @@ static inline int dsp563xx_write_dr_u32(struct jtag_tap *tap, uint32_t *dr_in, u
 }
 
 /** single word instruction */
-static inline int dsp563xx_once_ir_exec(struct jtag_tap *tap, int flush, uint8_t instr, uint8_t rw, uint8_t go, uint8_t ex)
+static inline int dsp563xx_once_ir_exec(struct jtag_tap *tap, int flush, uint8_t instr,
+										uint8_t rw, uint8_t go, uint8_t ex)
 {
 	int err;
 

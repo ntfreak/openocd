@@ -1731,7 +1731,12 @@ static int dsp5680xx_f_ex(struct target *t, uint16_t c, uint32_t a, uint32_t d,
 }
 
 /**
- * Prior to the execution of any Flash module command, the Flash module Clock Divider (CLKDIV) register must be initialized. The values of this register determine the speed of the internal Flash Clock (FCLK). FCLK must be in the range of 150kHz ≤ FCLK ≤ 200kHz for proper operation of the Flash module. (Running FCLK too slowly wears out the module, while running it too fast under programs Flash leading to bit errors.)
+ * Prior to the execution of any Flash module command, the Flash module Clock
+ * Divider (CLKDIV) register must be initialized. The values of this register
+ * determine the speed of the internal Flash Clock (FCLK). FCLK must be in the
+ * range of 150kHz ≤ FCLK ≤ 200kHz for proper operation of the Flash module.
+ * (Running FCLK too slowly wears out the module, while running it too fast
+ * under programs Flash leading to bit errors.)
  *
  * @param target
  *
@@ -1787,7 +1792,11 @@ static int set_fm_ck_div(struct target *target)
 }
 
 /**
- * Executes the FM calculate signature command. The FM will calculate over the data from @address to @address + @words -1. The result is written to a register, then read out by this function and returned in @signature. The value @signature may be compared to the the one returned by perl_crc to verify the flash was written correctly.
+ * Executes the FM calculate signature command. The FM will calculate over the
+ * data from @address to @address + @words -1. The result is written to a
+ * register, then read out by this function and returned in @signature. The
+ * value @signature may be compared to the the one returned by perl_crc to
+ * verify the flash was written correctly.
  *
  * @param target
  * @param address Start of flash array where the signature should be calculated.
