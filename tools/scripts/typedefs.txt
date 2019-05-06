@@ -1,0 +1,10 @@
+# Note: please keep the entries in this file sorted in reverse alphabetical
+# order (sort -r) otherwise checkpatch would ignore some entries that have
+# a common radix (such as TEE_BigInt/TEE_BigIntFMM/TEE_BigIntFMMContext).
+# Not sure if it is expected or if it will be fixed in upstream checkpatch
+# at some point.
+
+__PLD_DEVICE_COMMAND
+libusb_device_handle
+Jim_Obj
+fd_set
