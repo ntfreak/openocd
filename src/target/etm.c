@@ -1074,8 +1074,8 @@ static int etmv1_analyze_trace(struct etm_context *ctx, struct command_invocatio
 					(instruction.type == ARM_STM)) {
 					int i;
 					for (i = 0; i < 16; i++) {
-						if (instruction.info.load_store_multiple.
-							register_list & (1 << i)) {
+						if (instruction.info.load_store_multiple.register_list
+							& (1 << i)) {
 							uint32_t data;
 							if (etmv1_data(ctx, 4, &data) != 0)
 								return ERROR_ETM_ANALYSIS_FAILED;

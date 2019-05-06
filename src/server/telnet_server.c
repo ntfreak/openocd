@@ -411,8 +411,8 @@ static int telnet_input(struct connection *connection)
 								for (i = 1; i < TELNET_LINE_HISTORY_SIZE; i++) {
 									/* the t_con->next_history line contains empty string
 									 * (unless NULL), thus it is not printed */
-									char *history_line = t_con->history[(t_con->
-											next_history + i) %
+									char *history_line =
+											t_con->history[(t_con->next_history + i) %
 											TELNET_LINE_HISTORY_SIZE];
 									if (history_line) {
 										telnet_write(connection, history_line,

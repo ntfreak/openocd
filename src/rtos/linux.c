@@ -995,10 +995,8 @@ static int linux_task_update(struct target *target, int context)
 					if (context)
 						thread_list->context =
 							cpu_context_read(target,
-								thread_list->
-								base_addr,
-								&thread_list->
-								thread_info_addr);
+								thread_list->base_addr,
+								&thread_list->thread_info_addr);
 				} else {
 					/*  it is a current thread no need to read context */
 				}
@@ -1190,9 +1188,8 @@ int linux_gdb_T_packet(struct connection *connection,
 				} else {
 					/* delete item in the list   */
 					linux_os->thread_list =
-						liste_del_task(linux_os->
-							thread_list, &temp,
-							prev);
+						liste_del_task(linux_os->thread_list,
+							&temp, prev);
 					linux_os->thread_count--;
 					gdb_put_packet(connection, "E01", 3);
 					return ERROR_OK;
@@ -1323,9 +1320,7 @@ static int linux_thread_packet(struct connection *connection, char const *packet
 			if (strncmp(packet, "qSymbol", 7) == 0) {
 				if (rtos_qsymbol(connection, packet, packet_size) == 1) {
 					linux_compute_virt2phys(target,
-							target->rtos->
-							symbols[INIT_TASK].
-							address);
+							target->rtos->symbols[INIT_TASK].address);
 				}
 
 				break;
@@ -1376,8 +1371,7 @@ static int linux_thread_packet(struct connection *connection, char const *packet
 				}
 
 				if ((ct != NULL) && (ct->threadid !=
-						 target->rtos->
-						 current_threadid)
+						 target->rtos->current_threadid)
 				&& (target->rtos->current_threadid != -1))
 					LOG_WARNING("WARNING! current GDB thread do not match "
 							"current thread running. "
@@ -1410,8 +1404,7 @@ static int linux_os_smp_init(struct target *target)
 	while (head != (struct target_list *)NULL) {
 		if (head->target->rtos != rtos) {
 			struct linux_os *smp_os_linux =
-				(struct linux_os *)head->target->rtos->
-				rtos_specific_params;
+				(struct linux_os *)head->target->rtos->rtos_specific_params;
 			/*  remap smp target on rtos  */
 			free(head->target->rtos);
 			head->target->rtos = rtos;
