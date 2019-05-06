@@ -1207,8 +1207,8 @@ int or1k_get_gdb_fileio_info(struct target *target, struct gdb_fileio_info *file
 }
 
 static int or1k_checksum_memory(struct target *target, target_addr_t address,
-		uint32_t count, uint32_t *checksum) {
-
+		uint32_t count, uint32_t *checksum)
+{
 	return ERROR_FAIL;
 }
 
