@@ -497,7 +497,7 @@ static int image_elf_read_section(struct image *image,
 	if (offset < field32(elf, segment->p_filesz)) {
 		/* maximal size present in file for the current segment */
 		read_size = MIN(size, field32(elf, segment->p_filesz) - offset);
-		LOG_DEBUG("read elf: size = 0x%zu at 0x%" PRIx32 "", read_size,
+		LOG_DEBUG("read elf: size = 0x%zx at 0x%" PRIx32 "", read_size,
 			field32(elf, segment->p_offset) + offset);
 		/* read initialized area of the segment */
 		retval = fileio_seek(elf->fileio, field32(elf, segment->p_offset) + offset);
