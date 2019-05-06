@@ -772,12 +772,9 @@ static int oldriscv_step(struct target *target, int current, uint32_t address,
 	return tt->step(target, current, address, handle_breakpoints);
 }
 
-static int old_or_new_riscv_step(
-		struct target *target,
-		int current,
-		target_addr_t address,
-		int handle_breakpoints
-){
+static int old_or_new_riscv_step(struct target *target, int current,
+		target_addr_t address, int handle_breakpoints)
+{
 	RISCV_INFO(r);
 	LOG_DEBUG("handle_breakpoints=%d", handle_breakpoints);
 	if (r->is_halted == NULL)
@@ -862,13 +859,9 @@ static int oldriscv_resume(struct target *target, int current, uint32_t address,
 			debug_execution);
 }
 
-static int old_or_new_riscv_resume(
-		struct target *target,
-		int current,
-		target_addr_t address,
-		int handle_breakpoints,
-		int debug_execution
-){
+static int old_or_new_riscv_resume(struct target *target, int current,
+		target_addr_t address, int handle_breakpoints, int debug_execution)
+{
 	LOG_DEBUG("handle_breakpoints=%d", handle_breakpoints);
 	if (target->smp) {
 		struct target_list *targets = target->head;
@@ -1413,12 +1406,9 @@ int riscv_openocd_resume(
 	return out;
 }
 
-int riscv_openocd_step(
-		struct target *target,
-		int current,
-		target_addr_t address,
-		int handle_breakpoints
-) {
+int riscv_openocd_step(struct target *target, int current,
+		target_addr_t address, int handle_breakpoints)
+{
 	LOG_DEBUG("stepping rtos hart");
 
 	if (!current)
