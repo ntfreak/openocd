@@ -31,13 +31,13 @@ struct armv8_common;
 int armv8_dpm_setup(struct arm_dpm *dpm);
 int armv8_dpm_initialize(struct arm_dpm *dpm);
 
-int armv8_dpm_read_current_registers(struct arm_dpm *);
+int armv8_dpm_read_current_registers(struct arm_dpm *dpm);
 int armv8_dpm_modeswitch(struct arm_dpm *dpm, enum arm_mode mode);
 
 
-int armv8_dpm_write_dirty_registers(struct arm_dpm *, bool bpwp);
+int armv8_dpm_write_dirty_registers(struct arm_dpm *dpm, bool bpwp);
 
-void armv8_dpm_report_wfar(struct arm_dpm *, uint64_t wfar);
+void armv8_dpm_report_wfar(struct arm_dpm *dpm, uint64_t wfar);
 
 /* DSCR bits; see ARMv7a arch spec section C10.3.1.
  * Not all v7 bits are valid in v6.

@@ -392,7 +392,7 @@ typedef intptr_t jtag_callback_data_t;
 typedef void (*jtag_callback1_t)(jtag_callback_data_t data0);
 
 /** A simpler version of jtag_add_callback4(). */
-void jtag_add_callback(jtag_callback1_t, jtag_callback_data_t data0);
+void jtag_add_callback(jtag_callback1_t f, jtag_callback_data_t data0);
 
 
 /**
