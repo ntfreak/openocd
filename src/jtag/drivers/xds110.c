@@ -1683,14 +1683,11 @@ static int xds110_reset(int trst, int srst)
 static void xds110_execute_sleep(struct jtag_command *cmd)
 {
 	jtag_sleep(cmd->cmd.sleep->us);
-	return;
 }
 
 static void xds110_execute_tlr_reset(struct jtag_command *cmd)
 {
 	(void)xds_goto_state(XDS_JTAG_STATE_RESET);
-
-	return;
 }
 
 static void xds110_execute_pathmove(struct jtag_command *cmd)
@@ -1726,8 +1723,6 @@ static void xds110_execute_pathmove(struct jtag_command *cmd)
 	}
 
 	free((void *)path);
-
-	return;
 }
 
 static void xds110_queue_scan(struct jtag_command *cmd)
@@ -1799,8 +1794,6 @@ static void xds110_queue_scan(struct jtag_command *cmd)
 	}
 	xds110.txn_request_size += total_bytes;
 	xds110.txn_result_size += total_bytes;
-
-	return;
 }
 
 static void xds110_queue_runtest(struct jtag_command *cmd)
@@ -1820,8 +1813,6 @@ static void xds110_queue_runtest(struct jtag_command *cmd)
 	xds110.txn_requests[xds110.txn_request_size++] = (clocks >> 16) & 0xff;
 	xds110.txn_requests[xds110.txn_request_size++] = (clocks >> 24) & 0xff;
 	xds110.txn_requests[xds110.txn_request_size++] = end_state;
-
-	return;
 }
 
 static void xds110_queue_stableclocks(struct jtag_command *cmd)
@@ -1838,8 +1829,6 @@ static void xds110_queue_stableclocks(struct jtag_command *cmd)
 	xds110.txn_requests[xds110.txn_request_size++] = (clocks >>  8) & 0xff;
 	xds110.txn_requests[xds110.txn_request_size++] = (clocks >> 16) & 0xff;
 	xds110.txn_requests[xds110.txn_request_size++] = (clocks >> 24) & 0xff;
-
-	return;
 }
 
 static void xds110_execute_command(struct jtag_command *cmd)

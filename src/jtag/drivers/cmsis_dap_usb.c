@@ -364,8 +364,6 @@ static void cmsis_dap_usb_close(struct cmsis_dap *dap)
 		free(pending_fifo[i].transfers);
 		pending_fifo[i].transfers = NULL;
 	}
-
-	return;
 }
 
 static int cmsis_dap_usb_write(struct cmsis_dap *dap, int txlen)

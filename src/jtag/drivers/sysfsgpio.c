@@ -98,8 +98,6 @@ static void unexport_sysfs_gpio(int gpio)
 	snprintf(gpiostr, sizeof(gpiostr), "%d", gpio);
 	if (open_write_close("/sys/class/gpio/unexport", gpiostr) < 0)
 		LOG_ERROR("Couldn't unexport gpio %d", gpio);
-
-	return;
 }
 
 /*
