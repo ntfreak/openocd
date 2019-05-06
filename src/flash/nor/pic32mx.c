@@ -817,7 +817,7 @@ static int pic32mx_info(struct flash_bank *bank, char *buf, int buf_size)
 
 	if (((device_id >> 1) & 0x7ff) != PIC32MX_MANUF_ID) {
 		snprintf(buf, buf_size,
-				 "Cannot identify target as a PIC32MX family (manufacturer 0x%03d != 0x%03d)\n",
+				 "Cannot identify target as a PIC32MX family (manufacturer 0x%03x != 0x%03x)\n",
 				 (unsigned)((device_id >> 1) & 0x7ff),
 				 PIC32MX_MANUF_ID);
 		return ERROR_FLASH_OPERATION_FAILED;
