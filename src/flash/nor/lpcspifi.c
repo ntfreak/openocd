@@ -216,7 +216,7 @@ static int lpcspifi_set_hw_mode(struct flash_bank *bank)
 
 	/* Run the algorithm */
 	LOG_DEBUG("Running SPIFI init algorithm");
-	retval = target_run_algorithm(target, 0 , NULL, 2, reg_params,
+	retval = target_run_algorithm(target, 0, NULL, 2, reg_params,
 		spifi_init_algorithm->address,
 		spifi_init_algorithm->address + sizeof(spifi_init_code) - 2,
 		1000, &armv7m_info);
@@ -550,7 +550,7 @@ static int lpcspifi_erase(struct flash_bank *bank, int first, int last)
 	buf_set_u32(reg_params[3].value, 0, 32, bank->sectors[first].size);
 
 	/* Run the algorithm */
-	retval = target_run_algorithm(target, 0 , NULL, 4, reg_params,
+	retval = target_run_algorithm(target, 0, NULL, 4, reg_params,
 		erase_algorithm->address,
 		erase_algorithm->address + sizeof(lpcspifi_flash_erase_code) - 4,
 		3000*(last - first + 1), &armv7m_info);

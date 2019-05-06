@@ -64,7 +64,7 @@ static const struct stack_register_offset rtos_mqx_arm_v7m_stack_offsets[ARMV7M_
 	{ ARMV7M_R10,  0x20, 32 }, /* r10  */
 	{ ARMV7M_R11,  0x24, 32 }, /* r11  */
 	{ ARMV7M_R12,  0x3C, 32 }, /* r12  */
-	{ ARMV7M_R13,   -2 , 32 }, /* sp   */
+	{ ARMV7M_R13,    -2, 32 }, /* sp   */
 	{ ARMV7M_R14,  0x28, 32 }, /* lr   */
 	{ ARMV7M_PC,   0x44, 32 }, /* pc   */
 	{ ARMV7M_xPSR, 0x48, 32 }, /* xPSR */

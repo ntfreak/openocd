@@ -218,7 +218,7 @@ static int arc_get_register(struct reg *reg)
 	reg->dirty = false;
 
 	LOG_DEBUG("Get register gdb_num=%" PRIu32 ", name=%s, value=0x%" PRIx32,
-			reg->number , desc->name, value);
+			reg->number, desc->name, value);
 
 
 	return ERROR_OK;
@@ -855,7 +855,7 @@ static int arc_save_context(struct target *target)
 			reg->valid = true;
 			reg->dirty = false;
 			LOG_DEBUG("Get aux register regnum=%" PRIu32 ", name=%s, value=0x%08" PRIx32,
-				i , arc_reg->name, aux_values[aux_cnt]);
+				i, arc_reg->name, aux_values[aux_cnt]);
 		}
 	}
 

@@ -1154,7 +1154,7 @@ static int stm8_read_core_reg(struct target *target, unsigned int num)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	reg_value = stm8->core_regs[num];
-	LOG_DEBUG("read core reg %i value 0x%" PRIx32 "", num , reg_value);
+	LOG_DEBUG("read core reg %i value 0x%" PRIx32 "", num, reg_value);
 	buf_set_u32(stm8->core_cache->reg_list[num].value, 0, 32, reg_value);
 	stm8->core_cache->reg_list[num].valid = true;
 	stm8->core_cache->reg_list[num].dirty = false;
@@ -1174,7 +1174,7 @@ static int stm8_write_core_reg(struct target *target, unsigned int num)
 
 	reg_value = buf_get_u32(stm8->core_cache->reg_list[num].value, 0, 32);
 	stm8->core_regs[num] = reg_value;
-	LOG_DEBUG("write core reg %i value 0x%" PRIx32 "", num , reg_value);
+	LOG_DEBUG("write core reg %i value 0x%" PRIx32 "", num, reg_value);
 	stm8->core_cache->reg_list[num].valid = true;
 	stm8->core_cache->reg_list[num].dirty = false;
 
