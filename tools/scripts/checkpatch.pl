@@ -4060,7 +4060,8 @@ sub process {
 
 			my ($level, @ctx) = ctx_statement_level($linenr, $realcnt, 0);
 
-			if ($line =~ /^\+\t{6,}/) {
+			# OpenOCD specific
+			if ($line =~ /^\+\t{10,}/) {
 				WARN("DEEP_INDENTATION",
 				     "Too many leading tabs - consider code refactoring\n" . $herecurr);
 			}
