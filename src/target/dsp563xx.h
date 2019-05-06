@@ -46,8 +46,8 @@ struct dsp563xx_common {
 	struct once_reg once_regs[DSP563XX_NUMONCEREGS];
 
 	/* register cache to processor synchronization */
-	int (*read_core_reg) (struct target *target, int num);
-	int (*write_core_reg) (struct target *target, int num);
+	int (*read_core_reg)(struct target *target, int num);
+	int (*write_core_reg)(struct target *target, int num);
 
 	struct hardware_breakpoint hardware_breakpoint[1];
 
