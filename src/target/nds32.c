@@ -1711,8 +1711,8 @@ int nds32_cache_sync(struct target *target, target_addr_t address, uint32_t leng
 		/* (address + length - 1) / dcache_line_size */
 		end_line = (address + length - 1) >> (dcache->line_size + 2);
 
-		for (cur_address = address, cur_line = start_line ;
-				cur_line <= end_line ;
+		for (cur_address = address, cur_line = start_line;
+				cur_line <= end_line;
 				cur_address += dcache_line_size, cur_line++) {
 			/* D$ write back */
 			result = aice_cache_ctl(aice, AICE_CACHE_CTL_L1D_VA_WB, cur_address);
@@ -1732,8 +1732,8 @@ int nds32_cache_sync(struct target *target, target_addr_t address, uint32_t leng
 		/* (address + length - 1) / icache_line_size */
 		end_line = (address + length - 1) >> (icache->line_size + 2);
 
-		for (cur_address = address, cur_line = start_line ;
-				cur_line <= end_line ;
+		for (cur_address = address, cur_line = start_line;
+				cur_line <= end_line;
 				cur_address += icache_line_size, cur_line++) {
 			/* Because PSW.IT is turned off under debug exception, address MUST
 			 * be physical address.  L1I_VA_INVALIDATE uses PSW.IT to decide

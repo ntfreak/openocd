@@ -1656,7 +1656,7 @@ static int niietcm4_probe_k1921vk01t(struct flash_bank *bank)
 				niietcm4_info->extmem_boot_pin,
 				niietcm4_info->extmem_boot_altfunc,
 				niietcm4_info->extmem_boot ? "enable" : "disable");
-	} else{
+	} else {
 		bank->size = 0x100000;
 		bank->num_sectors = 128;
 

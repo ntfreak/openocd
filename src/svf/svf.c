@@ -226,7 +226,7 @@ static int svf_getline(char **lineptr, size_t *n, FILE *stream);
 
 #define SVF_MAX_BUFFER_SIZE_TO_COMMIT   (1024 * 1024)
 static uint8_t *svf_tdi_buffer, *svf_tdo_buffer, *svf_mask_buffer;
-static int svf_buffer_index, svf_buffer_size ;
+static int svf_buffer_index, svf_buffer_size;
 static int svf_quiet;
 static int svf_nil;
 static int svf_ignore_error;
@@ -246,7 +246,7 @@ static int svf_last_printed_percentage = -1;
  * DEBUG, INFO, ERROR, USER
  */
 #define SVF_BUF_LOG(_lvl, _buf, _nbits, _desc)							\
-	svf_hexbuf_print(LOG_LVL_##_lvl ,  __FILE__, __LINE__, __func__, _buf, _nbits, _desc)
+	svf_hexbuf_print(LOG_LVL_##_lvl,  __FILE__, __LINE__, __func__, _buf, _nbits, _desc)
 
 static void svf_hexbuf_print(int dbg_lvl, const char *file, unsigned line,
 							 const char *function, const uint8_t *buf,

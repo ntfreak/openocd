@@ -136,9 +136,9 @@ struct fespi_target {
 /* TODO !!! What is the right naming convention here? */
 static const struct fespi_target target_devices[] = {
 	/* name,   tap_idcode, ctrl_base */
-	{ "Freedom E310-G000 SPI Flash",  0x10e31913 , 0x10014000 },
-	{ "Freedom E310-G002 SPI Flash",  0x20000913 , 0x10014000 },
-	{ NULL,    0,           0          }
+	{ "Freedom E310-G000 SPI Flash", 0x10e31913, 0x10014000 },
+	{ "Freedom E310-G002 SPI Flash", 0x20000913, 0x10014000 },
+	{ NULL, 0, 0 }
 };
 
 FLASH_BANK_COMMAND_HANDLER(fespi_flash_bank_command)

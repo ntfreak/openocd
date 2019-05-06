@@ -596,7 +596,7 @@ void opendous_tap_append_step(int tms, int tdi)
 		if (!bits)
 			tms_buffer[tap_index] = 0;
 
-		tms_buffer[tap_index] |= (_tdi << bits)|(_tms << (bits + 1)) ;
+		tms_buffer[tap_index] |= (_tdi << bits)|(_tms << (bits + 1));
 		tap_length++;
 	} else
 		LOG_ERROR("opendous_tap_append_step, overflow");

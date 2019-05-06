@@ -35,33 +35,33 @@ extern struct hl_layout_api_s icdi_usb_layout_api;
 /** */
 struct hl_layout_api_s {
 	/** */
-	int (*open) (struct hl_interface_param_s *param, void **handle);
+	int (*open)(struct hl_interface_param_s *param, void **handle);
 	/** */
-	int (*close) (void *handle);
+	int (*close)(void *handle);
 	/** */
-	int (*reset) (void *handle);
+	int (*reset)(void *handle);
 	/** */
-	int (*assert_srst) (void *handle, int srst);
+	int (*assert_srst)(void *handle, int srst);
 	/** */
-	int (*run) (void *handle);
+	int (*run)(void *handle);
 	/** */
-	int (*halt) (void *handle);
+	int (*halt)(void *handle);
 	/** */
-	int (*step) (void *handle);
+	int (*step)(void *handle);
 	/** */
-	int (*read_regs) (void *handle);
+	int (*read_regs)(void *handle);
 	/** */
-	int (*read_reg) (void *handle, int num, uint32_t *val);
+	int (*read_reg)(void *handle, int num, uint32_t *val);
 	/** */
-	int (*write_reg) (void *handle, int num, uint32_t val);
+	int (*write_reg)(void *handle, int num, uint32_t val);
 	/** */
-	int (*read_mem) (void *handle, uint32_t addr, uint32_t size,
+	int (*read_mem)(void *handle, uint32_t addr, uint32_t size,
 			uint32_t count, uint8_t *buffer);
 	/** */
-	int (*write_mem) (void *handle, uint32_t addr, uint32_t size,
+	int (*write_mem)(void *handle, uint32_t addr, uint32_t size,
 			uint32_t count, const uint8_t *buffer);
 	/** */
-	int (*write_debug_reg) (void *handle, uint32_t addr, uint32_t val);
+	int (*write_debug_reg)(void *handle, uint32_t addr, uint32_t val);
 	/**
 	 * Read the idcode of the target connected to the adapter
 	 *
@@ -72,11 +72,11 @@ struct hl_layout_api_s {
 	 * @param idcode Storage for the detected idcode
 	 * @returns ERROR_OK on success, or an error code on failure.
 	 */
-	int (*idcode) (void *handle, uint32_t *idcode);
+	int (*idcode)(void *handle, uint32_t *idcode);
 	/** */
-	int (*override_target) (const char *targetname);
+	int (*override_target)(const char *targetname);
 	/** */
-	int (*custom_command) (void *handle, const char *command);
+	int (*custom_command)(void *handle, const char *command);
 	/** */
 	int (*speed)(void *handle, int khz, bool query);
 	/**
@@ -107,7 +107,7 @@ struct hl_layout_api_s {
 	 */
 	int (*poll_trace)(void *handle, uint8_t *buf, size_t *size);
 	/** */
-	enum target_state (*state) (void *fd);
+	enum target_state (*state)(void *fd);
 };
 
 /** */
@@ -115,9 +115,9 @@ struct hl_layout {
 	/** */
 	char *name;
 	/** */
-	int (*open) (struct hl_interface_s *adapter);
+	int (*open)(struct hl_interface_s *adapter);
 	/** */
-	int (*close) (struct hl_interface_s *adapter);
+	int (*close)(struct hl_interface_s *adapter);
 	/** */
 	struct hl_layout_api_s *api;
 };
