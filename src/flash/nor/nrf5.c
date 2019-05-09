@@ -859,10 +859,6 @@ static int nrf5_erase_page(struct flash_bank *bank,
 	int res;
 
 	LOG_DEBUG("Erasing page at 0x%"PRIx32, sector->offset);
-	if (sector->is_protected) {
-		LOG_ERROR("Cannot erase protected sector at 0x%" PRIx32, sector->offset);
-		return ERROR_FAIL;
-	}
 
 	if (bank->base == NRF5_UICR_BASE) {
 		if (chip->features & NRF5_FEATURE_SERIES_51) {
