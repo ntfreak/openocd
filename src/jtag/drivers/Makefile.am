@@ -133,6 +133,9 @@ if HLADAPTER
 DRIVERFILES += %D%/stlink_usb.c
 DRIVERFILES += %D%/ti_icdi_usb.c
 endif
+if RSHIM
+DRIVERFILES += %D%/rshim.c
+endif
 if OSBDM
 DRIVERFILES += %D%/osbdm.c
 endif
