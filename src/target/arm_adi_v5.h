@@ -593,6 +593,10 @@ extern const char *adiv5_dap_name(struct adiv5_dap *self);
 extern const struct swd_driver *adiv5_dap_swd_driver(struct adiv5_dap *self);
 extern int dap_cleanup_all(void);
 
+#if BUILD_RSHIM
+extern bool adiv5_dap_is_rshim(struct adiv5_dap *self);
+#endif
+
 struct adiv5_private_config {
 	int ap_num;
 	struct adiv5_dap *dap;
