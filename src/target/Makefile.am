@@ -30,6 +30,10 @@ noinst_LTLIBRARIES += %D%/libtarget.la
 	%D%/dsp5680xx.c \
 	%D%/hla_target.c
 
+if BUILD_RSHIM
+%C%_libtarget_la_SOURCES += $(RSHIM_SRC)
+endif
+
 if TARGET64
 %C%_libtarget_la_SOURCES +=$(ARMV8_SRC)
 %C%_libtarget_la_SOURCES +=$(MIPS64_SRC)
@@ -114,6 +118,9 @@ AVR32_SRC = \
 	%D%/avr32_jtag.c \
 	%D%/avr32_mem.c \
 	%D%/avr32_regs.c
+
+RSHIM_SRC = \
+	%D%/rshim_dap.c
 
 MIPS32_SRC = \
 	%D%/mips32.c \

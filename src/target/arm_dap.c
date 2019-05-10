@@ -34,6 +34,9 @@ static LIST_HEAD(all_dap);
 
 extern const struct dap_ops swd_dap_ops;
 extern const struct dap_ops jtag_dp_ops;
+#if BUILD_RSHIM
+extern const struct dap_ops rshim_dap_ops;
+#endif
 extern struct adapter_driver *adapter_driver;
 
 /* DAP command support */
@@ -43,6 +46,34 @@ struct arm_dap_object {
 	char *name;
 	const struct swd_driver *swd;
 };
+
+struct dap_name_ops {
+	char *name;
+	const struct dap_ops *ops;
+} dap_name_ops[] = {
+#if BUILD_RSHIM
+	{ .name = "bluefield.dap", .ops = &rshim_dap_ops },
+#endif
+	{ .name = "", .ops = NULL },
+};
+
+bool dap_find_ops(struct adiv5_dap *dap)
+{
+	const char *dap_name = adiv5_dap_name(dap);
+	unsigned int i;
+
+	if (!dap_name || !dap_name[0])
+		return false;
+
+	for (i = 0; i < ARRAY_SIZE(dap_name_ops); i++) {
+		if (!strcmp(dap_name, dap_name_ops[i].name)) {
+			dap->ops = dap_name_ops[i].ops;
+			return true;
+		}
+	}
+
+	return false;
+}
 
 static void dap_instance_init(struct adiv5_dap *dap)
 {
@@ -116,15 +147,18 @@ static int dap_init_all(void)
 		if (!dap->tap->enabled)
 			continue;
 
-		if (transport_is_swd()) {
-			dap->ops = &swd_dap_ops;
-			obj->swd = adapter_driver->swd_ops;
-		} else if (transport_is_dapdirect_swd()) {
-			dap->ops = adapter_driver->dap_swd_ops;
-		} else if (transport_is_dapdirect_jtag()) {
-			dap->ops = adapter_driver->dap_jtag_ops;
-		} else
-			dap->ops = &jtag_dp_ops;
+		if (!dap_find_ops(dap)) {
+			if (transport_is_swd()) {
+				dap->ops = &swd_dap_ops;
+				obj->swd = adapter_driver->swd_ops;
+			} else if (transport_is_dapdirect_swd()) {
+				dap->ops = adapter_driver->dap_swd_ops;
+			} else if (transport_is_dapdirect_jtag()) {
+				dap->ops = adapter_driver->dap_jtag_ops;
+			} else {
+				dap->ops = &jtag_dp_ops;
+			}
+		}
 
 		retval = dap->ops->connect(dap);
 		if (retval != ERROR_OK)

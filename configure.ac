@@ -224,6 +224,10 @@ AC_ARG_ENABLE([dummy],
   AS_HELP_STRING([--enable-dummy], [Enable building the dummy port driver]),
   [build_dummy=$enableval], [build_dummy=no])
 
+AC_ARG_ENABLE([rshim],
+  AS_HELP_STRING([--enable-rshim], [Enable building the rshim driver]),
+  [build_rshim=$enableval], [build_rshim=no])
+
 m4_define([AC_ARG_ADAPTERS], [
   m4_foreach([adapter], [$1],
 	[AC_ARG_ENABLE(ADAPTER_OPT([adapter]),
@@ -480,6 +484,13 @@ AS_IF([test "x$build_parport" = "xyes"], [
   AC_DEFINE([BUILD_PARPORT], [0], [0 if you don't want parport.])
 ])
 
+AS_IF([test "x$build_rshim" = "xyes"], [
+  build_dummy=yes
+  AC_DEFINE([BUILD_RSHIM], [1], [1 if you want to debug BlueField SoC via rshim.])
+], [
+  AC_DEFINE([BUILD_RSHIM], [0], [0 if you don't want to debug BlueField SoC via rshim.])
+])
+
 AS_IF([test "x$build_dummy" = "xyes"], [
   build_bitbang=yes
   AC_DEFINE([BUILD_DUMMY], [1], [1 if you want dummy driver.])
@@ -729,6 +740,7 @@ AM_CONDITIONAL([USE_LIBFTDI], [test "x$use_libftdi" = "xyes"])
 AM_CONDITIONAL([USE_HIDAPI], [test "x$use_hidapi" = "xyes"])
 AM_CONDITIONAL([USE_LIBJAYLINK], [test "x$use_libjaylink" = "xyes"])
 AM_CONDITIONAL([TARGET64], [test "x$build_target64" = "xyes"])
+AM_CONDITIONAL([BUILD_RSHIM], [test "x$build_rshim" = "xyes"])
 
 AM_CONDITIONAL([MINIDRIVER], [test "x$build_minidriver" = "xyes"])
 AM_CONDITIONAL([MINIDRIVER_DUMMY], [test "x$build_minidriver_dummy" = "xyes"])
