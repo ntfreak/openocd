@@ -103,4 +103,3 @@ exit:
 	movs	r6, #FLASH_ERROR			/* all error bits */
 	str		r6, [r4]					/* write to FLASH_CR to clear errors */
 	bkpt	#0x00
-
