@@ -53,4 +53,3 @@ proc show_RTTC { } {
     show_mmr32_reg RTTC_RTVR
     show_mmr32_reg RTTC_RTSR
 }
-
