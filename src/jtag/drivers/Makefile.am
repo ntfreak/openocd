@@ -186,4 +186,3 @@ DRIVERHEADERS = \
 	%D%/versaloon/versaloon.h \
 	%D%/versaloon/versaloon_include.h \
 	%D%/versaloon/versaloon_internal.h
-

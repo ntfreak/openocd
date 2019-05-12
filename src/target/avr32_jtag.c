@@ -369,4 +369,3 @@ int avr32_ocd_clearbits(struct avr32_jtag *jtag, int reg, uint32_t bits)
 
 	return ERROR_OK;
 }
-

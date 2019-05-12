@@ -340,4 +340,3 @@ static int embKernel_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[
 
 	return 0;
 }
-
