@@ -29,4 +29,3 @@ add_help_text script "filename of OpenOCD script (tcl) to run"
 add_usage_text script "<file>"
 
 #########
-

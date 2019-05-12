@@ -479,5 +479,3 @@ m4_delay(HOLD_DELAY_CYCLES - 10)
 	A = X
 	DR_MPEG = A ; return TCK low, as str912 reset halt seems to require it
 	BRANCH
-
-

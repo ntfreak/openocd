@@ -1123,4 +1123,3 @@ const struct command_registration nds32_command_handlers[] = {
 	},
 	COMMAND_REGISTRATION_DONE
 };
-

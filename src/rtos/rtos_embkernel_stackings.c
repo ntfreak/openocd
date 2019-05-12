@@ -51,5 +51,3 @@ const struct rtos_register_stacking rtos_embkernel_Cortex_M_stacking = {
 	rtos_generic_stack_align8,	/* stack_alignment */
 	rtos_embkernel_Cortex_M_stack_offsets	/* register_offsets */
 };
-
-

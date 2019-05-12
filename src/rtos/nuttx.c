@@ -401,4 +401,3 @@ struct rtos_type nuttx_rtos = {
 	.get_thread_reg_list = nuttx_get_thread_reg_list,
 	.get_symbol_list_to_lookup = nuttx_get_symbol_list_to_lookup,
 };
-
