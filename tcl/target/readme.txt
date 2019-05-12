@@ -38,4 +38,3 @@ Note that a target/xxx.cfg file can invoke another target/yyy.cfg file,
 so one can create target subtype configurations where e.g. only
 amount of DRAM, oscillator speeds differ and having a single
 config file for the default/common settings.
-

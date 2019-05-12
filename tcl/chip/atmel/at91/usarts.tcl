@@ -130,6 +130,3 @@ proc show_DBGU { } $str
 unset str
 
 proc show_DBGU_MR_helper { NAME ADDR VAL } { show_mmr_USx_MR_helper $NAME $ADDR $VAL }
-
-
-

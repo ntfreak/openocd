@@ -98,4 +98,3 @@ proc show_AIC { } {
 	}
     }
 }
-
