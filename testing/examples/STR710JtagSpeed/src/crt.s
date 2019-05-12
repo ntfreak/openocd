@@ -258,6 +258,4 @@ FIQHandler:
    .weak IRQHandler, FIQHandler
 
    .ltorg
-/*** EOF ***/   
-	
-
+/*** EOF ***/

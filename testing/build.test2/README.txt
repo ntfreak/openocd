@@ -56,4 +56,3 @@ For example - in cygwin, type this:
 =======
 **END**
 =======
-

@@ -93,6 +93,3 @@ all.download:
 	linux.ftd2xx_installed \
 	linux.ft22232_libftdi \
 	linux.ftd2xx_installed.setup
-
-
-

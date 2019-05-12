@@ -44,4 +44,3 @@ _mainCRTStartup:
 	.word	__bss_start__
 .LC2:
 	.word	__bss_end__
-

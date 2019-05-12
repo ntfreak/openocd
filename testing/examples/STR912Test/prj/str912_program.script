@@ -1,9 +1,2 @@
 str9x flash_config 0 4 2 0 0x80000
 flash protect 0 0 7 off
-
-
-
-
-
-
-

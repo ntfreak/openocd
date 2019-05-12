@@ -36,4 +36,3 @@ Dec 26,2008
 
 	cd ~/work
 	make cygwin.buildtest
-

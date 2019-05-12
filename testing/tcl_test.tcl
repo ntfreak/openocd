@@ -60,6 +60,3 @@ puts "Running help on PC using data from OpenOCD"
 global ocd_helptext
 set ocd_helptext [get_help_text]
 puts [pc_help]
-
-
-
