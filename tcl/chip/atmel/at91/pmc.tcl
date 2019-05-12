@@ -14,4 +14,3 @@ if [info exists AT91C_SLOWOSC_FREQ] {
     set AT91C_SLOWOSC_FREQ 32768
 }
 global AT91C_SLOWOSC_FREQ
-

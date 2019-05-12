@@ -57,5 +57,3 @@ proc show_normalize_bitfield { VALUE MSB LSB } {
     echo [format "((0x%08x & 0x%08x) -> 0x%08x) >> %2d => (0x%x) %5d " $VALUE $m $mr $LSB $sr $sr]
    return $sr
 }
-
-
