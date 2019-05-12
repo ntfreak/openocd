@@ -726,4 +726,3 @@ finally:
     cmdbuf[0] = XCOMPLETE
     output.write( cmdbuf )
     output.close()
-
