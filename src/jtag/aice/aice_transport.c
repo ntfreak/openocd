@@ -443,4 +443,3 @@ static void aice_constructor(void)
 {
 	transport_register(&aice_jtag_transport);
 }
-

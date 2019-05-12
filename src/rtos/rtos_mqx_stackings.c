@@ -77,4 +77,3 @@ const struct rtos_register_stacking rtos_mqx_arm_v7m_stacking = {
 	NULL,					/* stack_alignment */
 	rtos_mqx_arm_v7m_stack_offsets	/* register_offsets */
 };
-
