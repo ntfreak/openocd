@@ -198,9 +198,13 @@ COMMAND_HANDLER(handle_reset_config_command)
 			tmp |= RESET_SRST_PULLS_TRST;
 		else if (strcmp(*CMD_ARGV, "trst_pulls_srst") == 0)
 			tmp |= RESET_TRST_PULLS_SRST;
-		else if (strcmp(*CMD_ARGV, "combined") == 0)
+		else if (strcmp(*CMD_ARGV, "trst_srst_tied") == 0)
 			tmp |= RESET_SRST_PULLS_TRST | RESET_TRST_PULLS_SRST;
-		else
+		else if (strcmp(*CMD_ARGV, "combined") == 0) {
+			tmp |= RESET_SRST_PULLS_TRST | RESET_TRST_PULLS_SRST;
+			LOG_WARNING("reset_config 'combined' option is deprecated. "
+						"Use 'trst_srst_tied' instead");
+		} else
 			m = 0;
 		if (mask & m) {
 			LOG_ERROR("extra reset_config %s spec (%s)",
@@ -289,31 +293,33 @@ next:
 	switch (new_cfg & (RESET_HAS_TRST | RESET_HAS_SRST)) {
 		case RESET_HAS_SRST:
 			modes[0] = "srst_only";
+			modes[1] = (new_cfg & RESET_SRST_PULLS_TRST) ? " trst_srst_tied" : " separate";
 			break;
 		case RESET_HAS_TRST:
 			modes[0] = "trst_only";
+			modes[1] = (new_cfg & RESET_TRST_PULLS_SRST) ? " trst_srst_tied" : " separate";
 			break;
 		case RESET_TRST_AND_SRST:
 			modes[0] = "trst_and_srst";
+
+			switch (new_cfg & (RESET_SRST_PULLS_TRST | RESET_TRST_PULLS_SRST)) {
+				case RESET_SRST_PULLS_TRST:
+					modes[1] = " srst_pulls_trst";
+					break;
+				case RESET_TRST_PULLS_SRST:
+					modes[1] = " trst_pulls_srst";
+					break;
+				case RESET_SRST_PULLS_TRST | RESET_TRST_PULLS_SRST:
+					modes[1] = " trst_srst_tied";
+					break;
+				default:
+					modes[1] = " separate";
+					break;
+			}
 			break;
 		default:
 			modes[0] = "none";
-			break;
-	}
-
-	/* normally SRST and TRST are decoupled; but bugs happen ... */
-	switch (new_cfg & (RESET_SRST_PULLS_TRST | RESET_TRST_PULLS_SRST)) {
-		case RESET_SRST_PULLS_TRST:
-			modes[1] = "srst_pulls_trst";
-			break;
-		case RESET_TRST_PULLS_SRST:
-			modes[1] = "trst_pulls_srst";
-			break;
-		case RESET_SRST_PULLS_TRST | RESET_TRST_PULLS_SRST:
-			modes[1] = "combined";
-			break;
-		default:
-			modes[1] = "separate";
+			modes[1] = "";
 			break;
 	}
 
@@ -348,7 +354,7 @@ next:
 		modes[5] = "";
 	}
 
-	command_print(CMD, "%s %s%s%s%s%s",
+	command_print(CMD, "%s%s%s%s%s%s",
 			modes[0], modes[1],
 			modes[2], modes[3], modes[4], modes[5]);
 
@@ -517,10 +523,10 @@ static const struct command_registration interface_command_handlers[] = {
 		.mode = COMMAND_ANY,
 		.help = "configure adapter reset behavior",
 		.usage = "[none|trst_only|srst_only|trst_and_srst] "
-			"[srst_pulls_trst|trst_pulls_srst|combined|separate] "
+			"[separate|srst_pulls_trst|trst_pulls_srst|trst_srst_tied] "
 			"[srst_gates_jtag|srst_nogate] "
 			"[trst_push_pull|trst_open_drain] "
-			"[srst_push_pull|srst_open_drain] "
+			"[srst_open_drain|srst_push_pull] "
 			"[connect_deassert_srst|connect_assert_srst]",
 	},
 	COMMAND_REGISTRATION_DONE

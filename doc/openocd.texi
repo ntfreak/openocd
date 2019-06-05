@@ -3506,8 +3506,9 @@ it must explicitly be driven high (@option{srst_push_pull}).
 
 @itemize
 @item
-@var{signals} can specify which of the reset signals are connected.
-For example, If the JTAG interface provides SRST, but the board doesn't
+@var{signals} can specify which of the reset signals are connected
+and driven by the adapter.
+For example, if the JTAG interface provides SRST, but the board doesn't
 connect that signal properly, then OpenOCD can't use it.
 Possible values are @option{none} (the default), @option{trst_only},
 @option{srst_only} and @option{trst_and_srst}.
@@ -3519,7 +3520,7 @@ you must declare that so those signals can be used.
 
 @item
 The @var{combination} is an optional value specifying broken reset
-signal implementations.
+signal implementations on the board or in the silicon.
 The default behaviour if no option given is @option{separate},
 indicating everything behaves normally.
 @option{srst_pulls_trst} states that the
@@ -3527,7 +3528,16 @@ test logic is reset together with the reset of the system (e.g. NXP
 LPC2000, "broken" board layout), @option{trst_pulls_srst} says that
 the system is reset together with the test logic (only hypothetical, I
 haven't seen hardware with such a bug, and can be worked around).
-@option{combined} implies both @option{srst_pulls_trst} and
+@option{trst_srst_tied} implies that both the test logic and the
+system are reset only together, no separate handling possible.
+Please note @option{srst_only trst_srst_tied} means both
+the test reset and the system reset are triggered by SRST line.
+Similarly @option{trst_only trst_srst_tied} means both
+the test reset and the system reset are triggered by TRST line.
+Option combination @option{trst_and_srst trst_srst_tied} requests
+both TRST and SRST lines are driven equally and trigger both
+the test reset and the system reset.
+
 @option{trst_pulls_srst}.
 
 @item
