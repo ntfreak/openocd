@@ -8,6 +8,9 @@
  *   Copyright (C) 2008 by Spencer Oliver                                  *
  *   spen@spen-soft.co.uk                                                  *
  *                                                                         *
+ *   Copyright (C) 2018 by Advantest                                       *
+ *   florian.meister@advantest.com                                         *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -40,7 +43,8 @@ enum image_type {
 	IMAGE_BINARY,	/* plain binary */
 	IMAGE_IHEX,		/* intel hex-record format */
 	IMAGE_MEMORY,	/* target-memory pseudo-image */
-	IMAGE_ELF,		/* ELF binary */
+	IMAGE_ELF32,	/* 32-bit ELF binary */
+	IMAGE_ELF64,	/* 64-bit ELF binary */
 	IMAGE_SRECORD,	/* motorola s19 */
 	IMAGE_BUILDER,	/* when building a new image */
 };
@@ -78,10 +82,18 @@ struct image_memory {
 	uint32_t cache_address;
 };
 
-struct image_elf {
+struct image_elf32 {
 	struct fileio *fileio;
 	Elf32_Ehdr *header;
 	Elf32_Phdr *segments;
+	uint32_t segment_count;
+	uint8_t endianness;
+};
+
+struct image_elf64 {
+	struct fileio *fileio;
+	Elf64_Ehdr *header;
+	Elf64_Phdr *segments;
 	uint32_t segment_count;
 	uint8_t endianness;
 };
@@ -92,11 +104,11 @@ struct image_mot {
 };
 
 int image_open(struct image *image, const char *url, const char *type_string);
-int image_read_section(struct image *image, int section, uint32_t offset,
+int image_read_section(struct image *image, int section, target_addr_t offset,
 		uint32_t size, uint8_t *buffer, size_t *size_read);
 void image_close(struct image *image);
 
-int image_add_section(struct image *image, uint32_t base, uint32_t size,
+int image_add_section(struct image *image, target_addr_t base, uint32_t size,
 		int flags, uint8_t const *data);
 
 int image_calculate_checksum(const uint8_t *buffer, uint32_t nbytes,
