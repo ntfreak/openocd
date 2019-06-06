@@ -3338,8 +3338,8 @@ COMMAND_HANDLER(handle_mw_command)
 	target_addr_t address;
 	COMMAND_PARSE_ADDRESS(CMD_ARGV[0], address);
 
-	target_addr_t value;
-	COMMAND_PARSE_ADDRESS(CMD_ARGV[1], value);
+	uint64_t value;
+	COMMAND_PARSE_NUMBER(u64, CMD_ARGV[1], value);
 
 	unsigned count = 1;
 	if (CMD_ARGC == 3)
