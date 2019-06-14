@@ -4097,6 +4097,7 @@ COMMAND_HANDLER(handle_profile_command)
 	uint32_t offset;
 	uint32_t num_of_samples;
 	int retval = ERROR_OK;
+	bool halted_before_profiling = target->state == TARGET_HALTED;
 
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], offset);
 
@@ -4127,8 +4128,19 @@ COMMAND_HANDLER(handle_profile_command)
 		free(samples);
 		return retval;
 	}
-	if (target->state == TARGET_RUNNING) {
+
+	if (target->state == TARGET_RUNNING && halted_before_profiling) {
+		/* The target was halted before we started and is running now. Halt it,
+		 * for consistency. */
 		retval = target_halt(target);
+		if (retval != ERROR_OK) {
+			free(samples);
+			return retval;
+		}
+	} else if (target->state == TARGET_HALTED && !halted_before_profiling) {
+		/* The target was running before we started and is halted now. Resume
+		 * it, for consistency. */
+		retval = target_resume(target, 1, 0, 0, 0);
 		if (retval != ERROR_OK) {
 			free(samples);
 			return retval;
