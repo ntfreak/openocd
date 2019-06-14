@@ -7790,9 +7790,9 @@ echo "Downloading kernel -- please wait"
 @end example
 @end deffn
 
-@deffn Command log_output [filename]
-Redirect logging to @var{filename};
-the initial log output channel is stderr.
+@deffn Command log_output [filename | "default"]
+Redirect logging to @var{filename} or set it back to default output;
+the default log output channel is stderr.
 @end deffn
 
 @deffn Command add_script_search_dir [directory]
