@@ -72,8 +72,6 @@ static int target_get_gdb_fileio_info_default(struct target *target,
 		struct gdb_fileio_info *fileio_info);
 static int target_gdb_fileio_end_default(struct target *target, int retcode,
 		int fileio_errno, bool ctrl_c);
-static int target_profiling_default(struct target *target, uint32_t *samples,
-		uint32_t max_num_samples, uint32_t *num_samples, uint32_t seconds);
 
 /* targets */
 extern struct target_type arm7tdmi_target;
@@ -2137,7 +2135,7 @@ static int target_gdb_fileio_end_default(struct target *target,
 	return ERROR_OK;
 }
 
-static int target_profiling_default(struct target *target, uint32_t *samples,
+int target_profiling_default(struct target *target, uint32_t *samples,
 		uint32_t max_num_samples, uint32_t *num_samples, uint32_t seconds)
 {
 	struct timeval timeout, now;

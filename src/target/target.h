@@ -748,6 +748,9 @@ void target_handle_md_output(struct command_invocation *cmd,
 	struct target *target, target_addr_t address, unsigned size,
 	unsigned count, const uint8_t *buffer);
 
+int target_profiling_default(struct target *target, uint32_t *samples, uint32_t
+		max_num_samples, uint32_t *num_samples, uint32_t seconds);
+
 #define ERROR_TARGET_INVALID	(-300)
 #define ERROR_TARGET_INIT_FAILED (-301)
 #define ERROR_TARGET_TIMEOUT	(-302)
