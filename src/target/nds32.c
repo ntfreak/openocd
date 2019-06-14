@@ -2496,6 +2496,12 @@ int nds32_profiling(struct target *target, uint32_t *samples,
 	struct aice_port_s *aice = target_to_aice(target);
 	struct nds32 *nds32 = target_to_nds32(target);
 
+	/* REVISIT: can nds32 profile without halting? */
+	if (target->state != TARGET_HALTED) {
+		LOG_WARNING("target %s is not halted (profiling)", target->cmd_name);
+		return ERROR_TARGET_NOT_HALTED;
+	}
+
 	if (max_num_samples < iteration)
 		iteration = max_num_samples;
 

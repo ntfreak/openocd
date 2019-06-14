@@ -1324,10 +1324,6 @@ unsigned target_address_bits(struct target *target)
 int target_profiling(struct target *target, uint32_t *samples,
 			uint32_t max_num_samples, uint32_t *num_samples, uint32_t seconds)
 {
-	if (target->state != TARGET_HALTED) {
-		LOG_WARNING("target %s is not halted (profiling)", target->cmd_name);
-		return ERROR_TARGET_NOT_HALTED;
-	}
 	return target->type->profiling(target, samples, max_num_samples,
 			num_samples, seconds);
 }
