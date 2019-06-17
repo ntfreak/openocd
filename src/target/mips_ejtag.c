@@ -27,11 +27,8 @@
 #include "mips32.h"
 #include "mips_ejtag.h"
 #include "mips32_dmaacc.h"
-
-#if BUILD_TARGET64 == 1
 #include "mips64.h"
 #include "mips64_pracc.h"
-#endif
 
 void mips_ejtag_set_instr(struct mips_ejtag *ejtag_info, uint32_t new_instr)
 {
@@ -458,8 +455,6 @@ int mips_ejtag_fastdata_scan(struct mips_ejtag *ejtag_info, int write_t, uint32_
 	return ERROR_OK;
 }
 
-#if BUILD_TARGET64 == 1
-
 int mips64_ejtag_config_step(struct mips_ejtag *ejtag_info, bool enable_step)
 {
 	const uint32_t code_enable[] = {
@@ -564,5 +559,3 @@ int mips64_ejtag_fastdata_scan(struct mips_ejtag *ejtag_info, bool write_t, uint
 
 	return ERROR_OK;
 }
-
-#endif /* BUILD_TARGET64 */

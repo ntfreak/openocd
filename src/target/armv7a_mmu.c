@@ -62,12 +62,6 @@ int armv7a_mmu_translate_va_pa(struct target *target, uint32_t va,
 
 	/* decode memory attribute */
 	SS = (value >> 1) & 1;
-#if !BUILD_TARGET64
-	if (SS) {
-		LOG_ERROR("Super section found with no-64 bit address support");
-		return ERROR_FAIL;
-	}
-#endif
 	NOS = (value >> 10) & 1;	/*  Not Outer shareable */
 	NS = (value >> 9) & 1;	/* Non secure */
 	INNER = (value >> 4) &  0x7;

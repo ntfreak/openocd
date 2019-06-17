@@ -17,8 +17,6 @@
 #include "config.h"
 #endif
 
-#if BUILD_TARGET64 == 1
-
 #include "mips64.h"
 #include "mips64_pracc.h"
 
@@ -1427,5 +1425,3 @@ int mips64_pracc_fastdata_xfer(struct mips_ejtag *ejtag_info,
 
 	return retval;
 }
-
-#endif /* BUILD_TARGET64 */
