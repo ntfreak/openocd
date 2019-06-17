@@ -18,8 +18,6 @@
 #include "config.h"
 #endif
 
-#if BUILD_TARGET64 == 1
-
 #include "mips64.h"
 
 static const struct {
@@ -623,5 +621,3 @@ int mips64_enable_interrupts(struct target *target, bool enable)
 
 	return ERROR_OK;
 }
-
-#endif /* BUILD_TARGET64 */

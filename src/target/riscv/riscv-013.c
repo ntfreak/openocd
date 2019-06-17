@@ -1892,11 +1892,9 @@ static target_addr_t sb_read_address(struct target *target)
 	target_addr_t address = 0;
 	uint32_t v;
 	if (sbasize > 32) {
-#if BUILD_TARGET64
 		dmi_read(target, &v, DMI_SBADDRESS1);
 		address |= v;
 		address <<= 32;
-#endif
 	}
 	dmi_read(target, &v, DMI_SBADDRESS0);
 	address |= v;
@@ -1913,11 +1911,7 @@ static int sb_write_address(struct target *target, target_addr_t address)
 	if (sbasize > 64)
 		dmi_write(target, DMI_SBADDRESS2, 0);
 	if (sbasize > 32)
-#if BUILD_TARGET64
 		dmi_write(target, DMI_SBADDRESS1, address >> 32);
-#else
-		dmi_write(target, DMI_SBADDRESS1, 0);
-#endif
 	return dmi_write(target, DMI_SBADDRESS0, address);
 }
 

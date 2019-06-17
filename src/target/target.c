@@ -148,10 +148,8 @@ static struct target_type *target_types[] = {
 	&mem_ap_target,
 	&esirisc_target,
 	&arcv2_target,
-#if BUILD_TARGET64
 	&aarch64_target,
 	&mips_mips64_target,
-#endif
 	NULL,
 };
 

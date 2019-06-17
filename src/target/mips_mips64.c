@@ -16,8 +16,6 @@
 #include "config.h"
 #endif
 
-#if BUILD_TARGET64 == 1
-
 #include "breakpoints.h"
 #include "mips32.h"
 #include "mips64.h"
@@ -1193,5 +1191,3 @@ struct target_type mips_mips64_target = {
 
 	.commands = mips64_commands_handlers,
 };
-
-#endif /* BUILD_TARGET64 */

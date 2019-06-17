@@ -29,12 +29,9 @@ noinst_LTLIBRARIES += %D%/libtarget.la
 	%D%/dsp563xx.c \
 	%D%/dsp563xx_once.c \
 	%D%/dsp5680xx.c \
-	%D%/hla_target.c
-
-if TARGET64
-%C%_libtarget_la_SOURCES +=$(ARMV8_SRC)
-%C%_libtarget_la_SOURCES +=$(MIPS64_SRC)
-endif
+	%D%/hla_target.c \
+	$(ARMV8_SRC) \
+	$(MIPS64_SRC)
 
 TARGET_CORE_SRC = \
 	%D%/algorithm.c \
