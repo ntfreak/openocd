@@ -475,6 +475,7 @@ static void dsp563xx_build_reg_cache(struct target *target)
 		reg_list[i].value = calloc(1, 4);
 		reg_list[i].dirty = false;
 		reg_list[i].valid = false;
+		reg_list[i].exist = true;
 		reg_list[i].type = &dsp563xx_reg_type;
 		reg_list[i].arch_info = &arch_info[i];
 	}
