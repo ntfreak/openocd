@@ -768,9 +768,6 @@ int arm_arch_state(struct target *target)
 	return ERROR_OK;
 }
 
-#define ARMV4_5_CORE_REG_MODENUM(cache, mode, num) \
-	(cache->reg_list[armv4_5_core_reg_map[mode][num]])
-
 COMMAND_HANDLER(handle_armv4_5_reg_command)
 {
 	struct target *target = get_current_target(CMD_CTX);
