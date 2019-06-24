@@ -2725,7 +2725,7 @@ static int cortex_a_examine_first(struct target *target)
 		}
 	}
 
-	armv7a->arm.core_type = ARM_MODE_MON;
+	armv7a->arm.core_type = ARM_CORE_TYPE_SEC_EXT;
 
 	/* Avoid recreating the registers cache */
 	if (!target_was_examined(target)) {

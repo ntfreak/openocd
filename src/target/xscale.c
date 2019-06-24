@@ -2981,7 +2981,7 @@ static int xscale_init_arch_info(struct target *target,
 
 	/* prepare ARMv4/5 specific information */
 	arm->arch_info = xscale;
-	arm->core_type = ARM_MODE_ANY;
+	arm->core_type = ARM_CORE_TYPE_STD;
 	arm->read_core_reg = xscale_read_core_reg;
 	arm->write_core_reg = xscale_write_core_reg;
 	arm->full_context = xscale_full_context;

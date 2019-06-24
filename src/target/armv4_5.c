@@ -658,7 +658,7 @@ struct reg_cache *arm_build_reg_cache(struct target *target, struct arm *arm)
 	for (i = 0; i < num_core_regs; i++) {
 		/* Skip registers this core doesn't expose */
 		if (arm_core_regs[i].mode == ARM_MODE_MON
-			&& arm->core_type != ARM_MODE_MON)
+			&& arm->core_type != ARM_CORE_TYPE_SEC_EXT)
 			continue;
 
 		/* REVISIT handle Cortex-M, which only shadows R13/SP */
@@ -787,7 +787,7 @@ COMMAND_HANDLER(handle_armv4_5_reg_command)
 		return ERROR_FAIL;
 	}
 
-	if (arm->core_type != ARM_MODE_ANY) {
+	if (arm->core_type != ARM_CORE_TYPE_STD) {
 		command_print(CMD,
 			"Microcontroller Profile not supported - use standard reg cmd");
 		return ERROR_OK;
@@ -820,7 +820,7 @@ COMMAND_HANDLER(handle_armv4_5_reg_command)
 				sep = "";
 				break;
 			case ARM_MODE_MON:
-				if (arm->core_type != ARM_MODE_MON)
+				if (arm->core_type != ARM_CORE_TYPE_SEC_EXT)
 					continue;
 			/* FALLTHROUGH */
 			default:
@@ -872,7 +872,7 @@ COMMAND_HANDLER(handle_armv4_5_core_state_command)
 		return ERROR_FAIL;
 	}
 
-	if (arm->core_type == ARM_MODE_THREAD) {
+	if (arm->core_type == ARM_CORE_TYPE_M_PROFILE) {
 		/* armv7m not supported */
 		command_print(CMD, "Unsupported Command");
 		return ERROR_OK;
@@ -910,7 +910,7 @@ COMMAND_HANDLER(handle_arm_disassemble_command)
 		return ERROR_FAIL;
 	}
 
-	if (arm->core_type == ARM_MODE_THREAD) {
+	if (arm->core_type == ARM_CORE_TYPE_M_PROFILE) {
 		/* armv7m is always thumb mode */
 		thumb = 1;
 	}
@@ -1225,7 +1225,7 @@ int arm_get_gdb_reg_list(struct target *target,
 		break;
 
 	case REG_CLASS_ALL:
-		*reg_list_size = (arm->core_type != ARM_MODE_MON ? 48 : 51);
+		*reg_list_size = (arm->core_type != ARM_CORE_TYPE_SEC_EXT ? 48 : 51);
 		unsigned int list_size_core = *reg_list_size;
 		if (arm->arm_vfp_version == ARM_VFP_V3)
 			*reg_list_size += 33;
@@ -1238,7 +1238,7 @@ int arm_get_gdb_reg_list(struct target *target,
 		for (i = 13; i < ARRAY_SIZE(arm_core_regs); i++) {
 				int reg_index = arm->core_cache->reg_list[i].number;
 				if (!(arm_core_regs[i].mode == ARM_MODE_MON
-						&& arm->core_type != ARM_MODE_MON))
+						&& arm->core_type != ARM_CORE_TYPE_SEC_EXT))
 					(*reg_list)[reg_index] = &(arm->core_cache->reg_list[i]);
 		}
 
@@ -1701,8 +1701,8 @@ int arm_init_arch_info(struct target *target, struct arm *arm)
 	arm->common_magic = ARM_COMMON_MAGIC;
 
 	/* core_type may be overridden by subtype logic */
-	if (arm->core_type != ARM_MODE_THREAD) {
-		arm->core_type = ARM_MODE_ANY;
+	if (arm->core_type != ARM_CORE_TYPE_M_PROFILE) {
+		arm->core_type = ARM_CORE_TYPE_STD;
 		arm_set_cpsr(arm, ARM_MODE_USR);
 	}
 

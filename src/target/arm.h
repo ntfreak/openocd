@@ -41,6 +41,22 @@
  */
 
 /**
+ * Indicates what registers are in the ARM state core register set.
+ *
+ * - ARM_CORE_TYPE_STD indicates the standard set of 37 registers, seen
+ *   on for example ARM7TDMI cores.
+ * - ARM_CORE_TYPE_SEC_EXT indicates core has security extensions, thus
+ *   three more registers are shadowed for "Secure Monitor" mode.
+ * - ARM_CORE_TYPE_M_PROFILE indicates a microcontroller profile core,
+ *   which only shadows SP.
+ */
+enum arm_core_type {
+	ARM_CORE_TYPE_STD = -1,
+	ARM_CORE_TYPE_SEC_EXT = 1,
+	ARM_CORE_TYPE_M_PROFILE,
+};
+
+/**
  * Represent state of an ARM core.
  *
  * Most numbers match the five low bits of the *PSR registers on
@@ -161,15 +177,8 @@ struct arm {
 	/** Support for arm_reg_current() */
 	const int *map;
 
-	/**
-	 * Indicates what registers are in the ARM state core register set.
-	 * ARM_MODE_ANY indicates the standard set of 37 registers,
-	 * seen on for example ARM7TDMI cores.  ARM_MODE_MON indicates three
-	 * more registers are shadowed, for "Secure Monitor" mode.
-	 * ARM_MODE_THREAD indicates a microcontroller profile core,
-	 * which only shadows SP.
-	 */
-	enum arm_mode core_type;
+	/** Indicates what registers are in the ARM state core register set. */
+	enum arm_core_type core_type;
 
 	/** Record the current core mode: SVC, USR, or some other mode. */
 	enum arm_mode core_mode;

@@ -1109,7 +1109,7 @@ static int arm11_target_create(struct target *target, Jim_Interp *interp)
 	if (!arm11)
 		return ERROR_FAIL;
 
-	arm11->arm.core_type = ARM_MODE_ANY;
+	arm11->arm.core_type = ARM_CORE_TYPE_STD;
 	arm_init_arch_info(target, &arm11->arm);
 
 	arm11->jtag_info.tap = target->tap;
@@ -1180,7 +1180,7 @@ static int arm11_examine(struct target *target)
 			type = "ARM1156";
 			break;
 		case 0x7B76:
-			arm11->arm.core_type = ARM_MODE_MON;
+			arm11->arm.core_type = ARM_CORE_TYPE_SEC_EXT;
 			/* NOTE: could default arm11->hardware_step to true */
 			type = "ARM1176";
 			break;

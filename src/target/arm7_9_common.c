@@ -2848,7 +2848,7 @@ int arm7_9_init_arch_info(struct target *target, struct arm7_9_common *arm7_9)
 	arm7_9->dcc_downloads = false;
 
 	arm->arch_info = arm7_9;
-	arm->core_type = ARM_MODE_ANY;
+	arm->core_type = ARM_CORE_TYPE_STD;
 	arm->read_core_reg = arm7_9_read_core_reg;
 	arm->write_core_reg = arm7_9_write_core_reg;
 	arm->full_context = arm7_9_full_context;
