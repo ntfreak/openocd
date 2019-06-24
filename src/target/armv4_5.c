@@ -274,24 +274,24 @@ static const struct {
 	 * correspond to r0..r7, and the fifteenth to PC, so that callers
 	 * don't need to map them.
 	 */
-	{ .name = "r0", .cookie = 0, .mode = ARM_MODE_ANY, .gdb_index = 0, },
-	{ .name = "r1", .cookie = 1, .mode = ARM_MODE_ANY, .gdb_index = 1, },
-	{ .name = "r2", .cookie = 2, .mode = ARM_MODE_ANY, .gdb_index = 2, },
-	{ .name = "r3", .cookie = 3, .mode = ARM_MODE_ANY, .gdb_index = 3, },
-	{ .name = "r4", .cookie = 4, .mode = ARM_MODE_ANY, .gdb_index = 4, },
-	{ .name = "r5", .cookie = 5, .mode = ARM_MODE_ANY, .gdb_index = 5, },
-	{ .name = "r6", .cookie = 6, .mode = ARM_MODE_ANY, .gdb_index = 6, },
-	{ .name = "r7", .cookie = 7, .mode = ARM_MODE_ANY, .gdb_index = 7, },
+	[0] = { .name = "r0", .cookie = 0, .mode = ARM_MODE_ANY, .gdb_index = 0, },
+	[1] = { .name = "r1", .cookie = 1, .mode = ARM_MODE_ANY, .gdb_index = 1, },
+	[2] = { .name = "r2", .cookie = 2, .mode = ARM_MODE_ANY, .gdb_index = 2, },
+	[3] = { .name = "r3", .cookie = 3, .mode = ARM_MODE_ANY, .gdb_index = 3, },
+	[4] = { .name = "r4", .cookie = 4, .mode = ARM_MODE_ANY, .gdb_index = 4, },
+	[5] = { .name = "r5", .cookie = 5, .mode = ARM_MODE_ANY, .gdb_index = 5, },
+	[6] = { .name = "r6", .cookie = 6, .mode = ARM_MODE_ANY, .gdb_index = 6, },
+	[7] = { .name = "r7", .cookie = 7, .mode = ARM_MODE_ANY, .gdb_index = 7, },
 
 	/* NOTE: regs 8..12 might be shadowed by FIQ ... flagging
 	 * them as MODE_ANY creates special cases.  (ANY means
 	 * "not mapped" elsewhere; here it's "everything but FIQ".)
 	 */
-	{ .name = "r8", .cookie = 8, .mode = ARM_MODE_ANY, .gdb_index = 8, },
-	{ .name = "r9", .cookie = 9, .mode = ARM_MODE_ANY, .gdb_index = 9, },
-	{ .name = "r10", .cookie = 10, .mode = ARM_MODE_ANY, .gdb_index = 10, },
-	{ .name = "r11", .cookie = 11, .mode = ARM_MODE_ANY, .gdb_index = 11, },
-	{ .name = "r12", .cookie = 12, .mode = ARM_MODE_ANY, .gdb_index = 12, },
+	[8] = { .name = "r8", .cookie = 8, .mode = ARM_MODE_ANY, .gdb_index = 8, },
+	[9] = { .name = "r9", .cookie = 9, .mode = ARM_MODE_ANY, .gdb_index = 9, },
+	[10] = { .name = "r10", .cookie = 10, .mode = ARM_MODE_ANY, .gdb_index = 10, },
+	[11] = { .name = "r11", .cookie = 11, .mode = ARM_MODE_ANY, .gdb_index = 11, },
+	[12] = { .name = "r12", .cookie = 12, .mode = ARM_MODE_ANY, .gdb_index = 12, },
 
 	/* Historical GDB mapping of indices:
 	 *  - 13-14 are sp and lr, but banked counterparts are used
@@ -300,47 +300,47 @@ static const struct {
 	 */
 
 	/* NOTE all MODE_USR registers are equivalent to MODE_SYS ones */
-	{ .name = "sp_usr", .cookie = 13, .mode = ARM_MODE_USR, .gdb_index = 26, },
-	{ .name = "lr_usr", .cookie = 14, .mode = ARM_MODE_USR, .gdb_index = 27, },
+	[13] = { .name = "sp_usr", .cookie = 13, .mode = ARM_MODE_USR, .gdb_index = 26, },
+	[14] = { .name = "lr_usr", .cookie = 14, .mode = ARM_MODE_USR, .gdb_index = 27, },
 
 	/* guaranteed to be at index 15 */
-	{ .name = "pc", .cookie = 15, .mode = ARM_MODE_ANY, .gdb_index = 15, },
-	{ .name = "r8_fiq", .cookie = 8, .mode = ARM_MODE_FIQ, .gdb_index = 28, },
-	{ .name = "r9_fiq", .cookie = 9, .mode = ARM_MODE_FIQ, .gdb_index = 29, },
-	{ .name = "r10_fiq", .cookie = 10, .mode = ARM_MODE_FIQ, .gdb_index = 30, },
-	{ .name = "r11_fiq", .cookie = 11, .mode = ARM_MODE_FIQ, .gdb_index = 31, },
-	{ .name = "r12_fiq", .cookie = 12, .mode = ARM_MODE_FIQ, .gdb_index = 32, },
+	[15] = { .name = "pc", .cookie = 15, .mode = ARM_MODE_ANY, .gdb_index = 15, },
+	[16] = { .name = "r8_fiq", .cookie = 8, .mode = ARM_MODE_FIQ, .gdb_index = 28, },
+	[17] = { .name = "r9_fiq", .cookie = 9, .mode = ARM_MODE_FIQ, .gdb_index = 29, },
+	[18] = { .name = "r10_fiq", .cookie = 10, .mode = ARM_MODE_FIQ, .gdb_index = 30, },
+	[19] = { .name = "r11_fiq", .cookie = 11, .mode = ARM_MODE_FIQ, .gdb_index = 31, },
+	[20] = { .name = "r12_fiq", .cookie = 12, .mode = ARM_MODE_FIQ, .gdb_index = 32, },
 
-	{ .name = "sp_fiq", .cookie = 13, .mode = ARM_MODE_FIQ, .gdb_index = 33, },
-	{ .name = "lr_fiq", .cookie = 14, .mode = ARM_MODE_FIQ, .gdb_index = 34, },
+	[21] = { .name = "sp_fiq", .cookie = 13, .mode = ARM_MODE_FIQ, .gdb_index = 33, },
+	[22] = { .name = "lr_fiq", .cookie = 14, .mode = ARM_MODE_FIQ, .gdb_index = 34, },
 
-	{ .name = "sp_irq", .cookie = 13, .mode = ARM_MODE_IRQ, .gdb_index = 35, },
-	{ .name = "lr_irq", .cookie = 14, .mode = ARM_MODE_IRQ, .gdb_index = 36, },
+	[23] = { .name = "sp_irq", .cookie = 13, .mode = ARM_MODE_IRQ, .gdb_index = 35, },
+	[24] = { .name = "lr_irq", .cookie = 14, .mode = ARM_MODE_IRQ, .gdb_index = 36, },
 
-	{ .name = "sp_svc", .cookie = 13, .mode = ARM_MODE_SVC, .gdb_index = 37, },
-	{ .name = "lr_svc", .cookie = 14, .mode = ARM_MODE_SVC, .gdb_index = 38, },
+	[25] = { .name = "sp_svc", .cookie = 13, .mode = ARM_MODE_SVC, .gdb_index = 37, },
+	[26] = { .name = "lr_svc", .cookie = 14, .mode = ARM_MODE_SVC, .gdb_index = 38, },
 
-	{ .name = "sp_abt", .cookie = 13, .mode = ARM_MODE_ABT, .gdb_index = 39, },
-	{ .name = "lr_abt", .cookie = 14, .mode = ARM_MODE_ABT, .gdb_index = 40, },
+	[27] = { .name = "sp_abt", .cookie = 13, .mode = ARM_MODE_ABT, .gdb_index = 39, },
+	[28] = { .name = "lr_abt", .cookie = 14, .mode = ARM_MODE_ABT, .gdb_index = 40, },
 
-	{ .name = "sp_und", .cookie = 13, .mode = ARM_MODE_UND, .gdb_index = 41, },
-	{ .name = "lr_und", .cookie = 14, .mode = ARM_MODE_UND, .gdb_index = 42, },
+	[29] = { .name = "sp_und", .cookie = 13, .mode = ARM_MODE_UND, .gdb_index = 41, },
+	[30] = { .name = "lr_und", .cookie = 14, .mode = ARM_MODE_UND, .gdb_index = 42, },
 
-	{ .name = "cpsr", .cookie = 16, .mode = ARM_MODE_ANY, .gdb_index = 25, },
-	{ .name = "spsr_fiq", .cookie = 16, .mode = ARM_MODE_FIQ, .gdb_index = 43, },
-	{ .name = "spsr_irq", .cookie = 16, .mode = ARM_MODE_IRQ, .gdb_index = 44, },
-	{ .name = "spsr_svc", .cookie = 16, .mode = ARM_MODE_SVC, .gdb_index = 45, },
-	{ .name = "spsr_abt", .cookie = 16, .mode = ARM_MODE_ABT, .gdb_index = 46, },
-	{ .name = "spsr_und", .cookie = 16, .mode = ARM_MODE_UND, .gdb_index = 47, },
+	[31] = { .name = "cpsr", .cookie = 16, .mode = ARM_MODE_ANY, .gdb_index = 25, },
+	[32] = { .name = "spsr_fiq", .cookie = 16, .mode = ARM_MODE_FIQ, .gdb_index = 43, },
+	[33] = { .name = "spsr_irq", .cookie = 16, .mode = ARM_MODE_IRQ, .gdb_index = 44, },
+	[34] = { .name = "spsr_svc", .cookie = 16, .mode = ARM_MODE_SVC, .gdb_index = 45, },
+	[35] = { .name = "spsr_abt", .cookie = 16, .mode = ARM_MODE_ABT, .gdb_index = 46, },
+	[36] = { .name = "spsr_und", .cookie = 16, .mode = ARM_MODE_UND, .gdb_index = 47, },
 
 	/* These are only used for GDB target description, banked registers are accessed instead */
-	{ .name = "sp", .cookie = 13, .mode = ARM_MODE_ANY, .gdb_index = 13, },
-	{ .name = "lr", .cookie = 14, .mode = ARM_MODE_ANY, .gdb_index = 14, },
+	[37] = { .name = "sp", .cookie = 13, .mode = ARM_MODE_ANY, .gdb_index = 13, },
+	[38] = { .name = "lr", .cookie = 14, .mode = ARM_MODE_ANY, .gdb_index = 14, },
 
 	/* These exist only when the Security Extension (TrustZone) is present */
-	{ .name = "sp_mon", .cookie = 13, .mode = ARM_MODE_MON, .gdb_index = 48, },
-	{ .name = "lr_mon", .cookie = 14, .mode = ARM_MODE_MON, .gdb_index = 49, },
-	{ .name = "spsr_mon", .cookie = 16, .mode = ARM_MODE_MON, .gdb_index = 50, },
+	[39] = { .name = "sp_mon", .cookie = 13, .mode = ARM_MODE_MON, .gdb_index = 48, },
+	[40] = { .name = "lr_mon", .cookie = 14, .mode = ARM_MODE_MON, .gdb_index = 49, },
+	[41] = { .name = "spsr_mon", .cookie = 16, .mode = ARM_MODE_MON, .gdb_index = 50, },
 
 };
 
