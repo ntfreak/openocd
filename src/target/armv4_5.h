@@ -38,7 +38,7 @@
 int arm_mode_to_number(enum arm_mode mode);
 enum arm_mode armv4_5_number_to_mode(int number);
 
-extern const int armv4_5_core_reg_map[8][17];
+extern const int armv4_5_core_reg_map[9][17];
 
 #define ARMV4_5_CORE_REG_MODE(cache, mode, num) \
 		(cache->reg_list[armv4_5_core_reg_map[arm_mode_to_number(mode)][num]])

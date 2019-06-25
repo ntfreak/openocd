@@ -47,12 +47,16 @@
  *   on for example ARM7TDMI cores.
  * - ARM_CORE_TYPE_SEC_EXT indicates core has security extensions, thus
  *   three more registers are shadowed for "Secure Monitor" mode.
+ * - ARM_CORE_TYPE_VIRT_EXT indicates core has virtualization extensions
+ *   and also security extensions. Additional shadowed registers for
+ *   "Secure Monitor" and "Hypervisor" modes.
  * - ARM_CORE_TYPE_M_PROFILE indicates a microcontroller profile core,
  *   which only shadows SP.
  */
 enum arm_core_type {
 	ARM_CORE_TYPE_STD = -1,
 	ARM_CORE_TYPE_SEC_EXT = 1,
+	ARM_CORE_TYPE_VIRT_EXT,
 	ARM_CORE_TYPE_M_PROFILE,
 };
 
@@ -76,6 +80,7 @@ enum arm_mode {
 	ARM_MODE_SVC = 19,
 	ARM_MODE_MON = 22,
 	ARM_MODE_ABT = 23,
+	ARM_MODE_HYP = 26,
 	ARM_MODE_UND = 27,
 	ARM_MODE_1176_MON = 28,
 	ARM_MODE_SYS = 31,

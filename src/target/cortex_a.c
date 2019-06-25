@@ -2735,6 +2735,15 @@ static int cortex_a_examine_first(struct target *target)
 				target->coreid);
 		armv7a->arm.core_type = ARM_CORE_TYPE_SEC_EXT;
 	}
+	if (dbg_idpfr1 & 0x0000f000) {
+		LOG_DEBUG("target->coreid %" PRId32 " has virtualization extensions",
+				target->coreid);
+		/*
+		 * overwrite and simplify the checks.
+		 * virtualization extensions require implementation of security extension
+		 */
+		armv7a->arm.core_type = ARM_CORE_TYPE_VIRT_EXT;
+	}
 
 	/* Avoid recreating the registers cache */
 	if (!target_was_examined(target)) {
