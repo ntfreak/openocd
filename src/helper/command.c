@@ -684,6 +684,8 @@ int command_run_line(struct command_context *context, char *line)
 			command_output_text(context, "\n");
 		}
 		retval = ERROR_OK;
+	} else if (retcode == JIM_RETURN) {
+		retval = ERROR_OK;
 	} else if (retcode == JIM_EXIT) {
 		/* ignore.
 		 * exit(Jim_GetExitCode(interp)); */
