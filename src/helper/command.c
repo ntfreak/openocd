@@ -668,6 +668,9 @@ int command_run_line(struct command_context *context, char *line)
 		}
 		Jim_DeleteAssocData(interp, "context");
 	}
+	if (retcode == JIM_RETURN)
+		retcode = interp->returnCode;
+
 	if (retcode == JIM_OK) {
 		const char *result;
 		int reslen;
