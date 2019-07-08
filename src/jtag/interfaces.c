@@ -102,6 +102,9 @@ extern struct jtag_interface armjtagew_interface;
 #if BUILD_BUSPIRATE == 1
 extern struct jtag_interface buspirate_interface;
 #endif
+#if BUILD_AXIJTAG == 1
+extern struct jtag_interface axi_jtag_interface;
+#endif
 #if BUILD_REMOTE_BITBANG == 1
 extern struct jtag_interface remote_bitbang_interface;
 #endif
@@ -203,6 +206,9 @@ struct jtag_interface *jtag_interfaces[] = {
 #endif
 #if BUILD_ARMJTAGEW == 1
 		&armjtagew_interface,
+#endif
+#if BUILD_AXIJTAG == 1
+		&axi_jtag_interface,
 #endif
 #if BUILD_BUSPIRATE == 1
 		&buspirate_interface,
