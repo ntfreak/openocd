@@ -123,6 +123,9 @@ DRIVERFILES += %D%/versaloon/usbtoxxx/usbtoxxx.c
 DRIVERFILES += %D%/versaloon/versaloon.c
 DRIVERFILES += %D%/vsllink.c
 endif
+if AXIJTAG
+DRIVERFILES += %D%/axi-jtag.c
+endif
 if ARMJTAGEW
 DRIVERFILES += %D%/arm-jtag-ew.c
 endif
