@@ -166,7 +166,7 @@ static const struct efm32_family_data efm32_families[] = {
 		{ 89, "EFM32PG13B Pearl", .series = 1 },
 		{ 91, "EFM32JG13B Jade", .series = 1 },
 		{ 100, "EFM32GG11B Giant", .series = 1, .msc_regbase = 0x40000000 },
-		{ 103, "EFM32TG11B Tiny", .series = 1 },
+		{ 103, "EFM32TG11B Tiny", .series = 1, .msc_regbase = 0x40000000 },
 		{ 120, "EZR32WG Wonder", .series = 0 },
 		{ 121, "EZR32LG Leopard", .series = 0 },
 		{ 122, "EZR32HG Happy", .series = 0, .page_size = 1024 },
