@@ -3463,6 +3463,23 @@ static void stlink_dap_op_quit(struct adiv5_dap *dap)
 }
 
 /** */
+static int stlink_dap_config_trace(bool enabled,
+		enum tpiu_pin_protocol pin_protocol, uint32_t port_size,
+		unsigned int *trace_freq, unsigned int traceclkin_freq,
+		uint16_t *prescaler)
+{
+	return stlink_config_trace(stlink_dap_handle, enabled, pin_protocol,
+							   port_size, trace_freq, traceclkin_freq,
+							   prescaler);
+}
+
+/** */
+static int stlink_dap_trace_read(uint8_t *buf, size_t *size)
+{
+	return stlink_usb_trace_read(stlink_dap_handle, buf, size);
+}
+
+/** */
 COMMAND_HANDLER(stlink_dap_serial_command)
 {
 	LOG_DEBUG("stlink_dap_serial_command");
@@ -3645,6 +3662,8 @@ struct adapter_driver stlink_dap_adapter_driver = {
 	.speed = stlink_dap_speed,
 	.khz = stlink_dap_khz,
 	.speed_div = stlink_dap_speed_div,
+	.config_trace = stlink_dap_config_trace,
+	.poll_trace = stlink_dap_trace_read,
 
 	.dap_jtag_ops = &stlink_dap_ops,
 	.dap_swd_ops = &stlink_dap_ops,
