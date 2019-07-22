@@ -27,12 +27,15 @@
  * r1 = buffer start
  * r2 = buffer end
  * r3 = target address
+ * r6 = watchdog refresh value
+ * r7 = watchdog refresh register address
  */
 
 	.thumb_func
 	.global _start
 _start:
 wait_fifo:
+	str	r6, [r7, #0]
 	ldr	r5, [r1, #0]
 	cmp	r5, #0
 	beq.n	exit
