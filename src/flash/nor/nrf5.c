@@ -28,6 +28,10 @@
 #include <helper/types.h>
 #include <helper/time_support.h>
 
+/* Both those values are constant across the current spectrum ofr nRF5 devices */
+#define WATCHDOG_REFRESH_REGISTER       0x40010600
+#define WATCHDOG_REFRESH_VALUE          0x6e524635
+
 enum {
 	NRF5_FLASH_BASE = 0x00000000,
 };
@@ -627,7 +631,7 @@ static int nrf5_ll_flash_write(struct nrf5_info *chip, uint32_t offset, const ui
 	struct working_area *write_algorithm;
 	struct working_area *source;
 	uint32_t address = NRF5_FLASH_BASE + offset;
-	struct reg_param reg_params[4];
+	struct reg_param reg_params[6];
 	struct armv7m_algorithm armv7m_info;
 	int retval = ERROR_OK;
 
@@ -689,15 +693,19 @@ static int nrf5_ll_flash_write(struct nrf5_info *chip, uint32_t offset, const ui
 	init_reg_param(&reg_params[1], "r1", 32, PARAM_OUT);	/* buffer start */
 	init_reg_param(&reg_params[2], "r2", 32, PARAM_OUT);	/* buffer end */
 	init_reg_param(&reg_params[3], "r3", 32, PARAM_IN_OUT);	/* target address */
+	init_reg_param(&reg_params[4], "r6", 32, PARAM_IN);	/* watchdog refresh value */
+	init_reg_param(&reg_params[5], "r7", 32, PARAM_IN);	/* watchdog refresh register address */
 
 	buf_set_u32(reg_params[0].value, 0, 32, bytes);
 	buf_set_u32(reg_params[1].value, 0, 32, source->address);
 	buf_set_u32(reg_params[2].value, 0, 32, source->address + source->size);
 	buf_set_u32(reg_params[3].value, 0, 32, address);
+	buf_set_u32(reg_params[4].value, 0, 32, WATCHDOG_REFRESH_VALUE);
+	buf_set_u32(reg_params[5].value, 0, 32, WATCHDOG_REFRESH_REGISTER);
 
 	retval = target_run_flash_async_algorithm(target, buffer, bytes/4, 4,
 			0, NULL,
-			4, reg_params,
+			6, reg_params,
 			source->address, source->size,
 			write_algorithm->address, 0,
 			&armv7m_info);
@@ -709,6 +717,8 @@ static int nrf5_ll_flash_write(struct nrf5_info *chip, uint32_t offset, const ui
 	destroy_reg_param(&reg_params[1]);
 	destroy_reg_param(&reg_params[2]);
 	destroy_reg_param(&reg_params[3]);
+	destroy_reg_param(&reg_params[4]);
+	destroy_reg_param(&reg_params[5]);
 
 	return retval;
 }
