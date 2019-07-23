@@ -896,30 +896,6 @@ static int nrf5_erase_page(struct flash_bank *bank,
 	return res;
 }
 
-static const uint8_t nrf5_flash_write_code[] = {
-	/* See contrib/loaders/flash/cortex-m0.S */
-/* <wait_fifo>: */
-	0x0d, 0x68,		/* ldr	r5,	[r1,	#0] */
-	0x00, 0x2d,		/* cmp	r5,	#0 */
-	0x0b, 0xd0,		/* beq.n	1e <exit> */
-	0x4c, 0x68,		/* ldr	r4,	[r1,	#4] */
-	0xac, 0x42,		/* cmp	r4,	r5 */
-	0xf9, 0xd0,		/* beq.n	0 <wait_fifo> */
-	0x20, 0xcc,		/* ldmia	r4!,	{r5} */
-	0x20, 0xc3,		/* stmia	r3!,	{r5} */
-	0x94, 0x42,		/* cmp	r4,	r2 */
-	0x01, 0xd3,		/* bcc.n	18 <no_wrap> */
-	0x0c, 0x46,		/* mov	r4,	r1 */
-	0x08, 0x34,		/* adds	r4,	#8 */
-/* <no_wrap>: */
-	0x4c, 0x60,		/* str	r4, [r1,	#4] */
-	0x04, 0x38,		/* subs	r0, #4 */
-	0xf0, 0xd1,		/* bne.n	0 <wait_fifo> */
-/* <exit>: */
-	0x00, 0xbe		/* bkpt	0x0000 */
-};
-
-
 /* Start a low level flash write for the specified region */
 static int nrf5_ll_flash_write(struct nrf5_info *chip, uint32_t address, const uint8_t *buffer, uint32_t bytes)
 {
@@ -930,6 +906,10 @@ static int nrf5_ll_flash_write(struct nrf5_info *chip, uint32_t address, const u
 	struct reg_param reg_params[4];
 	struct armv7m_algorithm armv7m_info;
 	int retval = ERROR_OK;
+
+	static const uint8_t nrf5_flash_write_code[] = {
+#include "../../../contrib/loaders/flash/nrf5/nrf5.inc"
+	};
 
 	LOG_DEBUG("Writing buffer to flash address=0x%"PRIx32" bytes=0x%"PRIx32, address, bytes);
 	assert(bytes % 4 == 0);
