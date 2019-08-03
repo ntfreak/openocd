@@ -762,6 +762,11 @@ static int stm32x_probe(struct flash_bank *bank)
 		stm32x_info->default_rdp = 0xAA;
 		stm32x_info->can_load_options = true;
 		break;
+	case 0x242: /* AT32F403 */
+		page_size = 2048;
+		stm32x_info->ppage_size = 2;
+		max_flash_size_in_kb = 512;
+		break;
 	case 0x446: /* stm32f303xD/E */
 		page_size = 2048;
 		stm32x_info->ppage_size = 2;
@@ -833,8 +838,8 @@ static int stm32x_probe(struct flash_bank *bank)
 	/* failed reading flash size or flash size invalid (early silicon),
 	 * default to max target family */
 	if (retval != ERROR_OK || flash_size_in_kb == 0xffff || flash_size_in_kb == 0) {
-		LOG_WARNING("STM32 flash size failed, probe inaccurate - assuming %dk flash",
-			max_flash_size_in_kb);
+		LOG_WARNING("STM32 flash size failed got %dk, probe inaccurate - assuming %dk flash",
+			flash_size_in_kb, max_flash_size_in_kb);
 		flash_size_in_kb = max_flash_size_in_kb;
 	}
 
