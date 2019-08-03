@@ -705,7 +705,7 @@ static int stm32x_get_flash_size(struct flash_bank *bank, uint16_t *flash_size_i
 static int stm32x_probe(struct flash_bank *bank)
 {
 	struct stm32x_flash_bank *stm32x_info = bank->driver_priv;
-	uint16_t flash_size_in_kb;
+	uint16_t flash_size_in_kb = 0;
 	uint16_t max_flash_size_in_kb;
 	uint32_t device_id;
 	int page_size;
@@ -822,6 +822,11 @@ static int stm32x_probe(struct flash_bank *bank)
 		stm32x_info->default_rdp = 0xAA;
 		stm32x_info->can_load_options = true;
 		break;
+	case 0x242: /* AT32F403 */
+		page_size = 2048;
+		stm32x_info->ppage_size = 2;
+		max_flash_size_in_kb = 512;
+		break;
 	default:
 		LOG_WARNING("Cannot identify target as a STM32 family.");
 		return ERROR_FAIL;
@@ -833,8 +838,8 @@ static int stm32x_probe(struct flash_bank *bank)
 	/* failed reading flash size or flash size invalid (early silicon),
 	 * default to max target family */
 	if (retval != ERROR_OK || flash_size_in_kb == 0xffff || flash_size_in_kb == 0) {
-		LOG_WARNING("STM32 flash size failed, probe inaccurate - assuming %dk flash",
-			max_flash_size_in_kb);
+		LOG_WARNING("STM32 flash size failed got %dk, probe inaccurate - assuming %dk flash",
+			flash_size_in_kb, max_flash_size_in_kb);
 		flash_size_in_kb = max_flash_size_in_kb;
 	}
 
