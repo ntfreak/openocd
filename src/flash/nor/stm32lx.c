@@ -1094,20 +1094,17 @@ static int stm32lx_obl_launch(struct flash_bank *bank)
 {
 	struct target *target = bank->target;
 	struct stm32lx_flash_bank *stm32lx_info = bank->driver_priv;
-	int retval;
 
 	/* This will fail as the target gets immediately rebooted */
 	target_write_u32(target, stm32lx_info->flash_base + FLASH_PECR,
 			 FLASH_PECR__OBL_LAUNCH);
 
-	size_t tries = 10;
-	do {
-		target_halt(target);
-		retval = target_poll(target);
-	} while (--tries > 0 &&
-		 (retval != ERROR_OK || target->state != TARGET_HALTED));
+	/* Catch a possible error after reboot */
+	if (target_wait_state(target, TARGET_RUNNING, 100) != ERROR_OK)
+		target_wait_state(target, TARGET_RUNNING, 100);
 
-	return tries ? ERROR_OK : ERROR_FAIL;
+	target_halt(target);
+	return target_wait_state(target, TARGET_HALTED, 100);
 }
 
 static int stm32lx_lock(struct flash_bank *bank)
