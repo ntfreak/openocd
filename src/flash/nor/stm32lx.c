@@ -98,7 +98,6 @@
 
 static int stm32lx_unlock_program_memory(struct flash_bank *bank);
 static int stm32lx_lock_program_memory(struct flash_bank *bank);
-static int stm32lx_enable_write_half_page(struct flash_bank *bank);
 static int stm32lx_erase_sector(struct flash_bank *bank, int sector);
 static int stm32lx_wait_until_bsy_clear(struct flash_bank *bank);
 static int stm32lx_lock(struct flash_bank *bank);
@@ -431,19 +430,10 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 	struct stm32lx_flash_bank *stm32lx_info = bank->driver_priv;
 
 	uint32_t hp_nb = stm32lx_info->part_info.page_size / 2;
-	uint32_t buffer_size = 16384;
-	struct working_area *write_algorithm;
-	struct working_area *source;
 	uint32_t address = bank->base + offset;
 
-	struct reg_param reg_params[3];
-	struct armv7m_algorithm armv7m_info;
-
 	int retval = ERROR_OK;
-
-	static const uint8_t stm32lx_flash_write_code[] = {
-#include "../../../contrib/loaders/flash/stm32/stm32lx.inc"
-	};
+	int retval2;
 
 	/* Make sure we're performing a half-page aligned write. */
 	if (count % hp_nb) {
@@ -451,100 +441,28 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 		return ERROR_FAIL;
 	}
 
-	/* flash write code */
-	if (target_alloc_working_area(target, sizeof(stm32lx_flash_write_code),
-			&write_algorithm) != ERROR_OK) {
-		LOG_DEBUG("no working area for block memory writes");
-		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
-	}
-
-	/* Write the flashing code */
-	retval = target_write_buffer(target,
-			write_algorithm->address,
-			sizeof(stm32lx_flash_write_code),
-			stm32lx_flash_write_code);
-	if (retval != ERROR_OK) {
-		target_free_working_area(target, write_algorithm);
-		return retval;
-	}
-
-	/* Allocate half pages memory */
-	while (target_alloc_working_area_try(target, buffer_size, &source) != ERROR_OK) {
-		if (buffer_size > 1024)
-			buffer_size -= 1024;
-		else
-			buffer_size /= 2;
-
-		if (buffer_size <= stm32lx_info->part_info.page_size) {
-			/* we already allocated the writing code, but failed to get a
-			 * buffer, free the algorithm */
-			target_free_working_area(target, write_algorithm);
-
-			LOG_WARNING("no large enough working area available, can't do block memory writes");
-			return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
-		}
-	}
-
-	armv7m_info.common_magic = ARMV7M_COMMON_MAGIC;
-	armv7m_info.core_mode = ARM_MODE_THREAD;
-	init_reg_param(&reg_params[0], "r0", 32, PARAM_OUT);
-	init_reg_param(&reg_params[1], "r1", 32, PARAM_OUT);
-	init_reg_param(&reg_params[2], "r2", 32, PARAM_OUT);
-
 	/* Enable half-page write */
-	retval = stm32lx_enable_write_half_page(bank);
-	if (retval != ERROR_OK) {
-		target_free_working_area(target, source);
-		target_free_working_area(target, write_algorithm);
-
-		destroy_reg_param(&reg_params[0]);
-		destroy_reg_param(&reg_params[1]);
-		destroy_reg_param(&reg_params[2]);
+	uint32_t pecr;
+	retval = target_read_u32(target, stm32lx_info->flash_base + FLASH_PECR,
+			&pecr);
+	if (retval != ERROR_OK)
 		return retval;
-	}
 
-	struct armv7m_common *armv7m = target_to_armv7m(target);
-	if (armv7m == NULL) {
-
-		/* something is very wrong if armv7m is NULL */
-		LOG_ERROR("unable to get armv7m target");
+	retval = target_write_u32(target, stm32lx_info->flash_base + FLASH_PECR,
+			pecr | FLASH_PECR__FPRG | FLASH_PECR__PROG);
+	if (retval != ERROR_OK)
 		return retval;
-	}
 
-	/* save any DEMCR flags and configure target to catch any Hard Faults */
-	uint32_t demcr_save = armv7m->demcr;
-	armv7m->demcr = VC_HARDERR;
-
-	/* Loop while there are bytes to write */
 	while (count > 0) {
 		uint32_t this_count;
-		this_count = (count > buffer_size) ? buffer_size : count;
+		this_count = (count > hp_nb) ? hp_nb : count;
 
-		/* Write the next half pages */
-		retval = target_write_buffer(target, source->address, this_count, buffer);
+		/* Write the next half page */
+		retval = target_write_memory(target, address, 4, this_count / 4, buffer);
 		if (retval != ERROR_OK)
 			break;
 
-		/* 4: Store useful information in the registers */
-		/* the destination address of the copy (R0) */
-		buf_set_u32(reg_params[0].value, 0, 32, address);
-		/* The source address of the copy (R1) */
-		buf_set_u32(reg_params[1].value, 0, 32, source->address);
-		/* The length of the copy (R2) */
-		buf_set_u32(reg_params[2].value, 0, 32, this_count / 4);
-
-		/* 5: Execute the bunch of code */
-		retval = target_run_algorithm(target, 0, NULL, sizeof(reg_params)
-				/ sizeof(*reg_params), reg_params,
-				write_algorithm->address, 0, 10000, &armv7m_info);
-		if (retval != ERROR_OK)
-			break;
-
-		/* check for Hard Fault */
-		if (armv7m->exception_number == 3)
-			break;
-
-		/* 6: Wait while busy */
+		/* Wait while busy */
 		retval = stm32lx_wait_until_bsy_clear(bank);
 		if (retval != ERROR_OK)
 			break;
@@ -554,51 +472,27 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 		count -= this_count;
 	}
 
-	/* restore previous flags */
-	armv7m->demcr = demcr_save;
-
-	if (armv7m->exception_number == 3) {
-
-		/* the stm32l15x devices seem to have an issue when blank.
-		 * if a ram loader is executed on a blank device it will
-		 * Hard Fault, this issue does not happen for a already programmed device.
-		 * A related issue is described in the stm32l151xx errata (Doc ID 17721 Rev 6 - 2.1.3).
-		 * The workaround of handling the Hard Fault exception does work, but makes the
-		 * loader more complicated, as a compromise we manually write the pages, programming time
-		 * is reduced by 50% using this slower method.
-		 */
-
-		LOG_WARNING("Couldn't use loader, falling back to page memory writes");
-
-		while (count > 0) {
-			uint32_t this_count;
-			this_count = (count > hp_nb) ? hp_nb : count;
-
-			/* Write the next half pages */
-			retval = target_write_buffer(target, address, this_count, buffer);
-			if (retval != ERROR_OK)
+	/* Make sure the half page is finished or the flash is not readable */
+	if (retval != ERROR_OK) {
+		uint32_t words;
+		retval2 = ERROR_OK;
+		for (words = hp_nb / 4; words; words--) {
+			retval2 = stm32lx_wait_until_bsy_clear_timeout(bank, 12);
+			if (retval2 == ERROR_OK)
 				break;
 
-			/* Wait while busy */
-			retval = stm32lx_wait_until_bsy_clear(bank);
-			if (retval != ERROR_OK)
-				break;
-
-			buffer += this_count;
-			address += this_count;
-			count -= this_count;
+			/* Write flash words until BSY clears, ignore error */
+			(void)target_write_u32(target, address, 0);
 		}
+
+		if (retval2 != ERROR_OK)
+			LOG_WARNING("Cannot finish half page programming, reset the device!");
 	}
 
+	retval2 = target_write_u32(target, stm32lx_info->flash_base + FLASH_PECR,
+			pecr);
 	if (retval == ERROR_OK)
-		retval = stm32lx_lock_program_memory(bank);
-
-	target_free_working_area(target, source);
-	target_free_working_area(target, write_algorithm);
-
-	destroy_reg_param(&reg_params[0]);
-	destroy_reg_param(&reg_params[1]);
-	destroy_reg_param(&reg_params[2]);
+		retval = retval2;
 
 	return retval;
 }
@@ -667,14 +561,8 @@ static int stm32lx_write(struct flash_bank *bank, const uint8_t *buffer,
 
 	if (halfpages_number) {
 		retval = stm32lx_write_half_pages(bank, buffer + bytes_written, offset, hp_nb * halfpages_number);
-		if (retval == ERROR_TARGET_RESOURCE_NOT_AVAILABLE) {
-			/* attempt slow memory writes */
-			LOG_WARNING("couldn't use block writes, falling back to single memory accesses");
-			halfpages_number = 0;
-		} else {
-			if (retval != ERROR_OK)
-				return ERROR_FAIL;
-		}
+		if (retval != ERROR_OK)
+			goto reset_pg_and_lock;
 	}
 
 	/* write any remaining bytes */
@@ -682,10 +570,6 @@ static int stm32lx_write(struct flash_bank *bank, const uint8_t *buffer,
 	bytes_written += page_bytes_written;
 	address += page_bytes_written;
 	bytes_remaining = count - page_bytes_written;
-
-	retval = stm32lx_unlock_program_memory(bank);
-	if (retval != ERROR_OK)
-		return retval;
 
 	while (bytes_remaining > 0) {
 		uint8_t value[4] = {0xff, 0xff, 0xff, 0xff};
@@ -1026,43 +910,6 @@ static int stm32lx_unlock_program_memory(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int stm32lx_enable_write_half_page(struct flash_bank *bank)
-{
-	struct target *target = bank->target;
-	struct stm32lx_flash_bank *stm32lx_info = bank->driver_priv;
-	int retval;
-	uint32_t reg32;
-
-	/**
-	 * Unlock the program memory, then set the FPRG bit in the PECR register.
-	 */
-	retval = stm32lx_unlock_program_memory(bank);
-	if (retval != ERROR_OK)
-		return retval;
-
-	retval = target_read_u32(target, stm32lx_info->flash_base + FLASH_PECR,
-			&reg32);
-	if (retval != ERROR_OK)
-		return retval;
-
-	reg32 |= FLASH_PECR__FPRG;
-	retval = target_write_u32(target, stm32lx_info->flash_base + FLASH_PECR,
-			reg32);
-	if (retval != ERROR_OK)
-		return retval;
-
-	retval = target_read_u32(target, stm32lx_info->flash_base + FLASH_PECR,
-			&reg32);
-	if (retval != ERROR_OK)
-		return retval;
-
-	reg32 |= FLASH_PECR__PROG;
-	retval = target_write_u32(target, stm32lx_info->flash_base + FLASH_PECR,
-			reg32);
-
-	return retval;
-}
-
 static int stm32lx_lock_program_memory(struct flash_bank *bank)
 {
 	struct target *target = bank->target;
@@ -1129,7 +976,7 @@ static int stm32lx_erase_sector(struct flash_bank *bank, int sector)
 		uint32_t addr = bank->base + bank->sectors[sector].offset + (page
 				* stm32lx_info->part_info.page_size);
 		retval = target_write_u32(target, addr, 0x0);
-		if (retval != ERROR_OK)
+		if (retval != ERROR_OK && retval != ERROR_WAIT)
 			return retval;
 
 		retval = stm32lx_wait_until_bsy_clear(bank);
