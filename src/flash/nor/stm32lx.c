@@ -1092,22 +1092,33 @@ static int stm32lx_wait_until_bsy_clear_timeout(struct flash_bank *bank, int tim
 
 static int stm32lx_obl_launch(struct flash_bank *bank)
 {
+	int retval;
 	struct target *target = bank->target;
 	struct stm32lx_flash_bank *stm32lx_info = bank->driver_priv;
-	int retval;
 
-	/* This will fail as the target gets immediately rebooted */
+	/* This will fail as the target immediately goes to power on reset */
 	target_write_u32(target, stm32lx_info->flash_base + FLASH_PECR,
 			 FLASH_PECR__OBL_LAUNCH);
 
-	size_t tries = 10;
-	do {
-		target_halt(target);
-		retval = target_poll(target);
-	} while (--tries > 0 &&
-		 (retval != ERROR_OK || target->state != TARGET_HALTED));
+	/* POR set the debug circuitry to the initial state, so the target needs
+	 * a full reconnect: JTAG-TO-SWD seq etc...
+	 * With a low level adapter, auto-reconnect is triggered by the previous
+	 * target_write_u32() error.
+	 * Unfortunatelly an STLink adapter in HLA mode stops working here
+	 * and the infrastructure has no call to force STLink reconnect */
 
-	return tries ? ERROR_OK : ERROR_FAIL;
+	unsigned int tries = 10;
+	/* The target runs or locks up after reboot */
+	do {
+		retval = target_poll(target);
+		if (retval == ERROR_OK && target->state == TARGET_RUNNING)
+			break;
+	} while (--tries);
+
+	if (target->state == TARGET_RUNNING)
+		target_halt(target);
+
+	return target_wait_state(target, TARGET_HALTED, 500);
 }
 
 static int stm32lx_lock(struct flash_bank *bank)
@@ -1162,39 +1173,42 @@ static int stm32lx_mass_erase(struct flash_bank *bank)
 {
 	int retval;
 	struct target *target = bank->target;
-	struct stm32lx_flash_bank *stm32lx_info = NULL;
+	struct stm32lx_flash_bank *stm32lx_info = bank->driver_priv;
+	struct armv7m_common *armv7m = target_to_armv7m(target);
 	uint32_t reg32;
 
-	if (target->state != TARGET_HALTED) {
-		LOG_ERROR("Target not halted");
-		return ERROR_TARGET_NOT_HALTED;
+	retval = target_read_u32(target, stm32lx_info->flash_base + FLASH_OBR, &reg32);
+	if ((reg32 & 0xff) == (OPTION_BYTE_0_PR0 & 0xff)) {
+		/* RDPROT level 0, flash readable: lock it first */
+
+		LOG_INFO("Locking the device...");
+		retval = stm32lx_lock(bank);
+		if (retval != ERROR_OK)
+			return retval;
+
+		retval = stm32lx_obl_launch(bank);
+		if (retval != ERROR_OK) {
+			if (armv7m->stlink)
+				LOG_WARNING("STLink in HLA mode needs to reconnect the target.\n"
+					"Issue commands 'reset; reset init'");
+			LOG_WARNING("The flash might be locked. Retry mass_erase to unlock.");
+			return retval;
+		}
 	}
 
-	stm32lx_info = bank->driver_priv;
-
-	retval = stm32lx_lock(bank);
-	if (retval != ERROR_OK)
-		return retval;
-
-	retval = stm32lx_obl_launch(bank);
-	if (retval != ERROR_OK)
-		return retval;
-
+	LOG_INFO("Unlocking the device...");
 	retval = stm32lx_unlock(bank);
 	if (retval != ERROR_OK)
 		return retval;
 
 	retval = stm32lx_obl_launch(bank);
-	if (retval != ERROR_OK)
-		return retval;
-
-	retval = target_read_u32(target, stm32lx_info->flash_base + FLASH_PECR, &reg32);
-	if (retval != ERROR_OK)
-		return retval;
-
-	retval = target_write_u32(target, stm32lx_info->flash_base + FLASH_PECR, reg32 | FLASH_PECR__OPTLOCK);
-	if (retval != ERROR_OK)
-		return retval;
+	if (retval != ERROR_OK) {
+		if (armv7m->stlink)
+			LOG_WARNING("STLink in HLA mode needs to reconnect the target.\n"
+					"Issue commands 'reset; reset init'");
+		else
+			return retval;
+	}
 
 	return ERROR_OK;
 }

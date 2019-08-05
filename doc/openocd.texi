@@ -6776,19 +6776,22 @@ flash bank $_FLASHNAME stm32lx 0x08000000 0x20000 0 0 $_TARGETNAME
 Some stm32lx-specific commands are defined:
 
 @deffn Command {stm32lx lock} num
-Locks the entire stm32 device.
+Locks the entire stm32 device to RDP Level 1.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
 @deffn Command {stm32lx unlock} num
 Unlocks the entire stm32 device.
+If flash was locked to RDP Level 1, erases flash and EEPROM.
+RDP Level 2 can't be unlocked at all.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
 @deffn Command {stm32lx mass_erase} num
 Mass erases the entire stm32lx device (all flash banks and EEPROM
-data). This is the only way to unlock a protected flash (unless RDP
+data). Mass erase unlocks a protected flash (unless RDP
 Level is 2 which can't be unlocked at all).
+Doesn't work well with a ST-LINK adapter in HLA mode.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 @end deffn
