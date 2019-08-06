@@ -263,14 +263,14 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 
 	symbol_address_t *list_of_lists =
 		malloc(sizeof(symbol_address_t) *
-			(max_used_priority+1 + 5));
+			(max_used_priority + 5));
 	if (!list_of_lists) {
 		LOG_ERROR("Error allocating memory for %" PRId64 " priorities", max_used_priority);
 		return ERROR_FAIL;
 	}
 
 	int num_lists;
-	for (num_lists = 0; num_lists <= max_used_priority; num_lists++)
+	for (num_lists = 0; num_lists < max_used_priority; num_lists++)
 		list_of_lists[num_lists] = rtos->symbols[FreeRTOS_VAL_pxReadyTasksLists].address +
 			num_lists * param->list_width;
 
