@@ -3599,7 +3599,8 @@ the @command{reset_config} mechanism doesn't address;
 or asserting both might trigger a stronger reset, which
 needs special attention.
 
-Experiment with lower level operations, such as @command{jtag_reset}
+Experiment with lower level operations, such as
+@command{adapter assert}, @command{adapter deassert}
 and the @command{jtag arp_*} operations shown here,
 to find a sequence of operations that works.
 @xref{JTAG Commands}.
@@ -3626,7 +3627,7 @@ or potentially some other value.
 
 The default implementation just invokes @command{jtag arp_init-reset}.
 Replacements will normally build on low level JTAG
-operations such as @command{jtag_reset}.
+operations such as @command{adapter assert} and @command{adapter deassert}.
 Operations here must not address individual TAPs
 (or their associated targets)
 until the JTAG scan chain has first been verified to work.
@@ -6935,7 +6936,7 @@ configured for flash bank 0.
 @example
 # assert srst, we do not want core running
 # while accessing str9xpec flash driver
-jtag_reset 0 1
+adapter assert srst
 # turn off target polling
 poll off
 # disable str9 core
@@ -7816,6 +7817,36 @@ released begins to execute code. OpenOCD attempts to stop the CPU and
 then sets the program counter back to the reset vector. Unfortunately
 the code that was executed may have left the hardware in an unknown
 state.
+@end deffn
+
+@deffn Command {adapter assert} [signal [assert|deassert signal]]
+@deffnx Command {adapter deassert} [signal [assert|deassert signal]]
+Set values of reset signals.
+Without parameters returns current status of the signals.
+The @var{signal} parameter values may be
+@option{srst}, indicating that srst signal is to be asserted or deasserted,
+@option{trst}, indicating that trst signal is to be asserted or deasserted.
+
+The @command{reset_config} command should already have been used
+to configure how the board and the adapter treat these two
+signals, and to say if either signal is even present.
+@xref{Reset Configuration}.
+Trying to assert a signal that is not present triggers an error.
+If a signal is present on the adapter and not specified in the command,
+the signal will not be modified.
+
+@quotation Note
+TRST is specially handled.
+It actually signifies JTAG's @sc{reset} state.
+So if the board doesn't support the optional TRST signal,
+or it doesn't support it along with the specified SRST value,
+JTAG reset is triggered with TMS and TCK signals
+instead of the TRST signal.
+And no matter how that JTAG reset is triggered, once
+the scan chain enters @sc{reset} with TRST inactive,
+TAP @code{post-reset} events are delivered to all TAPs
+with handlers for that event.
+@end quotation
 @end deffn
 
 @section I/O Utilities
@@ -9691,28 +9722,6 @@ portable scripts currently must issue only BYPASS instructions.
 @end quotation
 @end deffn
 
-@deffn Command {jtag_reset} trst srst
-Set values of reset signals.
-The @var{trst} and @var{srst} parameter values may be
-@option{0}, indicating that reset is inactive (pulled or driven high),
-or @option{1}, indicating it is active (pulled or driven low).
-The @command{reset_config} command should already have been used
-to configure how the board and JTAG adapter treat these two
-signals, and to say if either signal is even present.
-@xref{Reset Configuration}.
-
-Note that TRST is specially handled.
-It actually signifies JTAG's @sc{reset} state.
-So if the board doesn't support the optional TRST signal,
-or it doesn't support it along with the specified SRST value,
-JTAG reset is triggered with TMS and TCK signals
-instead of the TRST signal.
-And no matter how that JTAG reset is triggered, once
-the scan chain enters @sc{reset} with TRST inactive,
-TAP @code{post-reset} events are delivered to all TAPs
-with handlers for that event.
-@end deffn
-
 @deffn Command {pathmove} start_state [next_state ...]
 Start by moving to @var{start_state}, which
 must be one of the @emph{stable} states.
@@ -10680,7 +10689,7 @@ bytes. Painful...
 "Warning: arm7_9_common.c:679 arm7_9_assert_reset(): srst resets test logic, too".
 
 This warning doesn't indicate any serious problem, as long as you don't want to
-debug your core right out of reset. Your .cfg file specified @option{jtag_reset
+debug your core right out of reset. Your .cfg file specified @option{reset_config
 trst_and_srst srst_pulls_trst} to tell OpenOCD that either your board,
 your debugger or your target uC (e.g. LPC2000) can't assert the two reset signals
 independently. With this setup, it's not possible to halt the core right out of

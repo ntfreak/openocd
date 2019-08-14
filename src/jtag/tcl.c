@@ -1059,34 +1059,6 @@ COMMAND_HANDLER(handle_jtag_rclk_command)
 	return retval;
 }
 
-COMMAND_HANDLER(handle_jtag_reset_command)
-{
-	if (CMD_ARGC != 2)
-		return ERROR_COMMAND_SYNTAX_ERROR;
-
-	int trst = -1;
-	if (CMD_ARGV[0][0] == '1')
-		trst = 1;
-	else if (CMD_ARGV[0][0] == '0')
-		trst = 0;
-	else
-		return ERROR_COMMAND_SYNTAX_ERROR;
-
-	int srst = -1;
-	if (CMD_ARGV[1][0] == '1')
-		srst = 1;
-	else if (CMD_ARGV[1][0] == '0')
-		srst = 0;
-	else
-		return ERROR_COMMAND_SYNTAX_ERROR;
-
-	if (adapter_init(CMD_CTX) != ERROR_OK)
-		return ERROR_JTAG_INIT_FAILED;
-
-	jtag_add_reset(trst, srst);
-	return jtag_execute_queue();
-}
-
 COMMAND_HANDLER(handle_runtest_command)
 {
 	if (CMD_ARGC != 1)
@@ -1330,14 +1302,6 @@ static const struct command_registration jtag_command_handlers[] = {
 		.mode = COMMAND_ANY,
 		.help = "print current scan chain configuration",
 		.usage = ""
-	},
-	{
-		.name = "jtag_reset",
-		.handler = handle_jtag_reset_command,
-		.mode = COMMAND_EXEC,
-		.help = "Set reset line values.  Value '1' is active, "
-			"value '0' is inactive.",
-		.usage = "trst_active srst_active",
 	},
 	{
 		.name = "runtest",
