@@ -221,9 +221,3 @@ proc cortex_a8 args {
 	echo "DEPRECATED! use 'cortex_a' not 'cortex_a8'"
 	eval cortex_a $args
 }
-
-# deprecated ftdi cmds
-proc ftdi_location args {
-	echo "DEPRECATED! use 'adapter usb location' not 'ftdi_location'"
-	eval adapter usb location $args
-}
