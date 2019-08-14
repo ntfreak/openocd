@@ -211,4 +211,9 @@ proc  interface_list args {
 	eval adapter list $args
 }
 
+proc ftdi_location args {
+	echo "DEPRECATED! use 'adapter usb location' not 'ftdi_location'"
+	eval adapter usb location $args
+}
+
 # END MIGRATION AIDS
