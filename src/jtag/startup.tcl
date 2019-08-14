@@ -134,6 +134,22 @@ proc jtag_nsrst_assert_width args {
 	eval adapter_nsrst_assert_width $args
 }
 
+proc jtag_reset args {
+	echo "DEPRECATED! use 'adapter [de]assert' not 'jtag_reset'"
+	switch $args {
+		"0 0"
+			{eval adapter deassert trst deassert srst}
+		"0 1"
+			{eval adapter deassert trst assert srst}
+		"1 0"
+			{eval adapter assert trst deassert srst}
+		"1 1"
+			{eval adapter assert trst assert srst}
+		default
+			{return -code 1 -level 1 "jtag_reset: syntax error"}
+	}
+}
+
 # stlink migration helpers
 proc stlink_device_desc args {
 	echo "DEPRECATED! use 'hla_device_desc' not 'stlink_device_desc'"
