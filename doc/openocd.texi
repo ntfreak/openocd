@@ -7002,6 +7002,23 @@ unlock str9 device.
 
 @end deffn
 
+@deffn {Flash Driver} swm050
+@cindex swm050
+All members of the swm050 microcontroller family from Foshan Synwit Tech.
+
+@example
+flash bank $_FLASHNAME swm050 0x0 0x2000 0 0 $_TARGETNAME
+@end example
+
+One swm050-specific command is defined:
+
+@deffn Command {swm050 mass_erase} bank_id
+Erases the entire flash bank.
+@end deffn
+
+@end deffn
+
+
 @deffn {Flash Driver} tms470
 Most members of the TMS470 microcontroller family from Texas Instruments
 include internal flash and use ARM7TDMI cores.
