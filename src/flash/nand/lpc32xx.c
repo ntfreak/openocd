@@ -332,7 +332,7 @@ static int lpc32xx_init(struct nand_device *nand)
 			WIDTH = bus_width)
 		*/
 		retval = target_write_u32(target, 0x20020014,
-				0x3e | (bus_width == 16) ? 1 : 0);
+				0x3e | ((bus_width == 16) ? 1 : 0));
 		if (ERROR_OK != retval) {
 			LOG_ERROR("could not set SLC_CFG");
 			return ERROR_NAND_OPERATION_FAILED;

@@ -237,7 +237,7 @@ static int lpc3180_init(struct nand_device *nand)
 
 		/* SLC_CFG = 0x (Force nCE assert, DMA ECC enabled, ECC enabled, DMA burst enabled,
 		 *DMA read from SLC, WIDTH = bus_width) */
-		target_write_u32(target, 0x20020014, 0x3e | (bus_width == 16) ? 1 : 0);
+		target_write_u32(target, 0x20020014, 0x3e | ((bus_width == 16) ? 1 : 0));
 
 		/* SLC_IEN = 3 (INT_RDY_EN = 1) ,(INT_TC_STAT = 1) */
 		target_write_u32(target, 0x20020020, 0x03);
