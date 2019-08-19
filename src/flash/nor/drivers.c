@@ -77,6 +77,7 @@ extern const struct flash_driver stmsmi_flash;
 extern const struct flash_driver str7x_flash;
 extern const struct flash_driver str9x_flash;
 extern const struct flash_driver str9xpec_flash;
+extern const struct flash_driver swm050_flash;
 extern const struct flash_driver tms470_flash;
 extern const struct flash_driver virtual_flash;
 extern const struct flash_driver w600_flash;
@@ -146,6 +147,7 @@ static const struct flash_driver * const flash_drivers[] = {
 	&str7x_flash,
 	&str9x_flash,
 	&str9xpec_flash,
+	&swm050_flash,
 	&tms470_flash,
 	&virtual_flash,
 	&xcf_flash,
