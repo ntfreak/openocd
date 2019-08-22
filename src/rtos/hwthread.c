@@ -249,10 +249,34 @@ static int hwthread_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	}
 
 	for (int i = 0; i < *num_regs; i++) {
+		void *rtos_reg_val_p = (*rtos_reg_list)[i].value;
+
 		(*rtos_reg_list)[i].number = (*reg_list)[i].number;
 		(*rtos_reg_list)[i].size = (*reg_list)[i].size;
-		memcpy((*rtos_reg_list)[i].value, (*reg_list)[i].value,
-		       ((*reg_list)[i].size + 7) / 8);
+		switch ((*reg_list)[i].size) {
+		case 64:
+			target_buffer_get_u64_array(target,
+				(*reg_list)[i].value, 1,
+				rtos_reg_val_p);
+			break;
+		case 32:
+			target_buffer_get_u32_array(target,
+				(*reg_list)[i].value, 1,
+				rtos_reg_val_p);
+			break;
+		case 16:
+			target_buffer_get_u16_array(target,
+				(*reg_list)[i].value, 1,
+				rtos_reg_val_p);
+			break;
+		case 8:
+			memcpy((*rtos_reg_list)[i].value,
+				(*reg_list)[i].value, 1);
+			break;
+		default:
+			free(reg_list);
+			return ERROR_FAIL;
+		}
 	}
 
 	free(reg_list);
