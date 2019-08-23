@@ -491,7 +491,7 @@ proc reboot {} {
     mww $TIMER_WDT_HIGH_BOUND  0xffffff
     mww $TIMER_WDT_CURRENT_COUNT 0x0
     echo "JTAG speed lowered to 100kHz"
-    adapter_khz 100
+    adapter speed 100
     mww $TIMER_WDT_CONTROL 0x1
     # wait until the reset
     echo -n "Wating for watchdog to trigger..."
