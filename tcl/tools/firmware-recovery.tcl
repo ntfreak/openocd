@@ -29,7 +29,7 @@ dump_part <name> <filename>	save partition's contents to a file
 erase_part <name>		erase the given partition
 flash_part <name> <filename>	erase, flash and verify the given partition
 ram_boot <filename>		load binary file to RAM and run it
-adapter_khz <freq>		set JTAG clock frequency in kHz
+adapter speed <freq>		set JTAG clock frequency in kHz
 
 For example, to clear nvram and reflash CFE on an RT-N16 using TUMPA, run:
 openocd -f interface/ftdi/tumpa.cfg -f tools/firmware-recovery.tcl \\
@@ -39,7 +39,7 @@ openocd -f interface/ftdi/tumpa.cfg -f tools/firmware-recovery.tcl \\
 }
 
 # set default, can be overriden later
-adapter_khz 1000
+adapter speed 1000
 
 proc get_partition { name } {
     global partition_list
