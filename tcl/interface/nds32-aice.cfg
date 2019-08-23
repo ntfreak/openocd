@@ -4,7 +4,7 @@
 # http://www.andestech.com
 #
 
-interface aice
+adapter driver aice
 aice desc "Andes AICE adapter"
 aice serial "C001-42163"
 aice vid_pid 0x1CFC 0x0000
