@@ -2335,7 +2335,7 @@ A few cases are so simple that you only need to say what driver to use:
 
 @example
 # jlink interface
-interface jlink
+adapter driver jlink
 @end example
 
 Most adapters need a bit more configuration than that.
@@ -2716,7 +2716,7 @@ For example, to connect remotely via TCP to the host foobar you might have
 something like:
 
 @example
-interface remote_bitbang
+adapter driver remote_bitbang
 remote_bitbang_port 3335
 remote_bitbang_host foobar
 @end example
@@ -2725,7 +2725,7 @@ To connect to another process running locally via UNIX sockets with socket
 named mysocket:
 
 @example
-interface remote_bitbang
+adapter driver remote_bitbang
 remote_bitbang_port 0
 remote_bitbang_host mysocket
 @end example
@@ -3033,7 +3033,7 @@ For example, the interface configuration file for a
 classic ``Wiggler'' cable on LPT2 might look something like this:
 
 @example
-interface parport
+adapter driver parport
 parport_port 0x278
 parport_cable wiggler
 @end example
