@@ -79,6 +79,9 @@
 #define OPT_LOCK       (1 << 0)
 #define OPT_START      (1 << 1)
 
+/* FLASH_OPTSR register bits */
+#define OPT_BSY        (1 << 0)
+
 /* register unlock keys */
 #define KEY1           0x45670123
 #define KEY2           0xCDEF89AB
@@ -263,7 +266,7 @@ static int stm32x_unlock_option_reg(struct flash_bank *bank)
 	uint32_t ctrl;
 	struct target *target = bank->target;
 
-	int retval = target_read_u32(target, FLASH_REG_BASE_B0 + FLASH_OPTCR, &ctrl);
+	int retval = target_read_u32(target, stm32x_get_flash_reg(bank, FLASH_OPTCR), &ctrl);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -271,15 +274,15 @@ static int stm32x_unlock_option_reg(struct flash_bank *bank)
 		return ERROR_OK;
 
 	/* unlock option registers */
-	retval = target_write_u32(target, FLASH_REG_BASE_B0 + FLASH_OPTKEYR, OPTKEY1);
+	retval = target_write_u32(target, stm32x_get_flash_reg(bank, FLASH_OPTKEYR), OPTKEY1);
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = target_write_u32(target, FLASH_REG_BASE_B0 + FLASH_OPTKEYR, OPTKEY2);
+	retval = target_write_u32(target, stm32x_get_flash_reg(bank, FLASH_OPTKEYR), OPTKEY2);
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = target_read_u32(target, FLASH_REG_BASE_B0 + FLASH_OPTCR, &ctrl);
+	retval = target_read_u32(target, stm32x_get_flash_reg(bank, FLASH_OPTCR), &ctrl);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -310,7 +313,7 @@ static int stm32x_read_options(struct flash_bank *bank)
 	struct target *target = bank->target;
 
 	/* read current option bytes */
-	int retval = target_read_u32(target, FLASH_REG_BASE_B0 + FLASH_OPTSR_CUR, &optiondata);
+	int retval = target_read_u32(target, stm32x_get_flash_reg(bank, FLASH_OPTSR_CUR), &optiondata);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -349,7 +352,7 @@ static int stm32x_write_options(struct flash_bank *bank)
 	optiondata |= (stm32x_info->option_bytes.user3_options & 0xa3) << 24;
 
 	/* program options */
-	retval = target_write_u32(target, FLASH_REG_BASE_B0 + FLASH_OPTSR_PRG, optiondata);
+	retval = target_write_u32(target, stm32x_get_flash_reg(bank, FLASH_OPTSR_PRG), optiondata);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -361,12 +364,12 @@ static int stm32x_write_options(struct flash_bank *bank)
 
 	optiondata = 0x40000000;
 	/* Remove OPT error flag before programming */
-	retval = target_write_u32(target, FLASH_REG_BASE_B0 + FLASH_OPTCCR, optiondata);
+	retval = target_write_u32(target, stm32x_get_flash_reg(bank, FLASH_OPTCCR), optiondata);
 	if (retval != ERROR_OK)
 		return retval;
 
 	/* start programming cycle */
-	retval = target_write_u32(target, FLASH_REG_BASE_B0 + FLASH_OPTCR, OPT_START);
+	retval = target_write_u32(target, stm32x_get_flash_reg(bank, FLASH_OPTCR), OPT_START);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -374,23 +377,23 @@ static int stm32x_write_options(struct flash_bank *bank)
 	int timeout = FLASH_ERASE_TIMEOUT;
 	for (;;) {
 		uint32_t status;
-		retval = target_read_u32(target, FLASH_REG_BASE_B0 + FLASH_SR, &status);
+		retval = target_read_u32(target, stm32x_get_flash_reg(bank, FLASH_OPTSR_CUR), &status);
 		if (retval != ERROR_OK) {
-			LOG_INFO("stm32x_write_options: wait_flash_op_queue : error");
+			LOG_INFO("stm32x_write_options: failed to read FLASH_OPTSR_CUR");
 			return retval;
 		}
-		if ((status & FLASH_QW) == 0)
+		if ((status & OPT_BSY) == 0)
 			break;
 
 		if (timeout-- <= 0) {
-			LOG_INFO("wait_flash_op_queue, time out expired, status: 0x%" PRIx32 "", status);
+			LOG_INFO("waiting for OBL launch, time out expired, OPTSR: 0x%" PRIx32 "", status);
 			return ERROR_FAIL;
 		}
 		alive_sleep(1);
 	}
 
 	/* relock option registers */
-	retval = target_write_u32(target, FLASH_REG_BASE_B0 + FLASH_OPTCR, OPT_LOCK);
+	retval = target_write_u32(target, stm32x_get_flash_reg(bank, FLASH_OPTCR), OPT_LOCK);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -904,13 +907,6 @@ COMMAND_HANDLER(stm32x_handle_lock_command)
 	stm32x_info = bank->driver_priv;
 	target = bank->target;
 
-	/* if we have a dual flash bank device then
-	 * we need to perform option byte lock on bank0 only */
-	if (stm32x_info->flash_base != FLASH_REG_BASE_B0) {
-		LOG_ERROR("Option Byte Lock Operation must use bank0");
-		return ERROR_FLASH_OPERATION_FAILED;
-	}
-
 	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -921,6 +917,9 @@ COMMAND_HANDLER(stm32x_handle_lock_command)
 			      bank->driver->name);
 		return ERROR_OK;
 	}
+
+	LOG_WARNING("locking the entire flash device");
+
 	/* set readout protection */
 	stm32x_info->option_bytes.RDP = 0;
 
@@ -950,13 +949,6 @@ COMMAND_HANDLER(stm32x_handle_unlock_command)
 	stm32x_info = bank->driver_priv;
 	target = bank->target;
 
-	/* if we have a dual flash bank device then
-	 * we need to perform option byte unlock on bank0 only */
-	if (stm32x_info->flash_base != FLASH_REG_BASE_B0) {
-		LOG_ERROR("Option Byte Unlock Operation must use bank0");
-		return ERROR_FLASH_OPERATION_FAILED;
-	}
-
 	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -966,6 +958,8 @@ COMMAND_HANDLER(stm32x_handle_unlock_command)
 		command_print(CMD, "%s failed to read options", bank->driver->name);
 		return ERROR_OK;
 	}
+
+	LOG_WARNING("unlocking the entire flash device");
 
 	/* clear readout protection option byte
 	 * this will also force a device unlock if set */
