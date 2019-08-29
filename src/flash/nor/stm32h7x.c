@@ -102,8 +102,7 @@ struct stm32h7x_rev {
 
 struct stm32x_options {
 	uint8_t RDP;
-	uint32_t protection;  /* bank1 WRP */
-	uint32_t protection2; /* bank2 WRP */
+	uint32_t protection;  /* bank sectors's write protection (WPSN register) */
 	uint8_t user_options;
 	uint8_t user2_options;
 	uint8_t user3_options;
@@ -307,10 +306,8 @@ static int stm32x_lock_reg(struct flash_bank *bank)
 static int stm32x_read_options(struct flash_bank *bank)
 {
 	uint32_t optiondata;
-	struct stm32h7x_flash_bank *stm32x_info = NULL;
+	struct stm32h7x_flash_bank *stm32x_info = bank->driver_priv;
 	struct target *target = bank->target;
-
-	stm32x_info = bank->driver_priv;
 
 	/* read current option bytes */
 	int retval = target_read_u32(target, FLASH_REG_BASE_B0 + FLASH_OPTSR_CUR, &optiondata);
@@ -327,27 +324,19 @@ static int stm32x_read_options(struct flash_bank *bank)
 		LOG_INFO("Device Security Bit Set");
 
 	/* read current WPSN option bytes */
-	retval = target_read_u32(target, FLASH_REG_BASE_B0 + FLASH_WPSN_CUR, &optiondata);
+	retval = target_read_u32(target, stm32x_get_flash_reg(bank, FLASH_WPSN_CUR), &optiondata);
 	if (retval != ERROR_OK)
 		return retval;
 	stm32x_info->option_bytes.protection = optiondata & 0xff;
-
-	/* read current WPSN2 option bytes */
-	retval = target_read_u32(target, FLASH_REG_BASE_B1 + FLASH_WPSN_CUR, &optiondata);
-	if (retval != ERROR_OK)
-		return retval;
-	stm32x_info->option_bytes.protection2 = optiondata & 0xff;
 
 	return ERROR_OK;
 }
 
 static int stm32x_write_options(struct flash_bank *bank)
 {
-	struct stm32h7x_flash_bank *stm32x_info = NULL;
+	struct stm32h7x_flash_bank *stm32x_info = bank->driver_priv;
 	struct target *target = bank->target;
 	uint32_t optiondata;
-
-	stm32x_info = bank->driver_priv;
 
 	int retval = stm32x_unlock_option_reg(bank);
 	if (retval != ERROR_OK)
@@ -366,13 +355,7 @@ static int stm32x_write_options(struct flash_bank *bank)
 
 	optiondata = stm32x_info->option_bytes.protection & 0xff;
 	/* Program protection WPSNPRG */
-	retval = target_write_u32(target, FLASH_REG_BASE_B0 + FLASH_WPSN_PRG, optiondata);
-	if (retval != ERROR_OK)
-		return retval;
-
-	optiondata = stm32x_info->option_bytes.protection2 & 0xff;
-	/* Program protection WPSNPRG2 */
-	retval = target_write_u32(target, FLASH_REG_BASE_B1 + FLASH_WPSN_PRG, optiondata);
+	retval = target_write_u32(target, stm32x_get_flash_reg(bank, FLASH_WPSN_PRG), optiondata);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -426,17 +409,7 @@ static int stm32x_protect_check(struct flash_bank *bank)
 	}
 
 	for (int i = 0; i < bank->num_sectors; i++) {
-		if (stm32x_info->flash_base == FLASH_REG_BASE_B0) {
-			if (stm32x_info->option_bytes.protection & (1 << i))
-				bank->sectors[i].is_protected = 0;
-			else
-				bank->sectors[i].is_protected = 1;
-		} else {
-			if (stm32x_info->option_bytes.protection2 & (1 << i))
-				bank->sectors[i].is_protected = 0;
-			else
-				bank->sectors[i].is_protected = 1;
-		}
+		bank->sectors[i].is_protected = stm32x_info->option_bytes.protection & (1 << i) ? 0 : 1;
 	}
 	return ERROR_OK;
 }
@@ -515,21 +488,14 @@ static int stm32x_protect(struct flash_bank *bank, int set, int first, int last)
 	}
 
 	for (int i = first; i <= last; i++) {
-		if (stm32x_info->flash_base == FLASH_REG_BASE_B0) {
-			if (set)
-				stm32x_info->option_bytes.protection &= ~(1 << i);
-			else
-				stm32x_info->option_bytes.protection |= (1 << i);
-		} else {
-			if (set)
-				stm32x_info->option_bytes.protection2 &= ~(1 << i);
-			else
-				stm32x_info->option_bytes.protection2 |= (1 << i);
-		}
+		if (set)
+			stm32x_info->option_bytes.protection &= ~(1 << i);
+		else
+			stm32x_info->option_bytes.protection |= (1 << i);
 	}
 
-	LOG_INFO("stm32x_protect, option_bytes written WRP1 0x%x , WRP2 0x%x",
-	  (stm32x_info->option_bytes.protection & 0xff), (stm32x_info->option_bytes.protection2 & 0xff));
+	LOG_DEBUG("stm32x_protect, option_bytes written WPSN 0x%x",
+	  (stm32x_info->option_bytes.protection & 0xff));
 
 	retval = stm32x_write_options(bank);
 	if (retval != ERROR_OK)
