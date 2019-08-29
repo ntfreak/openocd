@@ -5124,7 +5124,7 @@ command or the flash driver then it defaults to 0xff.
 @end deffn
 
 @anchor{program}
-@deffn Command {program} filename [verify] [reset] [exit] [offset]
+@deffn Command {program} filename [preverify] [verify] [reset] [exit] [offset]
 This is a helper script that simplifies using OpenOCD as a standalone
 programmer. The only required parameter is @option{filename}, the others are optional.
 @xref{Flash Programming}.
@@ -7497,6 +7497,7 @@ The script is executed as follows and by default the following actions will be p
 @item 'init' is executed.
 @item 'reset init' is called to reset and halt the target, any 'reset init' scripts are executed.
 @item @code{flash write_image} is called to erase and write any flash using the filename given.
+@item If the @option{preverify} parameter is given, the target is "verified" first and only flashed if this fails.
 @item @code{verify_image} is called if @option{verify} parameter is given.
 @item @code{reset run} is called if @option{reset} parameter is given.
 @item OpenOCD is shutdown if @option{exit} parameter is given.
