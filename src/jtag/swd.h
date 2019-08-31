@@ -277,6 +277,5 @@ struct swd_driver {
 };
 
 int swd_init_reset(struct command_context *cmd_ctx);
-void swd_add_reset(int req_srst);
 
 #endif /* OPENOCD_JTAG_SWD_H */

@@ -1592,35 +1592,44 @@ static void xds110_flush(void)
 	xds110.txn_result_count = 0;
 }
 
-static void xds110_execute_reset(struct jtag_command *cmd)
+static int xds110_reset(int trst, int srst)
 {
-	char trst;
-	char srst;
+	uint8_t value;
+	bool success;
+	int retval = ERROR_OK;
 
-	if (cmd->cmd.reset->trst != -1) {
-		if (cmd->cmd.reset->trst == 0) {
+	if (trst != -1) {
+		if (trst == 0) {
 			/* Deassert nTRST (active low) */
-			trst = 1;
+			value = 1;
 		} else {
 			/* Assert nTRST (active low) */
-			trst = 0;
+			value = 0;
 		}
-		(void)xds_set_trst(trst);
+		success = xds_set_trst(value);
+		if (!success)
+			retval = ERROR_FAIL;
 	}
 
-	if (cmd->cmd.reset->srst != -1) {
-		if (cmd->cmd.reset->srst == 0) {
+	if (srst != -1) {
+		if (srst == 0) {
 			/* Deassert nSRST (active low) */
-			srst = 1;
+			value = 1;
 		} else {
 			/* Assert nSRST (active low) */
-			srst = 0;
+			value = 0;
 		}
-		(void)xds_set_srst(srst);
+		success = xds_set_srst(value);
+		if (!success)
+			retval = ERROR_FAIL;
 
 		/* Toggle TCK to trigger HIB on CC13x/CC26x devices */
-		(void)xds_cycle_tck(60000);
+		success = xds_cycle_tck(60000);
+		if (!success)
+			retval = ERROR_FAIL;
 	}
+
+	return retval;
 }
 
 static void xds110_execute_sleep(struct jtag_command *cmd)
@@ -1788,10 +1797,6 @@ static void xds110_queue_stableclocks(struct jtag_command *cmd)
 static void xds110_execute_command(struct jtag_command *cmd)
 {
 	switch (cmd->type) {
-		case JTAG_RESET:
-			xds110_flush();
-			xds110_execute_reset(cmd);
-			break;
 		case JTAG_SLEEP:
 			xds110_flush();
 			xds110_execute_sleep(cmd);
@@ -2045,4 +2050,5 @@ struct jtag_interface xds110_interface = {
 	.khz = xds110_khz,
 	.init = xds110_init,
 	.quit = xds110_quit,
+	.reset = xds110_reset,
 };

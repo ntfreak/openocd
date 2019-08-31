@@ -247,6 +247,20 @@ struct jtag_interface {
 	int (*quit)(void);
 
 	/**
+	 * Control (assert/deassert) the signals SRST and TRST on the interface.
+	 * This function is optional.
+	 * Adapters that don't support resets can either not define this function
+	 * or return an error code.
+	 * Adapters that don't support one of the two reset should ignore the
+	 * request to assert the missing signal and eventually log an error.
+	 *
+	 * @param srst 1 to assert SRST, 0 to deassert SRST.
+	 * @param trst 1 to assert TRST, 0 to deassert TRST.
+	 * @returns ERROR_OK on success, or an error code on failure.
+	 */
+	int (*reset)(int srst, int trst);
+
+	/**
 	 * Returns JTAG maxium speed for KHz. 0 = RTCK. The function returns
 	 *  a failure if it can't support the KHz/RTCK.
 	 *

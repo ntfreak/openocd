@@ -539,12 +539,12 @@ struct jtag_interface sysfsgpio_interface = {
 	.commands = sysfsgpio_command_handlers,
 	.init = sysfsgpio_init,
 	.quit = sysfsgpio_quit,
+	.reset = sysfsgpio_reset,
 };
 
 static struct bitbang_interface sysfsgpio_bitbang = {
 	.read = sysfsgpio_read,
 	.write = sysfsgpio_write,
-	.reset = sysfsgpio_reset,
 	.swdio_read = sysfsgpio_swdio_read,
 	.swdio_drive = sysfsgpio_swdio_drive,
 	.blink = 0
