@@ -94,6 +94,7 @@ static void jlink_path_move(int num_states, tap_state_t *path);
 static void jlink_stableclocks(int num_cycles);
 static void jlink_runtest(int num_cycles);
 static void jlink_reset(int trst, int srst);
+static int jlink_reset_safe(int trst, int srst);
 static int jlink_swd_run_queue(void);
 static void jlink_swd_queue_cmd(uint8_t cmd, uint32_t *dst, uint32_t data, uint32_t ap_delay_clk);
 static int jlink_swd_switch_seq(enum swd_special_seq seq);
@@ -251,16 +252,6 @@ static void jlink_execute_scan(struct jtag_command *cmd)
 		tap_state_name(tap_get_end_state()));
 }
 
-static void jlink_execute_reset(struct jtag_command *cmd)
-{
-	LOG_DEBUG_IO("reset trst: %i srst %i", cmd->cmd.reset->trst,
-		cmd->cmd.reset->srst);
-
-	jlink_flush();
-	jlink_reset(cmd->cmd.reset->trst, cmd->cmd.reset->srst);
-	jlink_flush();
-}
-
 static void jlink_execute_sleep(struct jtag_command *cmd)
 {
 	LOG_DEBUG_IO("sleep %" PRIi32 "", cmd->cmd.sleep->us);
@@ -285,9 +276,6 @@ static int jlink_execute_command(struct jtag_command *cmd)
 			break;
 		case JTAG_SCAN:
 			jlink_execute_scan(cmd);
-			break;
-		case JTAG_RESET:
-			jlink_execute_reset(cmd);
 			break;
 		case JTAG_SLEEP:
 			jlink_execute_sleep(cmd);
@@ -954,6 +942,13 @@ static void jlink_reset(int trst, int srst)
 
 	if (trst == 0)
 		jaylink_jtag_set_trst(devh);
+}
+
+static int jlink_reset_safe(int trst, int srst)
+{
+	jlink_flush();
+	jlink_reset(trst, srst);
+	return jlink_flush();
 }
 
 COMMAND_HANDLER(jlink_usb_command)
@@ -2283,6 +2278,7 @@ struct jtag_interface jlink_interface = {
 	.khz = &jlink_khz,
 	.init = &jlink_init,
 	.quit = &jlink_quit,
+	.reset = &jlink_reset_safe,
 	.config_trace = &config_trace,
 	.poll_trace = &poll_trace,
 };

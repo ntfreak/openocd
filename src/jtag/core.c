@@ -613,53 +613,42 @@ void jtag_add_clocks(int num_cycles)
 	}
 }
 
-void swd_add_reset(int req_srst)
+static int adapter_system_reset(int req_srst)
 {
+	int retval;
+
 	if (req_srst) {
 		if (!(jtag_reset_config & RESET_HAS_SRST)) {
 			LOG_ERROR("BUG: can't assert SRST");
-			jtag_set_error(ERROR_FAIL);
-			return;
+			return ERROR_FAIL;
 		}
 		req_srst = 1;
 	}
 
 	/* Maybe change SRST signal state */
 	if (jtag_srst != req_srst) {
-		int retval;
-
-		retval = interface_jtag_add_reset(0, req_srst);
-		if (retval != ERROR_OK)
-			jtag_set_error(retval);
-		else
-			retval = jtag_execute_queue();
-
+		retval = jtag->reset(0, req_srst);
 		if (retval != ERROR_OK) {
-			LOG_ERROR("TRST/SRST error");
-			return;
+			LOG_ERROR("SRST error");
+			return ERROR_FAIL;
 		}
-
-		/* SRST resets everything hooked up to that signal */
 		jtag_srst = req_srst;
-		if (jtag_srst) {
+
+		if (req_srst) {
 			LOG_DEBUG("SRST line asserted");
 			if (adapter_nsrst_assert_width)
-				jtag_add_sleep(adapter_nsrst_assert_width * 1000);
+				jtag_sleep(adapter_nsrst_assert_width * 1000);
 		} else {
 			LOG_DEBUG("SRST line released");
 			if (adapter_nsrst_delay)
-				jtag_add_sleep(adapter_nsrst_delay * 1000);
-		}
-
-		retval = jtag_execute_queue();
-		if (retval != ERROR_OK) {
-			LOG_ERROR("SRST timings error");
-			return;
+				jtag_sleep(adapter_nsrst_delay * 1000);
 		}
 	}
+
+	return ERROR_OK;
 }
 
-void jtag_add_reset(int req_tlr_or_trst, int req_srst)
+static void legacy_jtag_add_reset(int req_tlr_or_trst, int req_srst)
 {
 	int trst_with_tlr = 0;
 	int new_srst = 0;
@@ -715,6 +704,118 @@ void jtag_add_reset(int req_tlr_or_trst, int req_srst)
 			retval = jtag_execute_queue();
 
 		if (retval != ERROR_OK) {
+			LOG_ERROR("TRST/SRST error");
+			return;
+		}
+	}
+
+	/* SRST resets everything hooked up to that signal */
+	if (jtag_srst != new_srst) {
+		jtag_srst = new_srst;
+		if (jtag_srst) {
+			LOG_DEBUG("SRST line asserted");
+			if (adapter_nsrst_assert_width)
+				jtag_add_sleep(adapter_nsrst_assert_width * 1000);
+		} else {
+			LOG_DEBUG("SRST line released");
+			if (adapter_nsrst_delay)
+				jtag_add_sleep(adapter_nsrst_delay * 1000);
+		}
+	}
+
+	/* Maybe enter the JTAG TAP_RESET state ...
+	 *  - using only TMS, TCK, and the JTAG state machine
+	 *  - or else more directly, using TRST
+	 *
+	 * TAP_RESET should be invisible to non-debug parts of the system.
+	 */
+	if (trst_with_tlr) {
+		LOG_DEBUG("JTAG reset with TLR instead of TRST");
+		jtag_add_tlr();
+
+	} else if (jtag_trst != new_trst) {
+		jtag_trst = new_trst;
+		if (jtag_trst) {
+			LOG_DEBUG("TRST line asserted");
+			tap_set_state(TAP_RESET);
+			if (jtag_ntrst_assert_width)
+				jtag_add_sleep(jtag_ntrst_assert_width * 1000);
+		} else {
+			LOG_DEBUG("TRST line released");
+			if (jtag_ntrst_delay)
+				jtag_add_sleep(jtag_ntrst_delay * 1000);
+
+			/* We just asserted nTRST, so we're now in TAP_RESET.
+			 * Inform possible listeners about this, now that
+			 * JTAG instructions and data can be shifted.  This
+			 * sequence must match jtag_add_tlr().
+			 */
+			jtag_call_event_callbacks(JTAG_TRST_ASSERTED);
+			jtag_notify_event(JTAG_TRST_ASSERTED);
+		}
+	}
+}
+
+/* FIXME: name is misleading; we do not plan to "add" reset into jtag queue */
+void jtag_add_reset(int req_tlr_or_trst, int req_srst)
+{
+	int retval;
+	int trst_with_tlr = 0;
+	int new_srst = 0;
+	int new_trst = 0;
+
+	if (!jtag->reset) {
+		legacy_jtag_add_reset(req_tlr_or_trst, req_srst);
+		return;
+	}
+
+	/* Without SRST, we must use target-specific JTAG operations
+	 * on each target; callers should not be requesting SRST when
+	 * that signal doesn't exist.
+	 *
+	 * RESET_SRST_PULLS_TRST is a board or chip level quirk, which
+	 * can kick in even if the JTAG adapter can't drive TRST.
+	 */
+	if (req_srst) {
+		if (!(jtag_reset_config & RESET_HAS_SRST)) {
+			LOG_ERROR("BUG: can't assert SRST");
+			jtag_set_error(ERROR_FAIL);
+			return;
+		}
+		if ((jtag_reset_config & RESET_SRST_PULLS_TRST) != 0
+				&& !req_tlr_or_trst) {
+			LOG_ERROR("BUG: can't assert only SRST");
+			jtag_set_error(ERROR_FAIL);
+			return;
+		}
+		new_srst = 1;
+	}
+
+	/* JTAG reset (entry to TAP_RESET state) can always be achieved
+	 * using TCK and TMS; that may go through a TAP_{IR,DR}UPDATE
+	 * state first.  TRST accelerates it, and bypasses those states.
+	 *
+	 * RESET_TRST_PULLS_SRST is a board or chip level quirk, which
+	 * can kick in even if the JTAG adapter can't drive SRST.
+	 */
+	if (req_tlr_or_trst) {
+		if (!(jtag_reset_config & RESET_HAS_TRST))
+			trst_with_tlr = 1;
+		else if ((jtag_reset_config & RESET_TRST_PULLS_SRST) != 0
+			 && !req_srst)
+			trst_with_tlr = 1;
+		else
+			new_trst = 1;
+	}
+
+	/* Maybe change TRST and/or SRST signal state */
+	if (jtag_srst != new_srst || jtag_trst != new_trst) {
+		/* guarantee jtag queue empty before changing reset status */
+		jtag_execute_queue();
+
+		retval = jtag->reset(new_trst, new_srst);
+		if (retval != ERROR_OK) {
+			jtag_set_error(retval);
 			LOG_ERROR("TRST/SRST error");
 			return;
 		}
@@ -1557,17 +1658,19 @@ int adapter_quit(void)
 
 int swd_init_reset(struct command_context *cmd_ctx)
 {
-	int retval = adapter_init(cmd_ctx);
+	int retval, retval1;
+
+	retval = adapter_init(cmd_ctx);
 	if (retval != ERROR_OK)
 		return retval;
 
 	LOG_DEBUG("Initializing with hard SRST reset");
 
 	if (jtag_reset_config & RESET_HAS_SRST)
-		swd_add_reset(1);
-	swd_add_reset(0);
-	retval = jtag_execute_queue();
-	return retval;
+		retval = adapter_system_reset(1);
+	retval1 = adapter_system_reset(0);
+
+	return (retval == ERROR_OK) ? retval1 : retval;
 }
 
 int jtag_init_reset(struct command_context *cmd_ctx)
@@ -1916,7 +2019,7 @@ int adapter_resets(int trst, int srst)
 			LOG_ERROR("adapter has no srst signal");
 			return ERROR_FAIL;
 		}
-		swd_add_reset(srst);
+		adapter_system_reset(srst);
 		return ERROR_OK;
 	} else if (transport_is_hla()) {
 		if (trst == TRST_ASSERT) {
@@ -1949,7 +2052,7 @@ void adapter_assert_reset(void)
 		else
 			jtag_add_reset(0, 1);
 	} else if (transport_is_swd())
-		swd_add_reset(1);
+		adapter_system_reset(1);
 	else if (get_current_transport() != NULL)
 		LOG_ERROR("reset is not supported on %s",
 			get_current_transport()->name);
@@ -1962,7 +2065,7 @@ void adapter_deassert_reset(void)
 	if (transport_is_jtag())
 		jtag_add_reset(0, 0);
 	else if (transport_is_swd())
-		swd_add_reset(0);
+		adapter_system_reset(0);
 	else if (get_current_transport() != NULL)
 		LOG_ERROR("reset is not supported on %s",
 			get_current_transport()->name);

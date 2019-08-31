@@ -112,7 +112,7 @@ static int swd_connect(struct adiv5_dap *dap)
 
 		if (jtag_reset_config & RESET_CNCT_UNDER_SRST) {
 			if (jtag_reset_config & RESET_SRST_NO_GATING)
-				swd_add_reset(1);
+				adapter_assert_reset();
 			else
 				LOG_WARNING("\'srst_nogate\' reset_config option is required");
 		}

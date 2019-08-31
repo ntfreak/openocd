@@ -517,46 +517,41 @@ static void ftdi_execute_scan(struct jtag_command *cmd)
 		tap_state_name(tap_get_end_state()));
 }
 
-static void ftdi_execute_reset(struct jtag_command *cmd)
+static int ftdi_reset(int trst, int srst)
 {
-	LOG_DEBUG_IO("reset trst: %i srst %i",
-		cmd->cmd.reset->trst, cmd->cmd.reset->srst);
+	struct signal *sig_ntrst = find_signal_by_name("nTRST");
+	struct signal *sig_nsrst = find_signal_by_name("nSRST");
 
-	if (cmd->cmd.reset->trst == 1
-	    || (cmd->cmd.reset->srst
-		&& (jtag_get_reset_config() & RESET_SRST_PULLS_TRST)))
-		tap_set_state(TAP_RESET);
+	LOG_DEBUG_IO("reset trst: %i srst %i", trst, srst);
 
-	struct signal *trst = find_signal_by_name("nTRST");
-	if (cmd->cmd.reset->trst == 1) {
-		if (trst)
-			ftdi_set_signal(trst, '0');
+	if (trst == 1) {
+		if (sig_ntrst)
+			ftdi_set_signal(sig_ntrst, '0');
 		else
 			LOG_ERROR("Can't assert TRST: nTRST signal is not defined");
-	} else if (trst && jtag_get_reset_config() & RESET_HAS_TRST &&
-			cmd->cmd.reset->trst == 0) {
+	} else if (sig_ntrst && jtag_get_reset_config() & RESET_HAS_TRST &&
+			trst == 0) {
 		if (jtag_get_reset_config() & RESET_TRST_OPEN_DRAIN)
-			ftdi_set_signal(trst, 'z');
+			ftdi_set_signal(sig_ntrst, 'z');
 		else
-			ftdi_set_signal(trst, '1');
+			ftdi_set_signal(sig_ntrst, '1');
 	}
 
-	struct signal *srst = find_signal_by_name("nSRST");
-	if (cmd->cmd.reset->srst == 1) {
-		if (srst)
-			ftdi_set_signal(srst, '0');
+	if (srst == 1) {
+		if (sig_nsrst)
+			ftdi_set_signal(sig_nsrst, '0');
 		else
 			LOG_ERROR("Can't assert SRST: nSRST signal is not defined");
-	} else if (srst && jtag_get_reset_config() & RESET_HAS_SRST &&
-			cmd->cmd.reset->srst == 0) {
+	} else if (sig_nsrst && jtag_get_reset_config() & RESET_HAS_SRST &&
+			srst == 0) {
 		if (jtag_get_reset_config() & RESET_SRST_PUSH_PULL)
-			ftdi_set_signal(srst, '1');
+			ftdi_set_signal(sig_nsrst, '1');
 		else
-			ftdi_set_signal(srst, 'z');
+			ftdi_set_signal(sig_nsrst, 'z');
 	}
 
-	LOG_DEBUG_IO("trst: %i, srst: %i",
-		cmd->cmd.reset->trst, cmd->cmd.reset->srst);
+	LOG_DEBUG_IO("trst: %i, srst: %i", trst, srst);
+	return ERROR_OK;
 }
 
 static void ftdi_execute_sleep(struct jtag_command *cmd)
@@ -597,9 +592,6 @@ static void ftdi_execute_stableclocks(struct jtag_command *cmd)
 static void ftdi_execute_command(struct jtag_command *cmd)
 {
 	switch (cmd->type) {
-		case JTAG_RESET:
-			ftdi_execute_reset(cmd);
-			break;
 		case JTAG_RUNTEST:
 			ftdi_execute_runtest(cmd);
 			break;
@@ -1248,6 +1240,7 @@ struct jtag_interface ftdi_interface = {
 
 	.init = ftdi_initialize,
 	.quit = ftdi_quit,
+	.reset = ftdi_reset,
 	.speed = ftdi_speed,
 	.speed_div = ftdi_speed_div,
 	.khz = ftdi_khz,

@@ -59,7 +59,7 @@ static void vsllink_runtest(int num_cycles);
 static void vsllink_stableclocks(int num_cycles, int tms);
 static void vsllink_scan(bool ir_scan, enum scan_type type,
 		uint8_t *buffer, int scan_size, struct scan_command *command);
-static void vsllink_reset(int trst, int srst);
+static int vsllink_reset(int trst, int srst);
 
 /* VSLLink tap buffer functions */
 static void vsllink_tap_append_step(int tms, int tdi);
@@ -162,20 +162,6 @@ static int vsllink_execute_queue(void)
 				vsllink_scan(cmd->cmd.scan->ir_scan,
 						type, buffer, scan_size,
 						cmd->cmd.scan);
-				break;
-
-			case JTAG_RESET:
-				LOG_DEBUG_IO("reset trst: %i srst %i",
-						cmd->cmd.reset->trst,
-						cmd->cmd.reset->srst);
-
-				vsllink_tap_execute();
-
-				if (cmd->cmd.reset->trst == 1)
-					tap_set_state(TAP_RESET);
-
-				vsllink_reset(cmd->cmd.reset->trst,
-						cmd->cmd.reset->srst);
 				break;
 
 			case JTAG_SLEEP:
@@ -478,7 +464,7 @@ static void vsllink_scan(bool ir_scan, enum scan_type type, uint8_t *buffer,
 		vsllink_state_move();
 }
 
-static void vsllink_reset(int trst, int srst)
+static int vsllink_reset(int trst, int srst)
 {
 	LOG_DEBUG("trst: %i, srst: %i", trst, srst);
 
@@ -494,7 +480,7 @@ static void vsllink_reset(int trst, int srst)
 			versaloon_interface.adaptors.gpio.out(0, GPIO_TRST, 0);
 	}
 
-	versaloon_interface.adaptors.peripheral_commit();
+	return versaloon_interface.adaptors.peripheral_commit();
 }
 
 COMMAND_HANDLER(vsllink_handle_usb_vid_command)
@@ -971,6 +957,7 @@ struct jtag_interface vsllink_interface = {
 
 	.init = vsllink_init,
 	.quit = vsllink_quit,
+	.reset = vsllink_reset,
 	.khz = vsllink_khz,
 	.speed = vsllink_speed,
 	.speed_div = vsllink_speed_div,

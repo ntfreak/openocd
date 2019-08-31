@@ -51,7 +51,6 @@ static volatile uint32_t *pio_base;
 
 static bb_value_t bcm2835gpio_read(void);
 static int bcm2835gpio_write(int tck, int tms, int tdi);
-static int bcm2835gpio_reset(int trst, int srst);
 
 static int bcm2835_swdio_read(void);
 static void bcm2835_swdio_drive(bool is_output);
@@ -62,7 +61,6 @@ static int bcm2835gpio_quit(void);
 static struct bitbang_interface bcm2835gpio_bitbang = {
 	.read = bcm2835gpio_read,
 	.write = bcm2835gpio_write,
-	.reset = bcm2835gpio_reset,
 	.swdio_read = bcm2835_swdio_read,
 	.swdio_drive = bcm2835_swdio_drive,
 	.blink = NULL
@@ -419,6 +417,7 @@ struct jtag_interface bcm2835gpio_interface = {
 	.commands = bcm2835gpio_command_handlers,
 	.init = bcm2835gpio_init,
 	.quit = bcm2835gpio_quit,
+	.reset = bcm2835gpio_reset,
 };
 
 static bool bcm2835gpio_jtag_mode_possible(void)
