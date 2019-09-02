@@ -6751,6 +6751,19 @@ The @var{num} parameter is a value shown by @command{flash banks}.
 Mass erases the entire stm32h7x device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
+
+@deffn Command {stm32h7x option_read} num reg_offset
+Reads an option byte register from the stm32h7x device.
+The @var{num} parameter is a value shown by @command{flash banks}, @var{reg_offset}
+is the register offset of the option byte to read.
+@end deffn
+
+@deffn Command {stm32h7x option_write} num reg_offset [reg_mask]
+Writes an option byte register of the stm32h7x device.
+The @var{num} parameter is a value shown by @command{flash banks}, @var{reg_offset}
+is the register offset of the option byte to write, and @var{reg_mask} is the mask
+to apply when writing the register (only bits with a '1' will be touched).
+@end deffn
 @end deffn
 
 @deffn {Flash Driver} stm32lx
