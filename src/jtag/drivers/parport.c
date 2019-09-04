@@ -260,7 +260,6 @@ static int parport_get_giveio_access(void)
 static struct bitbang_interface parport_bitbang = {
 		.read = &parport_read,
 		.write = &parport_write,
-		.reset = &parport_reset,
 		.blink = &parport_led,
 	};
 
@@ -522,6 +521,7 @@ struct jtag_interface parport_interface = {
 
 	.init = parport_init,
 	.quit = parport_quit,
+	.reset = parport_reset,
 	.khz = parport_khz,
 	.speed_div = parport_speed_div,
 	.speed = parport_speed,

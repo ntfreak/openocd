@@ -111,7 +111,6 @@ static uint32_t *pio_base;
  */
 static bb_value_t at91rm9200_read(void);
 static int at91rm9200_write(int tck, int tms, int tdi);
-static int at91rm9200_reset(int trst, int srst);
 
 static int at91rm9200_init(void);
 static int at91rm9200_quit(void);
@@ -119,7 +118,6 @@ static int at91rm9200_quit(void);
 static struct bitbang_interface at91rm9200_bitbang = {
 	.read = at91rm9200_read,
 	.write = at91rm9200_write,
-	.reset = at91rm9200_reset,
 	.blink = 0
 };
 
@@ -196,6 +194,7 @@ struct jtag_interface at91rm9200_interface = {
 	.commands = at91rm9200_command_handlers,
 	.init = at91rm9200_init,
 	.quit = at91rm9200_quit,
+	.reset = at91rm9200_reset,
 };
 
 static int at91rm9200_init(void)
