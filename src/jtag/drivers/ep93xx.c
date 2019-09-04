@@ -59,12 +59,12 @@ struct jtag_interface ep93xx_interface = {
 
 	.init = ep93xx_init,
 	.quit = ep93xx_quit,
+	.reset = ep93xx_reset,
 };
 
 static struct bitbang_interface ep93xx_bitbang = {
 	.read = ep93xx_read,
 	.write = ep93xx_write,
-	.reset = ep93xx_reset,
 	.blink = 0,
 };
 

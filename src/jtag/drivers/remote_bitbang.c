@@ -199,7 +199,6 @@ static struct bitbang_interface remote_bitbang_bitbang = {
 	.sample = &remote_bitbang_sample,
 	.read_sample = &remote_bitbang_read_sample,
 	.write = &remote_bitbang_write,
-	.reset = &remote_bitbang_reset,
 	.blink = &remote_bitbang_blink,
 };
 
@@ -349,4 +348,5 @@ struct jtag_interface remote_bitbang_interface = {
 	.commands = remote_bitbang_command_handlers,
 	.init = &remote_bitbang_init,
 	.quit = &remote_bitbang_quit,
+	.reset = &remote_bitbang_reset,
 };

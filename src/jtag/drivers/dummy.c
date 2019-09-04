@@ -91,7 +91,6 @@ static int dummy_led(int on)
 static struct bitbang_interface dummy_bitbang = {
 		.read = &dummy_read,
 		.write = &dummy_write,
-		.reset = &dummy_reset,
 		.blink = &dummy_led,
 	};
 
@@ -160,4 +159,5 @@ struct jtag_interface dummy_interface = {
 
 		.init = &dummy_init,
 		.quit = &dummy_quit,
+		.reset = &dummy_reset,
 	};

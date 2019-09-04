@@ -314,17 +314,6 @@ int bitbang_execute_queue(void)
 
 	while (cmd) {
 		switch (cmd->type) {
-			case JTAG_RESET:
-				LOG_DEBUG_IO("reset trst: %i srst %i",
-						cmd->cmd.reset->trst,
-						cmd->cmd.reset->srst);
-				if ((cmd->cmd.reset->trst == 1) ||
-						(cmd->cmd.reset->srst && (jtag_get_reset_config() & RESET_SRST_PULLS_TRST)))
-					tap_set_state(TAP_RESET);
-				if (bitbang_interface->reset(cmd->cmd.reset->trst,
-							cmd->cmd.reset->srst) != ERROR_OK)
-					return ERROR_FAIL;
-				break;
 			case JTAG_RUNTEST:
 				LOG_DEBUG_IO("runtest %i cycles, end in %s",
 						cmd->cmd.runtest->num_cycles,
