@@ -52,8 +52,11 @@
 #include "config.h"
 #endif
 
+#include <helper/time_support.h>
 #include <jtag/interface.h>
 #include "bitbang.h"
+
+#define TIMEOUT_FOR_UDEV_MS 500
 
 /*
  * Helper func to determine if gpio number valid
@@ -112,6 +115,7 @@ static void unexport_sysfs_gpio(int gpio)
  */
 static int setup_sysfs_gpio(int gpio, int is_output, int init_high)
 {
+	struct timeval timeout, now;
 	char buf[40];
 	char gpiostr[5];
 	int ret;
@@ -131,8 +135,19 @@ static int setup_sysfs_gpio(int gpio, int is_output, int init_high)
 		}
 	}
 
+	gettimeofday(&timeout, NULL);
+	timeval_add_time(&timeout, 0, TIMEOUT_FOR_UDEV_MS * 1000);
+
 	snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/direction", gpio);
-	ret = open_write_close(buf, is_output ? (init_high ? "high" : "low") : "in");
+	for (;;) {
+		ret = open_write_close(buf, is_output ? (init_high ? "high" : "low") : "in");
+		if (ret >= 0 || errno != EACCES)
+			break;
+		gettimeofday(&now, NULL);
+		if (timeval_compare(&now, &timeout) >= 0)
+			break;
+		jtag_sleep(10000);
+	}
 	if (ret < 0) {
 		LOG_ERROR("Couldn't set direction for gpio %d", gpio);
 		perror("sysfsgpio: ");
@@ -141,7 +156,15 @@ static int setup_sysfs_gpio(int gpio, int is_output, int init_high)
 	}
 
 	snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
-	ret = open(buf, O_RDWR | O_NONBLOCK | O_SYNC);
+	for (;;) {
+		ret = open(buf, O_RDWR | O_NONBLOCK | O_SYNC);
+		if (ret >= 0 || errno != EACCES)
+			break;
+		gettimeofday(&now, NULL);
+		if (timeval_compare(&now, &timeout) >= 0)
+			break;
+		jtag_sleep(10000);
+	}
 	if (ret < 0) {
 		LOG_ERROR("Couldn't open value for gpio %d", gpio);
 		perror("sysfsgpio: ");
