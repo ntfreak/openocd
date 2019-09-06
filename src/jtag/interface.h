@@ -337,8 +337,8 @@ struct jtag_interface {
 extern const char * const jtag_only[];
 
 int adapter_resets(int assert_trst, int assert_srst);
-void adapter_assert_reset(void);
-void adapter_deassert_reset(void);
+int adapter_assert_reset(void);
+int adapter_deassert_reset(void);
 int adapter_config_trace(bool enabled, enum tpiu_pin_protocol pin_protocol,
 			 uint32_t port_size, unsigned int *trace_freq);
 int adapter_poll_trace(uint8_t *buf, size_t *size);

@@ -35,8 +35,6 @@
 #include "interface.h"
 #include <transport/transport.h>
 #include <helper/jep106.h>
-#include <jtag/hla/hla_transport.h>
-#include <jtag/hla/hla_interface.h>
 
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
@@ -1940,19 +1938,7 @@ int adapter_resets(int trst, int srst)
 		/* adapters without trst signal will eventually use tlr sequence */
 		jtag_add_reset(trst, srst);
 		return ERROR_OK;
-	} else if (transport_is_swd()) {
-		if (trst == TRST_ASSERT) {
-			LOG_ERROR("transport swd has no trst signal");
-			return ERROR_FAIL;
-		}
-
-		if (srst == SRST_ASSERT && !(jtag_reset_config & RESET_HAS_SRST)) {
-			LOG_ERROR("adapter has no srst signal");
-			return ERROR_FAIL;
-		}
-		adapter_system_reset(srst);
-		return ERROR_OK;
-	} else if (transport_is_hla()) {
+	} else if (transport_is_swd() || transport_is_hla()) {
 		if (trst == TRST_ASSERT) {
 			LOG_ERROR("transport %s has no trst signal",
 				get_current_transport()->name);
@@ -1963,7 +1949,8 @@ int adapter_resets(int trst, int srst)
 			LOG_ERROR("adapter has no srst signal");
 			return ERROR_FAIL;
 		}
-		return hl_interface_reset(srst);
+		adapter_system_reset(srst);
+		return ERROR_OK;
 	}
 
 	if (trst == TRST_DEASSERT && srst == SRST_DEASSERT)
@@ -1975,33 +1962,37 @@ int adapter_resets(int trst, int srst)
 	return ERROR_FAIL;
 }
 
-void adapter_assert_reset(void)
+int adapter_assert_reset(void)
 {
 	if (transport_is_jtag()) {
 		if (jtag_reset_config & RESET_SRST_PULLS_TRST)
 			jtag_add_reset(1, 1);
 		else
 			jtag_add_reset(0, 1);
-	} else if (transport_is_swd())
-		adapter_system_reset(1);
+		return ERROR_OK;
+	} else if (transport_is_swd() || transport_is_hla())
+		return adapter_system_reset(1);
 	else if (get_current_transport() != NULL)
 		LOG_ERROR("reset is not supported on %s",
 			get_current_transport()->name);
 	else
 		LOG_ERROR("transport is not selected");
+	return ERROR_FAIL;
 }
 
-void adapter_deassert_reset(void)
+int adapter_deassert_reset(void)
 {
-	if (transport_is_jtag())
+	if (transport_is_jtag()) {
 		jtag_add_reset(0, 0);
-	else if (transport_is_swd())
-		adapter_system_reset(0);
+		return ERROR_OK;
+	} else if (transport_is_swd() || transport_is_hla())
+		return adapter_system_reset(0);
 	else if (get_current_transport() != NULL)
 		LOG_ERROR("reset is not supported on %s",
 			get_current_transport()->name);
 	else
 		LOG_ERROR("transport is not selected");
+	return ERROR_FAIL;
 }
 
 int adapter_config_trace(bool enabled, enum tpiu_pin_protocol pin_protocol,

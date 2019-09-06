@@ -25,6 +25,7 @@
 #include "config.h"
 #endif
 
+#include "jtag/interface.h"
 #include "jtag/jtag.h"
 #include "jtag/hla/hla_transport.h"
 #include "jtag/hla/hla_interface.h"
@@ -499,7 +500,7 @@ static int adapter_poll(struct target *target)
 	return ERROR_OK;
 }
 
-static int adapter_assert_reset(struct target *target)
+static int hl_assert_reset(struct target *target)
 {
 	int res = ERROR_OK;
 	struct hl_interface_s *adapter = target_to_adapter(target);
@@ -514,8 +515,7 @@ static int adapter_assert_reset(struct target *target)
 
 	if ((jtag_reset_config & RESET_HAS_SRST) &&
 	    (jtag_reset_config & RESET_SRST_NO_GATING)) {
-		jtag_add_reset(0, 1);
-		res = adapter->layout->api->assert_srst(adapter->handle, 0);
+		res = adapter_assert_reset();
 		srst_asserted = true;
 	}
 
@@ -529,8 +529,7 @@ static int adapter_assert_reset(struct target *target)
 
 	if (jtag_reset_config & RESET_HAS_SRST) {
 		if (!srst_asserted) {
-			jtag_add_reset(0, 1);
-			res = adapter->layout->api->assert_srst(adapter->handle, 0);
+			res = adapter_assert_reset();
 		}
 		if (res == ERROR_COMMAND_NOTFOUND)
 			LOG_ERROR("Hardware srst not supported, falling back to software reset");
@@ -563,21 +562,14 @@ static int adapter_assert_reset(struct target *target)
 	return ERROR_OK;
 }
 
-static int adapter_deassert_reset(struct target *target)
+static int hl_deassert_reset(struct target *target)
 {
-	struct hl_interface_s *adapter = target_to_adapter(target);
-
 	enum reset_types jtag_reset_config = jtag_get_reset_config();
 
 	LOG_DEBUG("%s", __func__);
 
 	if (jtag_reset_config & RESET_HAS_SRST)
-		adapter->layout->api->assert_srst(adapter->handle, 1);
-
-	/* virtual deassert reset, we need it for the internal
-	 * jtag state machine
-	 */
-	jtag_add_reset(0, 0);
+		adapter_deassert_reset();
 
 	target->savedDCRDR = 0;  /* clear both DCC busy bits on initial resume */
 
@@ -819,8 +811,8 @@ struct target_type hla_target = {
 	.arch_state = armv7m_arch_state,
 
 	.target_request_data = hl_target_request_data,
-	.assert_reset = adapter_assert_reset,
-	.deassert_reset = adapter_deassert_reset,
+	.assert_reset = hl_assert_reset,
+	.deassert_reset = hl_deassert_reset,
 
 	.halt = adapter_halt,
 	.resume = adapter_resume,
