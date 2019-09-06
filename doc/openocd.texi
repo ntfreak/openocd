@@ -6751,6 +6751,37 @@ The @var{num} parameter is a value shown by @command{flash banks}.
 Mass erases the entire stm32h7x device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
+
+@deffn Command {stm32h7x option_read} num reg_offset
+Reads an option byte register from the stm32h7x device.
+The @var{num} parameter is a value shown by @command{flash banks}, @var{reg_offset}
+is the register offset of the option byte to read from the used bank registers' base.
+For example: in STM32H74x/H75x the bank 1 registers' base is 0x52002000 and 0x52002100 for bank 2.
+
+Example usage:
+@example
+# read OPTSR_CUR
+stm32h7x option_read 0 0x1c
+# read WPSN_CUR1R
+stm32h7x option_read 0 0x38
+# read WPSN_CUR2R
+stm32h7x option_read 1 0x38
+@end example
+@end deffn
+
+@deffn Command {stm32h7x option_write} num reg_offset value [reg_mask]
+Writes an option byte register of the stm32h7x device.
+The @var{num} parameter is a value shown by @command{flash banks}, @var{reg_offset}
+is the register offset of the option byte to write from the used bank register base,
+and @var{reg_mask} is the mask to apply when writing the register (only bits with a '1'
+will be touched).
+
+Example usage:
+@example
+# swap bank 1 and bank 2 in dual bank devices, by setting SWAP_BANK_OPT bit in OPTSR_PRG
+stm32h7x option_write 0 0x20 0x8000000 0x8000000
+@end example
+@end deffn
 @end deffn
 
 @deffn {Flash Driver} stm32lx
