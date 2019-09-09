@@ -1394,6 +1394,7 @@ void process_jim_events(struct command_context *cmd_ctx)
 			return ERROR_COMMAND_ARGUMENT_INVALID; \
 		} \
 		char *end; \
+		errno = 0; \
 		*ul = func(str, &end, 0); \
 		if (*end) { \
 			LOG_ERROR("Invalid command argument"); \
