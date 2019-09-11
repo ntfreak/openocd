@@ -985,7 +985,7 @@ static const struct command_registration flash_exec_command_handlers[] = {
 		.name = "erase_sector",
 		.handler = handle_flash_erase_command,
 		.mode = COMMAND_EXEC,
-		.usage = "bank_id first_sector_num last_sector_num",
+		.usage = "bank_id first_sector_num (last_sector_num|'last')",
 		.help = "Erase a range of sectors in a flash bank.",
 	},
 	{
