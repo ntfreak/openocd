@@ -2812,7 +2812,7 @@ static int aice_issue_reset_hold(uint32_t coreid)
 	/* set no_dbgi_pin to 0 */
 	uint32_t pin_status;
 	aice_read_ctrl(AICE_READ_CTRL_GET_JTAG_PIN_STATUS, &pin_status);
-	if (pin_status | 0x4)
+	if (pin_status & 0x4)
 		aice_write_ctrl(AICE_WRITE_CTRL_JTAG_PIN_STATUS, pin_status & (~0x4));
 
 	/* issue restart */
