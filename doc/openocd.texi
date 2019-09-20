@@ -4949,6 +4949,20 @@ flash drivers can distinguish between probing and autoprobing,
 but most don't bother.
 @end deffn
 
+@section Preparing a Target before Flash Programming
+
+The target device should be in well defined state before the flash programming
+begins.
+
+@emph{Always issue} @command{reset init} before @ref{flashprogrammingcommands,,Flash Programming Commands}.
+Do not issue another @command{reset} or @command{reset halt} or @command{resume}
+until the programming session is finished.
+
+If you use @ref{programmingusinggdb,,Programming using GDB},
+the target is prepared automatically in the event gdb-flash-erase-start
+
+The jimtcl script @command{program} calls @command{reset init} explicitly.
+
 @section Erasing, Reading, Writing to Flash
 @cindex flash erasing
 @cindex flash reading
@@ -7503,7 +7517,7 @@ change any behavior.
 @chapter Flash Programming
 
 OpenOCD implements numerous ways to program the target flash, whether internal or external.
-Programming can be achieved by either using GDB @ref{programmingusinggdb,,Programming using GDB},
+Programming can be achieved by either using @ref{programmingusinggdb,,Programming using GDB},
 or using the commands given in @ref{flashprogrammingcommands,,Flash Programming Commands}.
 
 @*To simplify using the flash commands directly a jimtcl script is available that handles the programming and verify stage.
