@@ -10,6 +10,8 @@
  *                                                                         *
  *   Copyright (C) 2017 Armin van der Togt                                 *
  *   armin@otheruse.nl                                                     *
+ *   Copyright (C) 2019 Artur Troian                                       *
+ *   troian dot ap at gmail dot com                                        *
  *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
@@ -23,10 +25,8 @@
  *                                                                         *
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program; if not, write to the                         *
- *   Free Software Foundation, Inc.,                                       *
- *   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.           *
+ *   Free Software Foundation, Inc.                                        *
  ***************************************************************************/
-
 
 	.text
 	.syntax unified
@@ -34,30 +34,43 @@
 	.thumb
 
 /*
-	r0 - destination address
-	r1 - source address
-	r2 - count
-*/
+ * Params :
+ * r0 = target address
+ * r1 = source address
+ * r2 = count (32bit words)
+ * r3 = flash base
+ */
 
 	.thumb_func
 	.global _start
 _start:
-	// r2 = source + count * 4
-	lsls	r2, r2, #2
-	adds	r2, r1, r2
-	// Go to compare
-	b	test_done
-write_word:
-	// load word from address in r1 and increase r1 by 4
-	ldmia r1!, {r3}
-	// store word to address in r0 and increase r0 by 4
-	stmia r0!, {r3}
-test_done:
-	// compare r1 and r2
-	cmp	r1, r2
-	// loop if not equal
-	bne	write_word
+    movs    r6, #0
 
-	// Set breakpoint to exit
-	bkpt	#0x00
+check_bounds:
+    cmp     r2, #0
+    bne     store_word
+    bkpt    0x0000
 
+end_loop:
+    b       end_loop
+
+store_word:
+    movs    r4, #15
+    lsls    r5, r6, #2
+    ldmia   r1!, {r7}
+    stmia   r0!, {r7}
+    adds    r5, r6, #1
+    movs    r6, r5
+    tst     r5, r4
+    bne     store_word
+    movs    r5, r3
+copy_loop:
+    movs    r4, #1
+    ldr     r7, [r5, #24]
+    tst     r7, r4
+    bne     copy_loop
+    ldr     r7, [r5, #24]
+    subs    r2, #16
+    orrs    r7, r4
+    str     r7, [r5, #24]
+    b       check_bounds

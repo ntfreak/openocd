@@ -436,7 +436,7 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 	struct working_area *source;
 	uint32_t address = bank->base + offset;
 
-	struct reg_param reg_params[3];
+	struct reg_param reg_params[4];
 	struct armv7m_algorithm armv7m_info;
 
 	int retval = ERROR_OK;
@@ -490,6 +490,7 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 	init_reg_param(&reg_params[0], "r0", 32, PARAM_OUT);
 	init_reg_param(&reg_params[1], "r1", 32, PARAM_OUT);
 	init_reg_param(&reg_params[2], "r2", 32, PARAM_OUT);
+	init_reg_param(&reg_params[3], "r3", 32, PARAM_OUT);
 
 	/* Enable half-page write */
 	retval = stm32lx_enable_write_half_page(bank);
@@ -500,6 +501,7 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 		destroy_reg_param(&reg_params[0]);
 		destroy_reg_param(&reg_params[1]);
 		destroy_reg_param(&reg_params[2]);
+		destroy_reg_param(&reg_params[3]);
 		return retval;
 	}
 
@@ -532,6 +534,7 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 		buf_set_u32(reg_params[1].value, 0, 32, source->address);
 		/* The length of the copy (R2) */
 		buf_set_u32(reg_params[2].value, 0, 32, this_count / 4);
+		buf_set_u32(reg_params[3].value, 0, 32, stm32lx_info->flash_base);
 
 		/* 5: Execute the bunch of code */
 		retval = target_run_algorithm(target, 0, NULL, sizeof(reg_params)
@@ -599,6 +602,7 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 	destroy_reg_param(&reg_params[0]);
 	destroy_reg_param(&reg_params[1]);
 	destroy_reg_param(&reg_params[2]);
+	destroy_reg_param(&reg_params[3]);
 
 	return retval;
 }
@@ -1045,7 +1049,7 @@ static int stm32lx_enable_write_half_page(struct flash_bank *bank)
 	if (retval != ERROR_OK)
 		return retval;
 
-	reg32 |= FLASH_PECR__FPRG;
+	reg32 |= FLASH_PECR__FPRG | FLASH_PECR__PROG;
 	retval = target_write_u32(target, stm32lx_info->flash_base + FLASH_PECR,
 			reg32);
 	if (retval != ERROR_OK)
