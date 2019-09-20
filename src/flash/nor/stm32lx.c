@@ -65,14 +65,16 @@
 #define FLASH_PECR__OBL_LAUNCH	(1<<18)
 
 /* FLASH_SR bits */
-#define FLASH_SR__BSY		(1<<0)
-#define FLASH_SR__EOP		(1<<1)
-#define FLASH_SR__ENDHV		(1<<2)
-#define FLASH_SR__READY		(1<<3)
-#define FLASH_SR__WRPERR	(1<<8)
-#define FLASH_SR__PGAERR	(1<<9)
-#define FLASH_SR__SIZERR	(1<<10)
-#define FLASH_SR__OPTVERR	(1<<11)
+#define FLASH_SR__BSY        (1<<0)
+#define FLASH_SR__EOP        (1<<1)
+#define FLASH_SR__ENDHV      (1<<2)
+#define FLASH_SR__READY      (1<<3)
+#define FLASH_SR__WRPERR     (1<<8)
+#define FLASH_SR__PGAERR     (1<<9)
+#define FLASH_SR__SIZERR     (1<<10)
+#define FLASH_SR__OPTVERR    (1<<11)
+#define FLASH_SR__FWWERR     (1<<15)
+#define FLASH_SR__NOTZEROERR (1<<16)
 
 /* Unlock keys */
 #define PEKEY1			0x89ABCDEF
@@ -436,7 +438,7 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 	struct working_area *source;
 	uint32_t address = bank->base + offset;
 
-	struct reg_param reg_params[3];
+	struct reg_param reg_params[5];
 	struct armv7m_algorithm armv7m_info;
 
 	int retval = ERROR_OK;
@@ -487,9 +489,11 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 
 	armv7m_info.common_magic = ARMV7M_COMMON_MAGIC;
 	armv7m_info.core_mode = ARM_MODE_THREAD;
-	init_reg_param(&reg_params[0], "r0", 32, PARAM_OUT);
+	init_reg_param(&reg_params[0], "r0", 32, PARAM_IN_OUT);
 	init_reg_param(&reg_params[1], "r1", 32, PARAM_OUT);
 	init_reg_param(&reg_params[2], "r2", 32, PARAM_OUT);
+	init_reg_param(&reg_params[3], "r3", 32, PARAM_OUT);
+	init_reg_param(&reg_params[4], "r4", 32, PARAM_OUT);
 
 	/* Enable half-page write */
 	retval = stm32lx_enable_write_half_page(bank);
@@ -500,6 +504,8 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 		destroy_reg_param(&reg_params[0]);
 		destroy_reg_param(&reg_params[1]);
 		destroy_reg_param(&reg_params[2]);
+		destroy_reg_param(&reg_params[3]);
+		destroy_reg_param(&reg_params[4]);
 		return retval;
 	}
 
@@ -526,12 +532,16 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 			break;
 
 		/* 4: Store useful information in the registers */
-		/* the destination address of the copy (R0) */
-		buf_set_u32(reg_params[0].value, 0, 32, address);
-		/* The source address of the copy (R1) */
-		buf_set_u32(reg_params[1].value, 0, 32, source->address);
+		/* The source address of the copy (R0) */
+		buf_set_u32(reg_params[0].value, 0, 32, source->address);
+		/* the destination address of the copy (R1) */
+		buf_set_u32(reg_params[1].value, 0, 32, address);
 		/* The length of the copy (R2) */
 		buf_set_u32(reg_params[2].value, 0, 32, this_count / 4);
+		/* The base of FLASH registers (R3) */
+		buf_set_u32(reg_params[3].value, 0, 32, stm32lx_info->flash_base);
+		/* The size of the page (R4) */
+		buf_set_u32(reg_params[4].value, 0, 32, stm32lx_info->part_info.page_size);
 
 		/* 5: Execute the bunch of code */
 		retval = target_run_algorithm(target, 0, NULL, sizeof(reg_params)
@@ -544,21 +554,63 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 		if (armv7m->exception_number == 3)
 			break;
 
-		/* 6: Wait while busy */
-		retval = stm32lx_wait_until_bsy_clear(bank);
-		if (retval != ERROR_OK)
-			break;
+		uint32_t flags = 0;
+		if (retval == 0) {
+			flags = buf_get_u32(reg_params[0].value, 0, 32);
 
-		buffer += this_count;
+			if (flags != 0) {
+				if (retval & FLASH_SR__BSY)
+					LOG_ERROR("loader timedout on waiting for BSY");
+
+				if (retval & FLASH_SR__SIZERR)
+					LOG_ERROR("loader failed due to size error");
+
+				if (retval & FLASH_SR__WRPERR)
+					LOG_ERROR("loader failed on write-protected page");
+
+				if (retval & FLASH_SR__PGAERR)
+					LOG_ERROR("loader failed on programming-alignment error");
+
+				if (retval & FLASH_SR__NOTZEROERR)
+					LOG_ERROR("loader failed on not erased page");
+
+				if (retval & FLASH_SR__FWWERR)
+					LOG_ERROR("loader failed due to fetch during write");
+
+				retval = ERROR_FAIL;
+			}
+		}
+
+		/* Make sure the half page is finished or the flash is not readable
+		 * http://openocd.zylin.com/#/c/5270/1/src/flash/nor/stm32lx.c@476
+		 */
+		if (retval != ERROR_OK) {
+			uint32_t words;
+			for (words = hp_nb / 4; words > 0; words--) {
+				if (stm32lx_wait_until_bsy_clear_timeout(bank, 12) == ERROR_OK)
+					break;
+
+				/*
+				 * Write flash words until BSY clears, ignore error
+				 * It is not important that the addresses increase or change
+				 * (for example, the same address can be used 16 times),
+				 * as the memory interface will automatically increase the address internally
+				 */
+				(void)target_write_u32(target, address, 0);
+			}
+
+			break;
+		}
+
+		buffer  += this_count;
 		address += this_count;
-		count -= this_count;
+		count   -= this_count;
 	}
 
 	/* restore previous flags */
 	armv7m->demcr = demcr_save;
 
 	if (armv7m->exception_number == 3) {
-
 		/* the stm32l15x devices seem to have an issue when blank.
 		 * if a ram loader is executed on a blank device it will
 		 * Hard Fault, this issue does not happen for a already programmed device.
@@ -599,6 +651,8 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 	destroy_reg_param(&reg_params[0]);
 	destroy_reg_param(&reg_params[1]);
 	destroy_reg_param(&reg_params[2]);
+	destroy_reg_param(&reg_params[3]);
+	destroy_reg_param(&reg_params[4]);
 
 	return retval;
 }
@@ -1045,7 +1099,7 @@ static int stm32lx_enable_write_half_page(struct flash_bank *bank)
 	if (retval != ERROR_OK)
 		return retval;
 
-	reg32 |= FLASH_PECR__FPRG;
+	reg32 |= FLASH_PECR__FPRG | FLASH_PECR__PROG;
 	retval = target_write_u32(target, stm32lx_info->flash_base + FLASH_PECR,
 			reg32);
 	if (retval != ERROR_OK)
