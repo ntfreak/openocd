@@ -3219,18 +3219,6 @@ static int stlink_dap_op_connect(struct adiv5_dap *dap)
 
 	LOG_INFO("stlink_dap_op_connect(%sconnect)", dap->do_reconnect ? "re" : "");
 
-	/* Check if we should reset srst already when connecting, but not if reconnecting. */
-	if (!dap->do_reconnect) {
-		enum reset_types jtag_reset_config = jtag_get_reset_config();
-
-		if (jtag_reset_config & RESET_CNCT_UNDER_SRST) {
-			if (jtag_reset_config & RESET_SRST_NO_GATING)
-				adapter_assert_reset();
-			else
-				LOG_WARNING("\'srst_nogate\' reset_config option is required");
-		}
-	}
-
 	dap->do_reconnect = false;
 	dap_invalidate_cache(dap);
 
