@@ -10337,18 +10337,31 @@ OpenOCD can communicate with GDB in two ways:
 @item
 A socket (TCP/IP) connection is typically started as follows:
 @example
-target remote localhost:3333
+target extended-remote localhost:3333
 @end example
 This would cause GDB to connect to the gdbserver on the local pc using port 3333.
 
-It is also possible to use the GDB extended remote protocol as follows:
+The extended remote protocol is a super-set of the remote protocol and should
+be the preferred choice. More details are available in GDB documentation
+@url{https://sourceware.org/gdb/onlinedocs/gdb/Connecting.html}
+
+To speed-up typing, any GDB command can be abbreviated, including the extended
+remote command above that becomes:
 @example
-target extended-remote localhost:3333
+tar ext :3333
 @end example
+
+@b{Note:} If any backward compatibility issue requires using the old remote
+protocol in place of the extended remote one, the former protocol is still
+available through the command:
+@example
+target remote localhost:3333
+@end example
+
 @item
 A pipe connection is typically started as follows:
 @example
-target remote | openocd -c "gdb_port pipe; log_output openocd.log"
+target extended-remote | openocd -c "gdb_port pipe; log_output openocd.log"
 @end example
 This would cause GDB to run OpenOCD and communicate using pipes (stdin/stdout).
 Using this method has the advantage of GDB starting/stopping OpenOCD for the debug
@@ -10370,7 +10383,7 @@ Most programs would be written into flash (address 0) and run from there.
 
 @example
 $ arm-none-eabi-gdb example.elf
-(gdb) target remote localhost:3333
+(gdb) target extended-remote localhost:3333
 Remote debugging using localhost:3333
 ...
 (gdb) monitor reset halt
@@ -10505,7 +10518,7 @@ set remote interrupt-on-connect off
 If you switched gdb_memory_map off, you may want to setup GDB memory map
 manually or issue @command{set mem inaccessible-by-default off}
 
-Now you can issue GDB command @command{target remote ...} and inspect memory
+Now you can issue GDB command @command{target extended-remote ...} and inspect memory
 of a running target. Do not use GDB commands @command{continue},
 @command{step} or @command{next} as they synchronize GDB with your target
 and GDB would require stopping the target to get the prompt back.
