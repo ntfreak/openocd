@@ -842,6 +842,7 @@ void jtag_add_reset(int req_tlr_or_trst, int req_srst)
 	if (trst_with_tlr) {
 		LOG_DEBUG("JTAG reset with TLR instead of TRST");
 		jtag_add_tlr();
+		jtag_execute_queue();
 
 	} else if (jtag_trst != new_trst) {
 		jtag_trst = new_trst;
