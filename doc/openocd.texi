@@ -8386,6 +8386,15 @@ Write @var{value} to the CTI register with the symbolic name @var{reg_name}.
 Print the value read from the CTI register with the symbolic name @var{reg_name}.
 @end deffn
 
+@deffn Command {$cti_name ack} @var{event}
+Acknowledge a CTI @var{event}.
+@end deffn
+
+@deffn Command {$cti_name channel} @var{operation} @var{channel_number}
+Perform a specific channel operation, the possible operations are:
+gate, ungate, set, clear and pulse
+@end deffn
+
 @deffn Command {$cti_name testmode} @option{on|off}
 Enable (@option{on}) or disable (@option{off}) the integration test mode
 of the CTI.
