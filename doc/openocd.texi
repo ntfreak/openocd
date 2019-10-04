@@ -3104,6 +3104,17 @@ opendous-jtag is a freely programmable USB adapter.
 This is the Keil ULINK v1 JTAG debugger.
 @end deffn
 
+@deffn {Interface Driver} {xlnx_pcie_xvc}
+This driver supports the Xilinx Xilinx Virtual Cable (XVC) over PCI Express.
+It is commonly found in Xilinx based PCI express designs. It allows debugging
+fabric based JTAG devices such as Cortex-M1/M3 microcontrollers. Access to this is
+exposed via extended capability registers in the PCIe configuration space.
+
+@deffn {Config Command} {xlnx_pcie_xvc_config} device
+Specifies the PCI express device via parameter @var{device} to use.
+@end deffn
+@end deffn
+
 @deffn {Interface Driver} {ZY1000}
 This is the Zylin ZY1000 JTAG debugger.
 @end deffn
