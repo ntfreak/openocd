@@ -117,6 +117,9 @@ extern struct jtag_interface opendous_interface;
 #if BUILD_SYSFSGPIO == 1
 extern struct jtag_interface sysfsgpio_interface;
 #endif
+#if BUILD_XLNX_PCIE_XVC == 1
+extern struct jtag_interface xlnx_pcie_xvc_interface;
+#endif
 #if BUILD_AICE == 1
 extern struct jtag_interface aice_interface;
 #endif
@@ -221,6 +224,9 @@ struct jtag_interface *jtag_interfaces[] = {
 #endif
 #if BUILD_SYSFSGPIO == 1
 		&sysfsgpio_interface,
+#endif
+#if BUILD_XLNX_PCIE_XVC == 1
+		&xlnx_pcie_xvc_interface,
 #endif
 #if BUILD_AICE == 1
 		&aice_interface,
