@@ -617,6 +617,9 @@ produced, PDF schematics are easily found and it is easy to make.
 @* A JTAG driver acting as a client for the JTAG VPI server interface.
 @* Link: @url{http://github.com/fjullien/jtag_vpi}
 
+@item @b{xlnx_pcie_xvc}
+@* A JTAG driver exposing Xilinx Virtual Cable over PCI Express to OpenOCD as JTAG interface.
+
 @end itemize
 
 @node About Jim-Tcl
@@ -3102,6 +3105,25 @@ opendous-jtag is a freely programmable USB adapter.
 
 @deffn {Interface Driver} {ulink}
 This is the Keil ULINK v1 JTAG debugger.
+@end deffn
+
+@deffn {Interface Driver} {xlnx_pcie_xvc}
+This driver supports the Xilinx Virtual Cable (XVC) over PCI Express.
+It is commonly found in Xilinx based PCI Express designs. It allows debugging
+fabric based JTAG devices such as Cortex-M1/M3 microcontrollers. Access to this is
+exposed via extended capability registers in the PCI Express configuration space.
+
+For more information see Xilinx PG245 (Section on From_PCIE_to_JTAG mode).
+
+@deffn {Config Command} {xlnx_pcie_xvc_config} device
+Specifies the PCI Express device via parameter @var{device} to use.
+
+The correct value for @var{device} can be obtained by looking at the output
+of lscpi -D (first column) for the corresponding device.
+
+The string will be of the format "DDDD:BB:SS.F" such as "0000:65:00.1".
+
+@end deffn
 @end deffn
 
 @deffn {Interface Driver} {ZY1000}
