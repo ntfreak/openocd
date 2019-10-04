@@ -145,6 +145,9 @@ endif
 if SYSFSGPIO
 DRIVERFILES += %D%/sysfsgpio.c
 endif
+if XLNX_PCIE_XVC
+DRIVERFILES += %D%/xlnx-pcie-xvc.c
+endif
 if BCM2835GPIO
 DRIVERFILES += %D%/bcm2835gpio.c
 endif
