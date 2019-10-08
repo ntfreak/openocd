@@ -34,8 +34,11 @@
 #if IS_DARWIN
 #include <libproc.h>
 #endif
+/* sys/sysctl.h is deprecated on Linux from glibc 2.30 */
+#ifndef __linux__
 #ifdef HAVE_SYS_SYSCTL_H
 #include <sys/sysctl.h>
+#endif
 #endif
 #if IS_WIN32 && !IS_CYGWIN
 #include <windows.h>
