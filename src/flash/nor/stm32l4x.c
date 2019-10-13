@@ -86,11 +86,54 @@
 
 #define FLASH_ERASE_TIMEOUT 250
 
+#define STM32L4_FLASH_BANK_BASE		0x08000000
+#define STM32L4_OTP_SECTOR_SIZE		1024
+#define STM32L4_OTP_SIZE			1024
+#define STM32L4_OTP_BANK_BASE		0x1fff7000
+
 struct stm32l4_flash_bank {
 	uint16_t bank2_start;
 	bool hasWRP2;
-	int probed;
+	bool probed;
+	bool otp_unlocked;
 };
+
+static bool stm32l4_is_otp(struct flash_bank *bank)
+{
+	return bank->base == STM32L4_OTP_BANK_BASE;
+}
+
+static int stm32l4_is_otp_unlocked(struct flash_bank *bank)
+{
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+
+	return stm32l4_info->otp_unlocked;
+}
+
+static int stm32l4_otp_disable(struct flash_bank *bank)
+{
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+
+	LOG_INFO("OTP memory bank #%d is disabled for write commands.",
+		 bank->bank_number);
+	stm32l4_info->otp_unlocked = false;
+	return ERROR_OK;
+}
+
+static int stm32l4_otp_enable(struct flash_bank *bank)
+{
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+
+	if (!stm32l4_info->otp_unlocked) {
+		LOG_INFO("OTP memory bank #%d is is enabled for write commands.",
+			 bank->bank_number);
+		stm32l4_info->otp_unlocked = true;
+	} else {
+		LOG_WARNING("OTP memory bank #%d is is already enabled for write commands.",
+			    bank->bank_number);
+	}
+	return ERROR_OK;
+}
 
 /* flash bank stm32l4x <base> <size> 0 0 <target#>
  */
@@ -101,12 +144,19 @@ FLASH_BANK_COMMAND_HANDLER(stm32l4_flash_bank_command)
 	if (CMD_ARGC < 6)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
+	if ((bank->base != 0) && (bank->base != STM32L4_FLASH_BANK_BASE) &&
+		(bank->base != STM32L4_OTP_BANK_BASE)) {
+		command_print(CMD, "Failed: invalid bank base.");
+		return ERROR_FAIL;
+	}
+
 	stm32l4_info = malloc(sizeof(struct stm32l4_flash_bank));
 	if (!stm32l4_info)
 		return ERROR_FAIL; /* Checkme: What better error to use?*/
 	bank->driver_priv = stm32l4_info;
 
-	stm32l4_info->probed = 0;
+	stm32l4_info->probed = false;
+	stm32l4_info->otp_unlocked = false;
 
 	return ERROR_OK;
 }
@@ -319,9 +369,12 @@ static int stm32l4_erase(struct flash_bank *bank, int first, int last)
 	struct target *target = bank->target;
 	int i;
 
-	assert(first < bank->num_sectors);
-	assert(last < bank->num_sectors);
+	assert((0 <= first) && (first <= last) && (last < bank->num_sectors));
 
+	if (stm32l4_is_otp(bank)) {
+		LOG_ERROR("Cannot erase OTP memory");
+		return ERROR_FAIL;
+	}
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -428,6 +481,11 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 #include "../../../contrib/loaders/flash/stm32/stm32l4x.inc"
 	};
 
+	if (stm32l4_is_otp(bank) && !stm32l4_is_otp_unlocked(bank)) {
+		LOG_ERROR("OTP memory bank is disabled for write commands.");
+		return ERROR_FAIL;
+	}
+
 	if (target_alloc_working_area(target, sizeof(stm32l4_flash_write_code),
 			&write_algorithm) != ERROR_OK) {
 		LOG_WARNING("no working area available, can't do block memory writes");
@@ -519,8 +577,7 @@ static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	if (offset & 0x7) {
-		LOG_WARNING("offset 0x%" PRIx32 " breaks required 8-byte alignment",
-					offset);
+		LOG_WARNING("offset 0x%" PRIx32 " breaks required 8-byte alignment", offset);
 		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
 	}
 
@@ -548,15 +605,46 @@ static int stm32l4_probe(struct flash_bank *bank)
 {
 	struct target *target = bank->target;
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
-	int i, retval;
+	int i, num_sectors, retval;
 	uint16_t flash_size_in_kb = 0xffff;
+	uint16_t otp_size_in_b;
+	uint16_t otp_sector_size;
 	uint16_t max_flash_size_in_kb;
 	uint32_t device_id;
 	uint32_t options;
-	uint32_t base_address = 0x08000000;
 
-	stm32l4_info->hasWRP2 = false;	/* second bank: WRP2A/B and MER2 */
-	stm32l4_info->probed = 0;
+	stm32l4_info->hasWRP2 = false;			/* second bank: WRP2A/B and MER2 */
+	stm32l4_info->bank2_start = UINT16_MAX;	/* no second bank by default */
+	stm32l4_info->probed = false;
+
+	/* if explicitly called out as OTP bank, short circuit probe */
+	if (stm32l4_is_otp(bank)) {
+		otp_size_in_b = STM32L4_OTP_SIZE;
+		otp_sector_size = STM32L4_OTP_SECTOR_SIZE;
+		num_sectors = otp_size_in_b / otp_sector_size;
+		LOG_INFO("flash size = %d bytes", otp_size_in_b);
+
+		assert(num_sectors > 0);
+
+		bank->num_sectors = num_sectors;
+		bank->sectors = calloc(sizeof(struct flash_sector), num_sectors);
+		if (!bank->sectors) {
+			LOG_ERROR("Memory allocation failed.");
+			return ERROR_FAIL;
+		}
+
+		bank->size = STM32L4_OTP_SIZE;
+
+		for (i = 0; i < num_sectors; i++) {
+			bank->sectors[i].offset = i * otp_sector_size;
+			bank->sectors[i].size = otp_sector_size;
+			bank->sectors[i].is_erased = 1;
+			bank->sectors[i].is_protected = 0;
+		}
+
+		stm32l4_info->probed = true;
+		return ERROR_OK;
+	}
 
 	/* try stm32l4/g4 id register first, then stm32g0 id register */
 	retval = target_read_u32(target, DBGMCU_IDCODE_L4_G4, &device_id);
@@ -684,7 +772,6 @@ static int stm32l4_probe(struct flash_bank *bank)
 			num_pages = flash_size_in_kb / 2;
 			/* check that calculation result makes sense */
 			assert(num_pages > 0);
-			stm32l4_info->bank2_start = UINT16_MAX;
 			LOG_INFO("Single Bank %d kiB STM32G03x/G04x/G07x/G08x found", flash_size_in_kb);
 			break;
 		case 0x468:
@@ -693,7 +780,6 @@ static int stm32l4_probe(struct flash_bank *bank)
 			num_pages = flash_size_in_kb / 2;
 			/* check that calculation result makes sense */
 			assert(num_pages > 0);
-			stm32l4_info->bank2_start = UINT16_MAX;
 			LOG_INFO("Single Bank %d kiB STM32G43x/G44x Cat. 2 found", flash_size_in_kb);
 			break;
 		case 0x469:
@@ -707,7 +793,6 @@ static int stm32l4_probe(struct flash_bank *bank)
 			} else {
 				page_size = 4096;
 				num_pages = flash_size_in_kb / 4;
-				stm32l4_info->bank2_start = UINT16_MAX;
 				LOG_INFO("Single Bank %d kiB STM32G47x/G48x Cat. 3 found", flash_size_in_kb);
 			}
 			/* check that calculation result makes sense */
@@ -721,7 +806,6 @@ static int stm32l4_probe(struct flash_bank *bank)
 			num_pages = flash_size_in_kb / 2;
 			/* check that calculation result makes sense */
 			assert(num_pages > 0);
-			stm32l4_info->bank2_start = UINT16_MAX;
 			LOG_INFO("Single Bank %d kiB STM32L41x/L42x/L43x/L44x/L45x/L46x found", flash_size_in_kb);
 			break;
 		default:
@@ -737,12 +821,14 @@ static int stm32l4_probe(struct flash_bank *bank)
 	}
 
 	/* Set bank configuration and construct sector table. */
-	bank->base = base_address;
+	bank->base = STM32L4_FLASH_BANK_BASE;
 	bank->size = num_pages * page_size;
 	bank->num_sectors = num_pages;
 	bank->sectors = malloc(sizeof(struct flash_sector) * num_pages);
-	if (!bank->sectors)
+	if (!bank->sectors) {
+		LOG_ERROR("Memory allocation failed.");
 		return ERROR_FAIL; /* Checkme: What better error to use?*/
+	}
 
 	for (i = 0; i < num_pages; i++) {
 		bank->sectors[i].offset = i * page_size;
@@ -751,7 +837,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 		bank->sectors[i].is_protected = 1;
 	}
 
-	stm32l4_info->probed = 1;
+	stm32l4_info->probed = true;
 
 	return ERROR_OK;
 }
@@ -841,8 +927,9 @@ static int get_stm32l4_info(struct flash_bank *bank, char *buf, int buf_size)
 	}
 
 	snprintf(buf, buf_size, "%s (%s) - Rev: %1d.%02d",
-			device_str, (stm32l4_info->bank2_start < bank->num_sectors) ?
-			"dual bank" : "single bank", rev_id, rev_minor);
+			device_str, stm32l4_is_otp(bank) ? "OTP bank" :
+			((stm32l4_info->bank2_start < bank->num_sectors) ?
+			"dual bank" : "single bank"), rev_id, rev_minor);
 
 	return ERROR_OK;
 }
@@ -1052,6 +1139,37 @@ COMMAND_HANDLER(stm32l4_handle_unlock_command)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(stm32l4_handle_otp_command)
+{
+	if (CMD_ARGC < 2) {
+		command_print(CMD, "stm32l4 otp bank_id (enable|disable|show)");
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	}
+
+	struct flash_bank *bank;
+	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
+	if (ERROR_OK != retval)
+		return retval;
+	if (stm32l4_is_otp(bank)) {
+		if (strcmp(CMD_ARGV[1], "enable") == 0) {
+			stm32l4_otp_enable(bank);
+		} else if (strcmp(CMD_ARGV[1], "disable") == 0) {
+			stm32l4_otp_disable(bank);
+		} else if (strcmp(CMD_ARGV[1], "show") == 0) {
+			command_print(CMD,
+				"OTP memory bank #%d is %s for write commands.",
+				bank->bank_number,
+				stm32l4_is_otp_unlocked(bank) ? "enabled" : "disabled");
+		} else {
+			return ERROR_COMMAND_SYNTAX_ERROR;
+		}
+	} else {
+		command_print(CMD, "Failed: not an OTP bank.");
+	}
+
+	return retval;
+}
+
 static const struct command_registration stm32l4_exec_command_handlers[] = {
 	{
 		.name = "lock",
@@ -1094,6 +1212,13 @@ static const struct command_registration stm32l4_exec_command_handlers[] = {
 		.mode = COMMAND_EXEC,
 		.usage = "bank_id",
 		.help = "Force re-load of device options (will cause device reset).",
+	},
+	{
+		.name = "otp",
+		.handler = stm32l4_handle_otp_command,
+		.mode = COMMAND_EXEC,
+		.usage = "bank_id (enable|disable|show)",
+		.help = "OTP (One Time Programmable) memory write enable/disable.",
 	},
 	COMMAND_REGISTRATION_DONE
 };
