@@ -59,9 +59,11 @@ static void cortex_m_dwt_free(struct target *target);
 static int cortexm_dap_read_coreregister_u32(struct target *target,
 	uint32_t *value, int regnum)
 {
+	struct cortex_m_common *cortex_m = target_to_cm(target);
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 	int retval;
-	uint32_t dcrdr;
+	uint32_t dcrdr, tmp_value;
+	int64_t then;
 
 	/* because the DCB_DCRDR is used for the emulated dcc channel
 	 * we have to save/restore the DCB_DCRDR when used */
@@ -75,9 +77,27 @@ static int cortexm_dap_read_coreregister_u32(struct target *target,
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DCRDR, value);
-	if (retval != ERROR_OK)
-		return retval;
+	/* check if value from register is ready and pre-read it */
+	then = timeval_ms();
+	while (1) {
+		retval = mem_ap_read_u32(armv7m->debug_ap, DCB_DHCSR,
+								 &cortex_m->dcb_dhcsr);
+		if (retval != ERROR_OK)
+			return retval;
+		retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DCRDR,
+										&tmp_value);
+		if (retval != ERROR_OK)
+			return retval;
+		if (cortex_m->dcb_dhcsr & S_REGRDY)
+			break;
+		if (timeval_ms() > then + 500) {
+			LOG_ERROR("Timeout waiting for DCRDR transfer ready");
+			return ERROR_FAIL;
+		}
+		keep_alive();
+	}
+
+	*value = tmp_value;
 
 	if (target->dbg_msg_enabled) {
 		/* restore DCB_DCRDR - this needs to be in a separate
@@ -92,9 +112,11 @@ static int cortexm_dap_read_coreregister_u32(struct target *target,
 static int cortexm_dap_write_coreregister_u32(struct target *target,
 	uint32_t value, int regnum)
 {
+	struct cortex_m_common *cortex_m = target_to_cm(target);
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 	int retval;
 	uint32_t dcrdr;
+	int64_t then;
 
 	/* because the DCB_DCRDR is used for the emulated dcc channel
 	 * we have to save/restore the DCB_DCRDR when used */
@@ -108,9 +130,25 @@ static int cortexm_dap_write_coreregister_u32(struct target *target,
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = mem_ap_write_atomic_u32(armv7m->debug_ap, DCB_DCRSR, regnum | DCRSR_WnR);
+	retval = mem_ap_write_u32(armv7m->debug_ap, DCB_DCRSR, regnum | DCRSR_WnR);
 	if (retval != ERROR_OK)
 		return retval;
+
+	/* check if value is written into register */
+	then = timeval_ms();
+	while (1) {
+		retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DHCSR,
+										&cortex_m->dcb_dhcsr);
+		if (retval != ERROR_OK)
+			return retval;
+		if (cortex_m->dcb_dhcsr & S_REGRDY)
+			break;
+		if (timeval_ms() > then + 500) {
+			LOG_ERROR("Timeout waiting for DCRDR transfer ready");
+			return ERROR_FAIL;
+		}
+		keep_alive();
+	}
 
 	if (target->dbg_msg_enabled) {
 		/* restore DCB_DCRDR - this needs to be in a seperate
