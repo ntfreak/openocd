@@ -2361,7 +2361,7 @@ int nds32_get_gdb_fileio_info(struct target *target, struct gdb_fileio_info *fil
 				fileio_info->param_4 = reg_r2;
 
 				target->type->read_buffer(target, reg_r0, 256, filename);
-				fileio_info->param_2 = strlen((char *)filename) + 1;
+				fileio_info->param_2 = strlen((char *)filename);
 			}
 			break;
 		case NDS32_SYSCALL_CLOSE:
@@ -2399,7 +2399,7 @@ int nds32_get_gdb_fileio_info(struct target *target, struct gdb_fileio_info *fil
 				/* reserve fileio_info->param_2 for length of path */
 
 				target->type->read_buffer(target, reg_r0, 256, filename);
-				fileio_info->param_2 = strlen((char *)filename) + 1;
+				fileio_info->param_2 = strlen((char *)filename);
 			}
 			break;
 		case NDS32_SYSCALL_RENAME:
@@ -2413,10 +2413,10 @@ int nds32_get_gdb_fileio_info(struct target *target, struct gdb_fileio_info *fil
 				/* reserve fileio_info->param_4 for length of new path */
 
 				target->type->read_buffer(target, reg_r0, 256, filename);
-				fileio_info->param_2 = strlen((char *)filename) + 1;
+				fileio_info->param_2 = strlen((char *)filename);
 
 				target->type->read_buffer(target, reg_r1, 256, filename);
-				fileio_info->param_4 = strlen((char *)filename) + 1;
+				fileio_info->param_4 = strlen((char *)filename);
 			}
 			break;
 		case NDS32_SYSCALL_FSTAT:
@@ -2458,7 +2458,7 @@ int nds32_get_gdb_fileio_info(struct target *target, struct gdb_fileio_info *fil
 				/* reserve fileio_info->param_2 for length of old path */
 
 				target->type->read_buffer(target, reg_r0, 256, command);
-				fileio_info->param_2 = strlen((char *)command) + 1;
+				fileio_info->param_2 = strlen((char *)command);
 			}
 			break;
 		case NDS32_SYSCALL_ERRNO:

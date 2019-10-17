@@ -800,7 +800,7 @@ static void gdb_fileio_reply(struct target *target, struct connection *connectio
 	if (strcmp(target->fileio_info->identifier, "open") == 0)
 		sprintf(fileio_command, "F%s,%" PRIx64 "/%" PRIx64 ",%" PRIx64 ",%" PRIx64, target->fileio_info->identifier,
 				target->fileio_info->param_1,
-				target->fileio_info->param_2,
+				target->fileio_info->param_2 + 1,	/* len + trailing zero */
 				target->fileio_info->param_3,
 				target->fileio_info->param_4);
 	else if (strcmp(target->fileio_info->identifier, "close") == 0)
@@ -824,13 +824,13 @@ static void gdb_fileio_reply(struct target *target, struct connection *connectio
 	else if (strcmp(target->fileio_info->identifier, "rename") == 0)
 		sprintf(fileio_command, "F%s,%" PRIx64 "/%" PRIx64 ",%" PRIx64 "/%" PRIx64, target->fileio_info->identifier,
 				target->fileio_info->param_1,
-				target->fileio_info->param_2,
+				target->fileio_info->param_2 + 1,	/* len + trailing zero */
 				target->fileio_info->param_3,
-				target->fileio_info->param_4);
+				target->fileio_info->param_4 + 1);	/* len + trailing zero */
 	else if (strcmp(target->fileio_info->identifier, "unlink") == 0)
 		sprintf(fileio_command, "F%s,%" PRIx64 "/%" PRIx64, target->fileio_info->identifier,
 				target->fileio_info->param_1,
-				target->fileio_info->param_2);
+				target->fileio_info->param_2 + 1);	/* len + trailing zero */
 	else if (strcmp(target->fileio_info->identifier, "stat") == 0)
 		sprintf(fileio_command, "F%s,%" PRIx64 "/%" PRIx64 ",%" PRIx64, target->fileio_info->identifier,
 				target->fileio_info->param_1,
@@ -850,7 +850,7 @@ static void gdb_fileio_reply(struct target *target, struct connection *connectio
 	else if (strcmp(target->fileio_info->identifier, "system") == 0)
 		sprintf(fileio_command, "F%s,%" PRIx64 "/%" PRIx64, target->fileio_info->identifier,
 				target->fileio_info->param_1,
-				target->fileio_info->param_2);
+				target->fileio_info->param_2 + 1);	/* len + trailing zero */
 	else if (strcmp(target->fileio_info->identifier, "exit") == 0) {
 		/* If target hits exit syscall, report to GDB the program is terminated.
 		 * In addition, let target run its own exit syscall handler. */
