@@ -31,10 +31,13 @@
 static bool hwthread_detect_rtos(struct target *target);
 static int hwthread_create(struct target *target);
 static int hwthread_update_threads(struct rtos *rtos);
+static int hwthread_get_thread_reg(struct rtos *rtos, int64_t thread_id,
+		uint32_t reg_num, struct rtos_reg *rtos_reg);
 static int hwthread_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
-					struct rtos_reg **reg_list, int *num_regs);
+		struct rtos_reg **reg_list, int *num_regs);
 static int hwthread_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[]);
 static int hwthread_smp_init(struct target *target);
+int hwthread_set_reg(struct rtos *rtos, uint32_t reg_num, uint8_t *reg_value);
 
 #define HW_THREAD_NAME_STR_SIZE (32)
 
@@ -51,8 +54,10 @@ const struct rtos_type hwthread_rtos = {
 	.create = hwthread_create,
 	.update_threads = hwthread_update_threads,
 	.get_thread_reg_list = hwthread_get_thread_reg_list,
+	.get_thread_reg = hwthread_get_thread_reg,
 	.get_symbol_list_to_lookup = hwthread_get_symbol_list_to_lookup,
 	.smp_init = hwthread_smp_init,
+	.set_reg = hwthread_set_reg,
 };
 
 struct hwthread_params {
@@ -201,64 +206,114 @@ static int hwthread_smp_init(struct target *target)
 	return hwthread_update_threads(target->rtos);
 }
 
-static int hwthread_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
-					struct rtos_reg **rtos_reg_list, int *num_regs)
+static struct target *hwthread_find_thread(struct target *target, int64_t thread_id)
 {
-	struct target_list *head;
-	struct target *target;
-	struct target *curr;
-	struct reg **reg_list;
-	int retval;
+	/* Find the thread with that thread_id */
+	if (target == NULL)
+		return NULL;
+	if (target->smp) {
+		for (struct target_list *head = target->head; head != NULL; head = head->next) {
+			if (thread_id == threadid_from_target(head->target))
+				return head->target;
+		}
+	} else if (thread_id == threadid_from_target(target)) {
+		return target;
+	}
+	return NULL;
+}
 
+static int hwthread_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
+		struct rtos_reg **rtos_reg_list, int *rtos_reg_list_size)
+{
 	if (rtos == NULL)
 		return ERROR_FAIL;
 
-	target = rtos->target;
+	struct target *target = rtos->target;
 
-	/* Find the thread with that thread_id */
-	if (target->smp) {
-		curr = NULL;
-		for (head = target->head; head != NULL; head = head->next) {
-			curr = head->target;
-
-			if (thread_id == threadid_from_target(curr))
-				break;
-		}
-
-		if (head == NULL)
-			return ERROR_FAIL;
-	} else {
-		curr = target;
-		if (thread_id != threadid_from_target(curr))
-			return ERROR_FAIL;
-
-	}
+	struct target *curr = hwthread_find_thread(target, thread_id);
+	if (curr == NULL)
+		return ERROR_FAIL;
 
 	if (!target_was_examined(curr))
 		return ERROR_FAIL;
 
-	retval = target_get_gdb_reg_list(curr, &reg_list, num_regs,
+	struct reg **reg_list;
+	int retval = target_get_gdb_reg_list(curr, &reg_list, rtos_reg_list_size,
 			REG_CLASS_GENERAL);
 	if (retval != ERROR_OK)
 		return retval;
 
-	*rtos_reg_list = calloc(*num_regs, sizeof(struct rtos_reg));
+	*rtos_reg_list = calloc(*rtos_reg_list_size, sizeof(struct rtos_reg));
 	if (*rtos_reg_list == NULL) {
 		free(reg_list);
 		return ERROR_FAIL;
 	}
 
-	for (int i = 0; i < *num_regs; i++) {
+	for (int i = 0; i < *rtos_reg_list_size; i++) {
 		(*rtos_reg_list)[i].number = (*reg_list)[i].number;
 		(*rtos_reg_list)[i].size = (*reg_list)[i].size;
 		memcpy((*rtos_reg_list)[i].value, (*reg_list)[i].value,
-		       ((*reg_list)[i].size + 7) / 8);
+				((*reg_list)[i].size + 7) / 8);
 	}
-
 	free(reg_list);
 
 	return ERROR_OK;
+}
 
+static int hwthread_get_thread_reg(struct rtos *rtos, int64_t thread_id,
+		uint32_t reg_num, struct rtos_reg *rtos_reg)
+{
+	if (rtos == NULL)
+		return ERROR_FAIL;
+
+	struct target *target = rtos->target;
+
+	struct target *curr = hwthread_find_thread(target, thread_id);
+	if (curr == NULL) {
+		LOG_ERROR("Couldn't find RTOS thread for id %" PRId64 ".", thread_id);
+		return ERROR_FAIL;
+	}
+
+	if (!target_was_examined(curr)) {
+		LOG_ERROR("Target %d hasn't been examined yet.", curr->coreid);
+		return ERROR_FAIL;
+	}
+
+	struct reg *reg = register_get_by_number(curr->reg_cache, reg_num, true);
+	if (!reg) {
+		LOG_ERROR("Couldn't find register %d in thread %" PRId64 ".", reg_num,
+				thread_id);
+		return ERROR_FAIL;
+	}
+
+	if (reg->type->get(reg) != ERROR_OK)
+		return ERROR_FAIL;
+
+	rtos_reg->number = reg->number;
+	rtos_reg->size = reg->size;
+	unsigned bytes = (reg->size + 7) / 8;
+	assert(bytes <= sizeof(rtos_reg->value));
+	memcpy(rtos_reg->value, reg->value, bytes);
+
+	return ERROR_OK;
+}
+
+int hwthread_set_reg(struct rtos *rtos, uint32_t reg_num, uint8_t *reg_value)
+{
+	if (rtos == NULL)
+		return ERROR_FAIL;
+
+	struct target *target = rtos->target;
+
+	struct target *curr = hwthread_find_thread(target, rtos->current_thread);
+	if (curr == NULL)
+		return ERROR_FAIL;
+
+	struct reg *reg = register_get_by_number(curr->reg_cache, reg_num, true);
+	if (!reg)
+		return ERROR_FAIL;
+
+	return reg->type->set(reg, reg_value);
 }
 
 static int hwthread_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
@@ -272,26 +327,10 @@ static int hwthread_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[]
 static int hwthread_target_for_threadid(struct connection *connection, int64_t thread_id, struct target **p_target)
 {
 	struct target *target = get_target_from_connection(connection);
-	struct target_list *head;
-	struct target *curr;
 
-	if (target->smp) {
-		/* Find the thread with that thread_id */
-		curr = NULL;
-		for (head = target->head; head != NULL; head = head->next) {
-			curr = head->target;
-
-			if (thread_id == threadid_from_target(curr))
-				break;
-		}
-
-		if (head == NULL)
-			return ERROR_FAIL;
-	} else {
-		curr = target;
-		if (thread_id != threadid_from_target(curr))
-			return ERROR_FAIL;
-	}
+	struct target *curr = hwthread_find_thread(target, thread_id);
+	if (curr == NULL)
+		return ERROR_FAIL;
 
 	*p_target = curr;
 
