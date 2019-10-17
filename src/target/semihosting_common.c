@@ -710,7 +710,7 @@ int semihosting_common(struct target *target)
 							semihosting->hit_fileio = true;
 							fileio_info->identifier = "open";
 							fileio_info->param_1 = addr;
-							fileio_info->param_2 = len;
+							fileio_info->param_2 = len + 1;
 							fileio_info->param_3 = open_modeflags[mode];
 							fileio_info->param_4 = 0644;
 						}
@@ -881,7 +881,7 @@ int semihosting_common(struct target *target)
 					semihosting->hit_fileio = true;
 					fileio_info->identifier = "unlink";
 					fileio_info->param_1 = addr;
-					fileio_info->param_2 = len;
+					fileio_info->param_2 = len + 1;
 				} else {
 					uint8_t *fn = malloc(len+1);
 					if (!fn) {
@@ -937,9 +937,9 @@ int semihosting_common(struct target *target)
 					semihosting->hit_fileio = true;
 					fileio_info->identifier = "rename";
 					fileio_info->param_1 = addr1;
-					fileio_info->param_2 = len1;
+					fileio_info->param_2 = len1 + 1;
 					fileio_info->param_3 = addr2;
-					fileio_info->param_4 = len2;
+					fileio_info->param_4 = len2 + 1;
 				} else {
 					uint8_t *fn1 = malloc(len1+1);
 					uint8_t *fn2 = malloc(len2+1);
@@ -1054,7 +1054,7 @@ int semihosting_common(struct target *target)
 					semihosting->hit_fileio = true;
 					fileio_info->identifier = "system";
 					fileio_info->param_1 = addr;
-					fileio_info->param_2 = len;
+					fileio_info->param_2 = len + 1;
 				} else {
 					uint8_t *cmd = malloc(len+1);
 					if (!cmd) {
