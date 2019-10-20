@@ -211,6 +211,40 @@ static int armv7m_set_core_reg(struct reg *reg, uint8_t *buf)
 	return ERROR_OK;
 }
 
+static uint32_t armv7m_map_id_to_regsel(unsigned int arm_reg_id)
+{
+	switch (arm_reg_id) {
+	case ARMV7M_R0 ... ARMV7M_R14:
+	case ARMV7M_PC:
+	case ARMV7M_xPSR:
+	case ARMV7M_MSP:
+	case ARMV7M_PSP:
+		/* NOTE:  we "know" here that the register identifiers
+		 * match the Cortex-M DCRSR.REGSEL selectors values
+		 * for R0..R14, PC, xPSR, MSP, and PSP.
+		 */
+		return arm_reg_id;
+
+	case ARMV7M_FPSCR:
+		return ARMV7M_REGSEL_FPSCR;
+
+	case ARMV7M_D0 ... ARMV7M_D15:
+		return ARMV7M_REGSEL_S0 + 2 * (arm_reg_id - ARMV7M_D0);
+
+	/* TODO: remove. This is temporary hack until packing/unpacking
+	 * of special regs is moved to armv7m.c */
+	case ARMV7M_PRIMASK:
+	case ARMV7M_BASEPRI:
+	case ARMV7M_FAULTMASK:
+	case ARMV7M_CONTROL:
+		return arm_reg_id;
+
+	default:
+		LOG_ERROR("Bad register ID %u", arm_reg_id);
+		return arm_reg_id;
+	}
+}
+
 static int armv7m_read_core_reg(struct target *target, struct reg *r,
 	int num, enum arm_mode mode)
 {
@@ -223,22 +257,23 @@ static int armv7m_read_core_reg(struct target *target, struct reg *r,
 
 	armv7m_core_reg = armv7m->arm.core_cache->reg_list[num].arch_info;
 
+	uint32_t regsel = armv7m_map_id_to_regsel(armv7m_core_reg->num);
+
 	if ((armv7m_core_reg->num >= ARMV7M_D0) && (armv7m_core_reg->num <= ARMV7M_D15)) {
 		/* map D0..D15 to S0..S31 */
-		size_t regidx = ARMV7M_S0 + 2 * (armv7m_core_reg->num - ARMV7M_D0);
-		retval = armv7m->load_core_reg_u32(target, regidx, &reg_value);
+		retval = armv7m->load_core_reg_u32(target, regsel, &reg_value);
 		if (retval != ERROR_OK)
 			return retval;
 		buf_set_u32(armv7m->arm.core_cache->reg_list[num].value,
 			    0, 32, reg_value);
-		retval = armv7m->load_core_reg_u32(target, regidx + 1, &reg_value);
+		retval = armv7m->load_core_reg_u32(target, regsel + 1, &reg_value);
 		if (retval != ERROR_OK)
 			return retval;
 		buf_set_u32(armv7m->arm.core_cache->reg_list[num].value + 4,
 			    0, 32, reg_value);
 	} else {
 		retval = armv7m->load_core_reg_u32(target,
-						   armv7m_core_reg->num, &reg_value);
+						   regsel, &reg_value);
 		if (retval != ERROR_OK)
 			return retval;
 		buf_set_u32(armv7m->arm.core_cache->reg_list[num].value, 0, 32, reg_value);
@@ -261,24 +296,24 @@ static int armv7m_write_core_reg(struct target *target, struct reg *r,
 
 	armv7m_core_reg = armv7m->arm.core_cache->reg_list[num].arch_info;
 
+	uint32_t regsel = armv7m_map_id_to_regsel(armv7m_core_reg->num);
+
 	if ((armv7m_core_reg->num >= ARMV7M_D0) && (armv7m_core_reg->num <= ARMV7M_D15)) {
 		/* map D0..D15 to S0..S31 */
-		size_t regidx = ARMV7M_S0 + 2 * (armv7m_core_reg->num - ARMV7M_D0);
-
 		uint32_t t = buf_get_u32(value, 0, 32);
-		retval = armv7m->store_core_reg_u32(target, regidx, t);
+		retval = armv7m->store_core_reg_u32(target, regsel, t);
 		if (retval != ERROR_OK)
 			goto out_error;
 
 		t = buf_get_u32(value + 4, 0, 32);
-		retval = armv7m->store_core_reg_u32(target, regidx + 1, t);
+		retval = armv7m->store_core_reg_u32(target, regsel + 1, t);
 		if (retval != ERROR_OK)
 			goto out_error;
 	} else {
 		uint32_t t = buf_get_u32(value, 0, 32);
 
 		LOG_DEBUG("write core reg %i value 0x%" PRIx32 "", num, t);
-		retval = armv7m->store_core_reg_u32(target, armv7m_core_reg->num, t);
+		retval = armv7m->store_core_reg_u32(target, regsel, t);
 		if (retval != ERROR_OK)
 			goto out_error;
 	}

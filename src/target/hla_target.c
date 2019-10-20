@@ -51,7 +51,7 @@ static inline struct hl_interface_s *target_to_adapter(struct target *target)
 }
 
 static int adapter_load_core_reg_u32(struct target *target,
-		uint32_t num, uint32_t *value)
+		uint32_t regsel, uint32_t *value)
 {
 	int retval;
 	struct hl_interface_s *adapter = target_to_adapter(target);
@@ -62,21 +62,21 @@ static int adapter_load_core_reg_u32(struct target *target,
 	 * in the v7m header match the Cortex-M3 Debug Core Register
 	 * Selector values for R0..R15, xPSR, MSP, and PSP.
 	 */
-	switch (num) {
-	case 0 ... 18:
+	switch (regsel) {
+	case ARMV7M_REGSEL_R0 ... ARMV7M_REGSEL_PSP:
 		/* read a normal core register */
-		retval = adapter->layout->api->read_reg(adapter->handle, num, value);
+		retval = adapter->layout->api->read_reg(adapter->handle, regsel, value);
 
 		if (retval != ERROR_OK) {
 			LOG_ERROR("JTAG failure %i", retval);
 			return ERROR_JTAG_DEVICE_ERROR;
 		}
-		LOG_DEBUG("load from core reg %i  value 0x%" PRIx32 "", (int)num, *value);
+		LOG_DEBUG("load from core reg %" PRIu32 " value 0x%" PRIx32 "", regsel, *value);
 		break;
 
-	case ARMV7M_FPSCR:
+	case ARMV7M_REGSEL_FPSCR:
 		/* Floating-point Status and Registers */
-		retval = target_write_u32(target, ARMV7M_SCS_DCRSR, 33);
+		retval = target_write_u32(target, ARMV7M_SCS_DCRSR, regsel);
 		if (retval != ERROR_OK)
 			return retval;
 		retval = target_read_u32(target, ARMV7M_SCS_DCRDR, value);
@@ -85,16 +85,16 @@ static int adapter_load_core_reg_u32(struct target *target,
 		LOG_DEBUG("load from FPSCR  value 0x%" PRIx32, *value);
 		break;
 
-	case ARMV7M_S0 ... ARMV7M_S31:
+	case ARMV7M_REGSEL_S0 ... ARMV7M_REGSEL_S31:
 		/* Floating-point Status and Registers */
-		retval = target_write_u32(target, ARMV7M_SCS_DCRSR, num-ARMV7M_S0+64);
+		retval = target_write_u32(target, ARMV7M_SCS_DCRSR, regsel);
 		if (retval != ERROR_OK)
 			return retval;
 		retval = target_read_u32(target, ARMV7M_SCS_DCRDR, value);
 		if (retval != ERROR_OK)
 			return retval;
 		LOG_DEBUG("load from FPU reg S%d  value 0x%" PRIx32,
-			  (int)(num - ARMV7M_S0), *value);
+			  (int)(regsel - ARMV7M_REGSEL_S0), *value);
 		break;
 
 	case ARMV7M_PRIMASK:
@@ -105,11 +105,11 @@ static int adapter_load_core_reg_u32(struct target *target,
 		 * in one Debug Core register.  So say r0 and r2 docs;
 		 * it was removed from r1 docs, but still works.
 		 */
-		retval = adapter->layout->api->read_reg(adapter->handle, 20, value);
+		retval = adapter->layout->api->read_reg(adapter->handle, ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL, value);
 		if (retval != ERROR_OK)
 			return retval;
 
-		switch (num) {
+		switch (regsel) {
 		case ARMV7M_PRIMASK:
 			*value = buf_get_u32((uint8_t *) value, 0, 1);
 			break;
@@ -127,8 +127,8 @@ static int adapter_load_core_reg_u32(struct target *target,
 			break;
 		}
 
-		LOG_DEBUG("load from special reg %i value 0x%" PRIx32 "",
-			  (int)num, *value);
+		LOG_DEBUG("load from special reg %" PRIu32 " value 0x%" PRIx32 "",
+			  regsel, *value);
 		break;
 
 	default:
@@ -139,7 +139,7 @@ static int adapter_load_core_reg_u32(struct target *target,
 }
 
 static int adapter_store_core_reg_u32(struct target *target,
-		uint32_t num, uint32_t value)
+		uint32_t regsel, uint32_t value)
 {
 	int retval;
 	uint32_t reg;
@@ -148,46 +148,42 @@ static int adapter_store_core_reg_u32(struct target *target,
 
 	LOG_DEBUG("%s", __func__);
 
-	/* NOTE:  we "know" here that the register identifiers used
-	 * in the v7m header match the Cortex-M3 Debug Core Register
-	 * Selector values for R0..R15, xPSR, MSP, and PSP.
-	 */
-	switch (num) {
-	case 0 ... 18:
-		retval = adapter->layout->api->write_reg(adapter->handle, num, value);
+	switch (regsel) {
+	case ARMV7M_REGSEL_R0 ... ARMV7M_REGSEL_PSP:
+		retval = adapter->layout->api->write_reg(adapter->handle, regsel, value);
 
 		if (retval != ERROR_OK) {
 			struct reg *r;
 
 			LOG_ERROR("JTAG failure");
-			r = armv7m->arm.core_cache->reg_list + num;
+			r = armv7m->arm.core_cache->reg_list + regsel; /* TODO: don't use regsel as register index */
 			r->dirty = r->valid;
 			return ERROR_JTAG_DEVICE_ERROR;
 		}
-		LOG_DEBUG("write core reg %i value 0x%" PRIx32 "", (int)num, value);
+		LOG_DEBUG("write core reg %" PRIu32 " value 0x%" PRIx32 "", regsel, value);
 		break;
 
-	case ARMV7M_FPSCR:
+	case ARMV7M_REGSEL_FPSCR:
 		/* Floating-point Status and Registers */
 		retval = target_write_u32(target, ARMV7M_SCS_DCRDR, value);
 		if (retval != ERROR_OK)
 			return retval;
-		retval = target_write_u32(target, ARMV7M_SCS_DCRSR, 33 | (1<<16));
+		retval = target_write_u32(target, ARMV7M_SCS_DCRSR, ARMV7M_REGSEL_FPSCR | DCRSR_WnR);
 		if (retval != ERROR_OK)
 			return retval;
 		LOG_DEBUG("write FPSCR value 0x%" PRIx32, value);
 		break;
 
-	case ARMV7M_S0 ... ARMV7M_S31:
+	case ARMV7M_REGSEL_S0 ... ARMV7M_REGSEL_S31:
 		/* Floating-point Status and Registers */
 		retval = target_write_u32(target, ARMV7M_SCS_DCRDR, value);
 		if (retval != ERROR_OK)
 			return retval;
-		retval = target_write_u32(target, ARMV7M_SCS_DCRSR, (num-ARMV7M_S0+64) | (1<<16));
+		retval = target_write_u32(target, ARMV7M_SCS_DCRSR, regsel | DCRSR_WnR);
 		if (retval != ERROR_OK)
 			return retval;
 		LOG_DEBUG("write FPU reg S%d  value 0x%" PRIx32,
-			  (int)(num - ARMV7M_S0), value);
+			  (int)(regsel - ARMV7M_REGSEL_S0), value);
 		break;
 
 	case ARMV7M_PRIMASK:
@@ -199,9 +195,9 @@ static int adapter_store_core_reg_u32(struct target *target,
 		 * it was removed from r1 docs, but still works.
 		 */
 
-		adapter->layout->api->read_reg(adapter->handle, 20, &reg);
+		adapter->layout->api->read_reg(adapter->handle, ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL, &reg);
 
-		switch (num) {
+		switch (regsel) {
 		case ARMV7M_PRIMASK:
 			buf_set_u32((uint8_t *) &reg, 0, 1, value);
 			break;
@@ -219,9 +215,9 @@ static int adapter_store_core_reg_u32(struct target *target,
 			break;
 		}
 
-		adapter->layout->api->write_reg(adapter->handle, 20, reg);
+		adapter->layout->api->write_reg(adapter->handle, ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL, reg);
 
-		LOG_DEBUG("write special reg %i value 0x%" PRIx32 " ", (int)num, value);
+		LOG_DEBUG("write special reg %" PRIu32 " value 0x%" PRIx32 " ", regsel, value);
 		break;
 
 	default:
