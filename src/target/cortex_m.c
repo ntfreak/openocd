@@ -2044,7 +2044,6 @@ int cortex_m_examine(struct target *target)
 			for (idx = ARMV7M_NUM_CORE_REGS_NOFP;
 			     idx < armv7m->arm.core_cache->num_regs;
 			     idx++) {
-				free(armv7m->arm.core_cache->reg_list[idx].value);
 				free(armv7m->arm.core_cache->reg_list[idx].feature);
 				free(armv7m->arm.core_cache->reg_list[idx].reg_data_type);
 			}

@@ -691,10 +691,7 @@ struct reg_cache *armv7m_build_reg_cache(struct target *target)
 
 		reg_list[i].name = armv7m_regs[i].name;
 		reg_list[i].size = armv7m_regs[i].bits;
-		size_t storage_size = DIV_ROUND_UP(armv7m_regs[i].bits, 8);
-		if (storage_size < 4)
-			storage_size = 4;
-		reg_list[i].value = calloc(1, storage_size);
+		reg_list[i].value = arch_info[i].value;
 		reg_list[i].dirty = false;
 		reg_list[i].valid = false;
 		reg_list[i].hidden = i == ARMV7M_PMSK_BPRI_FLTMSK_CTRL;
@@ -748,7 +745,6 @@ void armv7m_free_reg_cache(struct target *target)
 
 		free(reg->feature);
 		free(reg->reg_data_type);
-		free(reg->value);
 	}
 
 	free(cache->reg_list[0].arch_info);
