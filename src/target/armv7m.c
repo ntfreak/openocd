@@ -301,19 +301,21 @@ int armv7m_get_gdb_reg_list(struct target *target, struct reg **reg_list[],
 		int *reg_list_size, enum target_register_class reg_class)
 {
 	struct armv7m_common *armv7m = target_to_armv7m(target);
-	int i;
+	int i, size;
 
 	if (reg_class == REG_CLASS_ALL)
-		*reg_list_size = armv7m->arm.core_cache->num_regs;
+		size = armv7m->arm.core_cache->num_regs;
 	else
-		*reg_list_size = ARMV7M_NUM_CORE_REGS;
+		size = ARMV7M_NUM_CORE_REGS;
 
-	*reg_list = malloc(sizeof(struct reg *) * (*reg_list_size));
+	*reg_list = malloc(sizeof(struct reg *) * size);
 	if (*reg_list == NULL)
 		return ERROR_FAIL;
 
-	for (i = 0; i < *reg_list_size; i++)
+	for (i = 0; i < size; i++)
 		(*reg_list)[i] = &armv7m->arm.core_cache->reg_list[i];
+
+	*reg_list_size = size;
 
 	return ERROR_OK;
 }
