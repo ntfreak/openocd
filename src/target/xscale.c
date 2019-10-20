@@ -2884,7 +2884,7 @@ static void xscale_build_reg_cache(struct target *target)
 	/* fill in values for the xscale reg cache */
 	(*cache_p)->name = "XScale registers";
 	(*cache_p)->next = NULL;
-	(*cache_p)->reg_list = malloc(num_regs * sizeof(struct reg));
+	(*cache_p)->reg_list = calloc(num_regs, sizeof(struct reg));
 	(*cache_p)->num_regs = num_regs;
 
 	for (i = 0; i < num_regs; i++) {
