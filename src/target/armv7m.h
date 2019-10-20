@@ -64,44 +64,20 @@ enum {
 	ARMV7M_PSP,
 
 	/* this next set of indices is arbitrary */
+
+	/* working register for packing/unpacking special regs, hidden from gdb */
+	ARMV7M_PMSK_BPRI_FLTMSK_CTRL,
+
+	/* WARNING: If you use armv7m_write_core_reg() on one of 4 following
+	 * special registers, the new data go to ARMV7M_PMSK_BPRI_FLTMSK_CTRL
+	 * cache only and are not flushed to CPU HW register.
+	 * To trigger write to CPU HW register, add
+	 *		armv7m_write_core_reg(,,ARMV7M_PMSK_BPRI_FLTMSK_CTRL,);
+	 */
 	ARMV7M_PRIMASK,
 	ARMV7M_BASEPRI,
 	ARMV7M_FAULTMASK,
 	ARMV7M_CONTROL,
-
-	/* 32bit Floating-point registers */
-	ARMV7M_S0,
-	ARMV7M_S1,
-	ARMV7M_S2,
-	ARMV7M_S3,
-	ARMV7M_S4,
-	ARMV7M_S5,
-	ARMV7M_S6,
-	ARMV7M_S7,
-	ARMV7M_S8,
-	ARMV7M_S9,
-	ARMV7M_S10,
-	ARMV7M_S11,
-	ARMV7M_S12,
-	ARMV7M_S13,
-	ARMV7M_S14,
-	ARMV7M_S15,
-	ARMV7M_S16,
-	ARMV7M_S17,
-	ARMV7M_S18,
-	ARMV7M_S19,
-	ARMV7M_S20,
-	ARMV7M_S21,
-	ARMV7M_S22,
-	ARMV7M_S23,
-	ARMV7M_S24,
-	ARMV7M_S25,
-	ARMV7M_S26,
-	ARMV7M_S27,
-	ARMV7M_S28,
-	ARMV7M_S29,
-	ARMV7M_S30,
-	ARMV7M_S31,
 
 	/* 64bit Floating-point registers */
 	ARMV7M_D0,
@@ -121,12 +97,50 @@ enum {
 	ARMV7M_D14,
 	ARMV7M_D15,
 
-	/* Floating-point status registers */
-	ARMV7M_FPSID,
+	/* Floating-point status register */
 	ARMV7M_FPSCR,
-	ARMV7M_FPEXC,
 
 	ARMV7M_LAST_REG,
+};
+
+/* Cortex-M DCRSR.REGSEL selectors */
+enum {
+	ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL = 0x14,
+	ARMV7M_REGSEL_FPSCR = 0x21,
+
+	/* 32bit Floating-point registers */
+	ARMV7M_REGSEL_S0 = 0x40,
+	ARMV7M_REGSEL_S1,
+	ARMV7M_REGSEL_S2,
+	ARMV7M_REGSEL_S3,
+	ARMV7M_REGSEL_S4,
+	ARMV7M_REGSEL_S5,
+	ARMV7M_REGSEL_S6,
+	ARMV7M_REGSEL_S7,
+	ARMV7M_REGSEL_S8,
+	ARMV7M_REGSEL_S9,
+	ARMV7M_REGSEL_S10,
+	ARMV7M_REGSEL_S11,
+	ARMV7M_REGSEL_S12,
+	ARMV7M_REGSEL_S13,
+	ARMV7M_REGSEL_S14,
+	ARMV7M_REGSEL_S15,
+	ARMV7M_REGSEL_S16,
+	ARMV7M_REGSEL_S17,
+	ARMV7M_REGSEL_S18,
+	ARMV7M_REGSEL_S19,
+	ARMV7M_REGSEL_S20,
+	ARMV7M_REGSEL_S21,
+	ARMV7M_REGSEL_S22,
+	ARMV7M_REGSEL_S23,
+	ARMV7M_REGSEL_S24,
+	ARMV7M_REGSEL_S25,
+	ARMV7M_REGSEL_S26,
+	ARMV7M_REGSEL_S27,
+	ARMV7M_REGSEL_S28,
+	ARMV7M_REGSEL_S29,
+	ARMV7M_REGSEL_S30,
+	ARMV7M_REGSEL_S31,
 };
 
 enum {
@@ -137,7 +151,7 @@ enum {
 };
 
 #define ARMV7M_NUM_CORE_REGS (ARMV7M_xPSR + 1)
-#define ARMV7M_NUM_CORE_REGS_NOFP (ARMV7M_NUM_CORE_REGS + 6)
+#define ARMV7M_NUM_CORE_REGS_NOFP (ARMV7M_D0)
 
 #define ARMV7M_COMMON_MAGIC 0x2A452A45
 
@@ -159,8 +173,8 @@ struct armv7m_common {
 	struct armv7m_trace_config trace_config;
 
 	/* Direct processor core register read and writes */
-	int (*load_core_reg_u32)(struct target *target, uint32_t num, uint32_t *value);
-	int (*store_core_reg_u32)(struct target *target, uint32_t num, uint32_t value);
+	int (*load_core_reg_u32)(struct target *target, uint32_t regsel, uint32_t *value);
+	int (*store_core_reg_u32)(struct target *target, uint32_t regsel, uint32_t value);
 
 	int (*examine_debug_reason)(struct target *target);
 	int (*post_debug_entry)(struct target *target);

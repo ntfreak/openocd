@@ -56,8 +56,8 @@ static int cortex_m_store_core_reg_u32(struct target *target,
 		uint32_t num, uint32_t value);
 static void cortex_m_dwt_free(struct target *target);
 
-static int cortexm_dap_read_coreregister_u32(struct target *target,
-	uint32_t *value, int regnum)
+static int cortex_m_load_core_reg_u32(struct target *target,
+		uint32_t regsel, uint32_t *value)
 {
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 	int retval;
@@ -71,7 +71,7 @@ static int cortexm_dap_read_coreregister_u32(struct target *target,
 			return retval;
 	}
 
-	retval = mem_ap_write_u32(armv7m->debug_ap, DCB_DCRSR, regnum);
+	retval = mem_ap_write_u32(armv7m->debug_ap, DCB_DCRSR, regsel);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -89,8 +89,8 @@ static int cortexm_dap_read_coreregister_u32(struct target *target,
 	return retval;
 }
 
-static int cortexm_dap_write_coreregister_u32(struct target *target,
-	uint32_t value, int regnum)
+static int cortex_m_store_core_reg_u32(struct target *target,
+		uint32_t regsel, uint32_t value)
 {
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 	int retval;
@@ -108,7 +108,7 @@ static int cortexm_dap_write_coreregister_u32(struct target *target,
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = mem_ap_write_atomic_u32(armv7m->debug_ap, DCB_DCRSR, regnum | DCRSR_WnR);
+	retval = mem_ap_write_atomic_u32(armv7m->debug_ap, DCB_DCRSR, regsel | DCRSR_WnR);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -1588,176 +1588,6 @@ void cortex_m_enable_watchpoints(struct target *target)
 			cortex_m_set_watchpoint(target, watchpoint);
 		watchpoint = watchpoint->next;
 	}
-}
-
-static int cortex_m_load_core_reg_u32(struct target *target,
-		uint32_t num, uint32_t *value)
-{
-	int retval;
-
-	/* NOTE:  we "know" here that the register identifiers used
-	 * in the v7m header match the Cortex-M3 Debug Core Register
-	 * Selector values for R0..R15, xPSR, MSP, and PSP.
-	 */
-	switch (num) {
-		case 0 ... 18:
-			/* read a normal core register */
-			retval = cortexm_dap_read_coreregister_u32(target, value, num);
-
-			if (retval != ERROR_OK) {
-				LOG_ERROR("JTAG failure %i", retval);
-				return ERROR_JTAG_DEVICE_ERROR;
-			}
-			LOG_DEBUG("load from core reg %i  value 0x%" PRIx32 "", (int)num, *value);
-			break;
-
-		case ARMV7M_FPSCR:
-			/* Floating-point Status and Registers */
-			retval = target_write_u32(target, DCB_DCRSR, 0x21);
-			if (retval != ERROR_OK)
-				return retval;
-			retval = target_read_u32(target, DCB_DCRDR, value);
-			if (retval != ERROR_OK)
-				return retval;
-			LOG_DEBUG("load from FPSCR  value 0x%" PRIx32, *value);
-			break;
-
-		case ARMV7M_S0 ... ARMV7M_S31:
-			/* Floating-point Status and Registers */
-			retval = target_write_u32(target, DCB_DCRSR, num - ARMV7M_S0 + 0x40);
-			if (retval != ERROR_OK)
-				return retval;
-			retval = target_read_u32(target, DCB_DCRDR, value);
-			if (retval != ERROR_OK)
-				return retval;
-			LOG_DEBUG("load from FPU reg S%d  value 0x%" PRIx32,
-				  (int)(num - ARMV7M_S0), *value);
-			break;
-
-		case ARMV7M_PRIMASK:
-		case ARMV7M_BASEPRI:
-		case ARMV7M_FAULTMASK:
-		case ARMV7M_CONTROL:
-			/* Cortex-M3 packages these four registers as bitfields
-			 * in one Debug Core register.  So say r0 and r2 docs;
-			 * it was removed from r1 docs, but still works.
-			 */
-			cortexm_dap_read_coreregister_u32(target, value, 20);
-
-			switch (num) {
-				case ARMV7M_PRIMASK:
-					*value = buf_get_u32((uint8_t *)value, 0, 1);
-					break;
-
-				case ARMV7M_BASEPRI:
-					*value = buf_get_u32((uint8_t *)value, 8, 8);
-					break;
-
-				case ARMV7M_FAULTMASK:
-					*value = buf_get_u32((uint8_t *)value, 16, 1);
-					break;
-
-				case ARMV7M_CONTROL:
-					*value = buf_get_u32((uint8_t *)value, 24, 2);
-					break;
-			}
-
-			LOG_DEBUG("load from special reg %i value 0x%" PRIx32 "", (int)num, *value);
-			break;
-
-		default:
-			return ERROR_COMMAND_SYNTAX_ERROR;
-	}
-
-	return ERROR_OK;
-}
-
-static int cortex_m_store_core_reg_u32(struct target *target,
-		uint32_t num, uint32_t value)
-{
-	int retval;
-	uint32_t reg;
-	struct armv7m_common *armv7m = target_to_armv7m(target);
-
-	/* NOTE:  we "know" here that the register identifiers used
-	 * in the v7m header match the Cortex-M3 Debug Core Register
-	 * Selector values for R0..R15, xPSR, MSP, and PSP.
-	 */
-	switch (num) {
-		case 0 ... 18:
-			retval = cortexm_dap_write_coreregister_u32(target, value, num);
-			if (retval != ERROR_OK) {
-				struct reg *r;
-
-				LOG_ERROR("JTAG failure");
-				r = armv7m->arm.core_cache->reg_list + num;
-				r->dirty = r->valid;
-				return ERROR_JTAG_DEVICE_ERROR;
-			}
-			LOG_DEBUG("write core reg %i value 0x%" PRIx32 "", (int)num, value);
-			break;
-
-		case ARMV7M_FPSCR:
-			/* Floating-point Status and Registers */
-			retval = target_write_u32(target, DCB_DCRDR, value);
-			if (retval != ERROR_OK)
-				return retval;
-			retval = target_write_u32(target, DCB_DCRSR, 0x21 | (1<<16));
-			if (retval != ERROR_OK)
-				return retval;
-			LOG_DEBUG("write FPSCR value 0x%" PRIx32, value);
-			break;
-
-		case ARMV7M_S0 ... ARMV7M_S31:
-			/* Floating-point Status and Registers */
-			retval = target_write_u32(target, DCB_DCRDR, value);
-			if (retval != ERROR_OK)
-				return retval;
-			retval = target_write_u32(target, DCB_DCRSR, (num - ARMV7M_S0 + 0x40) | (1<<16));
-			if (retval != ERROR_OK)
-				return retval;
-			LOG_DEBUG("write FPU reg S%d  value 0x%" PRIx32,
-				  (int)(num - ARMV7M_S0), value);
-			break;
-
-		case ARMV7M_PRIMASK:
-		case ARMV7M_BASEPRI:
-		case ARMV7M_FAULTMASK:
-		case ARMV7M_CONTROL:
-			/* Cortex-M3 packages these four registers as bitfields
-			 * in one Debug Core register.  So say r0 and r2 docs;
-			 * it was removed from r1 docs, but still works.
-			 */
-			cortexm_dap_read_coreregister_u32(target, &reg, 20);
-
-			switch (num) {
-				case ARMV7M_PRIMASK:
-					buf_set_u32((uint8_t *)&reg, 0, 1, value);
-					break;
-
-				case ARMV7M_BASEPRI:
-					buf_set_u32((uint8_t *)&reg, 8, 8, value);
-					break;
-
-				case ARMV7M_FAULTMASK:
-					buf_set_u32((uint8_t *)&reg, 16, 1, value);
-					break;
-
-				case ARMV7M_CONTROL:
-					buf_set_u32((uint8_t *)&reg, 24, 2, value);
-					break;
-			}
-
-			cortexm_dap_write_coreregister_u32(target, reg, 20);
-
-			LOG_DEBUG("write special reg %i value 0x%" PRIx32 " ", (int)num, value);
-			break;
-
-		default:
-			return ERROR_COMMAND_SYNTAX_ERROR;
-	}
-
-	return ERROR_OK;
 }
 
 static int cortex_m_read_memory(struct target *target, target_addr_t address,
