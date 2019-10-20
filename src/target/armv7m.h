@@ -34,36 +34,100 @@ extern const int armv7m_msp_reg_map[];
 
 const char *armv7m_exception_string(int number);
 
+/* Cortex-M DCRSR.REGSEL selectors */
+enum {
+	ARMV7M_REGSEL_R0,
+	ARMV7M_REGSEL_R1,
+	ARMV7M_REGSEL_R2,
+	ARMV7M_REGSEL_R3,
+
+	ARMV7M_REGSEL_R4,
+	ARMV7M_REGSEL_R5,
+	ARMV7M_REGSEL_R6,
+	ARMV7M_REGSEL_R7,
+
+	ARMV7M_REGSEL_R8,
+	ARMV7M_REGSEL_R9,
+	ARMV7M_REGSEL_R10,
+	ARMV7M_REGSEL_R11,
+
+	ARMV7M_REGSEL_R12,
+	ARMV7M_REGSEL_R13,
+	ARMV7M_REGSEL_R14,
+	ARMV7M_REGSEL_PC = 15,
+
+	ARMV7M_REGSEL_xPSR = 16,
+	ARMV7M_REGSEL_MSP,
+	ARMV7M_REGSEL_PSP,
+
+	ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL = 0x14,
+	ARMV7M_REGSEL_FPSCR = 0x21,
+
+	/* 32bit Floating-point registers */
+	ARMV7M_REGSEL_S0 = 0x40,
+	ARMV7M_REGSEL_S1,
+	ARMV7M_REGSEL_S2,
+	ARMV7M_REGSEL_S3,
+	ARMV7M_REGSEL_S4,
+	ARMV7M_REGSEL_S5,
+	ARMV7M_REGSEL_S6,
+	ARMV7M_REGSEL_S7,
+	ARMV7M_REGSEL_S8,
+	ARMV7M_REGSEL_S9,
+	ARMV7M_REGSEL_S10,
+	ARMV7M_REGSEL_S11,
+	ARMV7M_REGSEL_S12,
+	ARMV7M_REGSEL_S13,
+	ARMV7M_REGSEL_S14,
+	ARMV7M_REGSEL_S15,
+	ARMV7M_REGSEL_S16,
+	ARMV7M_REGSEL_S17,
+	ARMV7M_REGSEL_S18,
+	ARMV7M_REGSEL_S19,
+	ARMV7M_REGSEL_S20,
+	ARMV7M_REGSEL_S21,
+	ARMV7M_REGSEL_S22,
+	ARMV7M_REGSEL_S23,
+	ARMV7M_REGSEL_S24,
+	ARMV7M_REGSEL_S25,
+	ARMV7M_REGSEL_S26,
+	ARMV7M_REGSEL_S27,
+	ARMV7M_REGSEL_S28,
+	ARMV7M_REGSEL_S29,
+	ARMV7M_REGSEL_S30,
+	ARMV7M_REGSEL_S31,
+};
+
 /* offsets into armv7m core register cache */
 enum {
 	/* for convenience, the first set of indices match
-	 * the Cortex-M3/-M4 DCRSR selectors
+	 * the Cortex-M DCRSR.REGSEL selectors
 	 */
-	ARMV7M_R0,
-	ARMV7M_R1,
-	ARMV7M_R2,
-	ARMV7M_R3,
+	ARMV7M_R0 = ARMV7M_REGSEL_R0,
+	ARMV7M_R1 = ARMV7M_REGSEL_R1,
+	ARMV7M_R2 = ARMV7M_REGSEL_R2,
+	ARMV7M_R3 = ARMV7M_REGSEL_R3,
 
-	ARMV7M_R4,
-	ARMV7M_R5,
-	ARMV7M_R6,
-	ARMV7M_R7,
+	ARMV7M_R4 = ARMV7M_REGSEL_R4,
+	ARMV7M_R5 = ARMV7M_REGSEL_R5,
+	ARMV7M_R6 = ARMV7M_REGSEL_R6,
+	ARMV7M_R7 = ARMV7M_REGSEL_R7,
 
-	ARMV7M_R8,
-	ARMV7M_R9,
-	ARMV7M_R10,
-	ARMV7M_R11,
+	ARMV7M_R8 = ARMV7M_REGSEL_R8,
+	ARMV7M_R9 = ARMV7M_REGSEL_R9,
+	ARMV7M_R10 = ARMV7M_REGSEL_R10,
+	ARMV7M_R11 = ARMV7M_REGSEL_R11,
 
-	ARMV7M_R12,
-	ARMV7M_R13,
-	ARMV7M_R14,
-	ARMV7M_PC = 15,
+	ARMV7M_R12 = ARMV7M_REGSEL_R12,
+	ARMV7M_R13 = ARMV7M_REGSEL_R13,
+	ARMV7M_R14 = ARMV7M_REGSEL_R14,
+	ARMV7M_PC = ARMV7M_REGSEL_PC,
 
-	ARMV7M_xPSR = 16,
-	ARMV7M_MSP,
-	ARMV7M_PSP,
+	ARMV7M_xPSR = ARMV7M_REGSEL_xPSR,
+	ARMV7M_MSP = ARMV7M_REGSEL_MSP,
+	ARMV7M_PSP = ARMV7M_REGSEL_PSP,
 
-	/* this next set of indices is arbitrary */
+	/* following indices are arbitrary, do not match DCRSR.REGSEL selectors */
 	ARMV7M_PRIMASK,
 	ARMV7M_BASEPRI,
 	ARMV7M_FAULTMASK,
@@ -137,7 +201,7 @@ enum {
 };
 
 #define ARMV7M_NUM_CORE_REGS (ARMV7M_xPSR + 1)
-#define ARMV7M_NUM_CORE_REGS_NOFP (ARMV7M_NUM_CORE_REGS + 6)
+#define ARMV7M_NUM_CORE_REGS_NOFP (ARMV7M_D0)
 
 #define ARMV7M_COMMON_MAGIC 0x2A452A45
 
@@ -159,8 +223,8 @@ struct armv7m_common {
 	struct armv7m_trace_config trace_config;
 
 	/* Direct processor core register read and writes */
-	int (*load_core_reg_u32)(struct target *target, uint32_t num, uint32_t *value);
-	int (*store_core_reg_u32)(struct target *target, uint32_t num, uint32_t value);
+	int (*load_core_reg_u32)(struct target *target, uint32_t regsel, uint32_t *value);
+	int (*store_core_reg_u32)(struct target *target, uint32_t regsel, uint32_t value);
 
 	int (*examine_debug_reason)(struct target *target);
 	int (*post_debug_entry)(struct target *target);
