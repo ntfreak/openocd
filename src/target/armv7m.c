@@ -538,7 +538,6 @@ int armv7m_wait_algorithm(struct target *target,
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 	struct armv7m_algorithm *armv7m_algorithm_info = arch_info;
 	int retval = ERROR_OK;
-	uint32_t pc;
 
 	/* NOTE: armv7m_run_algorithm requires that each algorithm uses a software breakpoint
 	 * at the exit point */
@@ -560,12 +559,14 @@ int armv7m_wait_algorithm(struct target *target,
 		return ERROR_TARGET_TIMEOUT;
 	}
 
-	armv7m->load_core_reg_u32(target, 15, &pc);
-	if (exit_point && (pc != exit_point)) {
-		LOG_DEBUG("failed algorithm halted at 0x%" PRIx32 ", expected 0x%" TARGET_PRIxADDR,
-			pc,
-			exit_point);
-		return ERROR_TARGET_TIMEOUT;
+	if (exit_point) {
+		/* PC value has been cached in cortex_m_debug_entry() */
+		uint32_t pc = buf_get_u32(armv7m->arm.pc->value, 0, 32);
+		if (pc != exit_point) {
+			LOG_DEBUG("failed algorithm halted at 0x%" PRIx32 ", expected 0x%" TARGET_PRIxADDR,
+					  pc, exit_point);
+			return ERROR_TARGET_ALGO_EXIT;
+		}
 	}
 
 	/* Read memory values to mem_params[] */
