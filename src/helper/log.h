@@ -82,6 +82,8 @@ void kept_alive(void);
 void alive_sleep(uint64_t ms);
 void busy_sleep(uint64_t ms);
 
+void log_socket_error(const char *socket_desc);
+
 typedef void (*log_callback_fn)(void *priv, const char *file, unsigned line,
 		const char *function, const char *string);
 
