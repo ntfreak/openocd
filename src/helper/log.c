@@ -454,3 +454,28 @@ void busy_sleep(uint64_t ms)
 		 */
 	}
 }
+
+/* Maximum size of socket error message retreived from operation system */
+#define MAX_SOCKET_ERR_MSG_LENGTH 256
+
+/* Provide log message for the last socket error.
+   Uses errno on *nix and WSAGetLastError() on Windows */
+void log_socket_error(const char *socket_desc)
+{
+	int error_code;
+#ifdef _WIN32
+	error_code = WSAGetLastError();
+	char error_message[MAX_SOCKET_ERR_MSG_LENGTH];
+	error_message[0] = '\0';
+	DWORD retval = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, error_code, 0,
+		error_message, MAX_SOCKET_ERR_MSG_LENGTH, NULL);
+	error_message[MAX_SOCKET_ERR_MSG_LENGTH - 1] = '\0';
+	const bool have_message = (retval != 0) && (error_message[0] != '\0');
+	LOG_ERROR("Error on socket '%s': WSAGetLastError==%d%s%s.", socket_desc, error_code,
+		(have_message ? ", message: " : ""),
+		(have_message ? error_message : ""));
+#else
+	error_code = errno;
+	LOG_ERROR("Error on socket '%s': errno==%d, message: %s.", socket_desc, error_code, strerror(error_code));
+#endif
+}

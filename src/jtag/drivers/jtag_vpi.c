@@ -33,6 +33,8 @@
 #include <netinet/tcp.h>
 #endif
 
+#include <string.h>
+
 #define NO_TAP_SHIFT	0
 #define TAP_SHIFT	1
 
@@ -71,8 +73,56 @@ struct vpi_cmd {
 	};
 };
 
+static char *jtag_vpi_cmd_to_str(int cmd_num)
+{
+	switch (cmd_num) {
+	case CMD_RESET:
+		return "CMD_RESET";
+	case CMD_TMS_SEQ:
+		return "CMD_TMS_SEQ";
+	case CMD_SCAN_CHAIN:
+		return "CMD_SCAN_CHAIN";
+	case CMD_SCAN_CHAIN_FLIP_TMS:
+		return "CMD_SCAN_CHAIN_FLIP_TMS";
+	case CMD_STOP_SIMU:
+		return "CMD_STOP_SIMU";
+	default:
+		return "<unknown>";
+	}
+}
+
 static int jtag_vpi_send_cmd(struct vpi_cmd *vpi)
 {
+	/* Optional low-level JTAG debug */
+	if (LOG_LEVEL_IS(LOG_LVL_DEBUG_IO)) {
+		if (vpi->nb_bits > 0) {
+			/* command with a non-empty data payload */
+			char *char_buf = buf_to_str(vpi->buffer_out,
+					(vpi->nb_bits > DEBUG_JTAG_IOZ)
+						? DEBUG_JTAG_IOZ
+						: vpi->nb_bits,
+					16);
+			LOG_DEBUG_IO("sending JTAG VPI cmd: cmd=%s, "
+					"length=%" PRIu32 ", "
+					"nb_bits=%" PRIu32 ", "
+					"buf_out=0x%s%s",
+					jtag_vpi_cmd_to_str(vpi->cmd),
+					vpi->length,
+					vpi->nb_bits,
+					char_buf,
+					(vpi->nb_bits > DEBUG_JTAG_IOZ) ? "(...)" : "");
+			free(char_buf);
+		} else {
+			/* command without data payload */
+			LOG_DEBUG_IO("sending JTAG VPI cmd: cmd=%s, "
+					"length=%" PRIu32 ", "
+					"nb_bits=%" PRIu32,
+					jtag_vpi_cmd_to_str(vpi->cmd),
+					vpi->length,
+					vpi->nb_bits);
+		}
+	}
+
 	/* Use little endian when transmitting/receiving jtag_vpi cmds.
 	   The choice of little endian goes against usual networking conventions
 	   but is intentional to remain compatible with most older OpenOCD builds
@@ -82,17 +132,44 @@ static int jtag_vpi_send_cmd(struct vpi_cmd *vpi)
 	h_u32_to_le(vpi->nb_bits_buf, vpi->nb_bits);
 
 	int retval = write_socket(sockfd, vpi, sizeof(struct vpi_cmd));
-	if (retval <= 0)
-		return ERROR_FAIL;
 
+	if (retval < 0) {
+		/* This means there is an error using the socket, most likely fatal
+		   for the connection. */
+		log_socket_error("jtag_vpi xmit");
+		/* TODO: Clean way how adapter drivers can report fatal errors
+		   to upper layers of OpenOCD and let it perform an orderly shutdown? */
+		exit(-1);
+	} else if (retval < (int)sizeof(struct vpi_cmd)) {
+		/* This means we could not send all data, which is most likely fatal
+		   for the jtag_vpi connection (the underlying TCP connection likely not
+		   usable anymore) */
+		LOG_ERROR("Could not send all data through jtag_vpi connection.");
+		exit(-1);
+	}
+
+	/* Otherwise the packet has been sent successfully. */
 	return ERROR_OK;
 }
 
 static int jtag_vpi_receive_cmd(struct vpi_cmd *vpi)
 {
-	int retval = read_socket(sockfd, vpi, sizeof(struct vpi_cmd));
-	if (retval < (int)sizeof(struct vpi_cmd))
-		return ERROR_FAIL;
+	unsigned bytes_buffered = 0;
+	while (bytes_buffered < sizeof(struct vpi_cmd)) {
+		int bytes_to_receive = sizeof(struct vpi_cmd) - bytes_buffered;
+		int retval = read_socket(sockfd, ((char *)vpi) + bytes_buffered, bytes_to_receive);
+		if (retval < 0) {
+			/* Error when accessing the socket. */
+			log_socket_error("jtag_vpi recv");
+			exit(-1);
+		} else if (retval == 0) {
+			/* Connection closed by the other side */
+			LOG_ERROR("Connection prematurely closed by jtag_vpi server.");
+			exit(-1);
+		}
+		/* Otherwise, we have successfully received some data */
+		bytes_buffered += retval;
+	}
 
 	/* Use little endian when transmitting/receiving jtag_vpi cmds. */
 	vpi->cmd = le_to_h_u32(vpi->cmd_buf);
@@ -110,6 +187,7 @@ static int jtag_vpi_receive_cmd(struct vpi_cmd *vpi)
 static int jtag_vpi_reset(int trst, int srst)
 {
 	struct vpi_cmd vpi;
+	memset(&vpi, 0, sizeof(struct vpi_cmd));
 
 	vpi.cmd = CMD_RESET;
 	vpi.length = 0;
@@ -132,6 +210,7 @@ static int jtag_vpi_tms_seq(const uint8_t *bits, int nb_bits)
 	struct vpi_cmd vpi;
 	int nb_bytes;
 
+	memset(&vpi, 0, sizeof(struct vpi_cmd));
 	nb_bytes = DIV_ROUND_UP(nb_bits, 8);
 
 	vpi.cmd = CMD_TMS_SEQ;
@@ -199,6 +278,8 @@ static int jtag_vpi_queue_tdi_xfer(uint8_t *bits, int nb_bits, int tap_shift)
 	struct vpi_cmd vpi;
 	int nb_bytes = DIV_ROUND_UP(nb_bits, 8);
 
+	memset(&vpi, 0, sizeof(struct vpi_cmd));
+
 	vpi.cmd = tap_shift ? CMD_SCAN_CHAIN_FLIP_TMS : CMD_SCAN_CHAIN;
 
 	if (bits)
@@ -216,6 +297,16 @@ static int jtag_vpi_queue_tdi_xfer(uint8_t *bits, int nb_bits, int tap_shift)
 	retval = jtag_vpi_receive_cmd(&vpi);
 	if (retval != ERROR_OK)
 		return retval;
+
+	/* Optional low-level JTAG debug */
+	if (LOG_LEVEL_IS(LOG_LVL_DEBUG_IO)) {
+		char *char_buf = buf_to_str(vpi.buffer_in,
+				(nb_bits > DEBUG_JTAG_IOZ) ? DEBUG_JTAG_IOZ : nb_bits,
+				16);
+		LOG_DEBUG_IO("recvd JTAG VPI data: nb_bits=%d, buf_in=0x%s%s",
+			nb_bits, char_buf, (nb_bits > DEBUG_JTAG_IOZ) ? "(...)" : "");
+		free(char_buf);
+	}
 
 	if (bits)
 		memcpy(bits, vpi.buffer_in, nb_bytes);
@@ -459,7 +550,7 @@ static int jtag_vpi_init(void)
 static int jtag_vpi_quit(void)
 {
 	free(server_address);
-	return close(sockfd);
+	return close_socket(sockfd);
 }
 
 COMMAND_HANDLER(jtag_vpi_set_port)
@@ -495,14 +586,14 @@ static const struct command_registration jtag_vpi_command_handlers[] = {
 		.handler = &jtag_vpi_set_port,
 		.mode = COMMAND_CONFIG,
 		.help = "set the port of the VPI server",
-		.usage = "description_string",
+		.usage = "tcp_port_num",
 	},
 	{
 		.name = "jtag_vpi_set_address",
 		.handler = &jtag_vpi_set_address,
 		.mode = COMMAND_CONFIG,
 		.help = "set the address of the VPI server",
-		.usage = "description_string",
+		.usage = "ipv4_addr",
 	},
 	COMMAND_REGISTRATION_DONE
 };
