@@ -9529,6 +9529,148 @@ Perform a 32-bit DMI read at address, returning the value.
 Perform a 32-bit DMI write of value at address.
 @end deffn
 
+@section ARC Architecture
+@cindex ARC
+
+Synopsys DesignWare ARC Processors are a family of 32-bit CPUs that SoC
+designers can optimize for a wide range of uses, from deeply embedded to
+high-performance host applications in a variety of market segments. See more
+at: http://www.synopsys.com/IP/ProcessorIP/ARCProcessors/Pages/default.aspx.
+OpenOCD currently supports ARC EM processors.
+There is a set ARC-specific OpenOCD commands that allow low-level
+access to the core and provide necessary support for ARC extensibility and
+configurability capabilities. ARC processors has much more configuration
+capabilities than most of the other processors and in addition there is an
+extension interface that allows SoC designers to add custom registers and
+instructions. For the OpenOCD that mostly means that set of core and AUX
+registers in target will vary and is not fixed for a particular processor
+model. To enable extensibility several TCL commands are provided that allow to
+describe those optional registers in OpenOCD configuration files. Moreover
+those commands allow for a dynamic target features discovery.
+
+@subsection Configuring ARC targets
+
+Due to configurable and extensible nature of ARC processors it is required to
+do several additional configuration steps, which are not usually required for
+other architectures.
+
+@enumerate
+
+@item @emph{Source CPU configuration file for the processor that is used in the
+target.} If target has multiple different ARC processors, then all of the
+respective configuration files should be sourced. Valid configuration files for
+ARC processors:  @code{cpu/arc/em.tcl} 
+
+@end enumerate
+
+@subsection General ARC commands
+
+@deffn {Config Command} {arc add-reg} configparams
+
+Add a new register to processor target. By default newly created register is
+marked as not existing. @var{configparams} must have following required
+arguments:
+
+@itemize @bullet
+
+@item @code{-name} name
+@*Name of a register.
+
+@item @code{-num} number
+@*Architectural register number: core register number or AUX register number.
+
+@item @code{-feature} XML_feature
+@*Name of GDB XML target description feature.
+
+@end itemize
+
+@var{configparams} may have following optional arguments:
+
+@itemize @bullet
+
+@item @code{-gdbnum} number
+@*GDB register number. It is recommended to not assign GDB register number
+manually, because there would be a risk that two register will have same
+number. When register GDB number is not set with this option, then register
+will get a previous register number + 1. This option is required only for those
+registers that must be at particular address expected by GDB.
+
+@item @code{-core}
+@*This option specifies that register is a core registers. If not - this is an
+AUX register. AUX registers and core registers reside in different address
+spaces.
+
+@item @code{-bcr}
+@*This options specifies that register is a BCR register. BCR means Build
+Configuration Registers - this is a special type of AUX registers that are read
+only and non-volatile, that is - they never change their value. Therefore OpenOCD
+never invalidates values of those registers in internal caches. Because BCR is a
+type of AUX registers, this option cannot be used with @code{-core}.
+
+@item @code{-type} type_name
+@*Name of type of this register. This can be either one of the basic GDB types,
+or a custom types described with @command{arc add-reg-type-[flags|struct]}.
+
+@item @code{-g}
+@* If specified then this is a "general" register. General registers are always
+read by OpenOCD on context save (when core has just been halted) and is always
+transfered to GDB client in a response to g-packet. Contrary to this,
+non-general registers are read and sent to GDB client on-demand. In general it
+is not recommended to apply this option to custom registers.
+
+@end itemize
+
+@end deffn
+
+@deffn {Config Command} {arc add-reg-type-flags} -name name flags...
+Adds new register type of ``flags'' class. ``Flags'' types can contain only
+one-bit fields. Each flag definition looks like @code{-flag name bit-position}.
+@end deffn
+
+@deffn {Config Command} {arc add-reg-type-struct} -name name structs...
+Adds new register type of ``struct'' class. ``Struct'' types can contain either
+bit-fields or fields of other types, however at the moment only bit fields are
+supported. Structure bit field definition looks like @code{-bitfield name
+startbit endbit}.
+@end deffn
+
+@deffn {Command} {arc get-reg-field} reg-name field-name
+Returns value of bit-field in a register. Register must be have a ``struct''
+register type.
+@end deffn
+
+@deffn {Command} {arc set-reg-exists} reg-names...
+Specify that some register exists. Any amount of register names can be passed
+as an argument for a single command invocation.
+@end deffn
+
+@subsection ARC JTAG commands
+
+@deffn {Command} {arc jtag set-aux-reg} regnum value
+This command writes value to AUX register via its number. This command access
+register in target directly via JTAG, bypassing any OpenOCD internal caches,
+therefore it is unsafe to use if that register can be operated by other means.
+
+@end deffn
+
+@deffn {Command} {arc jtag set-core-reg} regnum value
+This command is similiar to @command{arc jtag set-aux-reg} but is for core
+registers.
+@end deffn
+
+@deffn {Command} {arc jtag get-aux-reg} regnum 
+This command returns the value storded in AUX register via its number. This commands access
+register in target directly via JTAG, bypassing any OpenOCD internal caches,
+therefore it is unsafe to use if that register can be operated by other means.
+
+@end deffn
+
+@deffn {Command} {arc jtag get-core-reg} regnum 
+This command is similiar to @command{arc jtag get-aux-reg} but is for core
+registers.
+@end deffn
+
+
 @anchor{softwaredebugmessagesandtracing}
 @section Software Debug Messages and Tracing
 @cindex Linux-ARM DCC support
