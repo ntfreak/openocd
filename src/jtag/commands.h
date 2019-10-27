@@ -116,6 +116,25 @@ struct tms_command {
 	const uint8_t *bits;
 };
 
+/*
+ * Allows JTAG pins to be individually manipulated. This is useful for devices
+ * where a certain sequence must be applied to enable JTAG, and that sequence
+ * cannot be achieved with other JTAG commands.
+ */
+enum jtag_pins {
+	JTAG_PIN_TCK    = (1 << 0),
+	JTAG_PIN_TMS    = (1 << 1),
+	JTAG_PIN_TDI    = (1 << 2),
+	JTAG_PIN_TDO    = (1 << 3),
+	JTAG_PIN_TRST   = (1 << 5),
+	JTAG_PIN_SRST   = (1 << 7),
+};
+
+struct pins_command {
+	uint8_t pin_state;
+	uint8_t pin_mask;
+};
+
 /**
  * Defines a container type that hold a pointer to a JTAG command
  * structure of any defined type.
@@ -130,6 +149,7 @@ union jtag_command_container {
 	struct end_state_command *end_state;
 	struct sleep_command *sleep;
 	struct tms_command *tms;
+	struct pins_command *pins;
 };
 
 /**
@@ -152,6 +172,7 @@ enum jtag_command_type {
 	JTAG_SLEEP        = 7,
 	JTAG_STABLECLOCKS = 8,
 	JTAG_TMS          = 9,
+	JTAG_PINS         = 10,
 };
 
 struct jtag_command {
