@@ -254,7 +254,8 @@ enum reset_types {
 	RESET_TRST_OPEN_DRAIN = 0x10,
 	RESET_SRST_PUSH_PULL  = 0x20,
 	RESET_SRST_NO_GATING  = 0x40,
-	RESET_CNCT_UNDER_SRST = 0x80
+	RESET_CNCT_UNDER_SRST = 0x80,
+	RESET_CNCT_TCK_LOW_RELEASE_SRST = 0x100,
 };
 
 enum reset_types jtag_get_reset_config(void);
