@@ -816,6 +816,11 @@ static int ublast_execute_queue(void)
 		case JTAG_SCAN:
 			ret = ublast_scan(cmd->cmd.scan);
 			break;
+		default:
+			LOG_ERROR("BUG: unknown JTAG command type 0x%X",
+				  cmd->type);
+			ret = ERROR_FAIL;
+			break;
 		}
 	}
 
