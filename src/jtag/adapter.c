@@ -258,6 +258,20 @@ COMMAND_HANDLER(handle_reset_config_command)
 		if (m)
 			goto next;
 
+		/* Release SRST with TCKL held low */
+		m = RESET_CNCT_TCK_LOW_RELEASE_SRST;
+		if (strcmp(*CMD_ARGV, "connect_tck_low_deassert_srst") == 0)
+			tmp |= RESET_CNCT_TCK_LOW_RELEASE_SRST;
+		else
+			m = 0;
+		if (mask & m) {
+			LOG_ERROR("extra reset_config %s spec (%s)",
+				  "connect_type", *CMD_ARGV);
+			return ERROR_COMMAND_SYNTAX_ERROR;
+		}
+		if (m)
+			goto next;
+
 		/* caller provided nonsense; fail */
 		LOG_ERROR("unknown reset_config flag (%s)", *CMD_ARGV);
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -521,7 +535,8 @@ static const struct command_registration interface_command_handlers[] = {
 			"[srst_gates_jtag|srst_nogate] "
 			"[trst_push_pull|trst_open_drain] "
 			"[srst_push_pull|srst_open_drain] "
-			"[connect_deassert_srst|connect_assert_srst]",
+			"[connect_deassert_srst|connect_assert_srst] "
+			"[connect_tck_low_deassert_srst] ",
 	},
 	COMMAND_REGISTRATION_DONE
 };

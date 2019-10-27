@@ -1653,6 +1653,17 @@ int jtag_init(struct command_context *cmd_ctx)
 		else
 			LOG_WARNING("\'srst_nogate\' reset_config option is required");
 	}
+
+	if (jtag_reset_config & RESET_CNCT_TCK_LOW_RELEASE_SRST) {
+		if (jtag_reset_config & RESET_HAS_SRST) {
+			jtag_add_pins_cmd(0x00, JTAG_PIN_SRST | JTAG_PIN_TCK);
+			jtag_add_sleep(10000);
+			jtag_add_pins_cmd(0xff, JTAG_PIN_SRST);
+			jtag_add_sleep(10000);
+		} else {
+			LOG_WARNING("\'srst\' reset_config option is required");
+		}
+	}
 	retval = jtag_execute_queue();
 	if (retval != ERROR_OK)
 		return retval;
