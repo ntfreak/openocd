@@ -274,6 +274,27 @@ int interface_jtag_add_pathmove(int num_states, const tap_state_t *path)
 	return ERROR_OK;
 }
 
+int interface_add_pins_cmd(uint8_t values, uint8_t mask)
+{
+	struct jtag_command *cmd;
+
+	cmd = cmd_queue_alloc(sizeof(struct jtag_command));
+	if (cmd == NULL)
+		return ERROR_FAIL;
+
+	cmd->type = JTAG_PINS;
+	cmd->cmd.pins = cmd_queue_alloc(sizeof(*cmd->cmd.pins));
+	if (!cmd->cmd.pins)
+		return ERROR_FAIL;
+
+	cmd->cmd.pins->pin_state = values;
+	cmd->cmd.pins->pin_mask = mask;
+
+	jtag_queue_command(cmd);
+
+	return ERROR_OK;
+}
+
 int interface_jtag_add_runtest(int num_cycles, tap_state_t state)
 {
 	/* allocate memory for a new list member */

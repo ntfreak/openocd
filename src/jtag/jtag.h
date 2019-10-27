@@ -527,6 +527,8 @@ void jtag_add_sleep(uint32_t us);
 
 int jtag_add_tms_seq(unsigned nbits, const uint8_t *seq, enum tap_state t);
 
+void jtag_add_pins_cmd(uint8_t values, uint8_t mask);
+
 /**
  * Function jtag_add_clocks
  * first checks that the state in which the clocks are to be issued is

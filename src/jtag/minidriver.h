@@ -68,6 +68,8 @@ int interface_jtag_add_runtest(int num_cycles, tap_state_t endstate);
 int interface_add_tms_seq(unsigned num_bits,
 		const uint8_t *bits, enum tap_state state);
 
+int interface_add_pins_cmd(uint8_t values, uint8_t mask);
+
 /**
  * This drives the actual srst and trst pins. srst will always be 0
  * if jtag_reset_config & RESET_SRST_PULLS_TRST != 0 and ditto for

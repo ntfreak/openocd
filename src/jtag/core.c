@@ -548,6 +548,11 @@ void jtag_add_pathmove(int num_states, const tap_state_t *path)
 	cmd_queue_cur_state = path[num_states - 1];
 }
 
+void jtag_add_pins_cmd(uint8_t values, uint8_t mask)
+{
+	interface_add_pins_cmd(values, mask);
+}
+
 int jtag_add_statemove(tap_state_t goal_state)
 {
 	tap_state_t cur_state = cmd_queue_cur_state;
