@@ -1576,6 +1576,27 @@ static void cmsis_dap_execute_tms(struct jtag_command *cmd)
 	cmsis_dap_cmd_DAP_SWJ_Sequence(cmd->cmd.tms->num_bits, cmd->cmd.tms->bits);
 }
 
+static uint8_t map_oocd_pin_mask_to_cmsis_dap(uint8_t pin_mask)
+{
+	/* OpeonOCD definitions match the CMSIS-DAP spec (for now). */
+	return pin_mask;
+}
+
+static void cmsis_dap_execute_bitbang(struct jtag_command *cmd)
+{
+	uint8_t values, pins_mask;
+	int ret;
+
+	values = map_oocd_pin_mask_to_cmsis_dap(cmd->cmd.bitbang->pin_state);
+	pins_mask = map_oocd_pin_mask_to_cmsis_dap(cmd->cmd.bitbang->pin_mask);
+
+	ret = cmsis_dap_cmd_DAP_SWJ_Pins(values, pins_mask, 0, NULL);
+	if (ret != ERROR_OK)
+		return;
+
+	cmsis_dap_get_status();
+}
+
 /* TODO: Is there need to call cmsis_dap_flush() for the JTAG_PATHMOVE,
  * JTAG_RUNTEST, JTAG_STABLECLOCKS? */
 static void cmsis_dap_execute_command(struct jtag_command *cmd)
@@ -1607,6 +1628,9 @@ static void cmsis_dap_execute_command(struct jtag_command *cmd)
 			break;
 		case JTAG_TMS:
 			cmsis_dap_execute_tms(cmd);
+			break;
+		case JTAG_BITBANG:
+			cmsis_dap_execute_bitbang(cmd);
 			break;
 		default:
 			LOG_ERROR("BUG: unknown JTAG command type 0x%X encountered", cmd->type);
