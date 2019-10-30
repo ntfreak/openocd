@@ -384,6 +384,11 @@ static int jtag_vpi_execute_queue(void)
 		case JTAG_SCAN:
 			retval = jtag_vpi_scan(cmd->cmd.scan);
 			break;
+		default:
+			LOG_ERROR("BUG: unknown JTAG command type 0x%X",
+				  cmd->type);
+			retval = ERROR_FAIL;
+			break;
 		}
 	}
 
