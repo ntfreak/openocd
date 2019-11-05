@@ -202,6 +202,49 @@ static int avr_jtagprg_writeflashpage(struct avr_common *avr,
 	return ERROR_OK;
 }
 
+static int avr_jtagprg_readflashpage(struct avr_common *avr,
+	const bool ext_addressing,
+	uint32_t *page_buf,
+	uint32_t buf_size,
+	uint32_t addr,
+	uint32_t page_size)
+{
+	uint32_t i;
+
+	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2302, AVR_JTAG_REG_ProgrammingCommand_Len);
+
+	for(i = 0; i < page_size; i += 2) {
+		/* load extended high byte */
+		if (ext_addressing)
+			avr_jtag_senddat(avr->jtag_info.tap,
+					NULL,
+					0x0b00 | (((addr + i) >> 17) & 0xFF),
+					AVR_JTAG_REG_ProgrammingCommand_Len);
+
+		/* load addr high byte */
+		avr_jtag_senddat(avr->jtag_info.tap,
+				NULL,
+				0x0700 | (((addr + i) >> 9) & 0xFF),
+				AVR_JTAG_REG_ProgrammingCommand_Len);
+
+		/* load addr low byte */
+		avr_jtag_senddat(avr->jtag_info.tap,
+				NULL,
+				0x0300 | (((addr + i) >> 1) & 0xFF),
+				AVR_JTAG_REG_ProgrammingCommand_Len);
+
+		avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3200, AVR_JTAG_REG_ProgrammingCommand_Len);
+		avr_jtag_senddat(avr->jtag_info.tap, &page_buf[i], 0x3600, AVR_JTAG_REG_ProgrammingCommand_Len);
+		avr_jtag_senddat(avr->jtag_info.tap, &page_buf[i + 1], 0x3700, AVR_JTAG_REG_ProgrammingCommand_Len);
+	}
+
+	if (ERROR_OK != mcu_execute_queue())
+		return ERROR_FAIL;
+
+	return ERROR_OK;
+}
+
 FLASH_BANK_COMMAND_HANDLER(avrf_flash_bank_command)
 {
 	struct avrf_flash_bank *avrf_info;
@@ -289,6 +332,69 @@ static int avrf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t o
 
 		keep_alive();
 	}
+
+	return avr_jtagprg_leaveprogmode(avr);
+}
+
+static int avrf_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+	struct target *target = bank->target;
+	struct avr_common *avr = target->arch_info;
+	uint32_t cur_size, cur_buffer_size, page_size;
+	uint32_t *tmp_buf;
+	bool ext_addressing;
+
+	if (bank->target->state != TARGET_HALTED) {
+		LOG_ERROR("Target not halted");
+		return ERROR_TARGET_NOT_HALTED;
+	}
+
+	page_size = bank->sectors[0].size;
+	if ((offset % page_size) != 0) {
+		LOG_WARNING("offset 0x%" PRIx32 " breaks required %" PRIu32 "-byte alignment",
+			offset,
+			page_size);
+		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
+	}
+
+	LOG_DEBUG("offset is 0x%08" PRIx32 "", offset);
+	LOG_DEBUG("count is %" PRId32 "", count);
+
+	if (ERROR_OK != avr_jtagprg_enterprogmode(avr))
+		return ERROR_FAIL;
+
+	if (bank->size > 0x20000)
+		ext_addressing = true;
+	else
+		ext_addressing = false;
+
+	tmp_buf = calloc(page_size, sizeof(uint32_t));
+	if (tmp_buf == NULL)
+		return ERROR_FAIL;
+
+	cur_size = 0;
+	while (count > 0) {
+		if (count > page_size)
+			cur_buffer_size = page_size;
+		else
+			cur_buffer_size = count;
+
+		avr_jtagprg_readflashpage(avr,
+				ext_addressing,
+				tmp_buf,
+				cur_buffer_size,
+				offset + cur_size,
+				page_size);
+		for(uint32_t i = 0; i < page_size; i++)
+			buffer[cur_size + i] = tmp_buf[i];
+
+		count -= cur_buffer_size;
+		cur_size += cur_buffer_size;
+
+		keep_alive();
+	}
+
+	free(tmp_buf);
 
 	return avr_jtagprg_leaveprogmode(avr);
 }
@@ -472,7 +578,7 @@ const struct flash_driver avr_flash = {
 	.flash_bank_command = avrf_flash_bank_command,
 	.erase = avrf_erase,
 	.write = avrf_write,
-	.read = default_flash_read,
+	.read = avrf_read,
 	.probe = avrf_probe,
 	.auto_probe = avrf_auto_probe,
 	.erase_check = default_flash_blank_check,
