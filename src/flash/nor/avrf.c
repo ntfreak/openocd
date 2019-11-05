@@ -295,6 +295,71 @@ static int avrf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t o
 	return avr_jtagprg_leaveprogmode(avr);
 }
 
+static int avrf_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+	struct target *target = bank->target;
+	struct avr_common *avr = target->arch_info;
+	uint32_t tmp_buf[2];
+	bool ext_addressing;
+
+	if (bank->target->state != TARGET_HALTED) {
+		LOG_ERROR("Target not halted");
+		return ERROR_TARGET_NOT_HALTED;
+	}
+
+	if ((offset % 2) != 0) {
+		LOG_WARNING("offset 0x%" PRIx32 " breaks required 2-byte alignment",
+			offset);
+		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
+	}
+
+	LOG_DEBUG("offset is 0x%08" PRIx32 "", offset);
+	LOG_DEBUG("count is %" PRIu32 "", count);
+
+	if (ERROR_OK != avr_jtagprg_enterprogmode(avr))
+		return ERROR_FAIL;
+
+	if (bank->size > 0x20000)
+		ext_addressing = true;
+	else
+		ext_addressing = false;
+
+	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2302, AVR_JTAG_REG_ProgrammingCommand_Len);
+
+	for (uint32_t i = 0; i < count; i += 2) {
+		/* load extended high byte */
+		if (ext_addressing)
+			avr_jtag_senddat(avr->jtag_info.tap,
+					NULL,
+					0x0b00 | (((offset + i) >> 17) & 0xFF),
+					AVR_JTAG_REG_ProgrammingCommand_Len);
+
+		/* load addr high byte */
+		avr_jtag_senddat(avr->jtag_info.tap,
+				NULL,
+				0x0700 | (((offset + i) >> 9) & 0xFF),
+				AVR_JTAG_REG_ProgrammingCommand_Len);
+
+		/* load addr low byte */
+		avr_jtag_senddat(avr->jtag_info.tap,
+				NULL,
+				0x0300 | (((offset + i) >> 1) & 0xFF),
+				AVR_JTAG_REG_ProgrammingCommand_Len);
+
+		avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3200, AVR_JTAG_REG_ProgrammingCommand_Len);
+		avr_jtag_senddat(avr->jtag_info.tap, &tmp_buf[0], 0x3600, AVR_JTAG_REG_ProgrammingCommand_Len);
+		avr_jtag_senddat(avr->jtag_info.tap, &tmp_buf[1], 0x3700, AVR_JTAG_REG_ProgrammingCommand_Len);
+		if (ERROR_OK != mcu_execute_queue())
+			return ERROR_FAIL;
+
+		buffer[i] = tmp_buf[0];
+		buffer[i + 1] = tmp_buf[1];
+	}
+
+	return avr_jtagprg_leaveprogmode(avr);
+}
+
 #define EXTRACT_MFG(X)  (((X) & 0xffe) >> 1)
 #define EXTRACT_PART(X) (((X) & 0xffff000) >> 12)
 #define EXTRACT_VER(X)  (((X) & 0xf0000000) >> 28)
@@ -342,13 +407,12 @@ static int avrf_probe(struct flash_bank *bank)
 	struct avrf_flash_bank *avrf_info = bank->driver_priv;
 	const struct avrf_type *avr_info;
 	int error = avrf_identify_chip(bank, &avr_info, NULL);
-	int i;
 
 	if (error != ERROR_OK) {
 		if (error == ERROR_FLASH_OPERATION_FAILED) {
 			/* chip not supported */
 			LOG_ERROR("device id is not supported for avr");
-			avrf_info->probed = 1;
+			avrf_info->probed = true;
 			return ERROR_FAIL;
 		}
 
@@ -363,14 +427,14 @@ static int avrf_probe(struct flash_bank *bank)
 	bank->num_sectors = avr_info->flash_page_num;
 	bank->sectors = malloc(sizeof(struct flash_sector) * avr_info->flash_page_num);
 
-	for (i = 0; i < avr_info->flash_page_num; i++) {
+	for (int i = 0; i < avr_info->flash_page_num; i++) {
 		bank->sectors[i].offset = i * avr_info->flash_page_size;
 		bank->sectors[i].size = avr_info->flash_page_size;
 		bank->sectors[i].is_erased = -1;
 		bank->sectors[i].is_protected = -1;
 	}
 
-	avrf_info->probed = 1;
+	avrf_info->probed = true;
 	return ERROR_OK;
 }
 
@@ -467,7 +531,7 @@ const struct flash_driver avr_flash = {
 	.flash_bank_command = avrf_flash_bank_command,
 	.erase = avrf_erase,
 	.write = avrf_write,
-	.read = default_flash_read,
+	.read = avrf_read,
 	.probe = avrf_probe,
 	.auto_probe = avrf_auto_probe,
 	.erase_check = default_flash_blank_check,
