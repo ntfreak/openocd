@@ -2233,7 +2233,7 @@ static int read_memory_progbuf_inner(struct target *target, target_addr_t addres
 
 		/* Now read whatever we got out of the batch. */
 		dmi_status_t status = DMI_STATUS_SUCCESS;
-		for (size_t i = 0; i < reads; i++) {
+		for (uint64_t i = 0; i < reads; i++) {
 			riscv_addr_t receive_addr = read_addr + (i-2) * size;
 			assert(receive_addr < address + size * count);
 			if (receive_addr < address)
