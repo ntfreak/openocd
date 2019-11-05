@@ -142,6 +142,7 @@ static int avr_jtagprg_chiperase(struct avr_common *avr)
 }
 
 static int avr_jtagprg_writeflashpage(struct avr_common *avr,
+	const bool ext_addressing,
 	const uint8_t *page_buf,
 	uint32_t buf_size,
 	uint32_t addr,
@@ -151,6 +152,13 @@ static int avr_jtagprg_writeflashpage(struct avr_common *avr,
 
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
 	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2310, AVR_JTAG_REG_ProgrammingCommand_Len);
+
+	/* load extended high byte */
+	if (ext_addressing)
+		avr_jtag_senddat(avr->jtag_info.tap,
+			NULL,
+			0x0b00 | ((addr >> 17) & 0xFF),
+			AVR_JTAG_REG_ProgrammingCommand_Len);
 
 	/* load addr high byte */
 	avr_jtag_senddat(avr->jtag_info.tap,
@@ -238,6 +246,7 @@ static int avrf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t o
 	struct target *target = bank->target;
 	struct avr_common *avr = target->arch_info;
 	uint32_t cur_size, cur_buffer_size, page_size;
+	bool ext_addressing;
 
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -258,6 +267,11 @@ static int avrf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t o
 	if (ERROR_OK != avr_jtagprg_enterprogmode(avr))
 		return ERROR_FAIL;
 
+	if (bank->size > 0x20000)
+		ext_addressing = true;
+	else
+		ext_addressing = false;
+
 	cur_size = 0;
 	while (count > 0) {
 		if (count > page_size)
@@ -265,6 +279,7 @@ static int avrf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t o
 		else
 			cur_buffer_size = count;
 		avr_jtagprg_writeflashpage(avr,
+			ext_addressing,
 			buffer + cur_size,
 			cur_buffer_size,
 			offset + cur_size,
