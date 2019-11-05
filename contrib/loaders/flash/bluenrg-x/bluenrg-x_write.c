@@ -14,6 +14,21 @@
 #define ERR_VERIFY_FAILED   7
 
 /* Flash Controller defines ---------------------------------------------------*/
+#ifdef BLUENRG_LP
+#define FLASH_REG_COMMAND ((volatile uint32_t *)0x40001000)
+#define FLASH_REG_CONFIG  ((volatile uint32_t *)0x40001004)
+#define FLASH_REG_IRQSTAT ((volatile uint32_t *)0x40001008)
+#define FLASH_REG_IRQMASK ((volatile uint32_t *)0x4000100C)
+#define FLASH_REG_IRQRAW  ((volatile uint32_t *)0x40001010)
+#define FLASH_REG_ADDRESS ((volatile uint32_t *)0x40001018)
+#define FLASH_REG_UNLOCKM ((volatile uint32_t *)0x4000101C)
+#define FLASH_REG_UNLOCKL ((volatile uint32_t *)0x40001020)
+#define FLASH_REG_DATA0   ((volatile uint32_t *)0x40001040)
+#define FLASH_REG_DATA1   ((volatile uint32_t *)0x40001044)
+#define FLASH_REG_DATA2   ((volatile uint32_t *)0x40001048)
+#define FLASH_REG_DATA3   ((volatile uint32_t *)0x4000104C)
+#define FLASH_SIZE_REG 0x40001014
+#else
 #define FLASH_REG_COMMAND ((volatile uint32_t *)0x40100000)
 #define FLASH_REG_CONFIG  ((volatile uint32_t *)0x40100004)
 #define FLASH_REG_IRQSTAT ((volatile uint32_t *)0x40100008)
@@ -22,11 +37,12 @@
 #define FLASH_REG_ADDRESS ((volatile uint32_t *)0x40100018)
 #define FLASH_REG_UNLOCKM ((volatile uint32_t *)0x4010001C)
 #define FLASH_REG_UNLOCKL ((volatile uint32_t *)0x40100020)
-#define FLASH_REG_DATA0    ((volatile uint32_t *)0x40100040)
-#define FLASH_REG_DATA1    ((volatile uint32_t *)0x40100044)
-#define FLASH_REG_DATA2    ((volatile uint32_t *)0x40100048)
-#define FLASH_REG_DATA3    ((volatile uint32_t *)0x4010004C)
+#define FLASH_REG_DATA0   ((volatile uint32_t *)0x40100040)
+#define FLASH_REG_DATA1   ((volatile uint32_t *)0x40100044)
+#define FLASH_REG_DATA2   ((volatile uint32_t *)0x40100048)
+#define FLASH_REG_DATA3   ((volatile uint32_t *)0x4010004C)
 #define FLASH_SIZE_REG 0x40100014
+#endif
 
 #define MFB_MASS_ERASE 0x01
 #define MFB_PAGE_ERASE 0x02
@@ -70,7 +86,7 @@ static inline __attribute__((always_inline)) uint32_t flashWrite(uint32_t addres
 		/* Clear the IRQ flags */
 		*FLASH_REG_IRQRAW = 0x0000003F;
 		/* Load the flash address to write */
-		*FLASH_REG_ADDRESS = (uint16_t)((address + index) >> 2);
+		*FLASH_REG_ADDRESS = (uint16_t)((address + index - MFB_BOTTOM) >> 2);
 		/* Prepare and load the data to flash */
 		*FLASH_REG_DATA0 = flash_word[0];
 		*FLASH_REG_DATA1 = flash_word[1];
