@@ -1729,8 +1729,8 @@ static int gdb_breakpoint_watchpoint_packet(struct connection *connection,
 /* print out a string and allocate more space as needed,
  * mainly used for XML at this point
  */
-static void xml_printf(int *retval, char **xml, int *pos, int *size,
-		const char *fmt, ...)
+static __attribute__ ((format (PRINTF_ATTRIBUTE_FORMAT, 5, 6))) void xml_printf(int *retval,
+		char **xml, int *pos, int *size, const char *fmt, ...)
 {
 	if (*retval != ERROR_OK)
 		return;
@@ -1871,7 +1871,7 @@ static int gdb_memory_map(struct connection *connection,
 		if (ram_start < p->base)
 			xml_printf(&retval, &xml, &pos, &size,
 				"<memory type=\"ram\" start=\"" TARGET_ADDR_FMT "\" "
-				"length=\"0x%x\"/>\n",
+				"length=\"" TARGET_ADDR_FMT "\"/>\n",
 				ram_start, p->base - ram_start);
 
 		/* Report adjacent groups of same-size sectors.  So for
@@ -2469,7 +2469,7 @@ static int gdb_generate_thread_list(struct target *target, char **thread_list_ou
 					xml_printf(&retval, &thread_list, &pos, &size,
 						   ", ");
 				xml_printf(&retval, &thread_list, &pos, &size,
-					   thread_detail->extra_info_str);
+					   "%s", thread_detail->extra_info_str);
 			}
 
 			xml_printf(&retval, &thread_list, &pos, &size,
@@ -3555,7 +3555,7 @@ static int gdb_target_add_one(struct target *target)
 			if (parse_long(gdb_port_next, &portnumber) == ERROR_OK) {
 				free(gdb_port_next);
 				if (portnumber) {
-					gdb_port_next = alloc_printf("%d", portnumber+1);
+					gdb_port_next = alloc_printf("%ld", portnumber+1);
 				} else {
 					/* Don't increment if gdb_port is 0, since we're just
 					 * trying to allocate an unused port. */
