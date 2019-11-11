@@ -32,6 +32,7 @@ extern const struct flash_driver ath79_flash;
 extern const struct flash_driver atsame5_flash;
 extern const struct flash_driver atsamv_flash;
 extern const struct flash_driver avr_flash;
+extern const struct flash_driver avr_eeprom;
 extern const struct flash_driver bluenrgx_flash;
 extern const struct flash_driver cc3220sf_flash;
 extern const struct flash_driver cc26xx_flash;
@@ -104,6 +105,7 @@ static const struct flash_driver * const flash_drivers[] = {
 	&atsame5_flash,
 	&atsamv_flash,
 	&avr_flash,
+	&avr_eeprom,
 	&bluenrgx_flash,
 	&cc3220sf_flash,
 	&cc26xx_flash,
