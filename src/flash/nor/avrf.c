@@ -203,6 +203,58 @@ static int avr_jtagprg_writeflashpage(struct avr_common *avr,
 	return ERROR_OK;
 }
 
+static int avr_jtagprg_writeeeprompage(struct avr_common *avr,
+	const uint8_t *page_buf,
+	uint32_t buf_size,
+	uint32_t addr,
+	uint32_t page_size)
+{
+	uint32_t poll_value;
+
+	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2311, AVR_JTAG_REG_ProgrammingCommand_Len);
+
+	/* load addr high byte */
+	avr_jtag_senddat(avr->jtag_info.tap,
+		NULL,
+		0x0700 | ((addr >> 8) & 0xFF),
+		AVR_JTAG_REG_ProgrammingCommand_Len);
+
+	for (uint32_t i = 0; i < page_size; i++) {
+		/* load addr low byte */
+		avr_jtag_senddat(avr->jtag_info.tap,
+				NULL,
+				0x0300 | (addr & 0xFF) | i,
+				AVR_JTAG_REG_ProgrammingCommand_Len);
+
+		if (i < buf_size)
+			avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x1300 | page_buf[i], AVR_JTAG_REG_ProgrammingCommand_Len);
+		else
+			avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x1300 | 0xFF, AVR_JTAG_REG_ProgrammingCommand_Len);
+		avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3700, AVR_JTAG_REG_ProgrammingCommand_Len);
+		avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x7700, AVR_JTAG_REG_ProgrammingCommand_Len);
+		avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3700, AVR_JTAG_REG_ProgrammingCommand_Len);
+	}
+
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3300, AVR_JTAG_REG_ProgrammingCommand_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3100, AVR_JTAG_REG_ProgrammingCommand_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3300, AVR_JTAG_REG_ProgrammingCommand_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3300, AVR_JTAG_REG_ProgrammingCommand_Len);
+
+	do {
+		poll_value = 0;
+		avr_jtag_senddat(avr->jtag_info.tap,
+			&poll_value,
+			0x3300,
+			AVR_JTAG_REG_ProgrammingCommand_Len);
+		if (ERROR_OK != mcu_execute_queue())
+			return ERROR_FAIL;
+		LOG_DEBUG("poll_value = 0x%04" PRIx32 "", poll_value);
+	} while (!(poll_value & 0x0200));
+
+	return ERROR_OK;
+}
+
 FLASH_BANK_COMMAND_HANDLER(avrf_flash_bank_command)
 {
 	struct avrf_flash_bank *avrf_info;
@@ -536,5 +588,275 @@ const struct flash_driver avr_flash = {
 	.auto_probe = avrf_auto_probe,
 	.erase_check = default_flash_blank_check,
 	.info = avrf_info,
+	.free_driver_priv = default_flash_free_driver_priv,
+};
+
+/*
+ * EEPROM
+ */
+struct avr_eeprom_flash_bank {
+	int ppage_size;
+	bool probed;
+	const struct avrf_type *avr_info;
+};
+
+static int avr_eeprom_erase(struct flash_bank *bank, unsigned int first, unsigned int last)
+{
+	struct target *target = bank->target;
+	struct avr_common *avr = target->arch_info;
+	int status;
+	uint32_t page_size, address, i, poll_value;
+
+	LOG_DEBUG("%s %d-%d", __func__, first, last);
+
+	if (target->state != TARGET_HALTED) {
+		LOG_ERROR("Target not halted");
+		return ERROR_TARGET_NOT_HALTED;
+	}
+
+	page_size = bank->sectors[0].size;
+	status = avr_jtagprg_enterprogmode(avr);
+	if (status != ERROR_OK)
+		return status;
+
+	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2383, AVR_JTAG_REG_ProgrammingCommand_Len);
+	for ( ; first <= last; first++) {
+		address = first * page_size;
+		avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x0700 | ((address >> 8) & 0xff), AVR_JTAG_REG_ProgrammingCommand_Len);
+		for (i = 0; i < page_size; i++) {
+			avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x0300 | ((address | i) & 0xff), AVR_JTAG_REG_ProgrammingCommand_Len);
+			avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3700, AVR_JTAG_REG_ProgrammingCommand_Len);
+			avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x7700, AVR_JTAG_REG_ProgrammingCommand_Len);
+			avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3700, AVR_JTAG_REG_ProgrammingCommand_Len);
+		}
+
+		avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3300, AVR_JTAG_REG_ProgrammingCommand_Len);
+		avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3100, AVR_JTAG_REG_ProgrammingCommand_Len);
+		avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3300, AVR_JTAG_REG_ProgrammingCommand_Len);
+		avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3300, AVR_JTAG_REG_ProgrammingCommand_Len);
+
+		do {
+			poll_value = 0;
+			avr_jtag_senddat(avr->jtag_info.tap,
+					&poll_value,
+					0x3300,
+					AVR_JTAG_REG_ProgrammingCommand_Len);
+			if (ERROR_OK != mcu_execute_queue())
+				return ERROR_FAIL;
+			LOG_DEBUG("poll_value = 0x%04" PRIx32 "", poll_value);
+		} while (!(poll_value & 0x0200));
+	}
+
+	return avr_jtagprg_leaveprogmode(avr);
+}
+
+static int avr_eeprom_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+	struct target *target = bank->target;
+	struct avr_common *avr = target->arch_info;
+	uint32_t cur_size, cur_buffer_size, page_size;
+
+	if (bank->target->state != TARGET_HALTED) {
+		LOG_ERROR("Target not halted");
+		return ERROR_TARGET_NOT_HALTED;
+	}
+
+	page_size = bank->sectors[0].size;
+	if ((offset % page_size) != 0) {
+		LOG_WARNING("offset 0x%" PRIx32 " breaks required %" PRIu32 "-byte alignment",
+			offset,
+			page_size);
+		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
+	}
+
+	LOG_DEBUG("offset is 0x%08" PRIx32 "", offset);
+	LOG_DEBUG("count is %" PRIu32 "", count);
+
+	if (ERROR_OK != avr_jtagprg_enterprogmode(avr))
+		return ERROR_FAIL;
+
+	cur_size = 0;
+	while (count > 0) {
+		if (count > page_size)
+			cur_buffer_size = page_size;
+		else
+			cur_buffer_size = count;
+
+		avr_jtagprg_writeeeprompage(avr,
+			buffer + cur_size,
+			cur_buffer_size,
+			offset + cur_size,
+			page_size);
+		count -= cur_buffer_size;
+		cur_size += cur_buffer_size;
+
+		keep_alive();
+	}
+
+	return avr_jtagprg_leaveprogmode(avr);
+}
+
+static int avr_eeprom_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+	struct target *target = bank->target;
+	struct avr_common *avr = target->arch_info;
+	uint32_t tmp_buf;
+
+	if (bank->target->state != TARGET_HALTED) {
+		LOG_ERROR("Target not halted");
+		return ERROR_TARGET_NOT_HALTED;
+	}
+
+	LOG_DEBUG("offset is 0x%08" PRIx32 "", offset);
+	LOG_DEBUG("count is %" PRIu32 "", count);
+
+	if (ERROR_OK != avr_jtagprg_enterprogmode(avr))
+		return ERROR_FAIL;
+
+	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2303, AVR_JTAG_REG_ProgrammingCommand_Len);
+	for (uint32_t i = 0; i < count; i++) {
+		/* load addr high byte */
+		avr_jtag_senddat(avr->jtag_info.tap,
+				NULL,
+				0x0700 | (((offset + i) >> 8) & 0xFF),
+				AVR_JTAG_REG_ProgrammingCommand_Len);
+
+		/* load addr low byte */
+		avr_jtag_senddat(avr->jtag_info.tap,
+				NULL,
+				0x0300 | ((offset + i) & 0xFF),
+				AVR_JTAG_REG_ProgrammingCommand_Len);
+
+		/* load addr low byte again for some reason */
+		avr_jtag_senddat(avr->jtag_info.tap,
+				NULL,
+				0x3300 | ((offset + i) & 0xFF),
+				AVR_JTAG_REG_ProgrammingCommand_Len);
+
+		avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3200, AVR_JTAG_REG_ProgrammingCommand_Len);
+		avr_jtag_senddat(avr->jtag_info.tap, &tmp_buf, 0x3300, AVR_JTAG_REG_ProgrammingCommand_Len);
+		if (ERROR_OK != mcu_execute_queue())
+			return ERROR_FAIL;
+
+		buffer[i] = tmp_buf;
+	}
+
+	return avr_jtagprg_leaveprogmode(avr);
+}
+
+static int avr_eeprom_probe(struct flash_bank *bank)
+{
+	struct avr_eeprom_flash_bank *avr_eeprom_bank = bank->driver_priv;
+	const struct avrf_type *avr_info;
+	int error = avrf_identify_chip(bank, &avr_info, NULL);
+
+	if (error != ERROR_OK) {
+		if (error == ERROR_FLASH_OPERATION_FAILED) {
+			/* chip not supported */
+			LOG_ERROR("device id is not supported for avr");
+			avr_eeprom_bank->probed = true;
+			return ERROR_FAIL;
+		}
+
+		return error;
+	}
+
+	if (bank->sectors) {
+		free(bank->sectors);
+		bank->sectors = NULL;
+	}
+
+	/* chip found */
+	bank->base = 0x00000000;
+	bank->size = (avr_info->eeprom_page_size * avr_info->eeprom_page_num);
+	bank->num_sectors = avr_info->eeprom_page_num;
+	bank->sectors = malloc(sizeof(struct flash_sector) * avr_info->eeprom_page_num);
+
+	for (int i = 0; i < avr_info->eeprom_page_num; i++) {
+		bank->sectors[i].offset = i * avr_info->eeprom_page_size;
+		bank->sectors[i].size = avr_info->eeprom_page_size;
+		bank->sectors[i].is_erased = -1;
+		bank->sectors[i].is_protected = -1;
+	}
+
+	avr_eeprom_bank->probed = true;
+	avr_eeprom_bank->avr_info = avr_info;
+	return ERROR_OK;
+}
+
+static int avr_eeprom_auto_probe(struct flash_bank *bank)
+{
+	struct avr_eeprom_flash_bank *avr_eeprom_bank = bank->driver_priv;
+
+	if (avr_eeprom_bank->probed)
+		return ERROR_OK;
+
+	return avr_eeprom_probe(bank);
+}
+
+static int avr_eeprom_info(struct flash_bank *bank, char *buf, int buf_size)
+{
+	uint8_t ver;
+	struct avr_eeprom_flash_bank *avr_eeprom_bank = bank->driver_priv;
+	const struct avrf_type *avr_info;
+	int error = avrf_identify_chip(bank, &avr_info, &ver);
+
+	if (error == ERROR_OK) {
+		/* chip found */
+		snprintf(buf, buf_size, "%s - Rev: 0x%" PRIx32 "", avr_info->name,
+				ver);
+		avr_eeprom_bank->avr_info = avr_info;
+	} else
+		if (error == ERROR_FLASH_OPERATION_FAILED)
+			snprintf(buf, buf_size, "Cannot identify target as a avr\n");
+
+	return error;
+}
+
+FLASH_BANK_COMMAND_HANDLER(avr_eeprom_flash_bank_command)
+{
+	struct avr_eeprom_flash_bank *avr_eeprom_bank;
+
+	if (CMD_ARGC < 6)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	avr_eeprom_bank = malloc(sizeof(struct avr_eeprom_flash_bank));
+	if (!avr_eeprom_bank)
+		return ERROR_FLASH_OPERATION_FAILED;
+
+	avr_eeprom_bank->probed = false;
+	bank->driver_priv = avr_eeprom_bank;
+
+	return ERROR_OK;
+}
+
+static const struct command_registration avr_eeprom_exec_command_handlers[] = {
+	COMMAND_REGISTRATION_DONE
+};
+
+static const struct command_registration avr_eeprom_command_handlers[] = {
+	{
+		.name = "avr_eeprom",
+		.mode = COMMAND_ANY,
+		.help = "AVR EEPROM command group",
+		.usage = "",
+		.chain = avr_eeprom_exec_command_handlers,
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
+const struct flash_driver avr_eeprom = {
+	.name = "avr_eeprom",
+	.commands = avr_eeprom_command_handlers,
+	.flash_bank_command = avr_eeprom_flash_bank_command,
+	.info = avr_eeprom_info,
+	.probe = avr_eeprom_probe,
+	.auto_probe = avr_eeprom_auto_probe,
+	.read = avr_eeprom_read,
+	.erase = avr_eeprom_erase,
+	.erase_check = default_flash_blank_check,
+	.write = avr_eeprom_write,
 	.free_driver_priv = default_flash_free_driver_priv,
 };
