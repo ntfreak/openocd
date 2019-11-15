@@ -1,7 +1,10 @@
 /***************************************************************************
  *   Copyright (C) 2015 by Uwe Bonnes                                      *
  *   bon@elektron.ikp.physik.tu-darmstadt.de                               *
- *
+ *                                                                         *
+ *   Copyright (C) 2019 by Michael Jung                                    *
+ *   mijung@gmx.net                                                        *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -56,21 +59,64 @@
  *
  */
 
+/* STM32L562 series for reference.
+ *
+ * RM0428 (STM32L552xx/STM32L562xx)
+ * http://www.st.com/resource/en/reference_manual/dm00346336.pdf
+ */
+
 /* Erase time can be as high as 25ms, 10x this and assume it's toast... */
 
 #define FLASH_ERASE_TIMEOUT 250
 
-#define STM32_FLASH_BASE    0x40022000
-#define STM32_FLASH_ACR     0x40022000
-#define STM32_FLASH_KEYR    0x40022008
-#define STM32_FLASH_OPTKEYR 0x4002200c
-#define STM32_FLASH_SR      0x40022010
-#define STM32_FLASH_CR      0x40022014
-#define STM32_FLASH_OPTR    0x40022020
-#define STM32_FLASH_WRP1AR  0x4002202c
-#define STM32_FLASH_WRP1BR  0x40022030
-#define STM32_FLASH_WRP2AR  0x4002204c
-#define STM32_FLASH_WRP2BR  0x40022050
+const uint32_t regaddr[2][13] = {
+	{	/* STM32L4xx register offsets */
+		0x40022000, /* STM32_FLASH_BASE     */
+		0x40022000, /* STM32_FLASH_ACR      */
+		0x40022008, /* STM32_FLASH_KEYR     */
+		0x4002200c, /* STM32_FLASH_OPTKEYR  */
+		0x40022010, /* STM32_FLASH_SR       */
+		0x40022014, /* STM32_FLASH_CR       */
+		0x40022020, /* STM32_FLASH_OPTR     */
+		0x4002202c, /* STM32_FLASH_WRP1AR   */
+		0x40022030, /* STM32_FLASH_WRP1BR   */
+		0x4002204c, /* STM32_FLASH_WRP2AR   */
+		0x40022050, /* STM32_FLASH_WRP2BR   */
+		0xE0042000, /* STM32_DBGMCU_IDCODE  */
+		0x1FFF75E0, /* STM32_FLASH_SIZE_REG */
+	},
+	{	/* STM32L5xx register offsets */
+		0x40022000, /* STM32_FLASH_BASE     */
+		0x40022000, /* STM32_FLASH_ACR      */
+		0x40022008, /* STM32_FLASH_KEYR     */
+		0x40022010, /* STM32_FLASH_OPTKEYR  */
+		0x40022020, /* STM32_FLASH_SR       */
+		0x40022028, /* STM32_FLASH_CR       */
+		0x40022040, /* STM32_FLASH_OPTR     */
+		0x40022058, /* STM32_FLASH_WRP1AR   */
+		0x4002205c, /* STM32_FLASH_WRP1BR   */
+		0x40022068, /* STM32_FLASH_WRP2AR   */
+		0x4002206c, /* STM32_FLASH_WRP2BR   */
+		0xE0044000, /* STM32_DBGMCU_IDCODE  */
+		0x0BFA05E0, /* STM32_FLASH_SIZE_REG */
+	}
+};
+
+/* Indices into the regaddr table */
+
+#define STM32_FLASH_BASE		0
+#define STM32_FLASH_ACR			1
+#define STM32_FLASH_KEYR		2
+#define STM32_FLASH_OPTKEYR		3
+#define STM32_FLASH_SR			4
+#define STM32_FLASH_CR			5
+#define STM32_FLASH_OPTR		6
+#define STM32_FLASH_WRP1AR		7
+#define STM32_FLASH_WRP1BR		8
+#define STM32_FLASH_WRP2AR		9
+#define STM32_FLASH_WRP2BR		10
+#define STM32_DBGMCU_IDCODE		11
+#define STM32_FLASH_SIZE_REG	12
 
 /* FLASH_CR register bits */
 
@@ -100,10 +146,12 @@
 #define FLASH_OPERR    (1 << 1) /* Operation error */
 #define FLASH_EOP      (1 << 0) /* End of operation */
 
-#define FLASH_ERROR (FLASH_PGSERR | FLASH_PGSERR | FLASH_PGAERR | FLASH_WRPERR | FLASH_OPERR)
+#define FLASH_ERROR (FLASH_PGSERR | FLASH_SIZERR | FLASH_PGAERR | FLASH_WRPERR | FLASH_OPERR)
 
 /* STM32_FLASH_OBR bit definitions (reading) */
 
+#define OPT_DBANK_C_256K (1 << 21)	/* dual bank for devices with 256 KiB flash */
+#define OPT_DBANK_E_512K (1 << 22)	/* dual bank for devices with 512 KiB flash */
 #define OPT_DBANK_LE_1M (1 << 21)	/* dual bank for devices up to 1M flash */
 #define OPT_DBANK_GE_2M (1 << 22)	/* dual bank for devices with 2M flash */
 
@@ -120,18 +168,18 @@
 #define RDP_LEVEL_1	   0xBB
 #define RDP_LEVEL_2	   0xCC
 
-
-/* other registers */
-#define DBGMCU_IDCODE	0xE0042000
-#define FLASH_SIZE_REG	0x1FFF75E0
+#define STM32_FAMILY_L4 0
+#define STM32_FAMILY_L5 1
 
 struct stm32l4_flash_bank {
 	uint16_t bank2_start;
 	int probed;
+	int family;
 };
 
 /* flash bank stm32l4x <base> <size> 0 0 <target#>
  */
+
 FLASH_BANK_COMMAND_HANDLER(stm32l4_flash_bank_command)
 {
 	struct stm32l4_flash_bank *stm32l4_info;
@@ -145,13 +193,33 @@ FLASH_BANK_COMMAND_HANDLER(stm32l4_flash_bank_command)
 	bank->driver_priv = stm32l4_info;
 
 	stm32l4_info->probed = 0;
+	stm32l4_info->family = STM32_FAMILY_L4;
+
+	return ERROR_OK;
+}
+
+FLASH_BANK_COMMAND_HANDLER(stm32l5_flash_bank_command)
+{
+	struct stm32l4_flash_bank *stm32l4_info;
+
+	if (CMD_ARGC < 6)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	stm32l4_info = malloc(sizeof(struct stm32l4_flash_bank));
+	if (!stm32l4_info)
+		return ERROR_FAIL; /* Checkme: What better error to use?*/
+	bank->driver_priv = stm32l4_info;
+
+	stm32l4_info->probed = 0;
+	stm32l4_info->family = STM32_FAMILY_L5;
 
 	return ERROR_OK;
 }
 
 static inline int stm32l4_get_flash_reg(struct flash_bank *bank, uint32_t reg)
 {
-	return reg;
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+	return regaddr[stm32l4_info->family][reg];
 }
 
 static inline int stm32l4_get_flash_status(struct flash_bank *bank, uint32_t *status)
@@ -201,14 +269,15 @@ static int stm32l4_wait_status_busy(struct flash_bank *bank, int timeout)
 	return retval;
 }
 
-static int stm32l4_unlock_reg(struct target *target)
+static int stm32l4_unlock_reg(struct flash_bank *bank)
 {
+	struct target *target = bank->target;
 	uint32_t ctrl;
 
 	/* first check if not already unlocked
 	 * otherwise writing on STM32_FLASH_KEYR will fail
 	 */
-	int retval = target_read_u32(target, STM32_FLASH_CR, &ctrl);
+	int retval = target_read_u32(target, stm32l4_get_flash_reg(bank, STM32_FLASH_CR), &ctrl);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -216,15 +285,15 @@ static int stm32l4_unlock_reg(struct target *target)
 		return ERROR_OK;
 
 	/* unlock flash registers */
-	retval = target_write_u32(target, STM32_FLASH_KEYR, KEY1);
+	retval = target_write_u32(target, stm32l4_get_flash_reg(bank, STM32_FLASH_KEYR), KEY1);
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = target_write_u32(target, STM32_FLASH_KEYR, KEY2);
+	retval = target_write_u32(target, stm32l4_get_flash_reg(bank, STM32_FLASH_KEYR), KEY2);
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = target_read_u32(target, STM32_FLASH_CR, &ctrl);
+	retval = target_read_u32(target, stm32l4_get_flash_reg(bank, STM32_FLASH_CR), &ctrl);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -236,11 +305,12 @@ static int stm32l4_unlock_reg(struct target *target)
 	return ERROR_OK;
 }
 
-static int stm32l4_unlock_option_reg(struct target *target)
+static int stm32l4_unlock_option_reg(struct flash_bank *bank)
 {
+	struct target *target = bank->target;
 	uint32_t ctrl;
 
-	int retval = target_read_u32(target, STM32_FLASH_CR, &ctrl);
+	int retval = target_read_u32(target, stm32l4_get_flash_reg(bank, STM32_FLASH_CR), &ctrl);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -248,15 +318,15 @@ static int stm32l4_unlock_option_reg(struct target *target)
 		return ERROR_OK;
 
 	/* unlock option registers */
-	retval = target_write_u32(target, STM32_FLASH_OPTKEYR, OPTKEY1);
+	retval = target_write_u32(target, stm32l4_get_flash_reg(bank, STM32_FLASH_OPTKEYR), OPTKEY1);
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = target_write_u32(target, STM32_FLASH_OPTKEYR, OPTKEY2);
+	retval = target_write_u32(target, stm32l4_get_flash_reg(bank, STM32_FLASH_OPTKEYR), OPTKEY2);
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = target_read_u32(target, STM32_FLASH_CR, &ctrl);
+	retval = target_read_u32(target, stm32l4_get_flash_reg(bank, STM32_FLASH_CR), &ctrl);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -271,7 +341,7 @@ static int stm32l4_unlock_option_reg(struct target *target)
 static int stm32l4_read_option(struct flash_bank *bank, uint32_t address, uint32_t* value)
 {
 	struct target *target = bank->target;
-	return target_read_u32(target, address, value);
+	return target_read_u32(target, stm32l4_get_flash_reg(bank, address), value);
 }
 
 static int stm32l4_write_option(struct flash_bank *bank, uint32_t address, uint32_t value, uint32_t mask)
@@ -279,21 +349,21 @@ static int stm32l4_write_option(struct flash_bank *bank, uint32_t address, uint3
 	struct target *target = bank->target;
 	uint32_t optiondata;
 
-	int retval = target_read_u32(target, address, &optiondata);
+	int retval = target_read_u32(target, stm32l4_get_flash_reg(bank, address), &optiondata);
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = stm32l4_unlock_reg(target);
+	retval = stm32l4_unlock_reg(bank);
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = stm32l4_unlock_option_reg(target);
+	retval = stm32l4_unlock_option_reg(bank);
 	if (retval != ERROR_OK)
 		return retval;
 
 	optiondata = (optiondata & ~mask) | (value & mask);
 
-	retval = target_write_u32(target, address, optiondata);
+	retval = target_write_u32(target, stm32l4_get_flash_reg(bank, address), optiondata);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -364,7 +434,7 @@ static int stm32l4_erase(struct flash_bank *bank, int first, int last)
 	}
 
 	int retval;
-	retval = stm32l4_unlock_reg(target);
+	retval = stm32l4_unlock_reg(bank);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -449,6 +519,7 @@ static int stm32l4_protect(struct flash_bank *bank, int set, int first, int last
 static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 		uint32_t offset, uint32_t count)
 {
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
 	struct target *target = bank->target;
 	uint32_t buffer_size = 16384;
 	struct working_area *write_algorithm;
@@ -458,22 +529,48 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	struct armv7m_algorithm armv7m_info;
 	int retval = ERROR_OK;
 
-	static const uint8_t stm32l4_flash_write_code[] = {
+	if (stm32l4_info->family == STM32_FAMILY_L4) {
+		static const uint8_t stm32l4_flash_write_code[] = {
 #include "../../../contrib/loaders/flash/stm32/stm32l4x.inc"
-	};
+		};
 
-	if (target_alloc_working_area(target, sizeof(stm32l4_flash_write_code),
-			&write_algorithm) != ERROR_OK) {
-		LOG_WARNING("no working area available, can't do block memory writes");
-		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
-	}
+		if (target_alloc_working_area(target, sizeof(stm32l4_flash_write_code),
+				&write_algorithm) != ERROR_OK) {
+			LOG_WARNING("no working area available, can't do block memory writes");
+			return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
+		}
 
-	retval = target_write_buffer(target, write_algorithm->address,
-			sizeof(stm32l4_flash_write_code),
-			stm32l4_flash_write_code);
-	if (retval != ERROR_OK) {
-		target_free_working_area(target, write_algorithm);
-		return retval;
+		retval = target_write_buffer(target, write_algorithm->address,
+				sizeof(stm32l4_flash_write_code),
+				stm32l4_flash_write_code);
+		if (retval != ERROR_OK) {
+			target_free_working_area(target, write_algorithm);
+			return retval;
+		}
+
+	} else if (stm32l4_info->family == STM32_FAMILY_L5) {
+		static const uint8_t stm32l5_flash_write_code[] = {
+#include "../../../contrib/loaders/flash/stm32/stm32l5x.inc"
+		};
+
+		if (target_alloc_working_area(target, sizeof(stm32l5_flash_write_code),
+				&write_algorithm) != ERROR_OK) {
+			LOG_WARNING("no working area available, can't do block memory writes");
+			return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
+		}
+
+		retval = target_write_buffer(target, write_algorithm->address,
+				sizeof(stm32l5_flash_write_code),
+				stm32l5_flash_write_code);
+		if (retval != ERROR_OK) {
+			target_free_working_area(target, write_algorithm);
+			return retval;
+		}
+
+	} else {
+
+		LOG_ERROR("unknown STM32 family.");
+		return ERROR_TARGET_INVALID;
 	}
 
 	/* memory buffer */
@@ -503,7 +600,7 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	buf_set_u32(reg_params[1].value, 0, 32, source->address + source->size);
 	buf_set_u32(reg_params[2].value, 0, 32, address);
 	buf_set_u32(reg_params[3].value, 0, 32, count / 4);
-	buf_set_u32(reg_params[4].value, 0, 32, STM32_FLASH_BASE);
+	buf_set_u32(reg_params[4].value, 0, 32, stm32l4_get_flash_reg(bank, STM32_FLASH_BASE));
 
 	retval = target_run_flash_async_algorithm(target, buffer, count, 2,
 			0, NULL,
@@ -523,7 +620,7 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 		if (error != 0) {
 			LOG_ERROR("flash write failed = %08" PRIx32, error);
 			/* Clear but report errors */
-			target_write_u32(target, STM32_FLASH_SR, error);
+			target_write_u32(target, stm32l4_get_flash_reg(bank, STM32_FLASH_SR), error);
 			retval = ERROR_FAIL;
 		}
 	}
@@ -570,7 +667,7 @@ static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 		 */
 	}
 
-	retval = stm32l4_unlock_reg(target);
+	retval = stm32l4_unlock_reg(bank);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -582,7 +679,7 @@ static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 		}
 
 	LOG_WARNING("block write succeeded");
-	return target_write_u32(target, STM32_FLASH_CR, FLASH_LOCK);
+	return target_write_u32(target, stm32l4_get_flash_reg(bank, STM32_FLASH_CR), FLASH_LOCK);
 }
 
 static int stm32l4_probe(struct flash_bank *bank)
@@ -599,7 +696,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 	stm32l4_info->probed = 0;
 
 	/* read stm32 device id register */
-	int retval = target_read_u32(target, DBGMCU_IDCODE, &device_id);
+	int retval = target_read_u32(target, stm32l4_get_flash_reg(bank, STM32_DBGMCU_IDCODE), &device_id);
 	if (retval != ERROR_OK)
 		return retval;
 	LOG_INFO("device id = 0x%08" PRIx32 "", device_id);
@@ -619,13 +716,16 @@ static int stm32l4_probe(struct flash_bank *bank)
 	case 0x435:
 		max_flash_size_in_kb = 256;
 		break;
+	case 0x472:
+		max_flash_size_in_kb = 512;
+		break;
 	default:
 		LOG_WARNING("Cannot identify target as an STM32L4 family device.");
 		return ERROR_FAIL;
 	}
 
 	/* get flash size from target. */
-	retval = target_read_u16(target, FLASH_SIZE_REG, &flash_size_in_kb);
+	retval = target_read_u16(target, stm32l4_get_flash_reg(bank, STM32_FLASH_SIZE_REG), &flash_size_in_kb);
 
 	/* failed reading flash size or flash size invalid (early silicon),
 	 * default to max target family */
@@ -641,7 +741,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 	assert((flash_size_in_kb != 0xffff) && flash_size_in_kb);
 
 	/* get options for DUAL BANK. */
-	retval = target_read_u32(target, STM32_FLASH_OPTR, &options);
+	retval = target_read_u32(target, stm32l4_get_flash_reg(bank, STM32_FLASH_OPTR), &options);
 
 	if (retval != ERROR_OK)
 		return retval;
@@ -650,6 +750,23 @@ static int stm32l4_probe(struct flash_bank *bank)
 	int page_size = 0;
 
 	switch (device_id & 0xfff) {
+		case 0x472:
+			/* L552/L562 have 512 KiB FLASH and dual/single bank mode.
+			 * Page size is 2K or 4K.*/
+			if (flash_size_in_kb == 512) {
+				stm32l4_info->bank2_start = 128;
+				if (options & OPT_DBANK_E_512K) {
+					page_size = 2048;
+					num_pages = 256;
+				} else {
+					page_size = 4096;
+					num_pages = 128;
+				}
+				break;
+			}
+			/* Invalid FLASH size for this device. */
+			LOG_WARNING("Invalid flash size for STM32L5 family device.");
+			return ERROR_FAIL;
 		case 0x470:
 			/* L4R/S have 1M or 2M FLASH and dual/single bank mode.
 			 * Page size is 4K or 8K.*/
@@ -742,7 +859,7 @@ static int get_stm32l4_info(struct flash_bank *bank, char *buf, int buf_size)
 	uint32_t dbgmcu_idcode;
 
 	/* read stm32 device id register */
-	int retval = target_read_u32(target, DBGMCU_IDCODE, &dbgmcu_idcode);
+	int retval = target_read_u32(target, stm32l4_get_flash_reg(bank, STM32_DBGMCU_IDCODE), &dbgmcu_idcode);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -781,6 +898,10 @@ static int get_stm32l4_info(struct flash_bank *bank, char *buf, int buf_size)
 		device_str = "STM32L43x/44x";
 		break;
 
+	case 0x472:
+		device_str = "STM32L552/562";
+		break;
+
 	default:
 		snprintf(buf, buf_size, "Cannot identify target as a STM32L4\n");
 		return ERROR_FAIL;
@@ -802,7 +923,7 @@ static int stm32l4_mass_erase(struct flash_bank *bank, uint32_t action)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	retval = stm32l4_unlock_reg(target);
+	retval = stm32l4_unlock_reg(bank);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -926,11 +1047,11 @@ COMMAND_HANDLER(stm32l4_handle_option_load_command)
 
 	struct target *target = bank->target;
 
-	retval = stm32l4_unlock_reg(target);
+	retval = stm32l4_unlock_reg(bank);
 	if (ERROR_OK != retval)
 		return retval;
 
-	retval = stm32l4_unlock_option_reg(target);
+	retval = stm32l4_unlock_option_reg(bank);
 	if (ERROR_OK != retval)
 		return retval;
 
@@ -1057,6 +1178,33 @@ const struct flash_driver stm32l4x_flash = {
 	.name = "stm32l4x",
 	.commands = stm32l4_command_handlers,
 	.flash_bank_command = stm32l4_flash_bank_command,
+	.erase = stm32l4_erase,
+	.protect = stm32l4_protect,
+	.write = stm32l4_write,
+	.read = default_flash_read,
+	.probe = stm32l4_probe,
+	.auto_probe = stm32l4_auto_probe,
+	.erase_check = default_flash_blank_check,
+	.protect_check = stm32l4_protect_check,
+	.info = get_stm32l4_info,
+	.free_driver_priv = default_flash_free_driver_priv,
+};
+
+static const struct command_registration stm32l5_command_handlers[] = {
+	{
+		.name = "stm32l5x",
+		.mode = COMMAND_ANY,
+		.help = "stm32l5x flash command group",
+		.usage = "",
+		.chain = stm32l4_exec_command_handlers,
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
+const struct flash_driver stm32l5x_flash = {
+	.name = "stm32l5x",
+	.commands = stm32l5_command_handlers,
+	.flash_bank_command = stm32l5_flash_bank_command,
 	.erase = stm32l4_erase,
 	.protect = stm32l4_protect,
 	.write = stm32l4_write,
