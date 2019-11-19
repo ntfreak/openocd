@@ -299,15 +299,14 @@ static int avrf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t o
 #define EXTRACT_PART(X) (((X) & 0xffff000) >> 12)
 #define EXTRACT_VER(X)  (((X) & 0xf0000000) >> 28)
 
-static int avrf_probe(struct flash_bank *bank)
+static int avrf_identify_chip(struct flash_bank *bank, const struct avrf_type **info, uint8_t *ver)
 {
 	struct target *target = bank->target;
 	struct avrf_flash_bank *avrf_info = bank->driver_priv;
 	struct avr_common *avr = target->arch_info;
-	const struct avrf_type *avr_info = NULL;
 	uint32_t device_id;
 
-	if (bank->target->state != TARGET_HALTED) {
+	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
@@ -326,37 +325,53 @@ static int avrf_probe(struct flash_bank *bank)
 
 	for (size_t i = 0; i < ARRAY_SIZE(avft_chips_info); i++) {
 		if (avft_chips_info[i].chip_id == EXTRACT_PART(device_id)) {
-			avr_info = &avft_chips_info[i];
-			LOG_INFO("target device is %s", avr_info->name);
-			break;
+			*info = &avft_chips_info[i];
+			if (ver != NULL)
+				*ver = EXTRACT_VER(device_id);
+
+			LOG_INFO("target device is %s", (*info)->name);
+			return ERROR_OK;
 		}
 	}
 
-	if (avr_info != NULL) {
-		free(bank->sectors);
+	return ERROR_FLASH_OPERATION_FAILED;
+}
 
-		/* chip found */
-		bank->base = 0x00000000;
-		bank->size = (avr_info->flash_page_size * avr_info->flash_page_num);
-		bank->num_sectors = avr_info->flash_page_num;
-		bank->sectors = malloc(sizeof(struct flash_sector) * avr_info->flash_page_num);
+static int avrf_probe(struct flash_bank *bank)
+{
+	struct avrf_flash_bank *avrf_info = bank->driver_priv;
+	const struct avrf_type *avr_info;
+	int error = avrf_identify_chip(bank, &avr_info, NULL);
+	int i;
 
-		for (int i = 0; i < avr_info->flash_page_num; i++) {
-			bank->sectors[i].offset = i * avr_info->flash_page_size;
-			bank->sectors[i].size = avr_info->flash_page_size;
-			bank->sectors[i].is_erased = -1;
-			bank->sectors[i].is_protected = -1;
+	if (error != ERROR_OK) {
+		if (error == ERROR_FLASH_OPERATION_FAILED) {
+			/* chip not supported */
+			LOG_ERROR("device id is not supported for avr");
+			avrf_info->probed = 1;
+			return ERROR_FAIL;
 		}
 
-		avrf_info->probed = true;
-		return ERROR_OK;
-	} else {
-		/* chip not supported */
-		LOG_ERROR("0x%" PRIx32 " is not support for avr", EXTRACT_PART(device_id));
-
-		avrf_info->probed = true;
-		return ERROR_FAIL;
+		return error;
 	}
+
+	free(bank->sectors);
+
+	/* chip found */
+	bank->base = 0x00000000;
+	bank->size = (avr_info->flash_page_size * avr_info->flash_page_num);
+	bank->num_sectors = avr_info->flash_page_num;
+	bank->sectors = malloc(sizeof(struct flash_sector) * avr_info->flash_page_num);
+
+	for (i = 0; i < avr_info->flash_page_num; i++) {
+		bank->sectors[i].offset = i * avr_info->flash_page_size;
+		bank->sectors[i].size = avr_info->flash_page_size;
+		bank->sectors[i].is_erased = -1;
+		bank->sectors[i].is_protected = -1;
+	}
+
+	avrf_info->probed = 1;
+	return ERROR_OK;
 }
 
 static int avrf_auto_probe(struct flash_bank *bank)
@@ -369,45 +384,19 @@ static int avrf_auto_probe(struct flash_bank *bank)
 
 static int avrf_info(struct flash_bank *bank, char *buf, int buf_size)
 {
-	struct target *target = bank->target;
-	struct avr_common *avr = target->arch_info;
-	const struct avrf_type *avr_info = NULL;
-	uint32_t device_id;
+	uint8_t ver;
+	const struct avrf_type *avr_info;
+	int error = avrf_identify_chip(bank, &avr_info, &ver);
 
-	if (bank->target->state != TARGET_HALTED) {
-		LOG_ERROR("Target not halted");
-		return ERROR_TARGET_NOT_HALTED;
-	}
-
-	avr_jtag_read_jtagid(avr, &device_id);
-	if (ERROR_OK != mcu_execute_queue())
-		return ERROR_FAIL;
-
-	LOG_INFO("device id = 0x%08" PRIx32 "", device_id);
-	if (EXTRACT_MFG(device_id) != 0x1F)
-		LOG_ERROR("0x%" PRIx32 " is invalid Manufacturer for avr, 0x%X is expected",
-			EXTRACT_MFG(device_id),
-			0x1F);
-
-	for (size_t i = 0; i < ARRAY_SIZE(avft_chips_info); i++) {
-		if (avft_chips_info[i].chip_id == EXTRACT_PART(device_id)) {
-			avr_info = &avft_chips_info[i];
-			LOG_INFO("target device is %s", avr_info->name);
-
-			break;
-		}
-	}
-
-	if (avr_info != NULL) {
+	if (error == ERROR_OK) {
 		/* chip found */
 		snprintf(buf, buf_size, "%s - Rev: 0x%" PRIx32 "", avr_info->name,
-			EXTRACT_VER(device_id));
-		return ERROR_OK;
-	} else {
-		/* chip not supported */
-		snprintf(buf, buf_size, "Cannot identify target as a avr\n");
-		return ERROR_FLASH_OPERATION_FAILED;
-	}
+			       ver);
+	} else
+		if (error == ERROR_FLASH_OPERATION_FAILED)
+			snprintf(buf, buf_size, "Cannot identify target as a avr\n");
+
+	return error;
 }
 
 static int avrf_mass_erase(struct flash_bank *bank)
