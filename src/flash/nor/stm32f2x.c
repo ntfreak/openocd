@@ -65,6 +65,7 @@
  *                    4 x 16, 1 x 64, 3 x 128, 4 x 16, 1 x 64, 3 x 128.
  *
  * STM32F7[2|3]
+ * 64 kiByte part with 4 x 16.
  * 512 kiByte part with 4 x 16, 1 x 64, 3 x 128.
  *
  * STM32F7[4|5]
@@ -913,7 +914,14 @@ static void setup_bank(struct flash_bank *bank, int start,
 {
 	int remain;
 
+	/* Initial four small-size sectors. */
 	start = setup_sector(bank, start, 4, (max_sector_size_in_kb / 8) * 1024);
+
+	/* Value line devices may have the bare minimum four sectors. */
+	if (flash_size_in_kb < max_sector_size_in_kb)
+		return;
+
+	/* Medium-size sector to take us to a max-sector-size boundary. */
 	start = setup_sector(bank, start, 1, (max_sector_size_in_kb / 2) * 1024);
 
 	/* remaining sectors all of size max_sector_size_in_kb */
