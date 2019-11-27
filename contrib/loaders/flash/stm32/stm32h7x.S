@@ -18,7 +18,7 @@
 
 	.text
 	.syntax unified
-	.cpu cortex-m7
+	.cpu cortex-m4
 	.thumb
 
 /*
