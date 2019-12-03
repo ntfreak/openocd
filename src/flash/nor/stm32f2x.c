@@ -894,31 +894,68 @@ static int stm32x_write(struct flash_bank *bank, const uint8_t *buffer,
 	return target_write_u32(target, STM32_FLASH_CR, FLASH_LOCK);
 }
 
-static int setup_sector(struct flash_bank *bank, int start, int num, int size)
+static void setup_sector(struct flash_bank *bank, int i, int size)
 {
+	assert(i < bank->num_sectors);
+	bank->sectors[i].offset = bank->size;
+	bank->sectors[i].size = size;
+	bank->size += bank->sectors[i].size;
+	LOG_DEBUG("sector %d: %dkBytes", i, size >> 10);
+}
 
-	for (int i = start; i < (start + num) ; i++) {
-		assert(i < bank->num_sectors);
-		bank->sectors[i].offset = bank->size;
-		bank->sectors[i].size = size;
-		bank->size += bank->sectors[i].size;
-	    LOG_DEBUG("sector %d: %d kBytes", i, size >> 10);
+static uint16_t sector_size_in_kb(int i, uint16_t max_sector_size_in_kb)
+{
+	assert(i >= 0);
+	if (i < 4)
+		return max_sector_size_in_kb / 8;
+	if (i == 4)
+		return max_sector_size_in_kb / 2;
+	return max_sector_size_in_kb;
+}
+
+static int calculate_number_of_sectors(struct flash_bank *bank,
+		uint16_t flash_size_in_kb,
+		uint16_t max_sector_size_in_kb)
+{
+	struct stm32x_flash_bank *stm32x_info = bank->driver_priv;
+	uint16_t remaining_flash_size_in_kb = flash_size_in_kb;
+	int nr_sectors;
+
+	/* Dual Bank Flash has two identically-arranged banks of sectors. */
+	if (stm32x_info->has_large_mem)
+		remaining_flash_size_in_kb /= 2;
+
+	for (nr_sectors = 0; remaining_flash_size_in_kb > 0; nr_sectors++) {
+		uint16_t size_in_kb = sector_size_in_kb(nr_sectors, max_sector_size_in_kb);
+		if (size_in_kb > remaining_flash_size_in_kb) {
+			LOG_INFO("%s Bank %d kiB final sector clipped to %d kiB",
+				 stm32x_info->has_large_mem ? "Dual" : "Single",
+				 flash_size_in_kb, remaining_flash_size_in_kb);
+			remaining_flash_size_in_kb = 0;
+		} else {
+			remaining_flash_size_in_kb -= size_in_kb;
+		}
 	}
 
-	return start + num;
+	return stm32x_info->has_large_mem ? nr_sectors*2 : nr_sectors;
 }
 
 static void setup_bank(struct flash_bank *bank, int start,
 	uint16_t flash_size_in_kb, uint16_t max_sector_size_in_kb)
 {
-	int remain;
-
-	start = setup_sector(bank, start, 4, (max_sector_size_in_kb / 8) * 1024);
-	start = setup_sector(bank, start, 1, (max_sector_size_in_kb / 2) * 1024);
-
-	/* remaining sectors all of size max_sector_size_in_kb */
-	remain = (flash_size_in_kb / max_sector_size_in_kb) - 1;
-	start = setup_sector(bank, start, remain, max_sector_size_in_kb * 1024);
+	uint16_t remaining_flash_size_in_kb = flash_size_in_kb;
+	int sector_index = 0;
+	while (remaining_flash_size_in_kb > 0) {
+		uint16_t size_in_kb = sector_size_in_kb(sector_index, max_sector_size_in_kb);
+		if (size_in_kb > remaining_flash_size_in_kb) {
+			/* Clip last sector. Already warned in
+			 * calculate_number_of_sectors. */
+			size_in_kb = remaining_flash_size_in_kb;
+		}
+		setup_sector(bank, sector_index, size_in_kb * 1024);
+		remaining_flash_size_in_kb -= size_in_kb;
+		sector_index++;
+	}
 }
 
 static int stm32x_get_device_id(struct flash_bank *bank, uint32_t *device_id)
@@ -1150,8 +1187,8 @@ static int stm32x_probe(struct flash_bank *bank)
 	}
 
 	/* calculate numbers of pages */
-	int num_pages = flash_size_in_kb / max_sector_size_in_kb
-		+ (stm32x_info->has_large_mem ? 8 : 4);
+	int num_pages = calculate_number_of_sectors(
+			bank, flash_size_in_kb, max_sector_size_in_kb);
 
 	bank->base = base_address;
 	bank->num_sectors = num_pages;
