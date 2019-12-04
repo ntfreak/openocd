@@ -1263,9 +1263,32 @@ static int aarch64_set_breakpoint(struct target *target,
 			brp_list[brp_i].value);
 
 	} else if (breakpoint->type == BKPT_SOFT) {
+		uint32_t opcode;
 		uint8_t code[4];
 
-		buf_set_u32(code, 0, 32, armv8_opcode(armv8, ARMV8_OPC_HLT));
+		if (armv8_dpm_get_core_state(&armv8->dpm) == ARM_STATE_AARCH64) {
+			opcode = ARMV8_HLT(11);
+
+			if (breakpoint->length != 4)
+				LOG_ERROR("bug: breakpoint length should be 4 in AArch64 mode");
+		} else {
+			/**
+			 * core_state is ARM_STATE_ARM
+			 * in that case the opcode depends on breakpoint length:
+			 *  - if length == 4 => A32 opcode
+			 *  - if length == 2 => T32 opcode
+			 *  - if length == 3 => T32 opcode (refer to gdb doc : ARM-Breakpoint-Kinds)
+			 *    in that case the length should be changed from 3 to 4 bytes
+			 **/
+			opcode = (breakpoint->length == 4) ? ARMV8_HLT_A1(11) :
+					(uint32_t) (ARMV8_HLT_T1(11) | ARMV8_HLT_T1(11) << 16);
+
+			if (breakpoint->length == 3)
+				breakpoint->length = 4;
+		}
+
+		buf_set_u32(code, 0, 32, opcode);
+
 		retval = target_read_memory(target,
 				breakpoint->address & 0xFFFFFFFFFFFFFFFE,
 				breakpoint->length, 1,
