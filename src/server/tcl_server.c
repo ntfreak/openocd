@@ -199,7 +199,7 @@ static int tcl_input(struct connection *connection)
 	for (i = 0; i < rlen; i++) {
 		/* buffer the data */
 		tclc->tc_line[tclc->tc_lineoffset] = in[i];
-		if (tclc->tc_lineoffset < tclc->tc_line_size) {
+		if (tclc->tc_lineoffset + 1 < tclc->tc_line_size) {
 			tclc->tc_lineoffset++;
 		} else if (tclc->tc_line_size >= TCL_LINE_MAX) {
 			/* maximum line size reached, drop line */
