@@ -164,9 +164,17 @@
 #define ARMV8_LDRH_IP(Rd, Rn) (0x78402400 | (Rn << 5) | Rd)
 #define ARMV8_LDRW_IP(Rd, Rn) (0xb8404400 | (Rn << 5) | Rd)
 
+#define ARMV8_LDRB_IP_T3(Rd, Rn) (0xf8100b01 | (Rn << 16) | (Rd << 12))
+#define ARMV8_LDRH_IP_T3(Rd, Rn) (0xf8300b02 | (Rn << 16) | (Rd << 12))
+#define ARMV8_LDRW_IP_T3(Rd, Rn) (0xf8500b04 | (Rn << 16) | (Rd << 12))
+
 #define ARMV8_STRB_IP(Rd, Rn) (0x38001400 | (Rn << 5) | Rd)
 #define ARMV8_STRH_IP(Rd, Rn) (0x78002400 | (Rn << 5) | Rd)
 #define ARMV8_STRW_IP(Rd, Rn) (0xb8004400 | (Rn << 5) | Rd)
+
+#define ARMV8_STRB_IP_T3(Rd, Rn) (0xf8000b01 | (Rn << 16) | (Rd << 12))
+#define ARMV8_STRH_IP_T3(Rd, Rn) (0xf8200b02 | (Rn << 16) | (Rd << 12))
+#define ARMV8_STRW_IP_T3(Rd, Rn) (0xf8400b04 | (Rn << 16) | (Rd << 12))
 
 #define ARMV8_MOV_GPR_VFP(Rd, Rn, Index) (0x4e083c00 | (Index << 20) | (Rn << 5) | Rd)
 #define ARMV8_MOV_VFP_GPR(Rd, Rn, Index) (0x4e081c00 | (Index << 20) | (Rn << 5) | Rd)
