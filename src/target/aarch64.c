@@ -1176,7 +1176,7 @@ static int aarch64_step(struct target *target, int current, target_addr_t addres
 	if (saved_retval != ERROR_OK)
 		return saved_retval;
 
-	return aarch64_poll(target);
+	return ERROR_OK;
 }
 
 static int aarch64_restore_context(struct target *target, bool bpwp)
