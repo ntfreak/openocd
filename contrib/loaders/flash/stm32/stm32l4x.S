@@ -71,7 +71,7 @@ busy:
 	ldr 	r6, [r4, #STM32_FLASH_SR_OFFSET]
 	tst 	r6, #0x10000	/* BSY (bit16) == 1 => operation in progress */
 	bne 	busy		/* wait more... */
-	tst	r6, #0xfa	/* PGSERR | PGPERR | PGAERR | WRPERR | PROGERR*/
+	tst	r6, #0xfa	/* PGSERR | SIZERR | PGAERR | WRPERR | PROGERR | OPERR */
 	bne	error		/* fail... */
 
 	cmp 	r5, r1		/* wrap rp at end of buffer */

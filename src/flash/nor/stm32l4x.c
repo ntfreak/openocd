@@ -106,7 +106,7 @@
 #define FLASH_PROGERR  (1 << 3) /* Programming error */
 #define FLASH_OPERR    (1 << 1) /* Operation error */
 #define FLASH_EOP      (1 << 0) /* End of operation */
-#define FLASH_ERROR (FLASH_PGSERR | FLASH_PGSERR | FLASH_PGAERR | FLASH_WRPERR | FLASH_OPERR)
+#define FLASH_ERROR (FLASH_PGSERR | FLASH_SIZERR | FLASH_PGAERR | FLASH_WRPERR | FLASH_PROGERR | FLASH_OPERR)
 
 /* register unlock keys */
 #define KEY1           0x45670123
@@ -577,7 +577,7 @@ static int stm32l4_protect(struct flash_bank *bank, int set, int first, int last
 	return ret;
 }
 
-/* Count is in halfwords */
+/* Count is in double-words */
 static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 		uint32_t offset, uint32_t count)
 {
@@ -630,15 +630,15 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	init_reg_param(&reg_params[1], "r1", 32, PARAM_OUT);	/* buffer end */
 	init_reg_param(&reg_params[2], "r2", 32, PARAM_OUT);	/* target address */
 	init_reg_param(&reg_params[3], "r3", 32, PARAM_OUT);	/* count (double word-64bit) */
-	init_reg_param(&reg_params[4], "r4", 32, PARAM_OUT);	/* flash base */
+	init_reg_param(&reg_params[4], "r4", 32, PARAM_OUT);	/* flash regs base */
 
 	buf_set_u32(reg_params[0].value, 0, 32, source->address);
 	buf_set_u32(reg_params[1].value, 0, 32, source->address + source->size);
 	buf_set_u32(reg_params[2].value, 0, 32, address);
-	buf_set_u32(reg_params[3].value, 0, 32, count / 4);
+	buf_set_u32(reg_params[3].value, 0, 32, count);
 	buf_set_u32(reg_params[4].value, 0, 32, stm32l4_info->part_info->flash_regs_base);
 
-	retval = target_run_flash_async_algorithm(target, buffer, count, 2,
+	retval = target_run_flash_async_algorithm(target, buffer, count, 8,
 			0, NULL,
 			5, reg_params,
 			source->address, source->size,
@@ -676,7 +676,7 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 		uint32_t offset, uint32_t count)
 {
-	int retval;
+	int retval, retval2;
 
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -692,14 +692,15 @@ static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = stm32l4_write_block(bank, buffer, offset, count / 2);
+	retval = stm32l4_write_block(bank, buffer, offset, count / 8);
+
+	retval2 = stm32l4_write_flash_reg(bank, STM32_FLASH_CR, FLASH_LOCK);
+
 	if (retval != ERROR_OK) {
-		LOG_WARNING("block write failed");
+		LOG_ERROR("block write failed");
 		return retval;
 	}
-
-	LOG_WARNING("block write succeeded");
-	return stm32l4_write_flash_reg(bank, STM32_FLASH_CR, FLASH_LOCK);
+	return retval2;
 }
 
 static int stm32l4_read_idcode(struct flash_bank *bank, uint32_t *id)
