@@ -283,6 +283,10 @@ FLASH_BANK_COMMAND_HANDLER(stm32l4_flash_bank_command)
 		return ERROR_FAIL; /* Checkme: What better error to use?*/
 	bank->driver_priv = stm32l4_info;
 
+	/* The flash write must be aligned to a double word (8-bytes) boundary.
+	 * Ask the flash infrastructure to ensure required alignment */
+	bank->write_start_alignment = bank->write_end_alignment = 8;
+
 	stm32l4_info->probed = 0;
 	stm32l4_info->user_bank_size = bank->size;
 
@@ -688,30 +692,15 @@ static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (offset & 0x7) {
-		LOG_WARNING("offset 0x%" PRIx32 " breaks required 8-byte alignment",
-					offset);
-		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
-	}
-
-	if (count & 0x7) {
-		LOG_WARNING("Padding %d bytes to keep 8-byte write size",
-					count & 7);
-		count = (count + 7) & ~7;
-		/* This pads the write chunk with random bytes by overrunning the
-		 * write buffer. Padding with the erased pattern 0xff is purely
-		 * cosmetical, as 8-byte flash words are ECC secured and the first
-		 * write will program the ECC bits. A second write would need
-		 * to reprogramm these ECC bits.
-		 * But this can only be done after erase!
-		 */
-	}
+	/* The flash write must be aligned to a double word (8-bytes) boundary.
+	 * The flash infrastructure ensures it, do just a security check */
+	assert(offset % 8 == 0);
+	assert(count % 8 == 0);
 
 	retval = stm32l4_unlock_reg(bank);
 	if (retval != ERROR_OK)
 		return retval;
 
-	/* Only full double words (8-byte) can be programmed*/
 	retval = stm32l4_write_block(bank, buffer, offset, count / 2);
 	if (retval != ERROR_OK) {
 		LOG_WARNING("block write failed");
