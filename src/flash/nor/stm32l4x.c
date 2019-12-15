@@ -164,6 +164,10 @@ static const struct stm32l4_rev stm32_462_revs[] = {
 		{ 0x1000, "A" }, { 0x1001, "Z" }, { 0x2001, "Y" },
 };
 
+static const struct stm32l4_rev stm32_464_revs[] = {
+	{ 0x1000, "A" },
+};
+
 static const struct stm32l4_rev stm32_470_revs[] = {
 	{ 0x1000, "A" }, { 0x1001, "Z" }, { 0x1003, "Y" }, { 0x100F, "W" },
 };
@@ -212,6 +216,17 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .optr_mask            = 0xF8F77FF,
 	  .flash_regs_base      = 0x40022000,
 	  .fsize_addr           = 0x1FFF75E0,
+	},
+	{
+	  .id                   = 0x464,
+	  .revs                 = stm32_464_revs,
+	  .num_revs             = ARRAY_SIZE(stm32_464_revs),
+	  .device_str           = "STM32L41/L42xx",
+	  .default_page_size    = 2048,
+	  .max_flash_size_kb    = 128,
+	  .optr_mask            = 0xF8F77FF,
+	  .flash_regs_base      = 0x40022000,
+	  .fsize_addr           = 0x1fff75e0,
 	},
 	{
 	  .id                   = 0x470,
