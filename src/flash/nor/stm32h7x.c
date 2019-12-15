@@ -117,15 +117,15 @@ struct stm32h7x_part_info {
 	uint16_t max_flash_size_kb;
 	uint8_t has_dual_bank;
 	uint16_t first_bank_size_kb; /* Used when has_dual_bank is true */
-	uint32_t flash_base;         /* Flash controller registers location */
-	uint32_t fsize_base;         /* Location of FSIZE register */
+	uint32_t flash_regs_base;    /* Flash controller registers location */
+	uint32_t fsize_addr;         /* Location of FSIZE register */
 };
 
 struct stm32h7x_flash_bank {
 	int probed;
 	uint32_t idcode;
 	uint32_t user_bank_size;
-	uint32_t flash_base;    /* Address of flash reg controller */
+	uint32_t flash_regs_base;    /* Address of flash reg controller */
 	const struct stm32h7x_part_info *part_info;
 };
 
@@ -149,8 +149,8 @@ static const struct stm32h7x_part_info stm32h7x_parts[] = {
 	.max_flash_size_kb	= 2048,
 	.first_bank_size_kb	= 1024,
 	.has_dual_bank		= 1,
-	.flash_base			= FLASH_REG_BASE_B0,
-	.fsize_base			= FLASH_SIZE_ADDRESS,
+	.flash_regs_base	= FLASH_REG_BASE_B0,
+	.fsize_addr			= FLASH_SIZE_ADDRESS,
 	},
 };
 
@@ -175,7 +175,7 @@ FLASH_BANK_COMMAND_HANDLER(stm32x_flash_bank_command)
 static inline uint32_t stm32x_get_flash_reg(struct flash_bank *bank, uint32_t reg_offset)
 {
 	struct stm32h7x_flash_bank *stm32x_info = bank->driver_priv;
-	return reg_offset + stm32x_info->flash_base;
+	return reg_offset + stm32x_info->flash_regs_base;
 }
 
 static inline int stm32x_read_flash_reg(struct flash_bank *bank, uint32_t reg_offset, uint32_t *value)
@@ -203,7 +203,7 @@ static int stm32x_wait_flash_op_queue(struct flash_bank *bank, int timeout)
 	for (;;) {
 		retval = stm32x_get_flash_status(bank, &status);
 		if (retval != ERROR_OK) {
-			LOG_INFO("wait_flash_op_queue, target_read_u32 : error : remote address 0x%x", stm32x_info->flash_base);
+			LOG_INFO("wait_flash_op_queue, target_read_u32 : error : remote address 0x%x", stm32x_info->flash_regs_base);
 			return retval;
 		}
 
@@ -218,7 +218,7 @@ static int stm32x_wait_flash_op_queue(struct flash_bank *bank, int timeout)
 	}
 
 	if (status & FLASH_WRPERR) {
-		LOG_INFO("wait_flash_op_queue, WRPERR : error : remote address 0x%x", stm32x_info->flash_base);
+		LOG_INFO("wait_flash_op_queue, WRPERR : error : remote address 0x%x", stm32x_info->flash_regs_base);
 		retval = ERROR_FAIL;
 	}
 
@@ -543,7 +543,7 @@ static int stm32x_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	buf_set_u32(reg_params[1].value, 0, 32, source->address + source->size);
 	buf_set_u32(reg_params[2].value, 0, 32, address);
 	buf_set_u32(reg_params[3].value, 0, 32, count);
-	buf_set_u32(reg_params[4].value, 0, 32, stm32x_info->flash_base);
+	buf_set_u32(reg_params[4].value, 0, 32, stm32x_info->flash_regs_base);
 
 	retval = target_run_flash_async_algorithm(target,
 						  buffer,
@@ -730,10 +730,10 @@ static int stm32x_probe(struct flash_bank *bank)
 	}
 
 	/* update the address of controller from data base */
-	stm32x_info->flash_base = stm32x_info->part_info->flash_base;
+	stm32x_info->flash_regs_base = stm32x_info->part_info->flash_regs_base;
 
 	/* get flash size from target */
-	retval = target_read_u16(target, stm32x_info->part_info->fsize_base, &flash_size_in_kb);
+	retval = target_read_u16(target, stm32x_info->part_info->fsize_addr, &flash_size_in_kb);
 	if (retval != ERROR_OK) {
 		/* read error when device has invalid value, set max flash size */
 		flash_size_in_kb = stm32x_info->part_info->max_flash_size_kb;
@@ -751,7 +751,7 @@ static int stm32x_probe(struct flash_bank *bank)
 			base_address = second_bank_base;
 			flash_size_in_kb = flash_size_in_kb - stm32x_info->part_info->first_bank_size_kb;
 			/* bank1 also uses a register offset */
-			stm32x_info->flash_base = FLASH_REG_BASE_B1;
+			stm32x_info->flash_regs_base = FLASH_REG_BASE_B1;
 		} else if (bank->base == base_address) {
 			/* This is the first bank */
 			flash_size_in_kb = stm32x_info->part_info->first_bank_size_kb;
