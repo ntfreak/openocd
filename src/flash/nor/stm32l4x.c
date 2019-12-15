@@ -172,6 +172,10 @@ static const struct stm32l4_rev stm32_470_revs[] = {
 	{ 0x1000, "A" }, { 0x1001, "Z" }, { 0x1003, "Y" }, { 0x100F, "W" },
 };
 
+static const struct stm32l4_rev stm32_495_revs[] = {
+	{ 0x2001, "2.1" },
+};
+
 static const struct stm32l4_part_info stm32l4_parts[] = {
 	{
 	  .id                   = 0x415,
@@ -238,6 +242,17 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .optr_mask            = 0x0FFF77FF,
 	  .flash_regs_base      = 0x40022000,
 	  .fsize_addr           = 0x1FFF75E0,
+	},
+	{
+	  .id                   = 0x495,
+	  .revs                 = stm32_495_revs,
+	  .num_revs             = ARRAY_SIZE(stm32_495_revs),
+	  .device_str           = "STM32WBxx", /* 1M */
+	  .default_page_size    = 4096,
+	  .max_flash_size_kb    = 1024,
+	  .optr_mask            = 0xEF8F7FFF,
+	  .flash_regs_base      = 0x58004000,
+	  .fsize_addr           = 0x1fff75e0,
 	},
 };
 
@@ -733,7 +748,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 	}
 
 	if (!stm32l4_info->part_info) {
-		LOG_WARNING("Cannot identify target as an STM32L4 family device.");
+		LOG_WARNING("Cannot identify target as an STM32L4 or STM32WB device");
 		return ERROR_FAIL;
 	}
 
@@ -843,7 +858,7 @@ static int get_stm32l4_info(struct flash_bank *bank, char *buf, int buf_size)
 				part_info->device_str, rev_id);
 		return ERROR_OK;
 	} else {
-		snprintf(buf, buf_size, "Cannot identify target as a STM32L4x device");
+		snprintf(buf, buf_size, "Cannot identify target as an STM32L4 or STM32WB device");
 		return ERROR_FAIL;
 	}
 

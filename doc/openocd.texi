@@ -6843,7 +6843,7 @@ The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
 @deffn {Flash Driver} stm32l4x
-All members of the STM32L4 microcontroller families from STMicroelectronics
+All members of the STM32L4 and STM32WB microcontroller families from STMicroelectronics
 include internal flash and use ARM Cortex-M4 cores.
 The driver automatically recognizes a number of these chips using
 the chip identification register, and autoconfigures itself.
@@ -6885,7 +6885,9 @@ is the register offset of the Option byte to read.
 For example to read the FLASH_OPTR register:
 @example
 stm32l4x option_read 0 0x20
-# Option Register: <0x40022020> = 0xffeff8aa
+# Option Register (for STM32L4x): <0x40022020> = 0xffeff8aa
+# Option Register (for STM32WBx): <0x58004020> = ...
+# The correct flash base address will be used automatically
 @end example
 
 The above example will read out the FLASH_OPTR register which contains the RDP
