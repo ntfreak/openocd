@@ -261,14 +261,11 @@ COMMAND_HANDLER(handle_cti_dump)
 COMMAND_HANDLER(handle_cti_enable)
 {
 	struct arm_cti_object *obj = CMD_DATA;
-	Jim_Interp *interp = CMD_CTX->interp;
 	struct arm_cti *cti = &obj->cti;
 	bool on_off;
 
-	if (CMD_ARGC != 1) {
-		Jim_SetResultString(interp, "wrong number of args", -1);
-		return ERROR_FAIL;
-	}
+	if (CMD_ARGC != 1)
+		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	COMMAND_PARSE_ON_OFF(CMD_ARGV[0], on_off);
 
@@ -278,14 +275,11 @@ COMMAND_HANDLER(handle_cti_enable)
 COMMAND_HANDLER(handle_cti_testmode)
 {
 	struct arm_cti_object *obj = CMD_DATA;
-	Jim_Interp *interp = CMD_CTX->interp;
 	struct arm_cti *cti = &obj->cti;
 	bool on_off;
 
-	if (CMD_ARGC != 1) {
-		Jim_SetResultString(interp, "wrong number of args", -1);
-		return ERROR_FAIL;
-	}
+	if (CMD_ARGC != 1)
+		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	COMMAND_PARSE_ON_OFF(CMD_ARGV[0], on_off);
 
@@ -295,15 +289,12 @@ COMMAND_HANDLER(handle_cti_testmode)
 COMMAND_HANDLER(handle_cti_write)
 {
 	struct arm_cti_object *obj = CMD_DATA;
-	Jim_Interp *interp = CMD_CTX->interp;
 	struct arm_cti *cti = &obj->cti;
 	int offset;
 	uint32_t value;
 
-	if (CMD_ARGC != 2) {
-		Jim_SetResultString(interp, "Wrong number of args", -1);
-		return ERROR_FAIL;
-	}
+	if (CMD_ARGC != 2)
+		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	offset = cti_find_reg_offset(CMD_ARGV[0]);
 	if (offset < 0)
@@ -317,16 +308,13 @@ COMMAND_HANDLER(handle_cti_write)
 COMMAND_HANDLER(handle_cti_read)
 {
 	struct arm_cti_object *obj = CMD_DATA;
-	Jim_Interp *interp = CMD_CTX->interp;
 	struct arm_cti *cti = &obj->cti;
 	int offset;
 	int retval;
 	uint32_t value;
 
-	if (CMD_ARGC != 1) {
-		Jim_SetResultString(interp, "Wrong number of args", -1);
-		return ERROR_FAIL;
-	}
+	if (CMD_ARGC != 1)
+		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	offset = cti_find_reg_offset(CMD_ARGV[0]);
 	if (offset < 0)
