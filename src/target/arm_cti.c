@@ -329,6 +329,59 @@ COMMAND_HANDLER(handle_cti_read)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(handle_cti_ack)
+{
+	struct arm_cti_object *obj = CMD_DATA;
+	struct arm_cti *cti = &obj->cti;
+	uint32_t event;
+
+	if (CMD_ARGC != 1)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], event);
+
+	int retval = arm_cti_ack_events(cti, 1 << event);
+
+
+	if (retval != ERROR_OK)
+		return retval;
+
+	return ERROR_OK;
+}
+
+COMMAND_HANDLER(handle_cti_channel)
+{
+	struct arm_cti_object *obj = CMD_DATA;
+	struct arm_cti *cti = &obj->cti;
+	int retval = ERROR_OK;
+	uint32_t ch_num;
+
+	if (CMD_ARGC != 2)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], ch_num);
+
+	if (!strcmp(CMD_ARGV[1], "gate"))
+		retval = arm_cti_gate_channel(cti, ch_num);
+	else if (!strcmp(CMD_ARGV[1], "ungate"))
+		retval = arm_cti_ungate_channel(cti, ch_num);
+	else if (!strcmp(CMD_ARGV[1], "pulse"))
+		retval = arm_cti_pulse_channel(cti, ch_num);
+	else if (!strcmp(CMD_ARGV[1], "set"))
+		retval = arm_cti_set_channel(cti, ch_num);
+	else if (!strcmp(CMD_ARGV[1], "clear"))
+		retval = arm_cti_clear_channel(cti, ch_num);
+	else {
+		command_print(CMD, "Possible channel operations: gate|ungate|set|clear|pulse");
+		return ERROR_COMMAND_ARGUMENT_INVALID;
+	}
+
+	if (retval != ERROR_OK)
+		return retval;
+
+	return ERROR_OK;
+}
+
 static const struct command_registration cti_instance_command_handlers[] = {
 	{
 		.name  = "dump",
@@ -364,6 +417,21 @@ static const struct command_registration cti_instance_command_handlers[] = {
 		.handler = handle_cti_read,
 		.help = "read a CTI register",
 		.usage = "register_name",
+	},
+	{
+		.name = "ack",
+		.mode = COMMAND_EXEC,
+		.handler = handle_cti_ack,
+		.help = "acknowledge a CTI event",
+		.usage = "event",
+	},
+	{
+		.name = "channel",
+		.mode = COMMAND_EXEC,
+		.handler = handle_cti_channel,
+		.help = "do an operation on one CTI channel, possible operations: "
+				"gate, ungate, set, clear and pulse",
+		.usage = "channel_number operation",
 	},
 	COMMAND_REGISTRATION_DONE
 };
