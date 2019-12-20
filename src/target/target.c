@@ -1680,7 +1680,7 @@ static int target_call_timer_callbacks_check_time(int checktime)
 	 * next item; initially, that's a standalone "root of the
 	 * list" variable. */
 	struct target_timer_callback **callback = &target_timer_callbacks;
-	while (*callback) {
+	while (callback && *callback) {
 		if ((*callback)->removed) {
 			struct target_timer_callback *p = *callback;
 			*callback = (*callback)->next;
