@@ -944,6 +944,8 @@ int semihosting_common(struct target *target)
 					uint8_t *fn1 = malloc(len1+1);
 					uint8_t *fn2 = malloc(len2+1);
 					if (!fn1 || !fn2) {
+						free(fn1);
+						free(fn2);
 						semihosting->result = -1;
 						semihosting->sys_errno = ENOMEM;
 					} else {
