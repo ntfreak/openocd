@@ -1627,6 +1627,7 @@ int ulink_queue_scan(struct ulink *device, struct jtag_command *cmd)
 
 		if (ret != ERROR_OK) {
 			free(tdi_buffer_start);
+			free(tdo_buffer_start);
 			return ret;
 		}
 	}
