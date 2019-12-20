@@ -96,7 +96,7 @@ static int swd_run_inner(struct adiv5_dap *dap)
 static int swd_connect(struct adiv5_dap *dap)
 {
 	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
-	uint32_t dpidr;
+	uint32_t dpidr = 0xdeadbeef;
 	int status;
 
 	/* FIXME validate transport config ... is the
