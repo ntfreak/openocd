@@ -35,7 +35,7 @@ static int avr32_jtag_set_instr(struct avr32_jtag *jtag_info, int new_instr)
 	if (buf_get_u32(tap->cur_instr, 0, tap->ir_length) != (uint32_t)new_instr) {
 		do {
 			struct scan_field field;
-			uint8_t t[4];
+			uint8_t t[4] = { 0 };
 			uint8_t ret[4];
 
 			field.num_bits = tap->ir_length;

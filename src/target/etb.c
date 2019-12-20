@@ -176,13 +176,13 @@ static int etb_read_ram(struct etb *etb, uint32_t *data, int num_frames)
 	fields[0].in_value = NULL;
 
 	fields[1].num_bits = 7;
-	uint8_t temp1;
+	uint8_t temp1 = 0;
 	fields[1].out_value = &temp1;
 	buf_set_u32(&temp1, 0, 7, 4);
 	fields[1].in_value = NULL;
 
 	fields[2].num_bits = 1;
-	uint8_t temp2;
+	uint8_t temp2 = 0;
 	fields[2].out_value = &temp2;
 	buf_set_u32(&temp2, 0, 1, 0);
 	fields[2].in_value = NULL;
@@ -229,7 +229,7 @@ static int etb_read_reg_w_check(struct reg *reg,
 	fields[0].check_mask = NULL;
 
 	fields[1].num_bits = 7;
-	uint8_t temp1;
+	uint8_t temp1 = 0;
 	fields[1].out_value = &temp1;
 	buf_set_u32(&temp1, 0, 7, reg_addr);
 	fields[1].in_value = NULL;
@@ -237,7 +237,7 @@ static int etb_read_reg_w_check(struct reg *reg,
 	fields[1].check_mask = NULL;
 
 	fields[2].num_bits = 1;
-	uint8_t temp2;
+	uint8_t temp2 = 0;
 	fields[2].out_value = &temp2;
 	buf_set_u32(&temp2, 0, 1, 0);
 	fields[2].in_value = NULL;
@@ -310,13 +310,13 @@ static int etb_write_reg(struct reg *reg, uint32_t value)
 	fields[0].in_value = NULL;
 
 	fields[1].num_bits = 7;
-	uint8_t temp1;
+	uint8_t temp1 = 0;
 	fields[1].out_value = &temp1;
 	buf_set_u32(&temp1, 0, 7, reg_addr);
 	fields[1].in_value = NULL;
 
 	fields[2].num_bits = 1;
-	uint8_t temp2;
+	uint8_t temp2 = 0;
 	fields[2].out_value = &temp2;
 	buf_set_u32(&temp2, 0, 1, 1);
 	fields[2].in_value = NULL;

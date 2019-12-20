@@ -129,7 +129,7 @@ static const struct xscale_reg xscale_reg_arch_info[] = {
 /* convenience wrapper to access XScale specific registers */
 static int xscale_set_reg_u32(struct reg *reg, uint32_t value)
 {
-	uint8_t buf[4];
+	uint8_t buf[4] = { 0 };
 
 	buf_set_u32(buf, 0, 32, value);
 
@@ -154,7 +154,7 @@ static int xscale_jtag_set_instr(struct jtag_tap *tap, uint32_t new_instr, tap_s
 
 	if (buf_get_u32(tap->cur_instr, 0, tap->ir_length) != new_instr) {
 		struct scan_field field;
-		uint8_t scratch[4];
+		uint8_t scratch[4] = { 0 };
 
 		memset(&field, 0, sizeof field);
 		field.num_bits = tap->ir_length;
@@ -514,7 +514,7 @@ static int xscale_send(struct target *target, const uint8_t *buffer, int count, 
 		TAP_IDLE);
 
 	static const uint8_t t0;
-	uint8_t t1[4];
+	uint8_t t1[4] = { 0 };
 	static const uint8_t t2 = 1;
 	struct scan_field fields[3] = {
 			{ .num_bits = 3, .out_value = &t0 },
@@ -645,8 +645,8 @@ static unsigned int parity(unsigned int v)
 static int xscale_load_ic(struct target *target, uint32_t va, uint32_t buffer[8])
 {
 	struct xscale_common *xscale = target_to_xscale(target);
-	uint8_t packet[4];
-	uint8_t cmd;
+	uint8_t packet[4] = { 0 };
+	uint8_t cmd = 0;
 	int word;
 	struct scan_field fields[2];
 
@@ -699,8 +699,8 @@ static int xscale_load_ic(struct target *target, uint32_t va, uint32_t buffer[8]
 static int xscale_invalidate_ic_line(struct target *target, uint32_t va)
 {
 	struct xscale_common *xscale = target_to_xscale(target);
-	uint8_t packet[4];
-	uint8_t cmd;
+	uint8_t packet[4] = { 0 };
+	uint8_t cmd = 0;
 	struct scan_field fields[2];
 
 	xscale_jtag_set_instr(target->tap,

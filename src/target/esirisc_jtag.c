@@ -36,7 +36,7 @@ static void esirisc_jtag_set_instr(struct esirisc_jtag *jtag_info, uint32_t new_
 
 	if (buf_get_u32(tap->cur_instr, 0, tap->ir_length) != new_instr) {
 		struct scan_field field;
-		uint8_t t[4];
+		uint8_t t[4] = { 0 };
 
 		field.num_bits = tap->ir_length;
 		field.out_value = t;

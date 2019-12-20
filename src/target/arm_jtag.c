@@ -33,7 +33,7 @@ int arm_jtag_set_instr_inner(struct jtag_tap *tap,
 		uint32_t new_instr, void *no_verify_capture, tap_state_t end_state)
 {
 	struct scan_field field;
-	uint8_t t[4];
+	uint8_t t[4] = { 0 };
 
 	field.num_bits = tap->ir_length;
 	field.out_value = t;
@@ -56,7 +56,7 @@ int arm_jtag_scann_inner(struct arm_jtag *jtag_info, uint32_t new_scan_chain, ta
 {
 	int retval = ERROR_OK;
 
-	uint8_t out_value[4];
+	uint8_t out_value[4] = { 0 };
 	buf_set_u32(out_value, 0, jtag_info->scann_size, new_scan_chain);
 	struct scan_field field = { .num_bits = jtag_info->scann_size, .out_value = out_value, };
 

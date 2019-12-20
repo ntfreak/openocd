@@ -33,6 +33,7 @@
  * using the bits in @c value.  This routine fast-paths writes
  * of little-endian, byte-aligned, 32-bit words.
  * @param _buffer The buffer whose bits will be set.
+ *	Do not use uninitialized buffer or clang static analyzer emits a warning.
  * @param first The bit offset in @c _buffer to start writing (0-31).
  * @param num The number of bits from @c value to copy (1-32).
  * @param value Up to 32 bits that will be copied to _buffer.
@@ -62,6 +63,7 @@ static inline void buf_set_u32(uint8_t *_buffer,
  * using the bits in @c value.  This routine fast-paths writes
  * of little-endian, byte-aligned, 64-bit words.
  * @param _buffer The buffer whose bits will be set.
+ *	Do not use uninitialized buffer or clang static analyzer emits a warning.
  * @param first The bit offset in @c _buffer to start writing (0-63).
  * @param num The number of bits from @c value to copy (1-64).
  * @param value Up to 64 bits that will be copied to _buffer.

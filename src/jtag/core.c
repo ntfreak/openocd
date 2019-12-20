@@ -1233,7 +1233,7 @@ static int jtag_examine_chain(void)
 	/* Add room for end-of-chain marker. */
 	max_taps++;
 
-	uint8_t *idcode_buffer = malloc(max_taps * 4);
+	uint8_t *idcode_buffer = calloc(4, max_taps);
 	if (idcode_buffer == NULL)
 		return ERROR_JTAG_INIT_FAILED;
 

@@ -113,7 +113,7 @@ static void ls1_sap_set_instr(struct jtag_tap *tap, uint32_t new_instr)
 static void ls1_sap_set_addr_high(struct jtag_tap *tap, uint16_t addr_high)
 {
 	struct scan_field field;
-	uint8_t buf[2];
+	uint8_t buf[2] = { 0 };
 
 	ls1_sap_set_instr(tap, 0x21);
 
@@ -130,7 +130,7 @@ static void ls1_sap_memory_cmd(struct jtag_tap *tap, uint32_t address,
 			       int32_t size, bool rnw)
 {
 	struct scan_field field;
-	uint8_t cmd[8];
+	uint8_t cmd[8] = { 0 };
 
 	ls1_sap_set_instr(tap, 0x24);
 
