@@ -303,6 +303,11 @@ struct reg_cache *etm_build_reg_cache(struct target *target,
 	reg_list = calloc(128, sizeof(struct reg));
 	arch_info = calloc(128, sizeof(struct etm_reg));
 
+	if (reg_cache == NULL || reg_list == NULL || arch_info == NULL) {
+		LOG_ERROR("No memory");
+		goto fail;
+	}
+
 	/* fill in values for the reg cache */
 	reg_cache->name = "etm registers";
 	reg_cache->next = NULL;
@@ -498,6 +503,7 @@ static int etm_read_reg_w_check(struct reg *reg,
 	uint8_t *check_value, uint8_t *check_mask)
 {
 	struct etm_reg *etm_reg = reg->arch_info;
+	assert(etm_reg);
 	const struct etm_reg_info *r = etm_reg->reg_info;
 	uint8_t reg_addr = r->addr & 0x7f;
 	struct scan_field fields[3];
