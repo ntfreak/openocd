@@ -3227,7 +3227,6 @@ COMMAND_HANDLER(xscale_handle_vector_catch_command)
 	if (retval != ERROR_OK)
 		return retval;
 
-	dcsr_value = buf_get_u32(dcsr_reg->value, 0, 32);
 	if (CMD_ARGC > 0) {
 		if (CMD_ARGC == 1) {
 			if (strcmp(CMD_ARGV[0], "all") == 0) {
