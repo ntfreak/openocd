@@ -1,0 +1,8 @@
+Verified+1: jenkins
+Code-Review+1: Karl Palsson <karlp@tweak.net.au>
+Code-Review+2: Tomas Vanek <vanekt@fbl.cz>
+Submitted-by: Tomas Vanek <vanekt@fbl.cz>
+Submitted-at: Thu, 02 Jan 2020 21:20:29 +0000
+Reviewed-on: http://openocd.zylin.com/5273
+Project: openocd
+Branch: refs/heads/master
