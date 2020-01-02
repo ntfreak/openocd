@@ -1,0 +1,8 @@
+Verified+1: jenkins
+Code-Review+1: Caleb Szalacinski <contact@skiboy.net>
+Code-Review+2: Tomas Vanek <vanekt@fbl.cz>
+Submitted-by: Tomas Vanek <vanekt@fbl.cz>
+Submitted-at: Thu, 02 Jan 2020 21:17:00 +0000
+Reviewed-on: http://openocd.zylin.com/5297
+Project: openocd
+Branch: refs/heads/master
