@@ -1688,6 +1688,23 @@ COMMAND_HANDLER(cmsis_dap_handle_cmd_command)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(cmsis_dap_handle_led_command)
+{
+	unsigned long int led, state;
+
+	if (CMD_ARGC != 2)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	led = strtoul(CMD_ARGV[0], NULL, 0);
+	state = strtoul(CMD_ARGV[1], NULL, 0);
+	if (led > 255 || state > 255) {
+		LOG_ERROR("Value out of range");
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	}
+
+	return cmsis_dap_cmd_DAP_LED(led, state);
+}
+
 COMMAND_HANDLER(cmsis_dap_handle_vid_pid_command)
 {
 	if (CMD_ARGC > MAX_USB_IDS * 2) {
@@ -1753,6 +1770,13 @@ static const struct command_registration cmsis_dap_subcommand_handlers[] = {
 		.mode = COMMAND_EXEC,
 		.usage = "",
 		.help = "issue cmsis-dap command",
+	},
+	{
+		.name = "led",
+		.handler = &cmsis_dap_handle_led_command,
+		.mode = COMMAND_ANY,
+		.usage = "<led_N> <value>",
+		.help = "set led value",
 	},
 	COMMAND_REGISTRATION_DONE
 };
