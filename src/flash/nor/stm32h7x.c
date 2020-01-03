@@ -169,6 +169,9 @@ FLASH_BANK_COMMAND_HANDLER(stm32x_flash_bank_command)
 	stm32x_info->probed = 0;
 	stm32x_info->user_bank_size = bank->size;
 
+	bank->write_start_alignment = FLASH_BLOCK_SIZE;
+	bank->write_end_alignment = FLASH_BLOCK_SIZE;
+
 	return ERROR_OK;
 }
 
@@ -603,17 +606,17 @@ static int stm32x_write(struct flash_bank *bank, const uint8_t *buffer,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (offset % FLASH_BLOCK_SIZE) {
-		LOG_WARNING("offset 0x%" PRIx32 " breaks required 32-byte alignment", offset);
-		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
-	}
+	/* should be enforced via bank->write_start_alignment */
+	assert(!(offset % FLASH_BLOCK_SIZE));
+
+	/* should be enforced via bank->write_end_alignment */
+	assert(!(count % FLASH_BLOCK_SIZE));
 
 	retval = stm32x_unlock_reg(bank);
 	if (retval != ERROR_OK)
 		goto flash_lock;
 
 	uint32_t blocks_remaining = count / FLASH_BLOCK_SIZE;
-	uint32_t bytes_remaining = count % FLASH_BLOCK_SIZE;
 
 	/* multiple words (32-bytes) to be programmed in block */
 	if (blocks_remaining) {
@@ -658,25 +661,6 @@ static int stm32x_write(struct flash_bank *bank, const uint8_t *buffer,
 		buffer += FLASH_BLOCK_SIZE;
 		address += FLASH_BLOCK_SIZE;
 		blocks_remaining--;
-	}
-
-	if (bytes_remaining) {
-		retval = stm32x_write_flash_reg(bank, FLASH_CR, FLASH_PG | FLASH_PSIZE_64);
-		if (retval != ERROR_OK)
-			goto flash_lock;
-
-		retval = target_write_buffer(target, address, bytes_remaining, buffer);
-		if (retval != ERROR_OK)
-			goto flash_lock;
-
-		/* Force Write buffer of FLASH_BLOCK_SIZE = 32 bytes */
-		retval = stm32x_write_flash_reg(bank, FLASH_CR, FLASH_PG | FLASH_PSIZE_64 | FLASH_FW);
-		if (retval != ERROR_OK)
-			goto flash_lock;
-
-		retval = stm32x_wait_flash_op_queue(bank, FLASH_WRITE_TIMEOUT);
-		if (retval != ERROR_OK)
-			goto flash_lock;
 	}
 
 flash_lock:
