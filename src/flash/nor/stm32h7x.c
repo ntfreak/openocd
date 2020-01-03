@@ -169,6 +169,8 @@ FLASH_BANK_COMMAND_HANDLER(stm32x_flash_bank_command)
 	stm32x_info->probed = 0;
 	stm32x_info->user_bank_size = bank->size;
 
+	bank->write_start_alignment = FLASH_BLOCK_SIZE;
+
 	return ERROR_OK;
 }
 
@@ -603,10 +605,8 @@ static int stm32x_write(struct flash_bank *bank, const uint8_t *buffer,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (offset % FLASH_BLOCK_SIZE) {
-		LOG_WARNING("offset 0x%" PRIx32 " breaks required 32-byte alignment", offset);
-		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
-	}
+	/* should be enforced via bank->write_start_alignment */
+	assert(!(offset % FLASH_BLOCK_SIZE));
 
 	retval = stm32x_unlock_reg(bank);
 	if (retval != ERROR_OK)
