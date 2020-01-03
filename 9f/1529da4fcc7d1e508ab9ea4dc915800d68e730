@@ -1,0 +1,8 @@
+Verified+1: jenkins
+Code-Review+1: Andreas Bolsch <hyphen0break@gmail.com>
+Code-Review+2: Tomas Vanek <vanekt@fbl.cz>
+Submitted-by: Tomas Vanek <vanekt@fbl.cz>
+Submitted-at: Fri, 03 Jan 2020 10:28:45 +0000
+Reviewed-on: http://openocd.zylin.com/4926
+Project: openocd
+Branch: refs/heads/master
