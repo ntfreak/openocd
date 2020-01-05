@@ -3025,7 +3025,7 @@ static int cfi_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int get_cfi_info(struct flash_bank *bank, char *buf, int buf_size)
+static int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size)
 {
 	int printed;
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
@@ -3136,6 +3136,6 @@ const struct flash_driver cfi_flash = {
 	/* FIXME: access flash at bus_width size */
 	.erase_check = default_flash_blank_check,
 	.protect_check = cfi_protect_check,
-	.info = get_cfi_info,
+	.info = cfi_get_info,
 	.free_driver_priv = default_flash_free_driver_priv,
 };
