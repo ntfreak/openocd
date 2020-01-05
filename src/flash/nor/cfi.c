@@ -132,17 +132,17 @@ static inline uint32_t flash_address(struct flash_bank *bank, int sector, uint32
 }
 
 static int cfi_target_write_memory(struct flash_bank *bank, target_addr_t addr,
-				   uint32_t size, uint32_t count,
-				   const uint8_t *buffer)
+				   uint32_t count, const uint8_t *buffer)
 {
-	return target_write_memory(bank->target, addr, size, count, buffer);
+	return target_write_memory(bank->target, addr, bank->bus_width,
+				   count, buffer);
 }
 
 static int cfi_target_read_memory(struct flash_bank *bank, target_addr_t addr,
-				  uint32_t size, uint32_t count,
-				  uint8_t *buffer)
+				  uint32_t count, uint8_t *buffer)
 {
-	return target_read_memory(bank->target, addr, size, count, buffer);
+	return target_read_memory(bank->target, addr, bank->bus_width,
+				  count, buffer);
 }
 
 static void cfi_command(struct flash_bank *bank, uint8_t cmd, uint8_t *cmd_buf)
@@ -170,7 +170,7 @@ static int cfi_send_command(struct flash_bank *bank, uint8_t cmd, uint32_t addre
 	uint8_t command[CFI_MAX_BUS_WIDTH];
 
 	cfi_command(bank, cmd, command);
-	return cfi_target_write_memory(bank, address, bank->bus_width, 1, command);
+	return cfi_target_write_memory(bank, address, 1, command);
 }
 
 /* read unsigned 8-bit value from the bank
@@ -184,7 +184,7 @@ static int cfi_query_u8(struct flash_bank *bank, int sector, uint32_t offset, ui
 
 	int retval;
 	retval = cfi_target_read_memory(bank, flash_address(bank, sector, offset),
-			bank->bus_width, 1, data);
+					1, data);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -208,7 +208,7 @@ static int cfi_get_u8(struct flash_bank *bank, int sector, uint32_t offset, uint
 
 	int retval;
 	retval = cfi_target_read_memory(bank, flash_address(bank, sector, offset),
-			bank->bus_width, 1, data);
+					1, data);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -237,13 +237,13 @@ static int cfi_query_u16(struct flash_bank *bank, int sector, uint32_t offset, u
 		uint8_t i;
 		for (i = 0; i < 2; i++) {
 			retval = cfi_target_read_memory(bank, flash_address(bank, sector, offset + i),
-					bank->bus_width, 1, &data[i * bank->bus_width]);
+							1, &data[i * bank->bus_width]);
 			if (retval != ERROR_OK)
 				return retval;
 		}
 	} else {
 		retval = cfi_target_read_memory(bank, flash_address(bank, sector, offset),
-				bank->bus_width, 2, data);
+						2, data);
 		if (retval != ERROR_OK)
 			return retval;
 	}
@@ -266,13 +266,13 @@ static int cfi_query_u32(struct flash_bank *bank, int sector, uint32_t offset, u
 		uint8_t i;
 		for (i = 0; i < 4; i++) {
 			retval = cfi_target_read_memory(bank, flash_address(bank, sector, offset + i),
-					bank->bus_width, 1, &data[i * bank->bus_width]);
+							1, &data[i * bank->bus_width]);
 			if (retval != ERROR_OK)
 				return retval;
 		}
 	} else {
 		retval = cfi_target_read_memory(bank, flash_address(bank, sector, offset),
-				bank->bus_width, 4, data);
+						4, data);
 		if (retval != ERROR_OK)
 			return retval;
 	}
@@ -2006,7 +2006,7 @@ static int cfi_intel_write_word(struct flash_bank *bank, uint8_t *word, uint32_t
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = cfi_target_write_memory(bank, address, bank->bus_width, 1, word);
+	retval = cfi_target_write_memory(bank, address, 1, word);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -2086,7 +2086,7 @@ static int cfi_intel_write_words(struct flash_bank *bank, const uint8_t *word,
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = cfi_target_write_memory(bank, address, bank->bus_width, bufferwsize, word);
+	retval = cfi_target_write_memory(bank, address, bufferwsize, word);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -2126,7 +2126,7 @@ static int cfi_spansion_write_word(struct flash_bank *bank, uint8_t *word, uint3
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = cfi_target_write_memory(bank, address, bank->bus_width, 1, word);
+	retval = cfi_target_write_memory(bank, address, 1, word);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -2187,7 +2187,7 @@ static int cfi_spansion_write_words(struct flash_bank *bank, const uint8_t *word
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = cfi_target_write_memory(bank, address, bank->bus_width, bufferwsize, word);
+	retval = cfi_target_write_memory(bank, address, bufferwsize, word);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -2288,7 +2288,7 @@ static int cfi_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset, u
 		LOG_INFO("Fixup %d unaligned read head bytes", align);
 
 		/* read a complete word from flash */
-		retval = cfi_target_read_memory(bank, read_p, bank->bus_width, 1, current_word);
+		retval = cfi_target_read_memory(bank, read_p, 1, current_word);
 		if (retval != ERROR_OK)
 			return retval;
 
@@ -2301,7 +2301,7 @@ static int cfi_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset, u
 
 	align = count / bank->bus_width;
 	if (align) {
-		retval = cfi_target_read_memory(bank, read_p, bank->bus_width, align, buffer);
+		retval = cfi_target_read_memory(bank, read_p, align, buffer);
 		if (retval != ERROR_OK)
 			return retval;
 
@@ -2314,7 +2314,7 @@ static int cfi_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset, u
 		LOG_INFO("Fixup %" PRIu32 " unaligned read tail bytes", count);
 
 		/* read a complete word from flash */
-		retval = cfi_target_read_memory(bank, read_p, bank->bus_width, 1, current_word);
+		retval = cfi_target_read_memory(bank, read_p, 1, current_word);
 		if (retval != ERROR_OK)
 			return retval;
 
@@ -2358,7 +2358,7 @@ static int cfi_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t of
 		LOG_INFO("Fixup %d unaligned head bytes", align);
 
 		/* read a complete word from flash */
-		retval = cfi_target_read_memory(bank, write_p, bank->bus_width, 1, current_word);
+		retval = cfi_target_read_memory(bank, write_p, 1, current_word);
 		if (retval != ERROR_OK)
 			return retval;
 
@@ -2478,7 +2478,7 @@ static int cfi_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t of
 		LOG_INFO("Fixup %" PRId32 " unaligned tail bytes", count);
 
 		/* read a complete word from flash */
-		retval = cfi_target_read_memory(bank, write_p, bank->bus_width, 1, current_word);
+		retval = cfi_target_read_memory(bank, write_p, 1, current_word);
 		if (retval != ERROR_OK)
 			return retval;
 
@@ -2629,11 +2629,11 @@ static int cfi_probe(struct flash_bank *bank)
 		return retval;
 
 	retval = cfi_target_read_memory(bank, flash_address(bank, 0, 0x00),
-			bank->bus_width, 1, value_buf0);
+					1, value_buf0);
 	if (retval != ERROR_OK)
 		return retval;
 	retval = cfi_target_read_memory(bank, flash_address(bank, 0, 0x01),
-			bank->bus_width, 1, value_buf1);
+					1, value_buf1);
 	if (retval != ERROR_OK)
 		return retval;
 	switch (bank->chip_width) {
