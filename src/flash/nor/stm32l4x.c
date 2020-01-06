@@ -169,6 +169,10 @@ static const struct stm32l4_rev stm32_470_revs[] = {
 	{ 0x1000, "A" }, { 0x1001, "Z" }, { 0x1003, "Y" }, { 0x100F, "W" },
 };
 
+static const struct stm32l4_rev stm32_495_revs[] = {
+	{ 0x2001, "2.1" },
+};
+
 static const struct stm32l4_part_info stm32l4_parts[] = {
 	{
 	  .id                    = 0x415,
@@ -228,6 +232,16 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 2048,
 	  .has_dual_bank         = true,
 	  .flash_regs_base       = 0x40022000,
+	  .fsize_addr            = 0x1FFF75E0,
+	},
+	{
+	  .id                    = 0x495,
+	  .revs                  = stm32_495_revs,
+	  .num_revs              = ARRAY_SIZE(stm32_495_revs),
+	  .device_str            = "STM32WB5x",
+	  .max_flash_size_kb     = 1024,
+	  .has_dual_bank         = false,
+	  .flash_regs_base       = 0x58004000,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 };
@@ -714,7 +728,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 	}
 
 	if (!stm32l4_info->part_info) {
-		LOG_WARNING("Cannot identify target as an STM32L4 family device.");
+		LOG_WARNING("Cannot identify target as an STM32 L4 or WB family device.");
 		return ERROR_FAIL;
 	}
 
@@ -804,6 +818,12 @@ static int stm32l4_probe(struct flash_bank *bank)
 			stm32l4_info->bank1_sectors = num_pages / 2;
 		}
 		break;
+	case 0x495:
+		/* single bank flash */
+		page_size = 4096;
+		num_pages = flash_size_in_kb / 4;
+		stm32l4_info->bank1_sectors = num_pages;
+		break;
 	default:
 		LOG_ERROR("unsupported device");
 		return ERROR_FAIL;
@@ -881,7 +901,7 @@ static int get_stm32l4_info(struct flash_bank *bank, char *buf, int buf_size)
 				part_info->device_str, rev_id);
 		return ERROR_OK;
 	} else {
-		snprintf(buf, buf_size, "Cannot identify target as a STM32L4x device");
+		snprintf(buf, buf_size, "Cannot identify target as an STM32 L4 or WB device");
 		return ERROR_FAIL;
 	}
 
