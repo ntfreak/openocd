@@ -78,7 +78,7 @@
 /*
  * ST-Link/V1, ST-Link/V2 and ST-Link/V2.1 are full-speed USB devices and
  * this limits the bulk packet size and the 8bit read/writes to max 64 bytes.
- * STLINK-V3 is a high speed USB 2.0 and the limit is 512 bytes.
+ * STLINK-V3 is a high speed USB 2.0 and the limit is 512 bytes from FW V3J6.
  */
 #define STLINK_MAX_RW8		(64)
 #define STLINKV3_MAX_RW8	(512)
@@ -317,6 +317,7 @@ enum stlink_mode {
 #define STLINK_F_QUIRK_JTAG_DP_READ     BIT(6)
 #define STLINK_F_HAS_AP_INIT            BIT(7)
 #define STLINK_F_HAS_DPBANKSEL          BIT(8)
+#define STLINK_F_HAS_RW8_512BYTES       BIT(9)
 
 /* aliases */
 #define STLINK_F_HAS_TARGET_VOLT        STLINK_F_HAS_TRACE
@@ -367,7 +368,7 @@ static unsigned int stlink_usb_block(void *handle)
 
 	assert(handle != NULL);
 
-	if (h->version.stlink == 3)
+	if (h->version.flags & STLINK_F_HAS_RW8_512BYTES)
 		return STLINKV3_MAX_RW8;
 	else
 		return STLINK_MAX_RW8;
@@ -1059,6 +1060,10 @@ static int stlink_usb_version(void *handle)
 		/* Banked regs (DPv1 & DPv2) support from V3J2 */
 		if (h->version.jtag >= 2)
 			flags |= STLINK_F_HAS_DPBANKSEL;
+
+		/* 8bit read/write max packet size 512 bytes from V3J6 */
+		if (h->version.jtag >= 6)
+			flags |= STLINK_F_HAS_RW8_512BYTES;
 
 		break;
 	default:
