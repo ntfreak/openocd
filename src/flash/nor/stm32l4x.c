@@ -51,12 +51,17 @@
  * RM0394 devices have a single bank only.
  *
  * RM0432 devices have single and dual bank operating modes.
- * The FLASH size is 1Mbyte or 2Mbyte.
+ *  - for STM32L4R/Sxx the FLASH size is 2Mbyte or 1Mbyte.
+ *  - for STM32L4P/Q5x the FLASH size is 1Mbyte or 512Kbyte.
  * Bank page (sector) size is 4Kbyte (dual mode) or 8Kbyte (single mode).
  *
  * Bank mode is controlled by two different bits in option bytes register.
- * In 2M FLASH devices bit 22 (DBANK) controls Dual Bank mode.
- * In 1M FLASH devices bit 21 (DB1M) controls Dual Bank mode.
+ *  - for STM32L4R/Sxx
+ *    In 2M FLASH devices bit 22 (DBANK) controls Dual Bank mode.
+ *    In 1M FLASH devices bit 21 (DB1M) controls Dual Bank mode.
+ *  - for STM32L4P5/Q5x
+ *    In 1M FLASH devices bit 22 (DBANK) controls Dual Bank mode.
+ *    In 512K FLASH devices bit 21 (DB512K) controls Dual Bank mode.
  *
  */
 
@@ -169,6 +174,10 @@ static const struct stm32l4_rev stm32_470_revs[] = {
 	{ 0x1000, "A" }, { 0x1001, "Z" }, { 0x1003, "Y" }, { 0x100F, "W" },
 };
 
+static const struct stm32l4_rev stm32_471_revs[] = {
+	{ 0x1000, "1" },
+};
+
 static const struct stm32l4_rev stm32_495_revs[] = {
 	{ 0x2001, "2.1" },
 };
@@ -230,6 +239,16 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_470_revs),
 	  .device_str            = "STM32L4R/L4Sxx",
 	  .max_flash_size_kb     = 2048,
+	  .has_dual_bank         = true,
+	  .flash_regs_base       = 0x40022000,
+	  .fsize_addr            = 0x1FFF75E0,
+	},
+	{
+	  .id                    = 0x471,
+	  .revs                  = stm32_471_revs,
+	  .num_revs              = ARRAY_SIZE(stm32_471_revs),
+	  .device_str            = "STM32L4P5/L4Q5x",
+	  .max_flash_size_kb     = 1024,
 	  .has_dual_bank         = true,
 	  .flash_regs_base       = 0x40022000,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -801,17 +820,22 @@ static int stm32l4_probe(struct flash_bank *bank)
 		stm32l4_info->bank1_sectors = num_pages;
 		break;
 	case 0x470:
+	case 0x471:
 		/* STM32L4R/S can be single/dual bank:
 		 *   if size = 2M check DBANK bit(22)
 		 *   if size = 1M check DB1M bit(21)
+		 * STM32L4P/Q can be single/dual bank
+		 *   if size = 1M check DBANK bit(22)
+		 *   if size = 512K check DB512K bit(21)
 		 * in single bank configuration the page size is 8K
 		 * else (dual bank) the page size is 4K without gap between banks
 		 */
 		page_size = 8192;
 		num_pages = flash_size_in_kb / 8;
 		stm32l4_info->bank1_sectors = num_pages;
-		if ((flash_size_in_kb == 2048 && (options & BIT(22))) ||
-			(flash_size_in_kb == 1024 && (options & BIT(21)))) {
+		const bool use_dbank_bit = flash_size_in_kb == part_info->max_flash_size_kb;
+		if ((use_dbank_bit && (options & BIT(22))) ||
+			(!use_dbank_bit && (options & BIT(21)))) {
 			stm32l4_info->dual_bank_mode = true;
 			page_size = 4096;
 			num_pages = flash_size_in_kb / 4;
