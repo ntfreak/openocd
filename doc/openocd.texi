@@ -5793,15 +5793,7 @@ Note that when users ask to erase all the sectors of the flash, a mass erase com
 each single sector one by one.
 
 @example
-flash erase_sector 0 0 79 # It will perform a mass erase on BlueNRG-1
-@end example
-
-@example
-flash erase_sector 0 0 127 # It will perform a mass erase on BlueNRG-2
-@end example
-
-@example
-flash erase_sector 0 0 127 # It will perform a mass erase on BlueNRG-LP
+flash erase_sector 0 0 last # It will perform a mass erase
 @end example
 
 Triggering a mass erase is also useful when users want to disable readout protection.
