@@ -38,7 +38,13 @@
 #include <jtag/commands.h>
 #include <jtag/tcl.h>
 
+#define CMSIS_DAP_V2 1
+
+#if CMSIS_DAP_V2
+#include "libusb_common.h"
+#else
 #include <hidapi.h>
+#endif
 
 /*
  * See CMSIS-DAP documentation:
@@ -163,6 +169,10 @@ static const char * const info_caps_str[] = {
 /* max clock speed (kHz) */
 #define DAP_MAX_CLOCK             5000
 
+#if CMSIS_DAP_V2
+typedef struct jtag_libusb_device_handle hid_device;
+#endif
+
 struct cmsis_dap {
 	hid_device *dev_handle;
 	uint16_t packet_size;
@@ -223,6 +233,95 @@ static uint8_t output_pins = SWJ_PIN_SRST | SWJ_PIN_TRST;
 
 static struct cmsis_dap *cmsis_dap_handle;
 
+#if CMSIS_DAP_V2
+
+#define USB_EP_IN  0x81
+#define USB_EP_OUT 0x01
+#define USB_INTERF 4
+#define USB_CONF   0
+
+static void hid_close(hid_device *dev)
+{
+	jtag_libusb_close(dev);
+}
+
+static int hid_exit(void)
+{
+	return 0;
+}
+
+static int hid_read_timeout(hid_device *dev, unsigned char *data, size_t length, int milliseconds)
+{
+	return jtag_libusb_bulk_read(dev, USB_EP_IN, (char *)data, length, milliseconds);
+}
+
+static int hid_write(hid_device *dev, const unsigned char *data, size_t length)
+{
+	/* skip the report number */
+	return jtag_libusb_bulk_write(dev, USB_EP_OUT, (char *)data + 1, length - 1, 1000);
+}
+
+static const wchar_t *hid_error(hid_device *dev)
+{
+	return L"";
+}
+
+static int cmsis_dap_usb_open(void)
+{
+	hid_device *dev = NULL;
+	char *serial = NULL; /* FIXME: convert wchar_t *cmsis_dap_serial */
+
+	if (jtag_libusb_open(cmsis_dap_vid, cmsis_dap_pid, serial, &dev) != ERROR_OK) {
+		LOG_ERROR("open failed");
+		return ERROR_FAIL;
+	}
+
+	jtag_libusb_set_configuration(dev, USB_CONF);
+
+	if (jtag_libusb_claim_interface(dev, USB_INTERF) != ERROR_OK) {
+		LOG_DEBUG("claim interface failed");
+		goto error;
+	}
+
+	/* Dummy empty read required to init the FW communication */
+	jtag_libusb_bulk_read(dev, USB_EP_IN, NULL, 0, 10);
+
+	struct cmsis_dap *dap = malloc(sizeof(struct cmsis_dap));
+	if (dap == NULL) {
+		LOG_ERROR("unable to allocate memory");
+		return ERROR_FAIL;
+	}
+
+	dap->dev_handle = dev;
+	dap->caps = 0;
+	dap->mode = 0;
+
+	cmsis_dap_handle = dap;
+
+	/* allocate default packet buffer, may be changed later.
+	 * currently with HIDAPI we have no way of getting the output report length
+	 * without this info we cannot communicate with the adapter.
+	 * For the moment we ahve to hard code the packet size */
+
+	int packet_size = PACKET_SIZE;
+
+	cmsis_dap_handle->packet_buffer = malloc(packet_size);
+	cmsis_dap_handle->packet_size = packet_size;
+
+	if (cmsis_dap_handle->packet_buffer == NULL) {
+		LOG_ERROR("unable to allocate memory");
+		free(cmsis_dap_handle);
+		cmsis_dap_handle = NULL;
+		goto error;
+	}
+
+	return ERROR_OK;
+
+error:
+	jtag_libusb_close(dev);
+	return ERROR_FAIL;
+}
+#else
 static int cmsis_dap_usb_open(void)
 {
 	hid_device *dev = NULL;
@@ -348,6 +447,7 @@ static int cmsis_dap_usb_open(void)
 
 	return ERROR_OK;
 }
+#endif
 
 static void cmsis_dap_usb_close(struct cmsis_dap *dap)
 {
