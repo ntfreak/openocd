@@ -609,7 +609,7 @@ static int nrf5_info(struct flash_bank *bank, char *buf, int buf_size)
 				variant, &variant[2]);
 
 	} else {
-		res = snprintf(buf, buf_size, "nRF51xxx (HWID 0x%04" PRIx16 ")",
+		res = snprintf(buf, buf_size, "nRF51xxx (HWID 0x%08" PRIx32 ")",
 				chip->hwid);
 	}
 	if (res <= 0)
