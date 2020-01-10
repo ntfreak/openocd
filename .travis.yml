@@ -1,0 +1,91 @@
+# SPDX-License-Identifier: GPL-2.0+
+# Copyright Marek Vasut <marex@denx.de>
+
+# OpenOCD on Travis CI - https://travis-ci.org/
+
+sudo: required
+dist: bionic
+
+arch:
+  - amd64
+  - arm64
+  - ppc64le
+  - s390x
+
+addons:
+  apt:
+    sources:
+      - sourceline: 'ppa:ubuntu-toolchain-r/test'
+      - sourceline: 'deb https://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main'
+        key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+    packages:
+      - libftdi-dev
+      - libhidapi-dev
+      - libjaylink-dev
+
+env:
+  - CC=gcc-9
+  - CC=clang-9
+
+language: c
+
+git:
+  depth: 1
+  autocrlf: input
+
+script:
+  - $mingw64 ${CC} --version
+  - $mingw64 env
+  - $mingw64 ./bootstrap
+  - $mingw64 ./configure
+  - $mingw64 make
+
+before_install:
+  - |-
+    case $TRAVIS_OS_NAME in
+      linux)
+        sudo apt install ${CC} libusb-1.0-0-dev
+        ;;
+      osx)
+        brew install libtool automake libusb libusb-compat hidapi libftdi
+        ;;
+      windows)
+        [[ ! -f C:/tools/msys64/msys2_shell.cmd ]] && rm -rf C:/tools/msys64
+        choco uninstall -y mingw
+        choco upgrade --no-progress -y msys2
+        export msys2='cmd //C RefreshEnv.cmd '
+        export msys2+='& set MSYS=winsymlinks:nativestrict '
+        export msys2+='& C:\\tools\\msys64\\msys2_shell.cmd -defterm -no-start'
+        export mingw64="$msys2 -mingw64 -full-path -here -c \$\* --"
+        export msys2+=" -msys2 -c \$\* --"
+        $msys2 pacman --sync --noconfirm --needed mingw-w64-x86_64-toolchain autoconf autoconf-archive automake automake-wrapper binutils gcc gettext git libtool m4 make pkg-config tcl texinfo mingw-w64-x86_64-libusb mingw-w64-x86_64-libusb-compat-git mingw-w64-x86_64-libjaylink-git mingw-w64-x86_64-libftdi mingw-w64-x86_64-hidapi mingw-w64-x86_64-clang
+        ## FIXME: Also build for i686?
+        ## Install more MSYS2 packages from https://packages.msys2.org/base here
+        taskkill //IM gpg-agent.exe //F  # https://travis-ci.community/t/4967
+        export PATH=/C/tools/msys64/mingw64/bin:$PATH
+        export MAKE=mingw32-make  # so that Autotools can find it
+        ;;
+    esac
+
+before_cache:
+- |-
+    case $TRAVIS_OS_NAME in
+      windows)
+        # https://unix.stackexchange.com/a/137322/107554
+        $msys2 pacman --sync --clean --noconfirm
+        ;;
+    esac
+
+cache:
+    directories:
+    - $HOME/AppData/Local/Temp/chocolatey
+    - /C/tools/msys64
+
+matrix:
+  include:
+    - os: osx
+      env:
+        - CC=clang
+    - os: windows
+      env:
+        - CC=gcc
