@@ -33,7 +33,7 @@
 static struct libusb_context *jtag_libusb_context; /**< Libusb context **/
 static libusb_device **devs; /**< The usb device list **/
 
-static bool jtag_libusb_match(struct libusb_device_descriptor *dev_desc,
+static bool jtag_libusb_match_ids(struct libusb_device_descriptor *dev_desc,
 		const uint16_t vids[], const uint16_t pids[])
 {
 	for (unsigned i = 0; vids[i]; i++) {
@@ -98,6 +98,72 @@ static bool string_descriptor_equal(libusb_device_handle *device, uint8_t str_in
 	return matched;
 }
 
+/*
+ * Compute ST-Link serial number from the device descriptor
+ * "old" ST-Link DFU returns 12 8-bits values, separated by zeros (wrong unicode encoding)
+ */
+
+static int stlink_compute_serial(unsigned char *desc_serial, char *serial)
+{
+	int i, len = desc_serial[0];
+
+	if (len == 26) /* work-around for old ST-Links*/
+		for (i = 0; i < 12; i++)
+			sprintf((char *) &(serial[i*2]), "%02hX", (unsigned short) desc_serial[2 * (i+1)]);
+	else if (len == 50)
+		for (i = 0; i < 24; i++)
+			serial[i] = desc_serial[2 * (i + 1)];
+	else {
+		LOG_ERROR("unexpected serial length (%d) in descriptor", len);
+		return ERROR_FAIL;
+	}
+
+	serial[24] = '\0';
+
+	return ERROR_OK;
+}
+
+/* Returns true if the serial in the descriptor matches the given serial */
+static bool jtag_libusb_match_serial(libusb_device_handle *device,
+		struct libusb_device_descriptor *dev_desc, const char *user_serial)
+{
+	int retval;
+	bool matched;
+	char device_serial[256+1]; /* Max size of string descriptor */
+
+	if (dev_desc->iSerialNumber == 0)
+		return false;
+
+	if (dev_desc->idVendor == 0x0483) { /* work around for ST-Link adapter */
+		char device_desc_serial[256+1];
+		retval = libusb_get_string_descriptor(device, dev_desc->iSerialNumber, 0x409,
+					(unsigned char *)device_desc_serial, 64);
+		if (retval < 0) {
+			LOG_ERROR("libusb_get_string_descriptor() failed with %d", retval);
+			return false;
+		}
+		if (stlink_compute_serial((unsigned char *)device_desc_serial, device_serial) != ERROR_OK)
+			return false;
+	} else {
+		retval = libusb_get_string_descriptor_ascii(device, dev_desc->iSerialNumber,
+					(unsigned char *)device_serial, sizeof(device_serial)-1);
+		if (retval < 0) {
+			LOG_ERROR("libusb_get_string_descriptor_ascii() failed with %d", retval);
+			return false;
+		}
+	}
+
+	/* Null terminate descriptor string in case it needs to be logged. */
+	device_serial[sizeof(device_serial)-1] = '\0';
+
+	matched = strncmp(user_serial, device_serial, sizeof(device_serial)) == 0;
+	if (!matched)
+		LOG_DEBUG("Device serial number '%s' doesn't match requested serial '%s'",
+			device_serial, user_serial);
+
+	return matched;
+}
+
 int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 		const char *serial,
 		struct jtag_libusb_device_handle **out)
@@ -118,7 +184,7 @@ int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 		if (libusb_get_device_descriptor(devs[idx], &dev_desc) != 0)
 			continue;
 
-		if (!jtag_libusb_match(&dev_desc, vids, pids))
+		if (!jtag_libusb_match_ids(&dev_desc, vids, pids))
 			continue;
 
 		if (jtag_usb_get_location() && !jtag_libusb_location_equal(devs[idx]))
@@ -133,8 +199,7 @@ int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 		}
 
 		/* Device must be open to use libusb_get_string_descriptor_ascii. */
-		if (serial != NULL &&
-				!string_descriptor_equal(libusb_handle, dev_desc.iSerialNumber, serial)) {
+		if (serial != NULL && !jtag_libusb_match_serial(libusb_handle, &dev_desc, serial)) {
 			serial_mismatch = true;
 			libusb_close(libusb_handle);
 			continue;
