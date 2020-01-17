@@ -466,16 +466,17 @@ static const struct command_registration xlnx_pcie_xvc_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-static const char * const xlnx_pcie_xvc_transports[] = { "jtag", NULL };
-
-struct jtag_interface xlnx_pcie_xvc_interface = {
-	.name = "xlnx_pcie_xvc",
-	.commands = xlnx_pcie_xvc_command_handlers,
-	.transports = xlnx_pcie_xvc_transports,
+static struct jtag_interface xlnx_pcie_xvc_interface = {
 	.execute_queue = &xlnx_pcie_xvc_execute_queue,
-	.speed = NULL,
-	.speed_div = NULL,
-	.khz = NULL,
+};
+
+struct adapter_driver xlnx_pcie_xvc_adapter_driver = {
+	.name = "xlnx_pcie_xvc",
+	.transports = jtag_only,
+	.commands = xlnx_pcie_xvc_command_handlers,
+
 	.init = &xlnx_pcie_xvc_init,
 	.quit = &xlnx_pcie_xvc_quit,
+
+	.jtag_ops = &xlnx_pcie_xvc_interface,
 };

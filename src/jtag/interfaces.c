@@ -118,7 +118,7 @@ extern struct adapter_driver opendous_adapter_driver;
 extern struct adapter_driver sysfsgpio_adapter_driver;
 #endif
 #if BUILD_XLNX_PCIE_XVC == 1
-extern struct jtag_interface xlnx_pcie_xvc_interface;
+extern struct adapter_driver xlnx_pcie_xvc_adapter_driver;
 #endif
 #if BUILD_AICE == 1
 extern struct adapter_driver aice_adapter_driver;
@@ -229,7 +229,7 @@ struct adapter_driver *adapter_drivers[] = {
 		&sysfsgpio_adapter_driver,
 #endif
 #if BUILD_XLNX_PCIE_XVC == 1
-		&xlnx_pcie_xvc_interface,
+		&xlnx_pcie_xvc_adapter_driver,
 #endif
 #if BUILD_AICE == 1
 		&aice_adapter_driver,
