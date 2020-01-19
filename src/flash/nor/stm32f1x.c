@@ -116,7 +116,7 @@ struct stm32x_options {
 struct stm32x_flash_bank {
 	struct stm32x_options option_bytes;
 	int ppage_size;
-	int probed;
+	bool probed;
 
 	bool has_dual_banks;
 	/* used to access dual flash bank stm32xl */
@@ -145,7 +145,7 @@ FLASH_BANK_COMMAND_HANDLER(stm32x_flash_bank_command)
 	stm32x_info = malloc(sizeof(struct stm32x_flash_bank));
 
 	bank->driver_priv = stm32x_info;
-	stm32x_info->probed = 0;
+	stm32x_info->probed = false;
 	stm32x_info->has_dual_banks = false;
 	stm32x_info->can_load_options = false;
 	stm32x_info->register_base = FLASH_REG_BASE_B0;
@@ -368,7 +368,6 @@ static int stm32x_protect_check(struct flash_bank *bank)
 static int stm32x_erase(struct flash_bank *bank, int first, int last)
 {
 	struct target *target = bank->target;
-	int i;
 
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -386,7 +385,7 @@ static int stm32x_erase(struct flash_bank *bank, int first, int last)
 	if (retval != ERROR_OK)
 		return retval;
 
-	for (i = first; i <= last; i++) {
+	for (int i = first; i <= last; i++) {
 		retval = target_write_u32(target, stm32x_get_flash_reg(bank, STM32_FLASH_CR), FLASH_PER);
 		if (retval != ERROR_OK)
 			return retval;
@@ -697,7 +696,7 @@ static int stm32x_probe(struct flash_bank *bank)
 	int page_size;
 	uint32_t base_address = 0x08000000;
 
-	stm32x_info->probed = 0;
+	stm32x_info->probed = false;
 	stm32x_info->register_base = FLASH_REG_BASE_B0;
 	stm32x_info->user_data_offset = 10;
 	stm32x_info->option_offset = 0;
@@ -886,7 +885,7 @@ static int stm32x_probe(struct flash_bank *bank)
 	if (num_prot_blocks == 32)
 		bank->prot_blocks[31].size = (num_pages - (31 * stm32x_info->ppage_size)) * page_size;
 
-	stm32x_info->probed = 1;
+	stm32x_info->probed = true;
 
 	return ERROR_OK;
 }
@@ -1474,8 +1473,6 @@ static int stm32x_mass_erase(struct flash_bank *bank)
 
 COMMAND_HANDLER(stm32x_handle_mass_erase_command)
 {
-	int i;
-
 	if (CMD_ARGC < 1)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
@@ -1487,7 +1484,7 @@ COMMAND_HANDLER(stm32x_handle_mass_erase_command)
 	retval = stm32x_mass_erase(bank);
 	if (retval == ERROR_OK) {
 		/* set all sectors as erased */
-		for (i = 0; i < bank->num_sectors; i++)
+		for (int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_erased = 1;
 
 		command_print(CMD, "stm32x mass erase complete");
