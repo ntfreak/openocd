@@ -126,6 +126,7 @@ struct stm32x_flash_bank {
 	int user_data_offset;
 	int option_offset;
 	uint32_t user_bank_size;
+	bool rdp_vulnerable;
 };
 
 static int stm32x_mass_erase(struct flash_bank *bank);
@@ -700,6 +701,7 @@ static int stm32x_probe(struct flash_bank *bank)
 	stm32x_info->register_base = FLASH_REG_BASE_B0;
 	stm32x_info->user_data_offset = 10;
 	stm32x_info->option_offset = 0;
+	stm32x_info->rdp_vulnerable = false;
 
 	/* default factory read protection level 0 */
 	stm32x_info->default_rdp = 0xA5;
@@ -738,37 +740,44 @@ static int stm32x_probe(struct flash_bank *bank)
 		page_size = 1024;
 		stm32x_info->ppage_size = 4;
 		max_flash_size_in_kb = 128;
+		stm32x_info->rdp_vulnerable = true;
 		break;
 	case 0x412: /* stm32f1x low-density */
 		page_size = 1024;
 		stm32x_info->ppage_size = 4;
 		max_flash_size_in_kb = 32;
+		stm32x_info->rdp_vulnerable = true;
 		break;
 	case 0x414: /* stm32f1x high-density */
 		page_size = 2048;
 		stm32x_info->ppage_size = 2;
 		max_flash_size_in_kb = 512;
+		stm32x_info->rdp_vulnerable = true;
 		break;
 	case 0x418: /* stm32f1x connectivity */
 		page_size = 2048;
 		stm32x_info->ppage_size = 2;
 		max_flash_size_in_kb = 256;
+		stm32x_info->rdp_vulnerable = true;
 		break;
 	case 0x430: /* stm32f1 XL-density (dual flash banks) */
 		page_size = 2048;
 		stm32x_info->ppage_size = 2;
 		max_flash_size_in_kb = 1024;
 		stm32x_info->has_dual_banks = true;
+		stm32x_info->rdp_vulnerable = true;
 		break;
 	case 0x420: /* stm32f100xx low- and medium-density value line */
 		page_size = 1024;
 		stm32x_info->ppage_size = 4;
 		max_flash_size_in_kb = 128;
+		stm32x_info->rdp_vulnerable = true;
 		break;
 	case 0x428: /* stm32f100xx high-density value line */
 		page_size = 2048;
 		stm32x_info->ppage_size = 4;
 		max_flash_size_in_kb = 128;
+		stm32x_info->rdp_vulnerable = true;
 		break;
 	case 0x422: /* stm32f302/3xb/c */
 		page_size = 2048;
@@ -1181,6 +1190,11 @@ COMMAND_HANDLER(stm32x_handle_lock_command)
 	if (stm32x_write_options(bank) != ERROR_OK) {
 		command_print(CMD, "stm32x failed to lock device");
 		return ERROR_OK;
+	}
+
+	if (stm32x_info->rdp_vulnerable) {
+		LOG_WARNING("Warning: due to a vulnerability, your firmware might not "
+			"be entirely protected (CVE-2020-8004)");
 	}
 
 	command_print(CMD, "stm32x locked");
