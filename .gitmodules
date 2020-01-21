@@ -1,9 +1,9 @@
 [submodule "tools/git2cl"]
 	path = tools/git2cl
-	url = http://repo.or.cz/r/git2cl.git
+	url = https://repo.or.cz/git2cl.git
 [submodule "jimtcl"]
 	path = jimtcl
-	url = http://repo.or.cz/r/jimtcl.git
+	url = https://repo.or.cz/jimtcl.git
 [submodule "src/jtag/drivers/libjaylink"]
 	path = src/jtag/drivers/libjaylink
-	url = http://repo.or.cz/r/libjaylink.git
+	url = https://repo.or.cz/libjaylink.git
