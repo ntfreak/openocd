@@ -49,11 +49,15 @@
 #define CMD_SCAN_CHAIN_FLIP_TMS	3
 #define CMD_STOP_SIMU		4
 
-int server_port = SERVER_PORT;
-char *server_address;
+/* jtag_vpi server port and address to connect to */
+static int server_port = SERVER_PORT;
+static char *server_address;
 
-int sockfd;
-struct sockaddr_in serv_addr;
+/* Send CMD_STOP_SIMU to server when OpenOCD exits? */
+static bool stop_sim_on_exit;
+
+static int sockfd;
+static struct sockaddr_in serv_addr;
 
 /* One jtag_vpi "packet" as sent over a TCP channel. */
 struct vpi_cmd {
@@ -576,10 +580,28 @@ static int jtag_vpi_init(void)
 	return ERROR_OK;
 }
 
+static int jtag_vpi_stop_simulation(void)
+{
+	struct vpi_cmd cmd;
+	memset(&cmd, 0, sizeof(struct vpi_cmd));
+	cmd.length = 0;
+	cmd.nb_bits = 0;
+	cmd.cmd = CMD_STOP_SIMU;
+	return jtag_vpi_send_cmd(&cmd);
+}
+
 static int jtag_vpi_quit(void)
 {
+	if (stop_sim_on_exit) {
+		if (jtag_vpi_stop_simulation() != ERROR_OK)
+			LOG_WARNING("jtag_vpi: failed to send \"stop simulation\" command");
+	}
+	if (close_socket(sockfd) != 0) {
+		LOG_WARNING("jtag_vpi: could not close jtag_vpi client socket");
+		log_socket_error("jtag_vpi");
+	}
 	free(server_address);
-	return close_socket(sockfd);
+	return ERROR_OK;
 }
 
 COMMAND_HANDLER(jtag_vpi_set_port)
@@ -609,6 +631,17 @@ COMMAND_HANDLER(jtag_vpi_set_address)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(jtag_vpi_stop_sim_on_exit_handler)
+{
+	if (CMD_ARGC != 1) {
+		LOG_ERROR("jtag_vpi_stop_sim_on_exit expects 1 argument (on|off)");
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	} else {
+		COMMAND_PARSE_ON_OFF(CMD_ARGV[0], stop_sim_on_exit);
+	}
+	return ERROR_OK;
+}
+
 static const struct command_registration jtag_vpi_command_handlers[] = {
 	{
 		.name = "jtag_vpi_set_port",
@@ -623,6 +656,14 @@ static const struct command_registration jtag_vpi_command_handlers[] = {
 		.mode = COMMAND_CONFIG,
 		.help = "set the address of the VPI server",
 		.usage = "ipv4_addr",
+	},
+	{
+		.name = "jtag_vpi_stop_sim_on_exit",
+		.handler = &jtag_vpi_stop_sim_on_exit_handler,
+		.mode = COMMAND_CONFIG,
+		.help = "Configure if simulation stop command shall be sent "
+			"before OpenOCD exits (default: off)",
+		.usage = "<on|off>",
 	},
 	COMMAND_REGISTRATION_DONE
 };
