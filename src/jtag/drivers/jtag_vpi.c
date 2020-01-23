@@ -34,6 +34,8 @@
 #endif
 
 #include "helper/replacements.h"
+#include <helper/time_support.h>
+#include <string.h>
 
 #define NO_TAP_SHIFT	0
 #define TAP_SHIFT	1
@@ -49,12 +51,26 @@
 #define CMD_SCAN_CHAIN_FLIP_TMS	3
 #define CMD_STOP_SIMU		4
 
+#define RECV_DEFAULT_TIMEOUT_SEC   15
+#define RECV_TIMEOUT_WARN_PERCENT  30  /* warn if XX % of the timeout is reached */
+#define RECV_TIMEOUT_MAX_WARNINGS  16
+
 /* jtag_vpi server port and address to connect to */
 static int server_port = SERVER_PORT;
 static char *server_address;
 
 /* Send CMD_STOP_SIMU to server when OpenOCD exits? */
 static bool stop_sim_on_exit;
+
+/* Maximum wait time for reception of a message from jtag_vpi server */
+static int recv_timeout_sec = RECV_DEFAULT_TIMEOUT_SEC;
+
+/* Threshold for wait time after which a warning will be printed. */
+static int64_t recv_warn_threshold_ms = (RECV_DEFAULT_TIMEOUT_SEC * 1000)
+	* RECV_TIMEOUT_WARN_PERCENT / 100;
+
+/* Number of timeout warnings emitted so far (avoid printing too many of them). */
+static int num_recv_warnings;
 
 static int sockfd;
 static struct sockaddr_in serv_addr;
@@ -171,8 +187,71 @@ static int jtag_vpi_receive_cmd(struct vpi_cmd *vpi)
 {
 	unsigned bytes_buffered = 0;
 	while (bytes_buffered < sizeof(struct vpi_cmd)) {
+		/* How many bytes left to receive? */
 		int bytes_to_receive = sizeof(struct vpi_cmd) - bytes_buffered;
-		int retval = read_socket(sockfd, ((char *)vpi) + bytes_buffered, bytes_to_receive);
+
+		/* Use select() to wait for incoming data just for a limited period of time. */
+		const int64_t wait_start = timeval_ms();
+		fd_set read_fds;
+		FD_ZERO(&read_fds);
+		FD_SET(sockfd, &read_fds);
+		struct timeval tv;
+		tv.tv_usec = 0;
+		tv.tv_sec = recv_timeout_sec;
+		int retval = socket_select(sockfd + 1, &read_fds, NULL, NULL, &tv);
+		if (retval < 0) {
+			/* select() failed */
+#ifdef _WIN32
+			int wsa_err = WSAGetLastError();
+			if (wsa_err == WSAEINTR) {
+				/* Wait interrupted by WSACancelBlockingCall(). Keep waiting. */
+				continue;
+			}
+#else
+			if (errno == EINTR) {
+				/* Wait interrupted by a signal. Keep waiting. */
+				continue;
+			}
+#endif
+			else {
+				/* This should not happen. It would mean that select() failed miserably.
+				 * Jtag_vpi protocol cannot recover from it, so exit. */
+				LOG_ERROR("Error when waiting for jtag_vpi socket readiness "
+						"(select failed, errno=%d)", errno);
+				exit(-1);
+			}
+		} else if (retval == 0) {
+			/* select() timed out.
+			   This should hardly ever happen and if it does, it always indicates a problem.
+			   Most likely the performance of the jtag_vpi server (RTL simulation)
+			   is extremely low. Or the server may have broken down and stopped
+			   responding for good. */
+			LOG_ERROR("Timeout when waiting for response from jtag_vpi server. "
+					"(>%d seconds)", recv_timeout_sec);
+			LOG_INFO("Hint: Command 'jtag_vpi_set_recv_timeout' can be used to adjust the "
+					"jtag_vpi timeout.");
+
+			/* Jtag_vpi protocol, as designed, cannot recover from this.
+			 * The best we can do is to terminate and notify the user. */
+			exit(-1);
+		}
+		/* Otherwise select() succeeded. New data is available at the socket. */
+		/* Just warn the user if the data arrived with a long delay. */
+		int64_t wait_duration = timeval_ms() - wait_start;
+		if (wait_duration > recv_warn_threshold_ms) {
+			if (num_recv_warnings < RECV_TIMEOUT_MAX_WARNINGS) {
+				/* Early warning to the user that the performance of jtag_vpi server
+				 * is too low. */
+				LOG_WARNING("Slow response from jtag_vpi: %.1f sec(s). (Low performance of "
+						"jtag_vpi server?)", (double)(wait_duration/1000.0));
+				num_recv_warnings++;
+				if (num_recv_warnings == RECV_TIMEOUT_MAX_WARNINGS)
+					LOG_WARNING("Too many slow responses about jtag_vpi. Suppressing further warnings.");
+			}
+		}
+
+		/* Read the data from the socket. */
+		retval = read_socket(sockfd, ((char *)vpi) + bytes_buffered, bytes_to_receive);
 		if (retval < 0) {
 #ifdef _WIN32
 			int wsa_err = WSAGetLastError();
@@ -198,7 +277,8 @@ static int jtag_vpi_receive_cmd(struct vpi_cmd *vpi)
 		bytes_buffered += retval;
 	}
 
-	/* Use little endian when transmitting/receiving jtag_vpi cmds. */
+	/* Handle endianness of received data.
+	 * Jtag_vpi datagrams are transmitted in little endian over network. */
 	vpi->cmd = le_to_h_u32(vpi->cmd_buf);
 	vpi->length = le_to_h_u32(vpi->length_buf);
 	vpi->nb_bits = le_to_h_u32(vpi->nb_bits_buf);
@@ -640,6 +720,27 @@ COMMAND_HANDLER(jtag_vpi_stop_sim_on_exit_handler)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(jtag_vpi_set_recv_timeout_handler)
+{
+	if (CMD_ARGC != 1) {
+		LOG_ERROR("jtag_vpi_set_recv_timeout expects 1 argument");
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	} else {
+		int val;
+		COMMAND_PARSE_NUMBER(int, CMD_ARGV[0], val);
+		if (val < 1) {
+			LOG_ERROR("The argument of \"jtag_vpi_set_recv_timeout\" must be a positive integer");
+			return ERROR_COMMAND_SYNTAX_ERROR;
+		}
+		/* Hard receive timeout - store the new value given by user */
+		recv_timeout_sec = val;
+		/* Soft receive timeout (just for warnings) - recompute the value */
+		recv_warn_threshold_ms = (recv_timeout_sec * 1000)
+			* RECV_TIMEOUT_WARN_PERCENT / 100;
+	}
+	return ERROR_OK;
+}
+
 static const struct command_registration jtag_vpi_command_handlers[] = {
 	{
 		.name = "jtag_vpi_set_port",
@@ -662,6 +763,13 @@ static const struct command_registration jtag_vpi_command_handlers[] = {
 		.help = "Configure if simulation stop command shall be sent "
 			"before OpenOCD exits (default: off)",
 		.usage = "<on|off>",
+	},
+	{
+		.name = "jtag_vpi_set_recv_timeout",
+		.handler = &jtag_vpi_set_recv_timeout_handler,
+		.mode = COMMAND_CONFIG,
+		.help = "Set the timeout for responses from jtag_vpi connection",
+		.usage = "<seconds>",
 	},
 	COMMAND_REGISTRATION_DONE
 };
