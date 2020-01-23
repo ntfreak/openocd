@@ -179,9 +179,18 @@ static int dapdirect_swd_select(struct command_context *ctx)
 
 static int dapdirect_init(struct command_context *ctx)
 {
+	enum reset_types jtag_reset_config = jtag_get_reset_config();
+
 	LOG_DEBUG("dapdirect_init()");
 
-	adapter_deassert_reset();
+	if (jtag_reset_config & RESET_CNCT_UNDER_SRST) {
+		if (jtag_reset_config & RESET_SRST_NO_GATING)
+			adapter_assert_reset();
+		else
+			LOG_WARNING("\'srst_nogate\' reset_config option is required");
+	} else
+		adapter_deassert_reset();
+
 	return ERROR_OK;
 }
 
