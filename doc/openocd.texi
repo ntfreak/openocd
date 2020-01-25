@@ -9101,8 +9101,8 @@ Selects whether interrupts will be processed when single stepping
 @cindex ITM
 @cindex ETM
 
-@deffn Command {tpiu config} (@option{disable} | ((@option{external} | @option{internal (@var{filename} | -)}) @
-               (@option{sync @var{port_width}} | ((@option{manchester} | @option{uart}) @var{formatter_enable})) @
+@deffn Command {tpiu config} (@option{disable} | ((@option{external} | @option{internal (@var{filename} | -)})@ 
+               (@option{sync @var{port_width}} | ((@option{manchester} | @option{uart}) @var{formatter_enable}))@ 
                @var{TRACECLKIN_freq} [@var{trace_freq}]))
 
 ARMv7-M architecture provides several modules to generate debugging
@@ -9950,7 +9950,7 @@ way to represent JTAG test patterns in text files.
 In a debug session using JTAG for its transport protocol,
 OpenOCD supports running such test files.
 
-@deffn Command {svf} @file{filename} [@option{-tap @var{tapname}}] [@option{[-]quiet}] @
+@deffn Command {svf} @file{filename} [@option{-tap @var{tapname}}] [@option{[-]quiet}]@ 
                      [@option{[-]nil}] [@option{[-]progress}] [@option{[-]ignore_error}]
 This issues a JTAG reset (Test-Logic-Reset) and then
 runs the SVF script from @file{filename}.
