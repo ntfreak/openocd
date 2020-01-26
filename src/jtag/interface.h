@@ -37,6 +37,9 @@
  */
 
 
+/* FIXME: prototype to simplify transition of HLA drivers. To be removed */
+struct hl_interface_s;
+
 /** implementation of wrapper function tap_set_state() */
 void tap_set_state_impl(tap_state_t new_state);
 
@@ -359,6 +362,9 @@ struct adapter_driver {
 
 	/* DAP APIs over SWD transport */
 	const struct dap_ops *dap_swd_ops;
+
+	/* FIXME: helper to simplify transition of HLA drivers. To be removed */
+	struct hl_interface_s *hla_if;
 };
 
 extern const char * const jtag_only[];
