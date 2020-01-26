@@ -361,4 +361,7 @@ struct adapter_driver hl_adapter_driver = {
 	.poll_trace = &hl_interface_poll_trace,
 
 	/* no ops for HLA, targets hla_target and stm8 intercept them all */
+
+	/* FIXME: helper to simplify transition of HLA drivers. To be removed */
+	.hla_if = &hl_if,
 };
