@@ -56,6 +56,7 @@ endif
 	%D%/interface.c \
 	%D%/interfaces.c \
 	%D%/tcl.c \
+	%D%/swim.c \
 	%D%/commands.h \
 	%D%/driver.h \
 	%D%/interface.h \
@@ -65,6 +66,7 @@ endif
 	%D%/minidriver/minidriver_imp.h \
 	%D%/minidummy/jtag_minidriver.h \
 	%D%/swd.h \
+	%D%/swim.h \
 	%D%/tcl.h \
 	$(JTAG_SRCS)
 
