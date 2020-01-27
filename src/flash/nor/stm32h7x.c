@@ -1057,7 +1057,7 @@ COMMAND_HANDLER(stm32x_handle_option_write_command)
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[1], reg_offset);
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[2], value);
 	if (CMD_ARGC > 3)
-		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[2], mask);
+		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[3], mask);
 
 	return stm32x_modify_option(bank, reg_offset, value, mask);
 }
