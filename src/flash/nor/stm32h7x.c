@@ -83,6 +83,7 @@
 #define OPT_BSY        (1 << 0)
 #define OPT_RDP_POS    8
 #define OPT_RDP_MASK   (0xff << OPT_RDP_POS)
+#define OPT_OPTCHANGEERR (1 << 30)
 
 /* FLASH_OPTCCR register bits */
 #define OPT_CLR_OPTCHANGEERR (1 << 30)
@@ -343,8 +344,8 @@ static int stm32x_write_option(struct flash_bank *bank, uint32_t reg_offset, uin
 
 	/* wait for completion */
 	int timeout = FLASH_ERASE_TIMEOUT;
+	uint32_t status;
 	for (;;) {
-		uint32_t status;
 		retval = stm32x_read_flash_reg(bank, FLASH_OPTSR_CUR, &status);
 		if (retval != ERROR_OK) {
 			LOG_ERROR("stm32x_options_program: failed to read FLASH_OPTSR_CUR");
@@ -359,6 +360,12 @@ static int stm32x_write_option(struct flash_bank *bank, uint32_t reg_offset, uin
 			goto flash_options_lock;
 		}
 		alive_sleep(1);
+	}
+
+	/* check for failure */
+	if (status & OPT_OPTCHANGEERR) {
+		LOG_ERROR("error changing option bytes (OPTCHANGEERR=1)");
+		retval = ERROR_FLASH_OPERATION_FAILED;
 	}
 
 flash_options_lock:
