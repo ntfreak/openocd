@@ -26,6 +26,7 @@
 #define OPENOCD_JTAG_INTERFACE_H
 
 #include <jtag/jtag.h>
+#include <jtag/swim.h>
 #include <target/armv7m_trace.h>
 
 /* @file
@@ -362,6 +363,9 @@ struct adapter_driver {
 
 	/* DAP APIs over SWD transport */
 	const struct dap_ops *dap_swd_ops;
+
+	/* SWIM APIs */
+	const struct swim_driver *swim_ops;
 
 	/* FIXME: helper to simplify transition of HLA drivers. To be removed */
 	struct hl_interface_s *hla_if;

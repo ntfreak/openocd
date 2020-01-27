@@ -3304,6 +3304,24 @@ The Serial Peripheral Interface (SPI) is a general purpose transport
 which uses four wire signaling. Some processors use it as part of a
 solution for flash programming.
 
+@anchor{swimtransport}
+@subsection SWIM Transport
+@cindex SWIM
+@cindex Single Wire Interface Module
+The Single Wire Interface Module (SWIM) is a low-pin-count debug protocol used
+by the STMicroelectronics MCU family STM8 and documented in the
+@uref{https://www.st.com/resource/en/user_manual/cd00173911.pdf, User Manual UM470}.
+
+SWIM does not support boundary scan testing nor multiple cores.
+
+The SWIM transport is selected with the command @command{transport select swim}.
+
+The concept of TAPs does not fit in the protocol since SWIM does not implement
+a scan chain. Nevertheless, the current SW model of OpenOCD requires defining a
+virtual SWIM TAP through the command @command{swim newtap basename tap_type}.
+The TAP definition must precede the target definition command
+@command{target create target_name stm8 -chain-position basename.tap_type}.
+
 @anchor{jtagspeed}
 @section JTAG Speed
 JTAG clock setup is part of system setup.
@@ -9831,6 +9849,12 @@ This command is similar to @command{arc jtag get-aux-reg} but is for core
 registers.
 @end deffn
 
+@section STM8 Architecture
+@uref{http://st.com/stm8/, STM8} is a 8-bit microcontroller platform from
+STMicroelectronics, based on a proprietary 8-bit core architecture.
+
+OpenOCD supports debugging STM8 through the STMicroelectronics debug
+protocol SWIM, @pxref{swimtransport,,SWIM}.
 
 @anchor{softwaredebugmessagesandtracing}
 @section Software Debug Messages and Tracing

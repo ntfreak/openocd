@@ -1288,8 +1288,6 @@ static enum stlink_mode stlink_get_mode(enum hl_transports t)
 		return STLINK_MODE_DEBUG_SWD;
 	case HL_TRANSPORT_JTAG:
 		return STLINK_MODE_DEBUG_JTAG;
-	case HL_TRANSPORT_SWIM:
-		return STLINK_MODE_DEBUG_SWIM;
 	default:
 		return STLINK_MODE_UNKNOWN;
 	}
@@ -3546,6 +3544,28 @@ static void stlink_dap_op_quit(struct adiv5_dap *dap)
 		LOG_ERROR("Error closing APs");
 }
 
+static int stlink_swim_op_srst(void)
+{
+	return stlink_usb_reset(stlink_dap_handle);
+}
+
+static int stlink_swim_op_read_mem(uint32_t addr, uint32_t size,
+								   uint32_t count, uint8_t *buffer)
+{
+	return stlink_usb_read_mem(stlink_dap_handle, addr, size, count, buffer);
+}
+
+static int stlink_swim_op_write_mem(uint32_t addr, uint32_t size,
+									uint32_t count, const uint8_t *buffer)
+{
+	return stlink_usb_write_mem(stlink_dap_handle, addr, size, count, buffer);
+}
+
+static int stlink_swim_op_reconnect(void)
+{
+	return stlink_usb_state(stlink_dap_handle);
+}
+
 static int stlink_dap_config_trace(bool enabled,
 		enum tpiu_pin_protocol pin_protocol, uint32_t port_size,
 		unsigned int *trace_freq, unsigned int traceclkin_freq,
@@ -3656,6 +3676,8 @@ static int stlink_dap_init(void)
 		mode = STLINK_MODE_DEBUG_SWD;
 	else if (transport_is_dapdirect_jtag())
 		mode = STLINK_MODE_DEBUG_JTAG;
+	else if (transport_is_swim())
+		mode = STLINK_MODE_DEBUG_SWIM;
 	else {
 		LOG_ERROR("Unsupported transport");
 		return ERROR_FAIL;
@@ -3665,7 +3687,8 @@ static int stlink_dap_init(void)
 	if (retval != ERROR_OK)
 		return retval;
 
-	if (!(stlink_dap_handle->version.flags & STLINK_F_HAS_DAP_REG)) {
+	if ((mode != STLINK_MODE_DEBUG_SWIM) &&
+		!(stlink_dap_handle->version.flags & STLINK_F_HAS_DAP_REG)) {
 		LOG_ERROR("ST-Link version does not support DAP direct transport");
 		return ERROR_FAIL;
 	}
@@ -3737,7 +3760,14 @@ static const struct dap_ops stlink_dap_ops = {
 	.quit = stlink_dap_op_quit, /* optional */
 };
 
-static const char *const stlink_dap_transport[] = { "dapdirect_jtag", "dapdirect_swd", NULL };
+static const struct swim_driver stlink_swim_ops = {
+	.srst = stlink_swim_op_srst,
+	.read_mem = stlink_swim_op_read_mem,
+	.write_mem = stlink_swim_op_write_mem,
+	.reconnect = stlink_swim_op_reconnect,
+};
+
+static const char *const stlink_dap_transport[] = { "dapdirect_jtag", "dapdirect_swd", "swim", NULL };
 
 struct adapter_driver stlink_dap_adapter_driver = {
 	.name = "st-link",
@@ -3755,4 +3785,5 @@ struct adapter_driver stlink_dap_adapter_driver = {
 
 	.dap_jtag_ops = &stlink_dap_ops,
 	.dap_swd_ops = &stlink_dap_ops,
+	.swim_ops = &stlink_swim_ops,
 };

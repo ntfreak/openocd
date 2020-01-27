@@ -175,8 +175,6 @@ static int hl_transport_init(struct command_context *cmd_ctx)
 		tr = HL_TRANSPORT_SWD;
 	else if (strcmp(transport->name, "hla_jtag") == 0)
 		tr = HL_TRANSPORT_JTAG;
-	else if (strcmp(transport->name, "stlink_swim") == 0)
-		tr = HL_TRANSPORT_SWIM;
 
 	int retval = hl_interface_open(tr);
 
@@ -218,26 +216,18 @@ static struct transport hl_jtag_transport = {
 	.override_target = hl_interface_override_target,
 };
 
-static struct transport stlink_swim_transport = {
-	.name = "stlink_swim",
-	.select = hl_transport_select,
-	.init = hl_transport_init,
-};
-
-const char *hl_transports[] = { "hla_swd", "hla_jtag", "stlink_swim", NULL };
+const char *hl_transports[] = { "hla_swd", "hla_jtag", NULL };
 
 static void hl_constructor(void) __attribute__ ((constructor));
 static void hl_constructor(void)
 {
 	transport_register(&hl_swd_transport);
 	transport_register(&hl_jtag_transport);
-	transport_register(&stlink_swim_transport);
 }
 
 bool transport_is_hla(void)
 {
 	struct transport *t;
 	t = get_current_transport();
-	return t == &hl_swd_transport || t == &hl_jtag_transport
-		   || t == &stlink_swim_transport;
+	return t == &hl_swd_transport || t == &hl_jtag_transport;
 }
