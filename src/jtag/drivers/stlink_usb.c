@@ -2740,6 +2740,60 @@ static int stlink_usb_close(void *handle)
 	return ERROR_OK;
 }
 
+
+/* Compute ST-Link serial number from the device descriptor
+ * 'old' ST-Link DFU returns 12 8-bits values, separated by zeros
+ * (wrong unicode encoding) */
+static int stlink_usb_compute_serial(unsigned char *desc_serial, char *serial)
+{
+	int i, len = desc_serial[0];
+
+	if (len == 26) /* work-around for old ST-Links*/
+		for (i = 0; i < 12; i++)
+			sprintf((char *) &(serial[i*2]), "%02hX", (unsigned short) desc_serial[2 * (i+1)]);
+	else if (len == 50)
+		for (i = 0; i < 24; i++)
+			serial[i] = desc_serial[2 * (i + 1)];
+	else {
+		LOG_ERROR("unexpected serial length (%d) in descriptor", len);
+		return ERROR_FAIL;
+	}
+
+	serial[24] = '\0';
+
+	return ERROR_OK;
+}
+
+static bool stlink_usb_match_serial_helper(ADAPTER_MATCH_SERIAL_HELPER_ARGS)
+{
+	int retval;
+	bool matched;
+
+	char desc_serial[256+1]; /* Max size of string descriptor */
+	char computed_serial[256+1];
+
+	if (dev_desc->iSerialNumber == 0)
+		return false;
+
+	retval = libusb_get_string_descriptor(device, dev_desc->iSerialNumber, 0x409,
+			(unsigned char *) desc_serial, 64);
+
+	if (retval < 0) {
+		LOG_ERROR("libusb_get_string_descriptor() failed with %d", retval);
+		return false;
+	}
+
+	if (stlink_usb_compute_serial((unsigned char *)desc_serial, computed_serial) != ERROR_OK)
+		return false;
+
+	matched = strncmp(serial, computed_serial, sizeof(computed_serial)) == 0;
+	if (!matched)
+		LOG_DEBUG("Device serial number '%s' doesn't match requested serial '%s'",
+				computed_serial, serial);
+
+	return matched;
+}
+
 /** */
 static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 {
@@ -2773,7 +2827,8 @@ static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 	  in order to become operational.
 	 */
 	do {
-		if (jtag_libusb_open(param->vid, param->pid, param->serial, &h->fd) != ERROR_OK) {
+		if (jtag_libusb_open(param->vid, param->pid, param->serial,
+				&h->fd, stlink_usb_match_serial_helper) != ERROR_OK) {
 			LOG_ERROR("open failed");
 			goto error_open;
 		}
