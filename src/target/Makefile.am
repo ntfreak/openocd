@@ -24,6 +24,7 @@ noinst_LTLIBRARIES += %D%/libtarget.la
 	$(STM8_SRC) \
 	$(INTEL_IA32_SRC) \
 	$(ESIRISC_SRC) \
+        $(ARC_SRC) \
 	%D%/avrt.c \
 	%D%/dsp563xx.c \
 	%D%/dsp563xx_once.c \
@@ -156,6 +157,12 @@ ESIRISC_SRC = \
 	%D%/esirisc_jtag.c \
 	%D%/esirisc_trace.c
 
+ARC_SRC = \
+        %D%/arc.c \
+        %D%/arc_cmd.c \
+        %D%/arc_jtag.c \
+        %D%/arc_mem.c
+
 %C%_libtarget_la_SOURCES += \
 	%D%/algorithm.h \
 	%D%/arm.h \
@@ -243,7 +250,11 @@ ESIRISC_SRC = \
 	%D%/esirisc.h \
 	%D%/esirisc_jtag.h \
 	%D%/esirisc_regs.h \
-	%D%/esirisc_trace.h
+	%D%/esirisc_trace.h \
+	%D%/arc.h \
+	%D%/arc_cmd.h \
+	%D%/arc_jtag.h \
+	%D%/arc_mem.h
 
 include %D%/openrisc/Makefile.am
 include %D%/riscv/Makefile.am
