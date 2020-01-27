@@ -135,7 +135,7 @@ proc jtag_nsrst_assert_width args {
 }
 
 proc jtag_reset args {
-	echo "DEPRECATED! use 'adapter [de]assert' not 'jtag_reset'"
+	echo "DEPRECATED! use 'adapter \[de\]assert' not 'jtag_reset'"
 	switch $args {
 		"0 0"
 			{eval adapter deassert trst deassert srst}
