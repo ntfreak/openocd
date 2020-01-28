@@ -58,7 +58,7 @@ static int jtag_libusb_error(int err)
 	}
 }
 
-static bool jtag_libusb_match(struct libusb_device_descriptor *dev_desc,
+static bool jtag_libusb_match_ids(struct libusb_device_descriptor *dev_desc,
 		const uint16_t vids[], const uint16_t pids[])
 {
 	for (unsigned i = 0; vids[i]; i++) {
@@ -123,9 +123,31 @@ static bool string_descriptor_equal(libusb_device_handle *device, uint8_t str_in
 	return matched;
 }
 
+static bool jtag_libusb_match_serial(libusb_device_handle * device,
+		struct libusb_device_descriptor *dev_desc, const char *serial,
+		adapter_cumpute_serial_fn adapter_compute_serial)
+{
+	if (string_descriptor_equal(device, dev_desc->iSerialNumber, serial))
+		return true;
+
+	/* check custom adapter_compute_serial  */
+	char computed_serial[256+1]; /* Max size of string descriptor */
+	if (adapter_compute_serial && adapter_compute_serial(device, dev_desc, computed_serial) == ERROR_OK) {
+		if (strncmp(serial, computed_serial, sizeof(computed_serial)) == 0)
+			return true;
+
+		LOG_DEBUG("Device computed serial number '%s' doesn't match requested serial '%s'",
+			computed_serial, serial);
+	}
+
+
+	return false;
+}
+
 int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 		const char *serial,
-		struct jtag_libusb_device_handle **out)
+		struct jtag_libusb_device_handle **out,
+		adapter_cumpute_serial_fn adapter_compute_serial)
 {
 	int cnt, idx, errCode;
 	int retval = ERROR_FAIL;
@@ -143,7 +165,7 @@ int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 		if (libusb_get_device_descriptor(devs[idx], &dev_desc) != 0)
 			continue;
 
-		if (!jtag_libusb_match(&dev_desc, vids, pids))
+		if (!jtag_libusb_match_ids(&dev_desc, vids, pids))
 			continue;
 
 		if (jtag_usb_get_location() && !jtag_libusb_location_equal(devs[idx]))
@@ -159,7 +181,7 @@ int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 
 		/* Device must be open to use libusb_get_string_descriptor_ascii. */
 		if (serial != NULL &&
-				!string_descriptor_equal(libusb_handle, dev_desc.iSerialNumber, serial)) {
+			!jtag_libusb_match_serial(libusb_handle, &dev_desc, serial, adapter_compute_serial)) {
 			serial_mismatch = true;
 			libusb_close(libusb_handle);
 			continue;
