@@ -22,16 +22,19 @@
 
 #include <libusb.h>
 
-#define jtag_libusb_device			libusb_device
-#define jtag_libusb_device_handle		libusb_device_handle
+#define jtag_libusb_device					libusb_device
+#define jtag_libusb_device_handle			libusb_device_handle
 #define jtag_libusb_device_descriptor		libusb_device_descriptor
-#define jtag_libusb_interface			libusb_interface
+#define jtag_libusb_interface				libusb_interface
 #define jtag_libusb_interface_descriptor	libusb_interface_descriptor
 #define jtag_libusb_endpoint_descriptor		libusb_endpoint_descriptor
 #define jtag_libusb_config_descriptor		libusb_config_descriptor
 
 #define jtag_libusb_reset_device(dev)		libusb_reset_device(dev)
 #define jtag_libusb_get_device(devh)		libusb_get_device(devh)
+
+typedef int (*adapter_cumpute_serial_fn)(libusb_device_handle *device,
+		struct libusb_device_descriptor *dev_desc, char *serial);
 
 static inline int jtag_libusb_claim_interface(jtag_libusb_device_handle *devh,
 		int iface)
@@ -47,7 +50,8 @@ static inline int jtag_libusb_release_interface(jtag_libusb_device_handle *devh,
 
 int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 		const char *serial,
-		struct jtag_libusb_device_handle **out);
+		struct jtag_libusb_device_handle **out,
+		adapter_cumpute_serial_fn adapter_compute_serial);
 void jtag_libusb_close(jtag_libusb_device_handle *dev);
 int jtag_libusb_control_transfer(jtag_libusb_device_handle *dev,
 		uint8_t requestType, uint8_t request, uint16_t wValue,
