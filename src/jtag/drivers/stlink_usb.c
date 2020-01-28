@@ -1761,18 +1761,6 @@ static enum target_state stlink_usb_state(void *handle)
 
 	assert(handle != NULL);
 
-	if (h->st_mode == STLINK_MODE_DEBUG_SWIM) {
-		res = stlink_usb_mode_enter(handle, h->st_mode);
-		if (res != ERROR_OK)
-			return TARGET_UNKNOWN;
-
-		res = stlink_swim_resync(handle);
-		if (res != ERROR_OK)
-			return TARGET_UNKNOWN;
-
-		return ERROR_OK;
-	}
-
 	if (h->reconnect_pending) {
 		LOG_INFO("Previous state query failed, trying to reconnect");
 		res = stlink_usb_mode_enter(handle, h->st_mode);
@@ -1891,9 +1879,6 @@ static int stlink_usb_reset(void *handle)
 	int retval;
 
 	assert(handle != NULL);
-
-	if (h->st_mode == STLINK_MODE_DEBUG_SWIM)
-		return stlink_swim_generate_rst(handle);
 
 	stlink_usb_init_buffer(handle, h->rx_ep, 2);
 
@@ -3536,7 +3521,7 @@ static void stlink_dap_op_quit(struct adiv5_dap *dap)
 
 static int stlink_swim_op_srst(void)
 {
-	return stlink_usb_reset(stlink_dap_handle);
+	return stlink_swim_generate_rst(stlink_dap_handle);
 }
 
 static int stlink_swim_op_read_mem(uint32_t addr, uint32_t size,
@@ -3587,7 +3572,13 @@ static int stlink_swim_op_write_mem(uint32_t addr, uint32_t size,
 
 static int stlink_swim_op_reconnect(void)
 {
-	return stlink_usb_state(stlink_dap_handle);
+	int retval;
+
+	retval = stlink_usb_mode_enter(stlink_dap_handle, STLINK_MODE_DEBUG_SWIM);
+	if (retval != ERROR_OK)
+		return retval;
+
+	return stlink_swim_resync(stlink_dap_handle);
 }
 
 static int stlink_dap_config_trace(bool enabled,
