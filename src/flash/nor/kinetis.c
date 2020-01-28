@@ -202,6 +202,7 @@
 #define KINETIS_SDID_SERIESID_K   0x00000000
 #define KINETIS_SDID_SERIESID_KL   0x00100000
 #define KINETIS_SDID_SERIESID_KE   0x00200000
+#define KINETIS_SDID_SERIESID_S32_4 0x00400000
 #define KINETIS_SDID_SERIESID_KW   0x00500000
 #define KINETIS_SDID_SERIESID_KV   0x00600000
 
@@ -234,6 +235,7 @@
 #define KINETIS_SDID_PROJECTID_MASK  KINETIS_SDID_DIEID_MASK
 #define KINETIS_SDID_PROJECTID_KE1xF 0x00000080
 #define KINETIS_SDID_PROJECTID_KE1xZ 0x00000100
+#define KINETIS_SDID_PROJECTID_S32_4 0x00000480
 
 struct kinetis_flash_bank {
 	struct kinetis_chip *k_chip;
@@ -2390,6 +2392,7 @@ static int kinetis_probe_chip(struct kinetis_chip *k_chip)
 			break;
 
 		case KINETIS_SDID_SERIESID_KE:
+		case KINETIS_SDID_SERIESID_S32_4:
 			/* KE1x-series */
 			k_chip->watchdog_type = KINETIS_WDOG32_KE1X;
 			switch (k_chip->sim_sdid &
@@ -2412,6 +2415,7 @@ static int kinetis_probe_chip(struct kinetis_chip *k_chip)
 			case KINETIS_SDID_FAMILYID_K1X | KINETIS_SDID_SUBFAMID_KX4 | KINETIS_SDID_PROJECTID_KE1xF:
 			case KINETIS_SDID_FAMILYID_K1X | KINETIS_SDID_SUBFAMID_KX6 | KINETIS_SDID_PROJECTID_KE1xF:
 			case KINETIS_SDID_FAMILYID_K1X | KINETIS_SDID_SUBFAMID_KX8 | KINETIS_SDID_PROJECTID_KE1xF:
+			case KINETIS_SDID_FAMILYID_K1X | KINETIS_SDID_SUBFAMID_KX4 | KINETIS_SDID_PROJECTID_S32_4:
 				/* KE1xF: FTFE, 4kB sectors */
 				k_chip->pflash_sector_size = 4<<10;
 				k_chip->nvm_sector_size = 2<<10;
