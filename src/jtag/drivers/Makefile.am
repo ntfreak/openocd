@@ -31,9 +31,6 @@ if USE_LIBUSB0
 DRIVERFILES += %D%/usb_common.c
 %C%_libocdjtagdrivers_la_CPPFLAGS += $(LIBUSB0_CFLAGS)
 %C%_libocdjtagdrivers_la_LIBADD += $(LIBUSB0_LIBS)
-if !USE_LIBUSB1
-DRIVERFILES += %D%/libusb0_common.c
-endif
 endif
 
 if USE_LIBFTDI
@@ -171,7 +168,6 @@ DRIVERHEADERS = \
 	%D%/bitbang.h \
 	%D%/bitq.h \
 	%D%/jtag_usb_common.h \
-	%D%/libusb0_common.h \
 	%D%/libusb1_common.h \
 	%D%/libusb_common.h \
 	%D%/minidriver_imp.h \
