@@ -550,8 +550,7 @@ static int ftdi_reset(int trst, int srst)
 			ftdi_set_signal(sig_nsrst, 'z');
 	}
 
-	LOG_DEBUG_IO("trst: %i, srst: %i", trst, srst);
-	return ERROR_OK;
+	return mpsse_flush(mpsse_ctx);
 }
 
 static void ftdi_execute_sleep(struct jtag_command *cmd)
