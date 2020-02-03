@@ -831,6 +831,7 @@ void jtag_add_reset(int req_tlr_or_trst, int req_srst)
 			if (adapter_nsrst_delay)
 				jtag_add_sleep(adapter_nsrst_delay * 1000);
 		}
+		jtag_execute_queue();
 	}
 
 	/* Maybe enter the JTAG TAP_RESET state ...
