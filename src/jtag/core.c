@@ -2019,6 +2019,11 @@ int adapter_resets(int trst, int srst)
 
 		/* adapters without trst signal will eventually use tlr sequence */
 		jtag_add_reset(trst, srst);
+		/*
+		 * The jtag queue is still used for reset by some adapter. Flush it!
+		 * FIXME: To be removed when all adapter drivers will be updated!
+		 */
+		jtag_execute_queue();
 		return ERROR_OK;
 	} else if (transport_is_swd() || transport_is_hla()) {
 		if (trst == TRST_ASSERT) {
