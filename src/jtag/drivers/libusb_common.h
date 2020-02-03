@@ -20,8 +20,6 @@
 
 #ifdef HAVE_LIBUSB1
 #include "libusb1_common.h"
-#else
-#include "libusb0_common.h"
 #endif
 
 #endif /* OPENOCD_JTAG_DRIVERS_LIBUSB_COMMON_H */
