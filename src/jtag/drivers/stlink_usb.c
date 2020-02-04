@@ -36,6 +36,7 @@
 #include <jtag/hla/hla_layout.h>
 #include <jtag/hla/hla_transport.h>
 #include <jtag/hla/hla_interface.h>
+#include <jtag/swim.h>
 #include <target/target.h>
 #include <transport/transport.h>
 
@@ -2478,17 +2479,20 @@ static int stlink_usb_override_target(const char *targetname)
 
 static int stlink_speed_swim(void *handle, int khz, bool query)
 {
+	int retval;
+
 	/*
-			we dont care what the khz rate is
 			we only have low and high speed...
 			before changing speed the SWIM_CSR HS bit
 			must be updated
 	 */
-	if (khz == 0)
-		stlink_swim_speed(handle, 0);
-	else
-		stlink_swim_speed(handle, 1);
-	return khz;
+	if (!query) {
+		retval = stlink_swim_speed(handle, (khz < SWIM_FREQ_HIGH) ? 0 : 1);
+		if (retval != ERROR_OK)
+			LOG_ERROR("Unable to set adapter speed");
+	}
+
+	return (khz < SWIM_FREQ_HIGH) ? SWIM_FREQ_LOW : SWIM_FREQ_HIGH;
 }
 
 static int stlink_match_speed_map(const struct speed_map *map, unsigned int map_size, int khz, bool query)
