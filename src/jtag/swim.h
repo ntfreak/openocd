@@ -13,6 +13,9 @@
 #ifndef OPENOCD_JTAG_SWIM_H
 #define OPENOCD_JTAG_SWIM_H
 
+#define SWIM_FREQ_LOW   363
+#define SWIM_FREQ_HIGH  800
+
 struct swim_driver {
 	/**
 	 * Send SRST (system reset) command to target.
