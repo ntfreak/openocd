@@ -2322,11 +2322,6 @@ static int stlink_usb_read_mem(void *handle, uint32_t addr, uint32_t size,
 		if (count < bytes_remaining)
 			bytes_remaining = count;
 
-		if (h->st_mode == STLINK_MODE_DEBUG_SWIM) {
-			retval = stlink_swim_readbytes(handle, addr, bytes_remaining, buffer);
-			if (retval != ERROR_OK)
-				return retval;
-		} else
 		/*
 		 * all stlink support 8/32bit memory read/writes and only from
 		 * stlink V2J26 there is support for 16 bit memory read/write.
@@ -2407,11 +2402,6 @@ static int stlink_usb_write_mem(void *handle, uint32_t addr, uint32_t size,
 		if (count < bytes_remaining)
 			bytes_remaining = count;
 
-		if (h->st_mode == STLINK_MODE_DEBUG_SWIM) {
-			retval = stlink_swim_writebytes(handle, addr, bytes_remaining, buffer);
-			if (retval != ERROR_OK)
-				return retval;
-		} else
 		/*
 		 * all stlink support 8/32bit memory read/writes and only from
 		 * stlink V2J26 there is support for 16 bit memory read/write.
@@ -3552,13 +3542,47 @@ static int stlink_swim_op_srst(void)
 static int stlink_swim_op_read_mem(uint32_t addr, uint32_t size,
 								   uint32_t count, uint8_t *buffer)
 {
-	return stlink_usb_read_mem(stlink_dap_handle, addr, size, count, buffer);
+	int retval;
+	uint32_t bytes_remaining;
+
+	LOG_DEBUG_IO("read at 0x%08x len %d*0x%08x", addr, size, count);
+	count *= size;
+
+	while (count) {
+		bytes_remaining = (count > STLINK_DATA_SIZE) ? STLINK_DATA_SIZE : count;
+		retval = stlink_swim_readbytes(stlink_dap_handle, addr, bytes_remaining, buffer);
+		if (retval != ERROR_OK)
+			return retval;
+
+		buffer += bytes_remaining;
+		addr += bytes_remaining;
+		count -= bytes_remaining;
+	}
+
+	return ERROR_OK;
 }
 
 static int stlink_swim_op_write_mem(uint32_t addr, uint32_t size,
 									uint32_t count, const uint8_t *buffer)
 {
-	return stlink_usb_write_mem(stlink_dap_handle, addr, size, count, buffer);
+	int retval;
+	uint32_t bytes_remaining;
+
+	LOG_DEBUG_IO("write at 0x%08x len %d*0x%08x", addr, size, count);
+	count *= size;
+
+	while (count) {
+		bytes_remaining = (count > STLINK_DATA_SIZE) ? STLINK_DATA_SIZE : count;
+		retval = stlink_swim_writebytes(stlink_dap_handle, addr, bytes_remaining, buffer);
+		if (retval != ERROR_OK)
+			return retval;
+
+		buffer += bytes_remaining;
+		addr += bytes_remaining;
+		count -= bytes_remaining;
+	}
+
+	return ERROR_OK;
 }
 
 static int stlink_swim_op_reconnect(void)
