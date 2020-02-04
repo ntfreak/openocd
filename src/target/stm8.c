@@ -1670,7 +1670,7 @@ static int stm8_examine(struct target *target)
 			retval = stm8_write_u8(target, SWIM_CSR, SAFE_MASK + SWIM_DM + HS);
 			if (retval != ERROR_OK)
 				return retval;
-			jtag_config_khz(1);
+			jtag_config_khz(SWIM_FREQ_HIGH);
 			stm8->swim_configured = true;
 			/*
 				Now is the time to deassert reset if connect_under_reset.
