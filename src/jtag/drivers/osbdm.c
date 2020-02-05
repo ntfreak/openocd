@@ -23,7 +23,7 @@
 #include <helper/binarybuffer.h>
 #include <helper/command.h>
 #include <jtag/interface.h>
-#include "libusb_common.h"
+#include "libusb_helper.h"
 
 struct sequence {
 	int len;

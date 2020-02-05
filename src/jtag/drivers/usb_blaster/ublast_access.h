@@ -28,8 +28,6 @@
 #ifndef OPENOCD_JTAG_DRIVERS_USB_BLASTER_UBLAST_ACCESS_H
 #define OPENOCD_JTAG_DRIVERS_USB_BLASTER_UBLAST_ACCESS_H
 
-#include <libusb_common.h>
-
 /* Low level flags */
 #define COPY_TDO_BUFFER		(1 << 0)
 

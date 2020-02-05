@@ -22,7 +22,7 @@ DRIVERFILES += %D%/driver.c
 DRIVERFILES += %D%/jtag_usb_common.c
 
 if USE_LIBUSB1
-DRIVERFILES += %D%/libusb1_common.c
+DRIVERFILES += %D%/libusb_helper.c
 %C%_libocdjtagdrivers_la_CPPFLAGS += $(LIBUSB1_CFLAGS)
 %C%_libocdjtagdrivers_la_LIBADD += $(LIBUSB1_LIBS)
 endif
@@ -168,8 +168,7 @@ DRIVERHEADERS = \
 	%D%/bitbang.h \
 	%D%/bitq.h \
 	%D%/jtag_usb_common.h \
-	%D%/libusb1_common.h \
-	%D%/libusb_common.h \
+	%D%/libusb_helper.h \
 	%D%/minidriver_imp.h \
 	%D%/mpsse.h \
 	%D%/rlink.h \

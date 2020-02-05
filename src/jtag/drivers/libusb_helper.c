@@ -21,7 +21,7 @@
 #include "config.h"
 #endif
 #include <jtag/drivers/jtag_usb_common.h>
-#include "libusb1_common.h"
+#include "libusb_helper.h"
 #include "log.h"
 
 /*

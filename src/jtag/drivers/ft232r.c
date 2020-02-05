@@ -29,7 +29,7 @@
 #include <jtag/interface.h>
 #include <jtag/commands.h>
 #include <helper/time_support.h>
-#include "libusb1_common.h"
+#include "libusb_helper.h"
 
 /* system includes */
 #include <string.h>
