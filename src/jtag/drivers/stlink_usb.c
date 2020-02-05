@@ -41,7 +41,7 @@
 
 #include <target/cortex_m.h>
 
-#include "libusb_common.h"
+#include "libusb_helper.h"
 
 #ifdef HAVE_LIBUSB1
 #define USE_LIBUSB_ASYNCIO

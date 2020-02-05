@@ -45,7 +45,7 @@
 
 #include <jtag/interface.h>
 #include <jtag/commands.h>
-#include "libusb_common.h"
+#include "libusb_helper.h"
 
 static enum {
 	OPENJTAG_VARIANT_STANDARD,

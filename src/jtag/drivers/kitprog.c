@@ -43,7 +43,7 @@
 #include <jtag/swd.h>
 #include <jtag/commands.h>
 
-#include "libusb_common.h"
+#include "libusb_helper.h"
 
 #define VID 0x04b4
 #define PID 0xf139

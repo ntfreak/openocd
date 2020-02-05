@@ -23,7 +23,7 @@
 #endif
 #include <jtag/interface.h>
 #include <jtag/commands.h>
-#include <libusb_common.h>
+#include <libusb_helper.h>
 #include <target/image.h>
 
 #include "ublast_access.h"
