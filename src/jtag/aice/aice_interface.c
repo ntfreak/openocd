@@ -25,7 +25,6 @@
 #include <transport/transport.h>
 #include <target/target.h>
 #include <jtag/aice/aice_transport.h>
-#include <jtag/drivers/libusb_common.h>
 #include "aice_usb.h"
 
 #define AICE_KHZ_TO_SPEED_MAP_SIZE	16
