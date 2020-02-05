@@ -88,6 +88,10 @@
  */
 #define MAX_WAIT_RETRIES 8
 
+/* HLA is currently limited at AP#0 and no control on CSW */
+#define STLINK_HLA_AP_NUM       0
+#define STLINK_HLA_CSW          0
+
 enum stlink_jtag_api_version {
 	STLINK_JTAG_API_V1 = 1,
 	STLINK_JTAG_API_V2,
@@ -2086,8 +2090,8 @@ static int stlink_usb_get_rw_status(void *handle)
 }
 
 /** */
-static int stlink_usb_read_mem8(void *handle, uint32_t addr, uint16_t len,
-			  uint8_t *buffer)
+static int stlink_usb_read_mem8(void *handle, uint8_t ap_num, uint32_t csw,
+		uint32_t addr, uint16_t len, uint8_t *buffer)
 {
 	int res;
 	uint16_t read_len = len;
@@ -2109,6 +2113,9 @@ static int stlink_usb_read_mem8(void *handle, uint32_t addr, uint16_t len,
 	h->cmdidx += 4;
 	h_u16_to_le(h->cmdbuf+h->cmdidx, len);
 	h->cmdidx += 2;
+	h->cmdbuf[h->cmdidx++] = ap_num;
+	h_u24_to_le(h->cmdbuf+h->cmdidx, csw >> 8);
+	h->cmdidx += 3;
 
 	/* we need to fix read length for single bytes */
 	if (read_len == 1)
@@ -2125,8 +2132,8 @@ static int stlink_usb_read_mem8(void *handle, uint32_t addr, uint16_t len,
 }
 
 /** */
-static int stlink_usb_write_mem8(void *handle, uint32_t addr, uint16_t len,
-			   const uint8_t *buffer)
+static int stlink_usb_write_mem8(void *handle, uint8_t ap_num, uint32_t csw,
+		uint32_t addr, uint16_t len, const uint8_t *buffer)
 {
 	int res;
 	struct stlink_usb_handle_s *h = handle;
@@ -2147,6 +2154,9 @@ static int stlink_usb_write_mem8(void *handle, uint32_t addr, uint16_t len,
 	h->cmdidx += 4;
 	h_u16_to_le(h->cmdbuf+h->cmdidx, len);
 	h->cmdidx += 2;
+	h->cmdbuf[h->cmdidx++] = ap_num;
+	h_u24_to_le(h->cmdbuf+h->cmdidx, csw >> 8);
+	h->cmdidx += 3;
 
 	res = stlink_usb_xfer_noerrcheck(handle, buffer, len);
 
@@ -2157,8 +2167,8 @@ static int stlink_usb_write_mem8(void *handle, uint32_t addr, uint16_t len,
 }
 
 /** */
-static int stlink_usb_read_mem16(void *handle, uint32_t addr, uint16_t len,
-			  uint8_t *buffer)
+static int stlink_usb_read_mem16(void *handle, uint8_t ap_num, uint32_t csw,
+		uint32_t addr, uint16_t len, uint8_t *buffer)
 {
 	int res;
 	struct stlink_usb_handle_s *h = handle;
@@ -2182,6 +2192,9 @@ static int stlink_usb_read_mem16(void *handle, uint32_t addr, uint16_t len,
 	h->cmdidx += 4;
 	h_u16_to_le(h->cmdbuf+h->cmdidx, len);
 	h->cmdidx += 2;
+	h->cmdbuf[h->cmdidx++] = ap_num;
+	h_u24_to_le(h->cmdbuf+h->cmdidx, csw >> 8);
+	h->cmdidx += 3;
 
 	res = stlink_usb_xfer_noerrcheck(handle, h->databuf, len);
 
@@ -2194,8 +2207,8 @@ static int stlink_usb_read_mem16(void *handle, uint32_t addr, uint16_t len,
 }
 
 /** */
-static int stlink_usb_write_mem16(void *handle, uint32_t addr, uint16_t len,
-			   const uint8_t *buffer)
+static int stlink_usb_write_mem16(void *handle, uint8_t ap_num, uint32_t csw,
+		uint32_t addr, uint16_t len, const uint8_t *buffer)
 {
 	int res;
 	struct stlink_usb_handle_s *h = handle;
@@ -2219,6 +2232,9 @@ static int stlink_usb_write_mem16(void *handle, uint32_t addr, uint16_t len,
 	h->cmdidx += 4;
 	h_u16_to_le(h->cmdbuf+h->cmdidx, len);
 	h->cmdidx += 2;
+	h->cmdbuf[h->cmdidx++] = ap_num;
+	h_u24_to_le(h->cmdbuf+h->cmdidx, csw >> 8);
+	h->cmdidx += 3;
 
 	res = stlink_usb_xfer_noerrcheck(handle, buffer, len);
 
@@ -2229,8 +2245,8 @@ static int stlink_usb_write_mem16(void *handle, uint32_t addr, uint16_t len,
 }
 
 /** */
-static int stlink_usb_read_mem32(void *handle, uint32_t addr, uint16_t len,
-			  uint8_t *buffer)
+static int stlink_usb_read_mem32(void *handle, uint8_t ap_num, uint32_t csw,
+		uint32_t addr, uint16_t len, uint8_t *buffer)
 {
 	int res;
 	struct stlink_usb_handle_s *h = handle;
@@ -2251,6 +2267,9 @@ static int stlink_usb_read_mem32(void *handle, uint32_t addr, uint16_t len,
 	h->cmdidx += 4;
 	h_u16_to_le(h->cmdbuf+h->cmdidx, len);
 	h->cmdidx += 2;
+	h->cmdbuf[h->cmdidx++] = ap_num;
+	h_u24_to_le(h->cmdbuf+h->cmdidx, csw >> 8);
+	h->cmdidx += 3;
 
 	res = stlink_usb_xfer_noerrcheck(handle, h->databuf, len);
 
@@ -2263,8 +2282,8 @@ static int stlink_usb_read_mem32(void *handle, uint32_t addr, uint16_t len,
 }
 
 /** */
-static int stlink_usb_write_mem32(void *handle, uint32_t addr, uint16_t len,
-			   const uint8_t *buffer)
+static int stlink_usb_write_mem32(void *handle, uint8_t ap_num, uint32_t csw,
+		uint32_t addr, uint16_t len, const uint8_t *buffer)
 {
 	int res;
 	struct stlink_usb_handle_s *h = handle;
@@ -2285,6 +2304,9 @@ static int stlink_usb_write_mem32(void *handle, uint32_t addr, uint16_t len,
 	h->cmdidx += 4;
 	h_u16_to_le(h->cmdbuf+h->cmdidx, len);
 	h->cmdidx += 2;
+	h->cmdbuf[h->cmdidx++] = ap_num;
+	h_u24_to_le(h->cmdbuf+h->cmdidx, csw >> 8);
+	h->cmdidx += 3;
 
 	res = stlink_usb_xfer_noerrcheck(handle, buffer, len);
 
@@ -2302,8 +2324,8 @@ static uint32_t stlink_max_block_size(uint32_t tar_autoincr_block, uint32_t addr
 	return max_tar_block;
 }
 
-static int stlink_usb_read_mem(void *handle, uint32_t addr, uint32_t size,
-		uint32_t count, uint8_t *buffer)
+static int stlink_usb_read_ap_mem(void *handle, uint8_t ap_num, uint32_t csw,
+		uint32_t addr, uint32_t size, uint32_t count, uint8_t *buffer)
 {
 	int retval = ERROR_OK;
 	uint32_t bytes_remaining;
@@ -2350,7 +2372,7 @@ static int stlink_usb_read_mem(void *handle, uint32_t addr, uint32_t size,
 			if (addr & (size - 1)) {
 
 				uint32_t head_bytes = size - (addr & (size - 1));
-				retval = stlink_usb_read_mem8(handle, addr, head_bytes, buffer);
+				retval = stlink_usb_read_mem8(handle, ap_num, csw, addr, head_bytes, buffer);
 				if (retval == ERROR_WAIT && retries < MAX_WAIT_RETRIES) {
 					usleep((1<<retries++) * 1000);
 					continue;
@@ -2364,13 +2386,13 @@ static int stlink_usb_read_mem(void *handle, uint32_t addr, uint32_t size,
 			}
 
 			if (bytes_remaining & (size - 1))
-				retval = stlink_usb_read_mem(handle, addr, 1, bytes_remaining, buffer);
+				retval = stlink_usb_read_ap_mem(handle, ap_num, csw, addr, 1, bytes_remaining, buffer);
 			else if (size == 2)
-				retval = stlink_usb_read_mem16(handle, addr, bytes_remaining, buffer);
+				retval = stlink_usb_read_mem16(handle, ap_num, csw, addr, bytes_remaining, buffer);
 			else
-				retval = stlink_usb_read_mem32(handle, addr, bytes_remaining, buffer);
+				retval = stlink_usb_read_mem32(handle, ap_num, csw, addr, bytes_remaining, buffer);
 		} else
-			retval = stlink_usb_read_mem8(handle, addr, bytes_remaining, buffer);
+			retval = stlink_usb_read_mem8(handle, ap_num, csw, addr, bytes_remaining, buffer);
 
 		if (retval == ERROR_WAIT && retries < MAX_WAIT_RETRIES) {
 			usleep((1<<retries++) * 1000);
@@ -2387,8 +2409,15 @@ static int stlink_usb_read_mem(void *handle, uint32_t addr, uint32_t size,
 	return retval;
 }
 
-static int stlink_usb_write_mem(void *handle, uint32_t addr, uint32_t size,
-		uint32_t count, const uint8_t *buffer)
+static int stlink_usb_read_mem(void *handle, uint32_t addr, uint32_t size,
+		uint32_t count, uint8_t *buffer)
+{
+	return stlink_usb_read_ap_mem(handle, STLINK_HLA_AP_NUM, STLINK_HLA_CSW,
+								  addr, size, count, buffer);
+}
+
+static int stlink_usb_write_ap_mem(void *handle, uint8_t ap_num, uint32_t csw,
+		uint32_t addr, uint32_t size, uint32_t count, const uint8_t *buffer)
 {
 	int retval = ERROR_OK;
 	uint32_t bytes_remaining;
@@ -2435,7 +2464,7 @@ static int stlink_usb_write_mem(void *handle, uint32_t addr, uint32_t size,
 			if (addr & (size - 1)) {
 
 				uint32_t head_bytes = size - (addr & (size - 1));
-				retval = stlink_usb_write_mem8(handle, addr, head_bytes, buffer);
+				retval = stlink_usb_write_mem8(handle, ap_num, csw, addr, head_bytes, buffer);
 				if (retval == ERROR_WAIT && retries < MAX_WAIT_RETRIES) {
 					usleep((1<<retries++) * 1000);
 					continue;
@@ -2449,14 +2478,14 @@ static int stlink_usb_write_mem(void *handle, uint32_t addr, uint32_t size,
 			}
 
 			if (bytes_remaining & (size - 1))
-				retval = stlink_usb_write_mem(handle, addr, 1, bytes_remaining, buffer);
+				retval = stlink_usb_write_ap_mem(handle, ap_num, csw, addr, 1, bytes_remaining, buffer);
 			else if (size == 2)
-				retval = stlink_usb_write_mem16(handle, addr, bytes_remaining, buffer);
+				retval = stlink_usb_write_mem16(handle, ap_num, csw, addr, bytes_remaining, buffer);
 			else
-				retval = stlink_usb_write_mem32(handle, addr, bytes_remaining, buffer);
+				retval = stlink_usb_write_mem32(handle, ap_num, csw, addr, bytes_remaining, buffer);
 
 		} else
-			retval = stlink_usb_write_mem8(handle, addr, bytes_remaining, buffer);
+			retval = stlink_usb_write_mem8(handle, ap_num, csw, addr, bytes_remaining, buffer);
 		if (retval == ERROR_WAIT && retries < MAX_WAIT_RETRIES) {
 			usleep((1<<retries++) * 1000);
 			continue;
@@ -2470,6 +2499,13 @@ static int stlink_usb_write_mem(void *handle, uint32_t addr, uint32_t size,
 	}
 
 	return retval;
+}
+
+static int stlink_usb_write_mem(void *handle, uint32_t addr, uint32_t size,
+		uint32_t count, const uint8_t *buffer)
+{
+	return stlink_usb_write_ap_mem(handle, STLINK_HLA_AP_NUM, STLINK_HLA_CSW,
+								   addr, size, count, buffer);
 }
 
 /** */
@@ -2910,7 +2946,7 @@ static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 	h->max_mem_packet = (1 << 10);
 
 	uint8_t buffer[4];
-	err = stlink_usb_read_mem32(h, CPUID, 4, buffer);
+	err = stlink_usb_read_mem32(h, STLINK_HLA_AP_NUM, STLINK_HLA_CSW, CPUID, 4, buffer);
 	if (err == ERROR_OK) {
 		uint32_t cpuid = le_to_h_u32(buffer);
 		int i = (cpuid >> 4) & 0xf;
