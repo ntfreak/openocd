@@ -20,6 +20,11 @@
 #include <helper/replacements.h>
 #include <helper/bits.h>
 
+/* Available only from kernel v4.10 */
+#ifndef PCI_CFG_SPACE_EXP_SIZE
+#define PCI_CFG_SPACE_EXP_SIZE	4096
+#endif
+
 #define PCIE_EXT_CAP_LST	0x100
 
 #define XLNX_XVC_EXT_CAP	0x00
