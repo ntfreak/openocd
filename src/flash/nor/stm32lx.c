@@ -756,7 +756,7 @@ static int stm32lx_probe(struct flash_bank *bank)
 	}
 
 	if (n == ARRAY_SIZE(stm32lx_parts)) {
-		LOG_WARNING("Cannot identify target as a STM32L family.");
+		LOG_ERROR("Cannot identify target as an STM32 L0 or L1 family device.");
 		return ERROR_FAIL;
 	} else {
 		LOG_INFO("Device: %s", stm32lx_info->part_info.device_str);

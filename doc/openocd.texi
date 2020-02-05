@@ -6852,7 +6852,7 @@ stm32h7x option_write 0 0x20 0x8000000 0x8000000
 @end deffn
 
 @deffn {Flash Driver} stm32lx
-All members of the STM32L microcontroller families from STMicroelectronics
+All members of the STM32L0 and STM32L1 microcontroller families from STMicroelectronics
 include internal flash and use ARM Cortex-M3 and Cortex-M0+ cores.
 The driver automatically recognizes a number of these chips using
 the chip identification register, and autoconfigures itself.
