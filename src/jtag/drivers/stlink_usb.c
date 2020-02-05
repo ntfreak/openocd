@@ -2740,6 +2740,58 @@ static int stlink_usb_close(void *handle)
 	return ERROR_OK;
 }
 
+
+/* Compute ST-Link serial number from the device descriptor
+ * 'old' ST-Link DFU returns 12 8-bits values, separated by zeros
+ * (wrong unicode encoding) */
+int stlink_usb_compute_serial(libusb_device_handle *device,
+		struct libusb_device_descriptor *dev_desc, char **computed_serial)
+{
+	int retval;
+	char desc_serial[256+1]; /* Max size of string descriptor */
+
+	if (dev_desc->iSerialNumber == 0)
+		return false;
+
+	retval = libusb_get_string_descriptor(device, 0, 0, (unsigned char *) desc_serial, 64);
+
+	if (retval < 0) {
+		LOG_ERROR("libusb_get_string_descriptor() failed with %d", retval);
+		return false;
+	}
+
+	const uint32_t langid = desc_serial[2] | (desc_serial[3] << 8);
+
+	retval = libusb_get_string_descriptor(device, dev_desc->iSerialNumber,
+			langid, (unsigned char *) desc_serial, 64);
+
+	if (retval < 0) {
+		LOG_ERROR("libusb_get_string_descriptor() failed with %d", retval);
+		return false;
+	}
+
+	int i, len = desc_serial[0];
+	*computed_serial = malloc(25 * sizeof(char)); /* stlink serial length is 24 */
+	if (*computed_serial == NULL)
+		return ERROR_FAIL;
+
+	if (len == 26) /* work-around for old ST-Links*/
+		for (i = 0; i < 12; i++)
+			sprintf((char *) &((*computed_serial)[i*2]), "%02hX", (unsigned short) desc_serial[2 * (i+1)]);
+	else if (len == 50)
+		for (i = 0; i < 24; i++)
+			(*computed_serial)[i] = desc_serial[2 * (i + 1)];
+	else {
+		LOG_ERROR("unexpected serial length (%d) in descriptor", len);
+		free(*computed_serial);
+		return ERROR_FAIL;
+	}
+
+	(*computed_serial)[24] = '\0';
+
+	return ERROR_OK;
+}
+
 /** */
 static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 {
@@ -2773,7 +2825,8 @@ static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 	  in order to become operational.
 	 */
 	do {
-		if (jtag_libusb_open(param->vid, param->pid, param->serial, &h->fd) != ERROR_OK) {
+		if (jtag_libusb_open(param->vid, param->pid, param->serial,
+				&h->fd, stlink_usb_compute_serial) != ERROR_OK) {
 			LOG_ERROR("open failed");
 			goto error_open;
 		}
