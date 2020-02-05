@@ -111,7 +111,7 @@ struct stlink_usb_version {
 /** */
 struct stlink_usb_handle_s {
 	/** */
-	struct jtag_libusb_device_handle *fd;
+	struct libusb_device_handle *fd;
 	/** */
 	struct libusb_transfer *trans;
 	/** */
@@ -451,7 +451,7 @@ struct jtag_xfer {
 };
 
 static int jtag_libusb_bulk_transfer_n(
-		jtag_libusb_device_handle * dev_handle,
+		struct libusb_device_handle *dev_handle,
 		struct jtag_xfer *transfers,
 		size_t n_transfers,
 		int timeout)
@@ -2785,7 +2785,7 @@ static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 
 		jtag_libusb_set_configuration(h->fd, 0);
 
-		if (jtag_libusb_claim_interface(h->fd, 0) != ERROR_OK) {
+		if (libusb_claim_interface(h->fd, 0) != ERROR_OK) {
 			LOG_DEBUG("claim interface failed");
 			goto error_open;
 		}
@@ -2794,7 +2794,7 @@ static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 		h->rx_ep = STLINK_RX_EP;
 
 		uint16_t pid;
-		if (jtag_libusb_get_pid(jtag_libusb_get_device(h->fd), &pid) != ERROR_OK) {
+		if (jtag_libusb_get_pid(libusb_get_device(h->fd), &pid) != ERROR_OK) {
 			LOG_DEBUG("libusb_get_pid failed");
 			goto error_open;
 		}
@@ -2838,13 +2838,13 @@ static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 			LOG_ERROR("read version failed");
 			goto error_open;
 		} else {
-			err = jtag_libusb_release_interface(h->fd, 0);
+			err = libusb_release_interface(h->fd, 0);
 			if (err != ERROR_OK) {
 				LOG_ERROR("release interface failed");
 				goto error_open;
 			}
 
-			err = jtag_libusb_reset_device(h->fd);
+			err = libusb_reset_device(h->fd);
 			if (err != ERROR_OK) {
 				LOG_ERROR("reset device failed");
 				goto error_open;

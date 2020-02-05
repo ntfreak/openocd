@@ -95,7 +95,7 @@
 
 struct kitprog {
 	hid_device *hid_handle;
-	struct jtag_libusb_device_handle *usb_handle;
+	struct libusb_device_handle *usb_handle;
 	uint16_t packet_size;
 	uint16_t packet_index;
 	uint8_t *packet_buffer;
@@ -311,7 +311,7 @@ static int kitprog_usb_open(void)
 	}
 
 	/* Claim the KitProg Programmer (bulk transfer) interface */
-	if (jtag_libusb_claim_interface(kitprog_handle->usb_handle, 1) != ERROR_OK) {
+	if (libusb_claim_interface(kitprog_handle->usb_handle, 1) != ERROR_OK) {
 		LOG_ERROR("Failed to claim KitProg Programmer (bulk transfer) interface");
 		return ERROR_FAIL;
 	}

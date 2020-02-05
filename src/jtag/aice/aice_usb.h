@@ -93,7 +93,7 @@
 struct aice_usb_handler_s {
 	unsigned int usb_read_ep;
 	unsigned int usb_write_ep;
-	struct jtag_libusb_device_handle *usb_handle;
+	struct libusb_device_handle *usb_handle;
 };
 
 struct cache_info {
