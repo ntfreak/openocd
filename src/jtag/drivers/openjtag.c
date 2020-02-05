@@ -111,7 +111,7 @@ static uint8_t usb_rx_buf[OPENJTAG_BUFFER_SIZE];
 static struct openjtag_scan_result openjtag_scan_result_buffer[OPENJTAG_MAX_PENDING_RESULTS];
 static int openjtag_scan_result_count;
 
-static jtag_libusb_device_handle *usbh;
+static struct libusb_device_handle *usbh;
 
 /* CY7C65215 model only */
 #define CY7C65215_JTAG_REQUEST  0x40  /* bmRequestType: vendor host-to-device */

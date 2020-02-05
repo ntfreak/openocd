@@ -132,7 +132,7 @@ static const uint16_t osbdm_vid[] = { 0x15a2, 0x15a2, 0x15a2, 0 };
 static const uint16_t osbdm_pid[] = { 0x0042, 0x0058, 0x005e, 0 };
 
 struct osbdm {
-	struct jtag_libusb_device_handle *devh; /* USB handle */
+	struct libusb_device_handle *devh; /* USB handle */
 	uint8_t buffer[OSBDM_USB_BUFSIZE]; /* Data to send and receive */
 	int count; /* Count data to send and to read */
 };
@@ -377,7 +377,7 @@ static int osbdm_open(struct osbdm *osbdm)
 	if (jtag_libusb_open(osbdm_vid, osbdm_pid, NULL, &osbdm->devh) != ERROR_OK)
 		return ERROR_FAIL;
 
-	if (jtag_libusb_claim_interface(osbdm->devh, 0) != ERROR_OK)
+	if (libusb_claim_interface(osbdm->devh, 0) != ERROR_OK)
 		return ERROR_FAIL;
 
 	return ERROR_OK;

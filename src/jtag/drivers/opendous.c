@@ -134,7 +134,7 @@ static void opendous_tap_append_scan(int length, uint8_t *buffer, struct scan_co
 
 /* opendous lowlevel functions */
 struct opendous_jtag {
-	struct jtag_libusb_device_handle *usb_handle;
+	struct libusb_device_handle *usb_handle;
 };
 
 static struct opendous_jtag *opendous_usb_open(void);
@@ -714,12 +714,12 @@ struct opendous_jtag *opendous_usb_open(void)
 {
 	struct opendous_jtag *result;
 
-	struct jtag_libusb_device_handle *devh;
+	struct libusb_device_handle *devh;
 	if (jtag_libusb_open(opendous_probe->VID, opendous_probe->PID, NULL, &devh) != ERROR_OK)
 		return NULL;
 
 	jtag_libusb_set_configuration(devh, 0);
-	jtag_libusb_claim_interface(devh, 0);
+	libusb_claim_interface(devh, 0);
 
 	result = malloc(sizeof(*result));
 	result->usb_handle = devh;

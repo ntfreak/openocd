@@ -72,7 +72,7 @@ static int ublast2_libusb_write(struct ublast_lowlevel *low, uint8_t *buf,
 
 }
 
-static int ublast2_write_firmware_section(struct jtag_libusb_device_handle *libusb_dev,
+static int ublast2_write_firmware_section(struct libusb_device_handle *libusb_dev,
 				   struct image *firmware_image, int section_index)
 {
 	uint16_t chunk_size;
@@ -123,7 +123,7 @@ static int ublast2_write_firmware_section(struct jtag_libusb_device_handle *libu
 	return ERROR_OK;
 }
 
-static int load_usb_blaster_firmware(struct jtag_libusb_device_handle *libusb_dev,
+static int load_usb_blaster_firmware(struct libusb_device_handle *libusb_dev,
 				     struct ublast_lowlevel *low)
 {
 	struct image ublast2_firmware_image;
@@ -191,7 +191,7 @@ static int ublast2_libusb_init(struct ublast_lowlevel *low)
 {
 	const uint16_t vids[] = { low->ublast_vid_uninit, 0 };
 	const uint16_t pids[] = { low->ublast_pid_uninit, 0 };
-	struct jtag_libusb_device_handle *temp;
+	struct libusb_device_handle *temp;
 	bool renumeration = false;
 	int ret;
 

@@ -71,7 +71,7 @@
 static char *ft232r_serial_desc;
 static uint16_t ft232r_vid = 0x0403; /* FTDI */
 static uint16_t ft232r_pid = 0x6001; /* FT232R */
-static jtag_libusb_device_handle *adapter;
+static struct libusb_device_handle *adapter;
 
 static uint8_t *ft232r_output;
 static size_t ft232r_output_len;
@@ -268,7 +268,7 @@ static int ft232r_init(void)
 	else /* serial port will be restored after jtag: */
 		libusb_set_auto_detach_kernel_driver(adapter, 1); /* 1: DONT_DETACH_SIO_MODULE */
 
-	if (jtag_libusb_claim_interface(adapter, 0)) {
+	if (libusb_claim_interface(adapter, 0)) {
 		LOG_ERROR("unable to claim interface");
 		return ERROR_JTAG_INIT_FAILED;
 	}
@@ -330,7 +330,7 @@ static int ft232r_quit(void)
 		}
 	}
 
-	if (jtag_libusb_release_interface(adapter, 0) != 0)
+	if (libusb_release_interface(adapter, 0) != 0)
 		LOG_ERROR("usb release interface failed");
 
 	jtag_libusb_close(adapter);

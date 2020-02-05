@@ -39,7 +39,7 @@ struct ublast_lowlevel {
 	uint16_t ublast_vid_uninit;
 	uint16_t ublast_pid_uninit;
 	char *ublast_device_desc;
-	struct jtag_libusb_device_handle *libusb_dev;
+	struct libusb_device_handle *libusb_dev;
 	char *firmware_path;
 
 	int (*write)(struct ublast_lowlevel *low, uint8_t *buf, int size,
