@@ -47,7 +47,7 @@
 
 #define STM32_FLASH_CR_OFFSET	0x0C	/* offset of CR register in FLASH struct */
 #define STM32_FLASH_SR_OFFSET	0x10	/* offset of SR register in FLASH struct */
-#define STM32_CR_PROG			0x00000032	/* PSIZE64 | PG */
+#define STM32_CR_PROG			0x00000002	/* PG */
 #define STM32_SR_QW_MASK		0x00000004	/* QW */
 #define STM32_SR_ERROR_MASK		0x07ee0000	/* DBECCERR | SNECCERR | RDSERR | RDPERR | OPERR
 											   | INCERR | STRBERR | PGSERR | WRPERR */
