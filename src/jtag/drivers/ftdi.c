@@ -648,6 +648,11 @@ static int ftdi_initialize(void)
 	else
 		LOG_DEBUG("ftdi interface using shortest path jtag state transitions");
 
+	if (!ftdi_vid[0] && !ftdi_pid[0]) {
+		LOG_ERROR("Please specify ftdi_vid_pid");
+		return ERROR_JTAG_INIT_FAILED;
+	}
+
 	for (int i = 0; ftdi_vid[i] || ftdi_pid[i]; i++) {
 		mpsse_ctx = mpsse_open(&ftdi_vid[i], &ftdi_pid[i], ftdi_device_desc,
 				ftdi_serial, jtag_usb_get_location(), ftdi_channel);
