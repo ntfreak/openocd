@@ -325,6 +325,7 @@ enum stlink_mode {
 
 /* aliases */
 #define STLINK_F_HAS_TARGET_VOLT        STLINK_F_HAS_TRACE
+#define STLINK_F_HAS_CSW                STLINK_F_HAS_DPBANKSEL
 
 struct speed_map {
 	int speed;
@@ -1035,6 +1036,7 @@ static int stlink_usb_version(void *handle)
 			flags |= STLINK_F_HAS_AP_INIT;
 
 		/* Banked regs (DPv1 & DPv2) support from V2J32 */
+		/* Memory R/W supports CSW from V2J32 */
 		if (h->version.jtag >= 32)
 			flags |= STLINK_F_HAS_DPBANKSEL;
 
@@ -1062,6 +1064,7 @@ static int stlink_usb_version(void *handle)
 		flags |= STLINK_F_HAS_AP_INIT;
 
 		/* Banked regs (DPv1 & DPv2) support from V3J2 */
+		/* Memory R/W supports CSW from V3J2 */
 		if (h->version.jtag >= 2)
 			flags |= STLINK_F_HAS_DPBANKSEL;
 
@@ -3488,6 +3491,56 @@ static int stlink_dap_op_run(struct adiv5_dap *dap)
 	return saved_retval;
 }
 
+static int stlink_dap_op_ap_mem_read(struct adiv5_ap *ap, uint8_t *buffer,
+		uint32_t size, uint32_t count, uint32_t address, bool addrinc)
+{
+	int retval;
+
+	if (!addrinc)
+		return ERROR_OP_NOT_SUPPORTED;
+
+	if (!(stlink_dap_handle->version.flags & STLINK_F_HAS_CSW))
+		return ERROR_OP_NOT_SUPPORTED;
+
+	retval = stlink_dap_op_run(ap->dap);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = stlink_dap_open_ap(ap->ap_num);
+	if (retval != ERROR_OK)
+		return retval;
+
+	dap_invalidate_cache(ap->dap);
+
+	return stlink_usb_read_ap_mem(stlink_dap_handle, ap->ap_num,
+		ap->csw_default, address, size, count, buffer);
+}
+
+static int stlink_dap_op_ap_mem_write(struct adiv5_ap *ap, const uint8_t *buffer,
+		uint32_t size, uint32_t count, uint32_t address, bool addrinc)
+{
+	int retval;
+
+	if (!addrinc)
+		return ERROR_OP_NOT_SUPPORTED;
+
+	if (!(stlink_dap_handle->version.flags & STLINK_F_HAS_CSW))
+		return ERROR_OP_NOT_SUPPORTED;
+
+	retval = stlink_dap_op_run(ap->dap);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = stlink_dap_open_ap(ap->ap_num);
+	if (retval != ERROR_OK)
+		return retval;
+
+	dap_invalidate_cache(ap->dap);
+
+	return stlink_usb_write_ap_mem(stlink_dap_handle, ap->ap_num,
+		ap->csw_default, address, size, count, buffer);
+}
+
 /** */
 static void stlink_dap_op_quit(struct adiv5_dap *dap)
 {
@@ -3681,6 +3734,10 @@ static const struct dap_ops stlink_dap_ops = {
 	.run = stlink_dap_op_run,
 	.sync = NULL, /* optional */
 	.quit = stlink_dap_op_quit, /* optional */
+	.ap_ops = {
+		.ap_mem_read = stlink_dap_op_ap_mem_read,
+		.ap_mem_write = stlink_dap_op_ap_mem_write,
+	},
 };
 
 static const char *const stlink_dap_transport[] = { "dapdirect_jtag", "dapdirect_swd", NULL };
