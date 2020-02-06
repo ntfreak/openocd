@@ -128,7 +128,7 @@ struct stm32lx_part_info {
 };
 
 struct stm32lx_flash_bank {
-	int probed;
+	bool probed;
 	uint32_t idcode;
 	uint32_t user_bank_size;
 	uint32_t flash_base;
@@ -297,7 +297,7 @@ FLASH_BANK_COMMAND_HANDLER(stm32lx_flash_bank_command)
 
 	bank->driver_priv = stm32lx_info;
 
-	stm32lx_info->probed = 0;
+	stm32lx_info->probed = false;
 	stm32lx_info->user_bank_size = bank->size;
 
 	/* the stm32l erased value is 0x00 */
@@ -308,8 +308,6 @@ FLASH_BANK_COMMAND_HANDLER(stm32lx_flash_bank_command)
 
 COMMAND_HANDLER(stm32lx_handle_mass_erase_command)
 {
-	int i;
-
 	if (CMD_ARGC < 1)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
@@ -321,7 +319,7 @@ COMMAND_HANDLER(stm32lx_handle_mass_erase_command)
 	retval = stm32lx_mass_erase(bank);
 	if (retval == ERROR_OK) {
 		/* set all sectors as erased */
-		for (i = 0; i < bank->num_sectors; i++)
+		for (int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_erased = 1;
 
 		command_print(CMD, "stm32lx mass erase complete");
@@ -731,14 +729,13 @@ static int stm32lx_probe(struct flash_bank *bank)
 {
 	struct target *target = bank->target;
 	struct stm32lx_flash_bank *stm32lx_info = bank->driver_priv;
-	int i;
 	uint16_t flash_size_in_kb;
 	uint32_t device_id;
 	uint32_t base_address = FLASH_BANK0_ADDRESS;
 	uint32_t second_bank_base;
 	unsigned int n;
 
-	stm32lx_info->probed = 0;
+	stm32lx_info->probed = false;
 
 	int retval = stm32lx_read_id_code(bank->target, &device_id);
 	if (retval != ERROR_OK)
@@ -852,14 +849,14 @@ static int stm32lx_probe(struct flash_bank *bank)
 		return ERROR_FAIL;
 	}
 
-	for (i = 0; i < num_sectors; i++) {
+	for (int i = 0; i < num_sectors; i++) {
 		bank->sectors[i].offset = i * FLASH_SECTOR_SIZE;
 		bank->sectors[i].size = FLASH_SECTOR_SIZE;
 		bank->sectors[i].is_erased = -1;
 		bank->sectors[i].is_protected = -1;
 	}
 
-	stm32lx_info->probed = 1;
+	stm32lx_info->probed = true;
 
 	return ERROR_OK;
 }
