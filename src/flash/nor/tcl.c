@@ -476,7 +476,7 @@ COMMAND_HANDLER(handle_flash_write_image_command)
 COMMAND_HANDLER(handle_flash_fill_command)
 {
 	target_addr_t address;
-	uint32_t pattern;
+	uint64_t pattern;
 	uint32_t count;
 	struct target *target = get_current_target(CMD_CTX);
 	unsigned i;
@@ -487,7 +487,7 @@ COMMAND_HANDLER(handle_flash_fill_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	COMMAND_PARSE_ADDRESS(CMD_ARGV[0], address);
-	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[1], pattern);
+	COMMAND_PARSE_NUMBER(u64, CMD_ARGV[1], pattern);
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[2], count);
 
 	struct flash_bank *bank;
@@ -496,6 +496,9 @@ COMMAND_HANDLER(handle_flash_fill_command)
 		return retval;
 
 	switch (CMD_NAME[4]) {
+		case 'd':
+			wordsize = 8;
+			break;
 		case 'w':
 			wordsize = 4;
 			break;
@@ -541,6 +544,10 @@ COMMAND_HANDLER(handle_flash_fill_command)
 	uint8_t *ptr = buffer + padding_at_start;
 
 	switch (wordsize) {
+		case 8:
+			for (i = 0; i < count; i++, ptr += wordsize)
+				target_buffer_set_u64(target, ptr, pattern);
+			break;
 		case 4:
 			for (i = 0; i < count; i++, ptr += wordsize)
 				target_buffer_set_u32(target, ptr, pattern);
@@ -577,9 +584,12 @@ COMMAND_HANDLER(handle_flash_fill_command)
 		goto done;
 
 	for (i = 0, ptr = buffer; i < count; i++) {
-		uint32_t readback = 0;
+		uint64_t readback = 0;
 
 		switch (wordsize) {
+			case 8:
+				readback = target_buffer_get_u64(target, ptr);
+				break;
 			case 4:
 				readback = target_buffer_get_u32(target, ptr);
 				break;
@@ -593,7 +603,7 @@ COMMAND_HANDLER(handle_flash_fill_command)
 		if (readback != pattern) {
 			LOG_ERROR(
 				"Verification error address " TARGET_ADDR_FMT
-				", read back 0x%02" PRIx32 ", expected 0x%02" PRIx32,
+				", read back 0x%02" PRIx64 ", expected 0x%02" PRIx64,
 				address + i * wordsize, readback, pattern);
 			retval = ERROR_FAIL;
 			goto done;
@@ -1001,6 +1011,14 @@ static const struct command_registration flash_exec_command_handlers[] = {
 			"If 'unlock' is specified, then the flash is unprotected "
 			"before erasing.",
 
+	},
+	{
+		.name = "filld",
+		.handler = handle_flash_fill_command,
+		.mode = COMMAND_EXEC,
+		.usage = "address value n",
+		.help = "Fill n double-words with 64-bit value, starting at "
+			"word address.  (No autoerase.)",
 	},
 	{
 		.name = "fillw",

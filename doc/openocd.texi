@@ -5074,10 +5074,11 @@ If @option{unlock} is specified, then the flash is unprotected
 before erase starts.
 @end deffn
 
-@deffn Command {flash fillw} address word length
+@deffn Command {flash filld} address double-word length
+@deffnx Command {flash fillw} address word length
 @deffnx Command {flash fillh} address halfword length
 @deffnx Command {flash fillb} address byte length
-Fills flash memory with the specified @var{word} (32 bits),
+Fills flash memory with the specified @var{double-word} (64 bits), @var{word} (32 bits),
 @var{halfword} (16 bits), or @var{byte} (8-bit) pattern,
 starting at @var{address} and continuing
 for @var{length} units (word/halfword/byte).
