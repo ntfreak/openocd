@@ -117,7 +117,7 @@ struct stm32h7x_part_info {
 	unsigned int block_size;     /* flash write word size in bytes */
 	uint16_t max_flash_size_kb;
 	uint8_t has_dual_bank;
-	uint16_t first_bank_size_kb; /* Used when has_dual_bank is true */
+	uint16_t max_bank_size_kb; /* Used when has_dual_bank is true */
 	uint32_t flash_regs_base;    /* Flash controller registers location */
 	uint32_t fsize_addr;         /* Location of FSIZE register */
 	uint32_t wps_group_size; /* write protection group sectors' count */
@@ -173,7 +173,7 @@ static const struct stm32h7x_part_info stm32h7x_parts[] = {
 	.page_size_kb		= 128,
 	.block_size			= 32,
 	.max_flash_size_kb	= 2048,
-	.first_bank_size_kb	= 1024,
+	.max_bank_size_kb	= 1024,
 	.has_dual_bank		= 1,
 	.flash_regs_base	= FLASH_REG_BASE_B0,
 	.fsize_addr			= 0x1FF1E880,
@@ -189,7 +189,7 @@ static const struct stm32h7x_part_info stm32h7x_parts[] = {
 	.page_size_kb		= 8,
 	.block_size			= 16,
 	.max_flash_size_kb	= 2048,
-	.first_bank_size_kb	= 1024,
+	.max_bank_size_kb	= 1024,
 	.has_dual_bank		= 1,
 	.flash_regs_base	= FLASH_REG_BASE_B0,
 	.fsize_addr			= 0x08FFF80C,
@@ -740,8 +740,6 @@ static int stm32x_probe(struct flash_bank *bank)
 	struct stm32h7x_flash_bank *stm32x_info = bank->driver_priv;
 	uint16_t flash_size_in_kb;
 	uint32_t device_id;
-	uint32_t base_address = FLASH_BANK0_ADDRESS;
-	uint32_t second_bank_base;
 
 	stm32x_info->probed = false;
 	stm32x_info->part_info = NULL;
@@ -776,32 +774,57 @@ static int stm32x_probe(struct flash_bank *bank)
 	} else
 		LOG_INFO("flash size probed value %d", flash_size_in_kb);
 
-	/* Lower flash size devices are single bank */
-	if (stm32x_info->part_info->has_dual_bank && (flash_size_in_kb > stm32x_info->part_info->first_bank_size_kb)) {
-		/* Use the configured base address to determine if this is the first or second flash bank.
-		 * Verify that the base address is reasonably correct and determine the flash bank size
+
+
+
+	/* setup bank size */
+	const uint32_t bank1_base = FLASH_BANK0_ADDRESS;
+	const uint32_t bank2_base = bank1_base + stm32x_info->part_info->max_bank_size_kb * 1024;
+	bool has_dual_bank = stm32x_info->part_info->has_dual_bank;
+
+	switch (device_id) {
+	case 0x450:
+	case 0x480:
+		/* For STM32H74x/75x and STM32H7Ax/Bx
+		 *  - STM32H7xxxI devices contains dual bank, 1 Mbyte each
+		 *  - STM32H7xxxG devices contains dual bank, 512 Kbyte each
+		 *  - STM32H7xxxB devices contains single bank, 128 Kbyte
+		 *  - the second bank starts always from 0x08100000
 		 */
-		second_bank_base = base_address + stm32x_info->part_info->first_bank_size_kb * 1024;
-		if (bank->base == second_bank_base) {
-			/* This is the second bank  */
-			base_address = second_bank_base;
-			flash_size_in_kb = flash_size_in_kb - stm32x_info->part_info->first_bank_size_kb;
-			/* bank1 also uses a register offset */
-			stm32x_info->flash_regs_base = FLASH_REG_BASE_B1;
-		} else if (bank->base == base_address) {
-			/* This is the first bank */
-			flash_size_in_kb = stm32x_info->part_info->first_bank_size_kb;
-		} else {
-			LOG_WARNING("STM32H flash bank base address config is incorrect. "
-				    TARGET_ADDR_FMT " but should rather be 0x%" PRIx32 " or 0x%" PRIx32,
-					bank->base, base_address, second_bank_base);
+		if (flash_size_in_kb == 128)
+			has_dual_bank = false;
+		else
+			/* flash size is 2M or 1M */
+			flash_size_in_kb /= 2;
+		break;
+	default:
+		LOG_ERROR("unsupported device");
+		return ERROR_FAIL;
+	}
+
+	if (has_dual_bank) {
+		LOG_INFO("STM32H7 flash has dual banks");
+		if (bank->base != bank1_base && bank->base != bank2_base) {
+			LOG_ERROR("STM32H7 flash bank base address config is incorrect. "
+					TARGET_ADDR_FMT " but should rather be 0x%" PRIx32 " or 0x%" PRIx32,
+					bank->base, bank1_base, bank2_base);
 			return ERROR_FAIL;
 		}
-		LOG_INFO("STM32H flash has dual banks. Bank (%d) size is %dkb, base address is 0x%" PRIx32,
-				bank->bank_number, flash_size_in_kb, base_address);
 	} else {
-		LOG_INFO("STM32H flash size is %dkb, base address is 0x%" PRIx32, flash_size_in_kb, base_address);
+		LOG_INFO("STM32H7 flash has a single bank");
+		if (bank->base == bank2_base) {
+			LOG_ERROR("this device has a single bank only");
+			return ERROR_FAIL;
+		} else if (bank->base != bank1_base) {
+			LOG_ERROR("STM32H7 flash bank base address config is incorrect. "
+					TARGET_ADDR_FMT " but should be 0x%" PRIx32,
+					bank->base, bank1_base);
+			return ERROR_FAIL;
+		}
 	}
+
+	LOG_INFO("Bank (%d) size is %d kb, base address is 0x%" PRIx32,
+		bank->bank_number, flash_size_in_kb, (uint32_t) bank->base);
 
 	/* if the user sets the size manually then ignore the probed value
 	 * this allows us to work around devices that have an invalid flash size register value */
@@ -815,8 +838,6 @@ static int stm32x_probe(struct flash_bank *bank)
 
 	/* did we assign flash size? */
 	assert(flash_size_in_kb != 0xffff);
-
-	bank->base = base_address;
 	bank->size = flash_size_in_kb * 1024;
 	bank->write_start_alignment = stm32x_info->part_info->block_size;
 	bank->write_end_alignment = stm32x_info->part_info->block_size;
