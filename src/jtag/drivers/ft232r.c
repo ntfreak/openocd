@@ -257,7 +257,7 @@ static int ft232r_init(void)
 {
 	uint16_t avids[] = {ft232r_vid, 0};
 	uint16_t apids[] = {ft232r_pid, 0};
-	if (jtag_libusb_open(avids, apids, ft232r_serial_desc, &adapter)) {
+	if (jtag_libusb_open(avids, apids, ft232r_serial_desc, &adapter, NULL)) {
 		LOG_ERROR("ft232r not found: vid=%04x, pid=%04x, serial=%s\n",
 			ft232r_vid, ft232r_pid, (ft232r_serial_desc == NULL) ? "[any]" : ft232r_serial_desc);
 		return ERROR_JTAG_INIT_FAILED;
