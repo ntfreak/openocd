@@ -1314,7 +1314,7 @@ static const struct command_registration jtag_command_handlers[] = {
 		.name = "irscan",
 		.handler = handle_irscan_command,
 		.mode = COMMAND_EXEC,
-		.help = "Execute Instruction Register (DR) scan.  The "
+		.help = "Execute Instruction Register (IR) scan.  The "
 			"specified opcodes are put into each TAP's IR, "
 			"and other TAPs are put in BYPASS.",
 		.usage = "[tap_name instruction]* ['-endstate' state_name]",
