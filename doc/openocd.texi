@@ -610,7 +610,7 @@ produced, PDF schematics are easily found and it is easy to make.
 @* Link: @url{http://github.com/fjullien/jtag_vpi}
 
 @item @b{xlnx_pcie_xvc}
-@* A JTAG driver exposing Xilinx Virtual Cable over PCI Express to OpenOCD as JTAG interface.
+@* A JTAG driver exposing Xilinx Virtual Cable over PCI Express to OpenOCD as JTAG/SWD interface.
 
 @end itemize
 
@@ -3149,7 +3149,7 @@ version).
 @deffn {Interface Driver} {xlnx_pcie_xvc}
 This driver supports the Xilinx Virtual Cable (XVC) over PCI Express.
 It is commonly found in Xilinx based PCI Express designs. It allows debugging
-fabric based JTAG devices such as Cortex-M1/M3 microcontrollers. Access to this is
+fabric based JTAG/SWD devices such as Cortex-M1/M3 microcontrollers. Access to this is
 exposed via extended capability registers in the PCI Express configuration space.
 
 For more information see Xilinx PG245 (Section on From_PCIE_to_JTAG mode).
