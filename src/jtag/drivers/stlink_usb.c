@@ -83,6 +83,13 @@
 #define STLINK_MAX_RW8		(64)
 #define STLINKV3_MAX_RW8	(512)
 
+/*
+ * FIXME: this definition + comment should be moved in a generic header file
+ * ARM IHI 0031E: TAR Automatic address increment is only guaranteed to
+ * operate on the 10 least significant bits of the address
+ */
+#define TAR_AUTOINCR_BLOCK      (1 << 10)
+
 /* "WAIT" responses will be retried (with exponential backoff) at
  * most this many times before failing to caller.
  */
@@ -3575,17 +3582,96 @@ static int stlink_dap_op_run(struct adiv5_dap *dap)
 	return saved_retval;
 }
 
+/*
+ * Explanation on CSW hack used for firmware V2J24~V2J31 and V3J1
+ *
+ * The API of these firmware versions don't provide a way to specify directly
+ * the value of CSW used for mem_ap accesses. The CSW value used by the
+ * firmware is not under user control. The lack of specific API would force
+ * the use of inefficient memory access through low-level AP register API.
+ *
+ * The CSW value internally computed by the firmware is cached by the firmware
+ * itself to minimize the writes to register MEM_AP_REG_CSW, writing it only
+ * to updated a new CSW value. The update is only triggered by a change in the
+ * CSW fields "size" and "addrinc" (note: with these firmware versions we only
+ * use "addrinc = true").
+ *
+ * With the command STLINK_DEBUG_APIV2_WRITE_DAP_REG we can write the register
+ * MEM_AP_REG_CSW; the firmware does not intercept this write and its internal
+ * cached CSW value get out-of-sync wrt the value in register MEM_AP_REG_CSW.
+ * The hack rely on this mismatch between firmware cache and MEM_AP_REG_CSW.
+ * Given the "size" of data we plan to use for memory access, we execute:
+ * 1) a dummy memory read of "size" to let the firmware compute a CSW value
+ *    coherent with "size". This will update the internal CSW cache and
+ *    (eventually) the register MEM_AP_REG_CSW;
+ * 2) a write of the desired "user" CSW value in MEM_AP_REG_CSW, including the
+ *    field "addrinc" ("size" has not to be changed wrt point 1);
+ * 3) a set of memory read/write commands of the same "size".
+ * While executing 3), the firmware will not modify the content of register
+ * MEM_AP_REG_CSW because accordingly to its cached value there is no need to
+ * update it!
+ * The memory accesses in 3) would then be executed with the desired CSW value
+ * programmed in 2).
+ *
+ * To simplify the code and only use one "size", the case of unaligned access
+ * is converted to a 8 bit access.
+ *
+ * Because of the available API, in step 3) we will use the normal access (with
+ * address auto-increment) also for addrinc==false, and this triggers another
+ * problem. The auto-increment of register MEM_AP_REG_TAR is guaranteed only
+ * on the 10 least significant bits. The firmware will update MEM_AP_REG_TAR
+ * every time the 10 bit increment is crossed, to avoid any potential
+ * wrap-around. This disrupts the address in MEM_AP_REG_TAR, that should
+ * instead be constant during the whole memory access. To prevent this, we
+ * split the memory access in chunks whose length cannot cause the 10 bits
+ * wrap-around so the firmware will not touch MEM_AP_REG_TAR.
+ */
+static int stlink_dap_hack_csw(struct adiv5_ap *ap, uint32_t size, bool addrinc)
+{
+	uint32_t csw;
+	uint8_t dummy[4];
+
+	switch (size) {
+		case 1:
+			csw = CSW_8BIT;
+			break;
+		case 2:
+			csw = CSW_16BIT;
+			break;
+		case 4:
+			/*
+			 * ST-Link sets autoinc only in 32 bits mode
+			 *
+			 * ARM IHI 0031D: Note:
+			 * It is IMPLEMENTATION DEFINED whether a MEM-AP supports transfer sizes other than Word. If a
+			 * MEM-AP only supports word transfers and Increment single is selected, the TAR always
+			 * increments by four after a successful DRW transaction.
+			 */
+			csw = addrinc ? (CSW_32BIT | CSW_ADDRINC_SINGLE) : CSW_32BIT;
+			break;
+		default:
+			return ERROR_FAIL;
+	}
+	csw |= ap->csw_default;
+
+	/* This mem read will change CSW. Ignore errors */
+	stlink_usb_read_ap_mem(stlink_dap_handle, ap->ap_num, STLINK_HLA_CSW, 0x00000000, size, 1, dummy);
+
+	return dap_queue_ap_write(ap, MEM_AP_REG_CSW, csw);
+}
+
 static int stlink_dap_op_ap_mem_read(struct adiv5_ap *ap, uint8_t *buffer,
 	  uint32_t size, uint32_t count, uint32_t address, bool addrinc)
 {
 	int retval;
-	uint32_t csw, bytes_remaining;
+	uint32_t csw, bytes_remaining, max_cnt_noaddrinc;
+	bool use_csw_hack = false;
 
 	if (!addrinc && size != 4)
 		return ERROR_OP_NOT_SUPPORTED;
 
 	if (!(stlink_dap_handle->version.flags & STLINK_F_HAS_CSW))
-		return ERROR_OP_NOT_SUPPORTED;
+		use_csw_hack = true;
 
 	retval = stlink_dap_op_run(ap->dap);
 	if (retval != ERROR_OK)
@@ -3597,17 +3683,41 @@ static int stlink_dap_op_ap_mem_read(struct adiv5_ap *ap, uint8_t *buffer,
 
 	dap_invalidate_cache(ap->dap);
 
-	csw = ap->csw_default;
+	if (!use_csw_hack) {
+		csw = ap->csw_default;
+		max_cnt_noaddrinc = STLINK_DATA_SIZE;
+	} else {
+		/* Hack for FW that do not support CSW. See comment above. */
+		csw = STLINK_HLA_CSW;
+		max_cnt_noaddrinc = TAR_AUTOINCR_BLOCK - (address & (TAR_AUTOINCR_BLOCK - 1));
+
+		/* unaligned access could be split in mix 32/16/8 bits. Force 8-bis only */
+		if ((size == 4 && address & 3) ||
+			(size == 2 && address & 1) ||
+			(size == 2 && !(stlink_dap_handle->version.flags & STLINK_F_HAS_MEM_16BIT))) {
+			count *= size;
+			size = 1;
+		}
+
+		retval = stlink_dap_hack_csw(ap, size, addrinc);
+		if (retval != ERROR_OK)
+			return retval;
+	}
+
 	if (addrinc)
 		return stlink_usb_read_ap_mem(stlink_dap_handle, ap->ap_num,
 			csw, address, size, count, buffer);
 
 	count *= size;
 	while (count) {
-		bytes_remaining = (count < STLINK_DATA_SIZE) ? count : STLINK_DATA_SIZE;
+		bytes_remaining = (count < max_cnt_noaddrinc) ? count : max_cnt_noaddrinc;
 
-		retval = stlink_usb_read_mem32_noaddrinc(stlink_dap_handle, ap->ap_num,
-				csw, address, bytes_remaining, buffer);
+		if (!use_csw_hack)
+			retval = stlink_usb_read_mem32_noaddrinc(stlink_dap_handle, ap->ap_num,
+					csw, address, bytes_remaining, buffer);
+		else
+			retval = stlink_usb_read_mem32(stlink_dap_handle, ap->ap_num,
+					csw, address, bytes_remaining, buffer);
 		if (retval != ERROR_OK)
 			return retval;
 
@@ -3621,13 +3731,14 @@ static int stlink_dap_op_ap_mem_write(struct adiv5_ap *ap, const uint8_t *buffer
 		uint32_t size, uint32_t count, uint32_t address, bool addrinc)
 {
 	int retval;
-	uint32_t csw, bytes_remaining;
+	uint32_t csw, bytes_remaining, max_cnt_noaddrinc;
+	bool use_csw_hack = false;
 
 	if (!addrinc && size != 4)
 		return ERROR_OP_NOT_SUPPORTED;
 
 	if (!(stlink_dap_handle->version.flags & STLINK_F_HAS_CSW))
-		return ERROR_OP_NOT_SUPPORTED;
+		use_csw_hack = true;
 
 	retval = stlink_dap_op_run(ap->dap);
 	if (retval != ERROR_OK)
@@ -3639,17 +3750,41 @@ static int stlink_dap_op_ap_mem_write(struct adiv5_ap *ap, const uint8_t *buffer
 
 	dap_invalidate_cache(ap->dap);
 
-	csw = ap->csw_default;
+	if (!use_csw_hack) {
+		csw = ap->csw_default;
+		max_cnt_noaddrinc = STLINK_DATA_SIZE;
+	} else {
+		/* Hack for FW that do not support CSW. See comment above. */
+		csw = STLINK_HLA_CSW;
+		max_cnt_noaddrinc = TAR_AUTOINCR_BLOCK - (address & (TAR_AUTOINCR_BLOCK - 1));
+
+		/* unaligned access could be split in mix 32/16/8 bits. Force 8-bis only */
+		if ((size == 4 && address & 3) ||
+			(size == 2 && address & 1) ||
+			(size == 2 && !(stlink_dap_handle->version.flags & STLINK_F_HAS_MEM_16BIT))) {
+			count *= size;
+			size = 1;
+		}
+
+		retval = stlink_dap_hack_csw(ap, size, addrinc);
+		if (retval != ERROR_OK)
+			return retval;
+	}
+
 	if (addrinc)
 		return stlink_usb_write_ap_mem(stlink_dap_handle, ap->ap_num,
 			csw, address, size, count, buffer);
 
 	count *= size;
 	while (count) {
-		bytes_remaining = (count < STLINK_DATA_SIZE) ? count : STLINK_DATA_SIZE;
+		bytes_remaining = (count < max_cnt_noaddrinc) ? count : max_cnt_noaddrinc;
 
-		retval = stlink_usb_write_mem32_noaddrinc(stlink_dap_handle, ap->ap_num,
-				csw, address, bytes_remaining, buffer);
+		if (!use_csw_hack)
+			retval = stlink_usb_write_mem32_noaddrinc(stlink_dap_handle, ap->ap_num,
+					csw, address, bytes_remaining, buffer);
+		else
+			retval = stlink_usb_write_mem32(stlink_dap_handle, ap->ap_num,
+					csw, address, bytes_remaining, buffer);
 		if (retval != ERROR_OK)
 			return retval;
 
