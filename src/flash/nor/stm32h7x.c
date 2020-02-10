@@ -122,7 +122,7 @@ struct stm32h7x_part_info {
 };
 
 struct stm32h7x_flash_bank {
-	int probed;
+	bool probed;
 	uint32_t idcode;
 	uint32_t user_bank_size;
 	uint32_t flash_regs_base;    /* Address of flash reg controller */
@@ -166,7 +166,7 @@ FLASH_BANK_COMMAND_HANDLER(stm32x_flash_bank_command)
 	stm32x_info = malloc(sizeof(struct stm32h7x_flash_bank));
 	bank->driver_priv = stm32x_info;
 
-	stm32x_info->probed = 0;
+	stm32x_info->probed = false;
 	stm32x_info->user_bank_size = bank->size;
 
 	return ERROR_OK;
@@ -710,13 +710,12 @@ static int stm32x_probe(struct flash_bank *bank)
 {
 	struct target *target = bank->target;
 	struct stm32h7x_flash_bank *stm32x_info = bank->driver_priv;
-	int i;
 	uint16_t flash_size_in_kb;
 	uint32_t device_id;
 	uint32_t base_address = FLASH_BANK0_ADDRESS;
 	uint32_t second_bank_base;
 
-	stm32x_info->probed = 0;
+	stm32x_info->probed = false;
 	stm32x_info->part_info = NULL;
 
 	int retval = stm32x_read_id_code(bank, &stm32x_info->idcode);
@@ -812,12 +811,12 @@ static int stm32x_probe(struct flash_bank *bank)
 	/* fixed memory */
 	setup_sector(bank, 0, num_pages, stm32x_info->part_info->page_size * 1024);
 
-	for (i = 0; i < num_pages; i++) {
+	for (int i = 0; i < num_pages; i++) {
 		bank->sectors[i].is_erased = -1;
 		bank->sectors[i].is_protected = 0;
 	}
 
-	stm32x_info->probed = 1;
+	stm32x_info->probed = true;
 	return ERROR_OK;
 }
 
@@ -989,8 +988,6 @@ flash_lock:
 
 COMMAND_HANDLER(stm32x_handle_mass_erase_command)
 {
-	int i;
-
 	if (CMD_ARGC < 1) {
 		command_print(CMD, "stm32h7x mass_erase <bank>");
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -1004,7 +1001,7 @@ COMMAND_HANDLER(stm32x_handle_mass_erase_command)
 	retval = stm32x_mass_erase(bank);
 	if (retval == ERROR_OK) {
 		/* set all sectors as erased */
-		for (i = 0; i < bank->num_sectors; i++)
+		for (int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_erased = 1;
 
 		command_print(CMD, "stm32h7x mass erase complete");
