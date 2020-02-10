@@ -142,7 +142,7 @@ struct stm32l4_part_info {
 };
 
 struct stm32l4_flash_bank {
-	int probed;
+	bool probed;
 	uint32_t idcode;
 	int bank1_sectors;
 	bool dual_bank_mode;
@@ -282,7 +282,7 @@ FLASH_BANK_COMMAND_HANDLER(stm32l4_flash_bank_command)
 	 * Ask the flash infrastructure to ensure required alignment */
 	bank->write_start_alignment = bank->write_end_alignment = 8;
 
-	stm32l4_info->probed = 0;
+	stm32l4_info->probed = false;
 
 	return ERROR_OK;
 }
@@ -717,12 +717,11 @@ static int stm32l4_probe(struct flash_bank *bank)
 	struct target *target = bank->target;
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
 	const struct stm32l4_part_info *part_info;
-	int i;
 	uint16_t flash_size_in_kb = 0xffff;
 	uint32_t device_id;
 	uint32_t options;
 
-	stm32l4_info->probed = 0;
+	stm32l4_info->probed = false;
 
 	/* read stm32 device id register */
 	int retval = stm32l4_read_idcode(bank, &stm32l4_info->idcode);
@@ -867,7 +866,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 		return ERROR_FAIL;
 	}
 
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (int i = 0; i < bank->num_sectors; i++) {
 		bank->sectors[i].offset = i * page_size;
 		/* in dual bank configuration, if there is a gap between banks
 		 * we fix up the sector offset to consider this gap */
@@ -878,7 +877,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 		bank->sectors[i].is_protected = 1;
 	}
 
-	stm32l4_info->probed = 1;
+	stm32l4_info->probed = true;
 	return ERROR_OK;
 }
 
@@ -967,8 +966,6 @@ static int stm32l4_mass_erase(struct flash_bank *bank)
 
 COMMAND_HANDLER(stm32l4_handle_mass_erase_command)
 {
-	int i;
-
 	if (CMD_ARGC < 1) {
 		command_print(CMD, "stm32l4x mass_erase <STM32L4 bank>");
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -982,7 +979,7 @@ COMMAND_HANDLER(stm32l4_handle_mass_erase_command)
 	retval = stm32l4_mass_erase(bank);
 	if (retval == ERROR_OK) {
 		/* set all sectors as erased */
-		for (i = 0; i < bank->num_sectors; i++)
+		for (int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_erased = 1;
 
 		command_print(CMD, "stm32l4x mass erase complete");
