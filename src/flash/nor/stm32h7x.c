@@ -43,6 +43,7 @@
 #define FLASH_OPTCCR    0x24
 #define FLASH_WPSN_CUR  0x38
 #define FLASH_WPSN_PRG  0x3C
+#define FLASH_ECC_FA	0x60
 
 
 /* FLASH_CR register bits */
@@ -285,14 +286,69 @@ static int stm32x_wait_flash_op_queue(struct flash_bank *bank, int timeout)
 	return retval;
 }
 
+static int stm32x_check_clear_err(struct flash_bank *bank)
+{
+	struct stm32h7x_flash_bank *stm32x_info = bank->driver_priv;
+
+	uint32_t status;
+	int retval = stm32x_get_flash_status(bank, &status);
+	if (retval != ERROR_OK)
+		return retval;
+
+	if (status & (FLASH_DBECCERR | FLASH_SNECCERR)) {
+		const char *fail_type = "";
+		if (status & FLASH_DBECCERR) {
+			if (status & FLASH_SNECCERR)
+				fail_type = "single/double";
+			else
+				fail_type = "double";
+
+		} else if (status & FLASH_SNECCERR)
+			fail_type = "single";
+
+		uint32_t fail_addr;
+		int retval2 = stm32x_read_flash_reg(bank, FLASH_ECC_FA, &fail_addr);
+		if (retval2 == ERROR_OK) {
+			fail_addr = bank->base + fail_addr * stm32x_info->part_info->block_size;
+			LOG_WARNING("Flash ECC %s error detected during read block at 0x%08" PRIx32,
+						 fail_type, fail_addr);
+		} else {
+			LOG_WARNING("Flash ECC %s error detected during read", fail_type);
+		}
+	}
+
+	if (status & (FLASH_ERROR & ~(FLASH_DBECCERR | FLASH_SNECCERR))) {
+		LOG_WARNING("Flash error from previous operation cleared (status 0x%08"
+					PRIx32 "), operation will continue", status);
+	}
+
+	/* Clear error */
+	if (status & FLASH_ERROR)
+		retval = stm32x_write_flash_reg(bank, FLASH_CCR, status);
+
+	return retval;
+}
+
+static int stm32x_flash_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+	int retval = default_flash_read(bank, buffer, offset, count);
+
+	(void)stm32x_check_clear_err(bank);
+
+	return retval;
+}
+
 static int stm32x_unlock_reg(struct flash_bank *bank)
 {
-	uint32_t ctrl;
+	int retval = stm32x_check_clear_err(bank);
+	if (retval != ERROR_OK)
+		return retval;
 
 	/* first check if not already unlocked
 	 * otherwise writing on FLASH_KEYR will fail
 	 */
-	int retval = stm32x_read_flash_reg(bank, FLASH_CR, &ctrl);
+	uint32_t ctrl;
+	retval = stm32x_read_flash_reg(bank, FLASH_CR, &ctrl);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -440,7 +496,9 @@ static int stm32x_protect_check(struct flash_bank *bank)
 	for (int i = 0; i < bank->num_prot_blocks; i++)
 		bank->prot_blocks[i].is_protected = protection & (1 << i) ? 0 : 1;
 
-	return ERROR_OK;
+	/* check flash ECC error */
+	retval = stm32x_check_clear_err(bank);
+	return retval;
 }
 
 static int stm32x_erase(struct flash_bank *bank, int first, int last)
@@ -1178,7 +1236,7 @@ const struct flash_driver stm32h7x_flash = {
 	.erase = stm32x_erase,
 	.protect = stm32x_protect,
 	.write = stm32x_write,
-	.read = default_flash_read,
+	.read = stm32x_flash_read,
 	.probe = stm32x_probe,
 	.auto_probe = stm32x_auto_probe,
 	.erase_check = default_flash_blank_check,
