@@ -1703,6 +1703,7 @@ static int cortex_a_assert_reset(struct target *target)
 
 static int cortex_a_deassert_reset(struct target *target)
 {
+	struct armv7a_common *armv7a = target_to_armv7a(target);
 	int retval;
 
 	LOG_DEBUG(" ");
@@ -1721,7 +1722,8 @@ static int cortex_a_deassert_reset(struct target *target)
 			LOG_WARNING("%s: ran after reset and before halt ...",
 				target_name(target));
 			if (target_was_examined(target)) {
-				retval = target_halt(target);
+				retval = mem_ap_write_atomic_u32(armv7a->debug_ap,
+						armv7a->debug_base + CPUDBG_DRCR, DRCR_HALT);
 				if (retval != ERROR_OK)
 					return retval;
 			} else
