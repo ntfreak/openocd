@@ -3623,7 +3623,12 @@ static int stlink_dap_speed(int speed)
 /** */
 static int stlink_dap_khz(int khz, int *jtag_speed)
 {
-	*jtag_speed = khz;
+	if (khz == 0) {
+		LOG_ERROR("RCLK not supported");
+		return ERROR_FAIL;
+	}
+
+	*jtag_speed = stlink_speed(stlink_dap_handle, khz, true);
 	return ERROR_OK;
 }
 
