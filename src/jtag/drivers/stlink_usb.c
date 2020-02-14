@@ -345,7 +345,6 @@ static const struct speed_map stlink_khz_to_speed_map_swd[] = {
 
 /* JTAG clock speed */
 static const struct speed_map stlink_khz_to_speed_map_jtag[] = {
-	{18000, 2},
 	{9000,  4},
 	{4500,  8},
 	{2250, 16},
