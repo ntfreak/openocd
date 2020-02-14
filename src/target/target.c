@@ -5157,7 +5157,6 @@ static int jim_target_wait_state(Jim_Interp *interp, int argc, Jim_Obj *const *a
 				"target: %s wait %s fails (%#s) %s",
 				target_name(target), n->name,
 				eObj, target_strerror_safe(e));
-		Jim_FreeNewObj(interp, eObj);
 		return JIM_ERR;
 	}
 	return JIM_OK;
