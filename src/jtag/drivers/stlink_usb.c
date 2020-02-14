@@ -47,6 +47,8 @@
 #define USE_LIBUSB_ASYNCIO
 #endif
 
+#define STLINK_SERIAL_LEN 24
+
 #define ENDPOINT_IN  0x80
 #define ENDPOINT_OUT 0x00
 
@@ -2740,6 +2742,67 @@ static int stlink_usb_close(void *handle)
 	return ERROR_OK;
 }
 
+
+/* Compute ST-Link serial number from the device descriptor
+ * 'old' ST-Link DFU returns 12 8-bits values, separated by zeros
+ * (wrong unicode encoding) */
+char *stlink_usb_get_alternate_serial(libusb_device_handle *device,
+		struct libusb_device_descriptor *dev_desc)
+{
+	int usb_retval;
+	char desc_serial[255]; /* Max size of string descriptor */
+
+	if (dev_desc->iSerialNumber == 0)
+		return NULL;
+
+	/* get the langid */
+	usb_retval = libusb_get_string_descriptor(device, 0, 0, (unsigned char *) desc_serial,
+			sizeof(desc_serial));
+
+	if (jtag_libusb_error(usb_retval) != ERROR_OK) {
+		LOG_ERROR("libusb_get_string_descriptor() returned %d", usb_retval);
+		return NULL;
+	}
+
+	const uint32_t langid = desc_serial[2] | (desc_serial[3] << 8);
+
+	/* get the serial */
+	usb_retval = libusb_get_string_descriptor(device, dev_desc->iSerialNumber,
+			langid, (unsigned char *) desc_serial, sizeof(desc_serial));
+
+	if (jtag_libusb_error(usb_retval) != ERROR_OK) {
+		LOG_ERROR("libusb_get_string_descriptor() failed with %d", usb_retval);
+		return NULL;
+	} else if (desc_serial[1] != LIBUSB_DT_STRING || desc_serial[0] > usb_retval) {
+		LOG_ERROR("LIBUSB_ERROR_IO occurred");
+		return NULL;
+	}
+
+	const int len = desc_serial[0];
+
+	if (len == 50) {
+		/* good ST-Link adapter, this case is managed by
+		 * libusb::libusb_get_string_descriptor_ascii */
+		return NULL;
+	} else if (len != 26) {
+		LOG_ERROR("unexpected serial length (%d) in descriptor", len);
+		return NULL;
+	}
+
+	/* else (len == 26) => buggy ST-Link */
+
+	char *alternate_serial = malloc((STLINK_SERIAL_LEN + 1) * sizeof(char));
+	if (alternate_serial == NULL)
+		return NULL;
+
+	for (unsigned int i = 0; i < (STLINK_SERIAL_LEN / 2); i++)
+		sprintf((char *) &(alternate_serial[i*2]), "%02hX", (unsigned short) desc_serial[2 * (i+1)]);
+
+	alternate_serial[STLINK_SERIAL_LEN] = '\0';
+
+	return alternate_serial;
+}
+
 /** */
 static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 {
@@ -2773,7 +2836,8 @@ static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 	  in order to become operational.
 	 */
 	do {
-		if (jtag_libusb_open(param->vid, param->pid, param->serial, &h->fd) != ERROR_OK) {
+		if (jtag_libusb_open(param->vid, param->pid, param->serial,
+				&h->fd, stlink_usb_get_alternate_serial) != ERROR_OK) {
 			LOG_ERROR("open failed");
 			goto error_open;
 		}

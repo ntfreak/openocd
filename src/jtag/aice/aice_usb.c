@@ -2109,7 +2109,7 @@ static int aice_usb_open(struct aice_port_param_s *param)
 	const uint16_t pids[] = { param->pid, 0 };
 	struct jtag_libusb_device_handle *devh;
 
-	if (jtag_libusb_open(vids, pids, NULL, &devh) != ERROR_OK)
+	if (jtag_libusb_open(vids, pids, NULL, &devh, NULL) != ERROR_OK)
 		return ERROR_FAIL;
 
 	/* BE ***VERY CAREFUL*** ABOUT MAKING CHANGES IN THIS
@@ -2133,7 +2133,7 @@ static int aice_usb_open(struct aice_port_param_s *param)
 	/* reopen jlink after usb_reset
 	 * on win32 this may take a second or two to re-enumerate */
 	int retval;
-	while ((retval = jtag_libusb_open(vids, pids, NULL, &devh)) != ERROR_OK) {
+	while ((retval = jtag_libusb_open(vids, pids, NULL, &devh, NULL)) != ERROR_OK) {
 		usleep(1000);
 		timeout--;
 		if (!timeout)
