@@ -358,8 +358,6 @@ int openocd_main(int argc, char *argv[])
 	dap_cleanup_all();
 	arm_cti_cleanup_all();
 
-	adapter_quit();
-
 	/* Shutdown commandline interface */
 	command_exit(cmd_ctx);
 
