@@ -27,6 +27,7 @@
 #endif
 
 #include "server.h"
+#include <jtag/jtag.h>
 #include <target/target.h>
 #include <target/target_request.h>
 #include <target/openrisc/jsp_server.h>
@@ -686,6 +687,7 @@ int server_quit(void)
 {
 	remove_services();
 	target_quit();
+	adapter_quit();
 
 #ifdef _WIN32
 	WSACleanup();
