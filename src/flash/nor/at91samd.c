@@ -181,6 +181,11 @@ static const struct samd_part samd21_parts[] = {
 	{ 0x26, "SAMD21E16B", 64, 8 },
 	{ 0x27, "SAMD21E15B", 32, 4 },
 
+	/* SAMD21 D and L Variants (from Errata)
+	   http://ww1.microchip.com/downloads/en/DeviceDoc/
+	   SAM-D21-Family-Silicon-Errata-and-DataSheet-Clarification-DS80000760D.pdf */
+	{ 0x94, "SAMD21E17D", 128, 16 },
+
 	/* Known SAMDA1 parts.
 	   SAMD-A1 series uses the same series identifier like the SAMD21
 	   taken from http://ww1.microchip.com/downloads/en/DeviceDoc/40001895A.pdf (pages 14-17) */
