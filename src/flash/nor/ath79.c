@@ -89,7 +89,7 @@ struct ath79_spi_ctx {
 };
 
 struct ath79_flash_bank {
-	int probed;
+	bool probed;
 	int chipselect;
 	uint32_t io_base;
 	const struct flash_device *dev;
@@ -503,7 +503,6 @@ static int ath79_erase(struct flash_bank *bank, int first, int last)
 	struct target *target = bank->target;
 	struct ath79_flash_bank *ath79_info = bank->driver_priv;
 	int retval = ERROR_OK;
-	int sector;
 
 	LOG_DEBUG("%s: from sector %d to sector %d", __func__, first, last);
 
@@ -525,14 +524,14 @@ static int ath79_erase(struct flash_bank *bank, int first, int last)
 	if (ath79_info->dev->erase_cmd == 0x00)
 		return ERROR_FLASH_OPER_UNSUPPORTED;
 
-	for (sector = first; sector <= last; sector++) {
+	for (int sector = first; sector <= last; sector++) {
 		if (bank->sectors[sector].is_protected) {
 			LOG_ERROR("Flash sector %d protected", sector);
 			return ERROR_FAIL;
 		}
 	}
 
-	for (sector = first; sector <= last; sector++) {
+	for (int sector = first; sector <= last; sector++) {
 		retval = ath79_erase_sector(bank, sector);
 		if (retval != ERROR_OK)
 			break;
@@ -545,9 +544,7 @@ static int ath79_erase(struct flash_bank *bank, int first, int last)
 static int ath79_protect(struct flash_bank *bank, int set,
 			 int first, int last)
 {
-	int sector;
-
-	for (sector = first; sector <= last; sector++)
+	for (int sector = first; sector <= last; sector++)
 		bank->sectors[sector].is_protected = set;
 	return ERROR_OK;
 }
@@ -648,7 +645,6 @@ static int ath79_write(struct flash_bank *bank, const uint8_t *buffer,
 		       uint32_t offset, uint32_t count)
 {
 	struct target *target = bank->target;
-	int sector;
 
 	LOG_DEBUG("%s: offset=0x%08" PRIx32 " count=0x%08" PRIx32,
 		  __func__, offset, count);
@@ -664,7 +660,7 @@ static int ath79_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	/* Check sector protection */
-	for (sector = 0; sector < bank->num_sectors; sector++) {
+	for (int sector = 0; sector < bank->num_sectors; sector++) {
 		/* Start offset in or before this sector? */
 		/* End offset in or behind this sector? */
 		struct flash_sector *bs = &bank->sectors[sector];
@@ -780,7 +776,7 @@ static int ath79_probe(struct flash_bank *bank)
 		free(bank->sectors);
 		free(ath79_info->spi.page_buf);
 	}
-	ath79_info->probed = 0;
+	ath79_info->probed = false;
 
 	for (target_device = target_devices; target_device->name;
 		++target_device)
@@ -853,7 +849,7 @@ static int ath79_probe(struct flash_bank *bank)
 	}
 
 	bank->sectors = sectors;
-	ath79_info->probed = 1;
+	ath79_info->probed = true;
 	return ERROR_OK;
 }
 
