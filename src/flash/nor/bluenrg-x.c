@@ -43,7 +43,7 @@
 #define FLASH_WORD_LEN       4
 
 struct bluenrgx_flash_bank {
-	int probed;
+	bool probed;
 	uint32_t idcode;
 	uint32_t die_id;
 };
@@ -69,7 +69,7 @@ FLASH_BANK_COMMAND_HANDLER(bluenrgx_flash_bank_command)
 
 	bank->driver_priv = bluenrgx_info;
 
-	bluenrgx_info->probed = 0;
+	bluenrgx_info->probed = false;
 
 	if (CMD_ARGC < 6)
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -87,7 +87,7 @@ static int bluenrgx_erase(struct flash_bank *bank, int first, int last)
 	uint32_t address, command;
 
 	/* check preconditions */
-	if (bluenrgx_info->probed == 0)
+	if (!bluenrgx_info->probed)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	if (bank->target->state != TARGET_HALTED) {
@@ -176,9 +176,8 @@ static int bluenrgx_protect(struct flash_bank *bank, int set, int first, int las
 {
 	/* Protection is only handled in software: no hardware write protection
 	   available in BlueNRG-x devices */
-	int sector;
 
-	for (sector = first; sector <= last; sector++)
+	for (int sector = first; sector <= last; sector++)
 		bank->sectors[sector].is_protected = set;
 	return ERROR_OK;
 }
@@ -470,7 +469,6 @@ static int bluenrgx_probe(struct flash_bank *bank)
 {
 	struct bluenrgx_flash_bank *bluenrgx_info = bank->driver_priv;
 	uint32_t idcode, size_info, die_id;
-	int i;
 	int retval = target_read_u32(bank->target, JTAG_IDCODE_REG, &idcode);
 	if (retval != ERROR_OK)
 		return retval;
@@ -487,14 +485,14 @@ static int bluenrgx_probe(struct flash_bank *bank)
 	bank->num_sectors = bank->size/FLASH_PAGE_SIZE;
 	bank->sectors = realloc(bank->sectors, sizeof(struct flash_sector) * bank->num_sectors);
 
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (int i = 0; i < bank->num_sectors; i++) {
 		bank->sectors[i].offset = i * FLASH_PAGE_SIZE;
 		bank->sectors[i].size = FLASH_PAGE_SIZE;
 		bank->sectors[i].is_erased = -1;
 		bank->sectors[i].is_protected = 0;
 	}
 
-	bluenrgx_info->probed = 1;
+	bluenrgx_info->probed = true;
 	bluenrgx_info->die_id = die_id;
 	bluenrgx_info->idcode = idcode;
 	return ERROR_OK;
