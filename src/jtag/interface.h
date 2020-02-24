@@ -250,6 +250,8 @@ struct adapter_driver {
 
 	/**
 	 * Control (assert/deassert) the signals SRST and TRST on the interface.
+	 * This function is synchronous and should be called after the adapter
+	 * queue has been properly flushed.
 	 * This function is optional.
 	 * Adapters that don't support resets can either not define this function
 	 * or return an error code.
