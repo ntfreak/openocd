@@ -2759,7 +2759,16 @@ static const struct command_registration aarch64_exec_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
+extern const struct command_registration semihosting_common_handlers[];
+
 static const struct command_registration aarch64_command_handlers[] = {
+	{
+		.name = "arm",
+		.mode = COMMAND_ANY,
+		.help = "ARM Command Group",
+		.usage = "",
+		.chain = semihosting_common_handlers
+	},
 	{
 		.chain = armv8_command_handlers,
 	},
