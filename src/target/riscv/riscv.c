@@ -1887,11 +1887,6 @@ static const struct command_registration riscv_exec_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-extern __COMMAND_HANDLER(handle_common_semihosting_command);
-extern __COMMAND_HANDLER(handle_common_semihosting_fileio_command);
-extern __COMMAND_HANDLER(handle_common_semihosting_resumable_exit_command);
-extern __COMMAND_HANDLER(handle_common_semihosting_cmdline);
-
 /*
  * To be noted that RISC-V targets use the same semihosting commands as
  * ARM targets.
@@ -1905,37 +1900,7 @@ extern __COMMAND_HANDLER(handle_common_semihosting_cmdline);
  * protocol, then a command like `riscv semihosting enable` will make
  * sense, but for now all semihosting commands are prefixed with `arm`.
  */
-static const struct command_registration arm_exec_command_handlers[] = {
-	{
-		.name = "semihosting",
-		.handler = handle_common_semihosting_command,
-		.mode = COMMAND_EXEC,
-		.usage = "['enable'|'disable']",
-		.help = "activate support for semihosting operations",
-	},
-	{
-		.name = "semihosting_cmdline",
-		.handler = handle_common_semihosting_cmdline,
-		.mode = COMMAND_EXEC,
-		.usage = "arguments",
-		.help = "command line arguments to be passed to program",
-	},
-	{
-		.name = "semihosting_fileio",
-		.handler = handle_common_semihosting_fileio_command,
-		.mode = COMMAND_EXEC,
-		.usage = "['enable'|'disable']",
-		.help = "activate support for semihosting fileio operations",
-	},
-	{
-		.name = "semihosting_resexit",
-		.handler = handle_common_semihosting_resumable_exit_command,
-		.mode = COMMAND_EXEC,
-		.usage = "['enable'|'disable']",
-		.help = "activate support for semihosting resumable exit",
-	},
-	COMMAND_REGISTRATION_DONE
-};
+extern const struct command_registration semihosting_common_handlers[];
 
 const struct command_registration riscv_command_handlers[] = {
 	{
@@ -1950,7 +1915,7 @@ const struct command_registration riscv_command_handlers[] = {
 		.mode = COMMAND_ANY,
 		.help = "ARM Command Group",
 		.usage = "",
-		.chain = arm_exec_command_handlers
+		.chain = semihosting_common_handlers
 	},
 	COMMAND_REGISTRATION_DONE
 };

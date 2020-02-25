@@ -1098,10 +1098,7 @@ static int jim_mcrmrc(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 	return JIM_OK;
 }
 
-extern __COMMAND_HANDLER(handle_common_semihosting_command);
-extern __COMMAND_HANDLER(handle_common_semihosting_fileio_command);
-extern __COMMAND_HANDLER(handle_common_semihosting_resumable_exit_command);
-extern __COMMAND_HANDLER(handle_common_semihosting_cmdline);
+extern const struct command_registration semihosting_common_handlers[];
 
 static const struct command_registration arm_exec_command_handlers[] = {
 	{
@@ -1140,32 +1137,11 @@ static const struct command_registration arm_exec_command_handlers[] = {
 		.usage = "cpnum op1 CRn CRm op2",
 	},
 	{
-		.name = "semihosting",
-		.handler = handle_common_semihosting_command,
-		.mode = COMMAND_EXEC,
-		.usage = "['enable'|'disable']",
-		.help = "activate support for semihosting operations",
-	},
-	{
-		.name = "semihosting_cmdline",
-		.handler = handle_common_semihosting_cmdline,
-		.mode = COMMAND_EXEC,
-		.usage = "arguments",
-		.help = "command line arguments to be passed to program",
-	},
-	{
-		.name = "semihosting_fileio",
-		.handler = handle_common_semihosting_fileio_command,
-		.mode = COMMAND_EXEC,
-		.usage = "['enable'|'disable']",
-		.help = "activate support for semihosting fileio operations",
-	},
-	{
-		.name = "semihosting_resexit",
-		.handler = handle_common_semihosting_resumable_exit_command,
-		.mode = COMMAND_EXEC,
-		.usage = "['enable'|'disable']",
-		.help = "activate support for semihosting resumable exit",
+		.name = NULL,
+		.mode = COMMAND_ANY,
+		.help = "ARM semihosting command group",
+		.usage = "",
+		.chain = semihosting_common_handlers,
 	},
 	COMMAND_REGISTRATION_DONE
 };
