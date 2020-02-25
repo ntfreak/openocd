@@ -1461,7 +1461,7 @@ static void semihosting_set_field(struct target *target, uint64_t value,
 /* -------------------------------------------------------------------------
  * Common semihosting commands handlers. */
 
-__COMMAND_HANDLER(handle_common_semihosting_command)
+static __COMMAND_HANDLER(handle_common_semihosting_command)
 {
 	struct target *target = get_current_target(CMD_CTX);
 
@@ -1502,8 +1502,7 @@ __COMMAND_HANDLER(handle_common_semihosting_command)
 	return ERROR_OK;
 }
 
-
-__COMMAND_HANDLER(handle_common_semihosting_fileio_command)
+static __COMMAND_HANDLER(handle_common_semihosting_fileio_command)
 {
 	struct target *target = get_current_target(CMD_CTX);
 
@@ -1533,7 +1532,7 @@ __COMMAND_HANDLER(handle_common_semihosting_fileio_command)
 	return ERROR_OK;
 }
 
-__COMMAND_HANDLER(handle_common_semihosting_cmdline)
+static __COMMAND_HANDLER(handle_common_semihosting_cmdline)
 {
 	struct target *target = get_current_target(CMD_CTX);
 	unsigned int i;
@@ -1566,7 +1565,7 @@ __COMMAND_HANDLER(handle_common_semihosting_cmdline)
 	return ERROR_OK;
 }
 
-__COMMAND_HANDLER(handle_common_semihosting_resumable_exit_command)
+static __COMMAND_HANDLER(handle_common_semihosting_resumable_exit_command)
 {
 	struct target *target = get_current_target(CMD_CTX);
 
@@ -1595,3 +1594,35 @@ __COMMAND_HANDLER(handle_common_semihosting_resumable_exit_command)
 
 	return ERROR_OK;
 }
+
+const struct command_registration semihosting_common_handlers[] = {
+	{
+		"semihosting",
+		.handler = handle_common_semihosting_command,
+		.mode = COMMAND_EXEC,
+		.usage = "['enable'|'disable']",
+		.help = "activate support for semihosting operations",
+	},
+	{
+		"semihosting_cmdline",
+		.handler = handle_common_semihosting_cmdline,
+		.mode = COMMAND_EXEC,
+		.usage = "arguments",
+		.help = "command line arguments to be passed to program",
+	},
+	{
+		"semihosting_fileio",
+		.handler = handle_common_semihosting_fileio_command,
+		.mode = COMMAND_EXEC,
+		.usage = "['enable'|'disable']",
+		.help = "activate support for semihosting fileio operations",
+	},
+	{
+		"semihosting_resexit",
+		.handler = handle_common_semihosting_resumable_exit_command,
+		.mode = COMMAND_EXEC,
+		.usage = "['enable'|'disable']",
+		.help = "activate support for semihosting resumable exit",
+	},
+	COMMAND_REGISTRATION_DONE
+};
