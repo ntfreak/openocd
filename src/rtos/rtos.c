@@ -159,6 +159,11 @@ int rtos_create(Jim_GetOptInfo *goi, struct target *target)
 	return JIM_ERR;
 }
 
+void rtos_destroy(struct target *target)
+{
+	os_free(target);
+}
+
 int gdb_thread_packet(struct connection *connection, char const *packet, int packet_size)
 {
 	struct target *target = get_target_from_connection(connection);
