@@ -2044,6 +2044,8 @@ static void target_destroy(struct target *target)
 		target->smp = 0;
 	}
 
+	rtos_destroy(target);
+
 	free(target->gdb_port_override);
 	free(target->type);
 	free(target->trace_info);
