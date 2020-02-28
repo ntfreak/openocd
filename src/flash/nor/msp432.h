@@ -34,14 +34,17 @@
 #define MSP432E411Y       7 /* MSP432E401Y device */
 #define MSP432E4X_GUESS   8 /* Assuming it's an MSP432E4x device */
 
+/* Common MSP432 flash parameters */
+#define FLASH_BASE 0x00000000
+
 /* MSP432P4 flash parameters */
-#define P4_FLASH_MAIN_BASE 0x00000000
+#define P4_FLASH_MAIN_BASE FLASH_BASE
 #define P4_FLASH_INFO_BASE 0x00200000
 #define P4_SECTOR_LENGTH   0x1000
 #define P4_ALGO_ENTRY_ADDR 0x01000110
 
 /* MSP432E4 flash paramters */
-#define E4_FLASH_BASE      0x00000000
+#define E4_FLASH_BASE      FLASH_BASE
 #define E4_FLASH_SIZE      0x100000
 #define E4_SECTOR_LENGTH   0x4000
 #define E4_ALGO_ENTRY_ADDR 0x20000110
