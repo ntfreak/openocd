@@ -163,7 +163,8 @@ static int jim_arc_add_reg_type_flags(Jim_Interp *interp, int argc,
 	struct arc_reg_data_type *type = calloc(1, sizeof(*type));
 	struct reg_data_type_flags *flags = &type->data_type_flags;
 	struct reg_data_type_flags_field *fields = calloc(fields_sz, sizeof(*fields));
-	struct arc_reg_bitfield *bitfields = calloc(fields_sz, sizeof(*type));
+	type->reg_type_flags_field = fields;
+	struct arc_reg_bitfield *bitfields = calloc(fields_sz, sizeof(*bitfields));
 	if (!(type && fields && bitfields)) {
 		Jim_SetResultFormatted(goi.interp, "Failed to allocate memory.");
 		goto fail;
@@ -528,7 +529,8 @@ static int jim_arc_add_reg_type_struct(Jim_Interp *interp, int argc,
 	struct arc_reg_data_type *type = calloc(1, sizeof(*type));
 	struct reg_data_type_struct *struct_type = &type->data_type_struct;
 	struct reg_data_type_struct_field *fields = calloc(fields_sz, sizeof(*fields));
-	struct arc_reg_bitfield *bitfields = calloc(fields_sz, sizeof(*type));
+	type->reg_type_struct_field = fields;
+	struct arc_reg_bitfield *bitfields = calloc(fields_sz, sizeof(*bitfields));
 	if (!(type && fields && bitfields)) {
 		Jim_SetResultFormatted(goi.interp, "Failed to allocate memory.");
 		goto fail;
@@ -789,6 +791,7 @@ static int jim_arc_add_reg(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 	target = get_current_target(ctx);
 	if (!target) {
 		Jim_SetResultFormatted(goi.interp, "No current target");
+		free_reg_desc(reg);
 		return JIM_ERR;
 	}
 

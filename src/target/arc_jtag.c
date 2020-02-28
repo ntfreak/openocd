@@ -26,7 +26,7 @@ static void arc_jtag_enque_write_ir(struct arc_jtag *jtag_info, uint32_t
 {
 	uint32_t current_instr;
 	struct jtag_tap *tap;
-	uint8_t instr_buffer[sizeof(uint32_t)];
+	uint8_t instr_buffer[sizeof(uint32_t)] = {0};
 
 	assert(jtag_info);
 	assert(jtag_info->tap);
@@ -90,7 +90,7 @@ static void arc_jtag_enque_read_dr(struct arc_jtag *jtag_info, uint8_t *data,
 static void arc_jtag_enque_write_dr(struct arc_jtag *jtag_info, uint32_t data,
 		tap_state_t end_state)
 {
-	uint8_t out_value[sizeof(uint32_t)];
+	uint8_t out_value[sizeof(uint32_t)] = {0};
 
 	assert(jtag_info);
 	assert(jtag_info->tap);
@@ -118,7 +118,7 @@ static void arc_jtag_enque_write_dr(struct arc_jtag *jtag_info, uint32_t data,
 static void arc_jtag_enque_set_transaction(struct arc_jtag *jtag_info,
 		uint32_t new_trans, tap_state_t end_state)
 {
-	uint8_t out_value[sizeof(uint32_t)];
+	uint8_t out_value[sizeof(uint32_t)] = {0};
 
 	assert(jtag_info);
 	assert(jtag_info->tap);

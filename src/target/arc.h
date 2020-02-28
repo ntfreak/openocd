@@ -61,6 +61,10 @@ struct arc_reg_data_type {
 	struct reg_data_type_struct data_type_struct;
 	char data_type_id[REG_TYPE_MAX_NAME_LENGTH];
 	struct arc_reg_bitfield *bitfields;
+	union {
+		struct reg_data_type_struct_field *reg_type_struct_field;
+		struct reg_data_type_flags_field *reg_type_flags_field;
+	};
 };
 
 

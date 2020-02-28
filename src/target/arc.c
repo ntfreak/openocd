@@ -1241,11 +1241,11 @@ static void arc_deinit_target(struct target *target)
 	/* Free arc-specific reg_data_types allocations*/
 	list_for_each_entry_safe_reverse(type, n, &arc->reg_data_types, list) {
 		if (type->data_type.type_class == REG_TYPE_CLASS_STRUCT) {
-			free(type->data_type.reg_type_struct->fields);
+			free(type->reg_type_struct_field);
 			free(type->bitfields);
 			free(type);
 		}	else if (type->data_type.type_class == REG_TYPE_CLASS_FLAGS) {
-			free(type->data_type.reg_type_flags->fields);
+			free(type->reg_type_flags_field);
 			free(type->bitfields);
 			free(type);
 		}
