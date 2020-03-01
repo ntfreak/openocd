@@ -113,7 +113,9 @@ proc stm32f7x args { eval stm32f2x $args }
 proc stm32l0x args { eval stm32lx $args }
 proc stm32l1x args { eval stm32lx $args }
 
-# stm32wb uses the same flash driver as the stm32l4x
+# stm32[g0|g4|wb] uses the same flash driver as the stm32l4x
+proc stm32g0x args { eval stm32l4x $args }
+proc stm32g4x args { eval stm32l4x $args }
 proc stm32wbx args { eval stm32l4x $args }
 
 # ease migration to updated flash driver
