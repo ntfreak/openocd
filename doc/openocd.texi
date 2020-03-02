@@ -4424,10 +4424,10 @@ The current implementation supports eSi-32xx cores.
 @item @code{mips_m4k} -- a MIPS core
 @item @code{xscale} -- this is actually an architecture,
 not a CPU type. It is based on the ARMv5 architecture.
-@item @code{openrisc} -- this is an OpenRISC 1000 core.
-The current implementation supports three JTAG TAP cores:
 @item @code{ls1_sap} -- this is the SAP on NXP LS102x CPUs,
 allowing access to physical memory addresses independently of CPU cores.
+@item @code{or1k} -- this is an OpenRISC 1000 core.
+The current implementation supports three JTAG TAP cores:
 @itemize @minus
 @item @code{OpenCores TAP} (See: @url{http://opencores.org/project@comma{}jtag})
 @item @code{Altera Virtual JTAG TAP} (See: @url{http://www.altera.com/literature/ug/ug_virtualjtag.pdf})
