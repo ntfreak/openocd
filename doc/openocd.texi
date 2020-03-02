@@ -4400,6 +4400,7 @@ Lists all supported target types.
 At this writing, the supported CPU types are:
 
 @itemize @bullet
+@item @code{aarch64} -- this is an ARMv8-A core with an MMU
 @item @code{arm11} -- this is a generation of ARMv6 cores
 @item @code{arm720t} -- this is an ARMv4 core with an MMU
 @item @code{arm7tdmi} -- this is an ARMv4 core
@@ -4409,10 +4410,9 @@ At this writing, the supported CPU types are:
 @item @code{arm9tdmi} -- this is an ARMv4 core
 @item @code{avr} -- implements Atmel's 8-bit AVR instruction set.
 (Support for this is preliminary and incomplete.)
-@item @code{cortex_a} -- this is an ARMv7 core with an MMU
-@item @code{cortex_m} -- this is an ARMv7 core, supporting only the
-compact Thumb2 instruction set.
-@item @code{aarch64} -- this is an ARMv8-A core with an MMU
+@item @code{cortex_a} -- this is an ARMv7-A core with an MMU
+@item @code{cortex_m} -- this is an ARMv7-M core, supporting only the
+compact Thumb2 instruction set. Supports also ARMv6-M and ARMv8-M cores
 @item @code{dragonite} -- resembles arm966e
 @item @code{dsp563xx} -- implements Freescale's 24-bit DSP.
 (Support for this is still incomplete.)
@@ -4420,12 +4420,10 @@ compact Thumb2 instruction set.
 The current implementation supports eSi-32xx cores.
 @item @code{fa526} -- resembles arm920 (w/o Thumb)
 @item @code{feroceon} -- resembles arm926
-@item @code{mem_ap} -- this is an ARM debug infrastructure Access Port without a CPU, through which bus read and write cycles can be generated; it may be useful for working with non-CPU hardware behind an AP or during development of support for new CPUs.
-@item @code{mips_m4k} -- a MIPS core
-@item @code{xscale} -- this is actually an architecture,
-not a CPU type. It is based on the ARMv5 architecture.
 @item @code{ls1_sap} -- this is the SAP on NXP LS102x CPUs,
 allowing access to physical memory addresses independently of CPU cores.
+@item @code{mem_ap} -- this is an ARM debug infrastructure Access Port without a CPU, through which bus read and write cycles can be generated; it may be useful for working with non-CPU hardware behind an AP or during development of support for new CPUs.
+@item @code{mips_m4k} -- a MIPS core
 @item @code{or1k} -- this is an OpenRISC 1000 core.
 The current implementation supports three JTAG TAP cores:
 @itemize @minus
@@ -4438,6 +4436,8 @@ And two debug interfaces cores:
 @item @code{Advanced debug interface} (See: @url{http://opencores.org/project@comma{}adv_debug_sys})
 @item @code{SoC Debug Interface} (See: @url{http://opencores.org/project@comma{}dbg_interface})
 @end itemize
+@item @code{xscale} -- this is actually an architecture,
+not a CPU type. It is based on the ARMv5 architecture.
 @end itemize
 @end deffn
 
