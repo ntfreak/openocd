@@ -512,6 +512,11 @@ COMMAND_HANDLER(handle_flash_fill_command)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 
+	if ((wordsize < sizeof(pattern)) && (pattern >> (8 * wordsize) != 0)) {
+		command_print(CMD, "Fill pattern 0x%" PRIx64 " does not fit within %" PRIu32 "-byte word", pattern, wordsize);
+		return ERROR_FAIL;
+	}
+
 	if (count == 0)
 		return ERROR_OK;
 
