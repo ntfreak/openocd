@@ -61,15 +61,6 @@
 #define MAX_RESULT_QUEUE (MAX_DATA_BLOCK / 4)
 
 /***************************************************************************
- *   USB Connection Endpoints                                              *
- ***************************************************************************/
-
-/* Bulk endpoints used by the XDS110 debug interface */
-#define INTERFACE_DEBUG (2)
-#define ENDPOINT_DEBUG_IN (3 | LIBUSB_ENDPOINT_IN)
-#define ENDPOINT_DEBUG_OUT (2 | LIBUSB_ENDPOINT_OUT)
-
-/***************************************************************************
  *   XDS110 Firmware API Definitions                                       *
  ***************************************************************************/
 
@@ -212,6 +203,13 @@ struct xds110_info {
 	unsigned char read_payload[USB_PAYLOAD_SIZE];
 	unsigned char write_packet[3];
 	unsigned char write_payload[USB_PAYLOAD_SIZE];
+	/* Device vid/pid */
+	uint16_t vid;
+	uint16_t pid;
+	/* Debug interface */
+	uint8_t interface;
+	uint8_t endpoint_in;
+	uint8_t endpoint_out;
 	/* Status flags */
 	bool is_connected;
 	bool is_cmapi_connected;
@@ -244,6 +242,11 @@ struct xds110_info {
 static struct xds110_info xds110 = {
 	.ctx = NULL,
 	.dev = NULL,
+	.vid = 0,
+	.pid = 0,
+	.interface = 0,
+	.endpoint_in = 0,
+	.endpoint_out = 0,
 	.is_connected = false,
 	.is_cmapi_connected = false,
 	.is_cmapi_acquired = false,
@@ -305,12 +308,18 @@ static bool usb_connect(void)
 
 	struct libusb_device_descriptor desc;
 
-	uint16_t vid = 0x0451;
-	uint16_t pid = 0xbef3;
+	/* The vid/pids of possible XDS110 configurations */
+	uint16_t vids[] = { 0x0451, 0x0451, 0x1cbe };
+	uint16_t pids[] = { 0xbef3, 0xbef4, 0x02a5 };
+	/* Index of CMSIS-DAP 2.0 BULK configuration vid/pid */
+	const uint32_t CMSIS_BULK_CONFIG = 2;
+
 	ssize_t count = 0;
 	ssize_t i = 0;
 	int result = 0;
 	bool found = false;
+	uint32_t j = 0;
+	bool match = false;
 
 	/* Initialize libusb context */
 	result = libusb_init(&ctx);
@@ -327,9 +336,16 @@ static bool usb_connect(void)
 	if (0 == result) {
 		/* Scan through list of devices for any XDS110s */
 		for (i = 0; i < count; i++) {
-			/* Check for device VID/PID match */
+			/* Check for device vid/pid match */
 			libusb_get_device_descriptor(list[i], &desc);
-			if (desc.idVendor == vid && desc.idProduct == pid) {
+			match = false;
+			for (j = 0; j < sizeof(vids)/sizeof(vids[0]); j++) {
+				if (desc.idVendor == vids[j] && desc.idProduct == pids[j]) {
+					match = true;
+					break;
+				}
+			}
+			if (match) {
 				result = libusb_open(list[i], &dev);
 				if (0 == result) {
 					const int MAX_DATA = 256;
@@ -372,6 +388,24 @@ static bool usb_connect(void)
 	}
 
 	if (found) {
+		/* Save the vid/pid of the device we're using */
+		xds110.vid = desc.idVendor;
+		xds110.pid = desc.idProduct;
+
+		/* Save the debug interface and endpoints for the device found */
+		if (xds110.vid == vids[CMSIS_BULK_CONFIG] &&
+			xds110.pid == pids[CMSIS_BULK_CONFIG]) {
+			/* This configuration moves the debug BULK interface to #0 */
+			xds110.interface = 0;
+			xds110.endpoint_in = 1 | LIBUSB_ENDPOINT_IN;
+			xds110.endpoint_out = 1 | LIBUSB_ENDPOINT_OUT;
+		} else {
+			/* Legacy debug BULK interface configuration */
+			xds110.interface = 2;
+			xds110.endpoint_in = 3 | LIBUSB_ENDPOINT_IN;
+			xds110.endpoint_out = 2 | LIBUSB_ENDPOINT_OUT;
+		}
+
 		/* Save the context and device handles */
 		xds110.ctx = ctx;
 		xds110.dev = dev;
@@ -380,7 +414,7 @@ static bool usb_connect(void)
 		(void)libusb_set_auto_detach_kernel_driver(dev, 1);
 
 		/* Claim the debug interface on the XDS110 */
-		result = libusb_claim_interface(dev, INTERFACE_DEBUG);
+		result = libusb_claim_interface(dev, xds110.interface);
 	} else {
 		/* Couldn't find an XDS110, flag the error */
 		result = -1;
@@ -390,7 +424,7 @@ static bool usb_connect(void)
 	if (0 != result) {
 		if (NULL != dev) {
 			/* Release the debug and data interface on the XDS110 */
-			(void)libusb_release_interface(dev, INTERFACE_DEBUG);
+			(void)libusb_release_interface(dev, xds110.interface);
 			libusb_close(dev);
 		}
 		if (NULL != ctx)
@@ -412,7 +446,7 @@ static void usb_disconnect(void)
 {
 	if (NULL != xds110.dev) {
 		/* Release the debug and data interface on the XDS110 */
-		(void)libusb_release_interface(xds110.dev, INTERFACE_DEBUG);
+		(void)libusb_release_interface(xds110.dev, xds110.interface);
 		libusb_close(xds110.dev);
 		xds110.dev = NULL;
 	}
@@ -436,7 +470,7 @@ static bool usb_read(unsigned char *buffer, int size, int *bytes_read,
 	if (0 == timeout)
 		timeout = DEFAULT_TIMEOUT;
 
-	result = libusb_bulk_transfer(xds110.dev, ENDPOINT_DEBUG_IN, buffer, size,
+	result = libusb_bulk_transfer(xds110.dev, xds110.endpoint_in, buffer, size,
 				bytes_read, timeout);
 
 	return (0 == result) ? true : false;
@@ -451,13 +485,13 @@ static bool usb_write(unsigned char *buffer, int size, int *written)
 	if (NULL == xds110.dev || NULL == buffer)
 		return false;
 
-	result = libusb_bulk_transfer(xds110.dev, ENDPOINT_DEBUG_OUT, buffer,
+	result = libusb_bulk_transfer(xds110.dev, xds110.endpoint_out, buffer,
 				size, &bytes_written, 0);
 
 	while (LIBUSB_ERROR_PIPE == result && retries < 3) {
 		/* Try clearing the pipe stall and retry transfer */
-		libusb_clear_halt(xds110.dev, ENDPOINT_DEBUG_OUT);
-		result = libusb_bulk_transfer(xds110.dev, ENDPOINT_DEBUG_OUT, buffer,
+		libusb_clear_halt(xds110.dev, xds110.endpoint_out);
+		result = libusb_bulk_transfer(xds110.dev, xds110.endpoint_out, buffer,
 					size, &bytes_written, 0);
 		retries++;
 	}
@@ -1345,6 +1379,7 @@ static void xds110_show_info(void)
 {
 	uint32_t firmware = xds110.firmware;
 
+	LOG_INFO("XDS110: vid/pid = %04x/%04x", xds110.vid, xds110.pid);
 	LOG_INFO("XDS110: firmware version = %d.%d.%d.%d",
 		(((firmware >> 28) & 0xf) * 10) + ((firmware >> 24) & 0xf),
 		(((firmware >> 20) & 0xf) * 10) + ((firmware >> 16) & 0xf),
