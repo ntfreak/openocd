@@ -1958,11 +1958,8 @@ COMMAND_HANDLER(xds110_handle_serial_command)
 			xds110.serial[i] = (char)serial[i];
 
 		xds110.serial[len] = 0;
-	} else {
-		LOG_ERROR("XDS110: expected exactly one argument to xds110_serial "
-			"<serial-number>");
-		return ERROR_FAIL;
-	}
+	} else
+		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	return ERROR_OK;
 }
@@ -1983,11 +1980,8 @@ COMMAND_HANDLER(xds110_handle_supply_voltage_command)
 			return ERROR_FAIL;
 		}
 		xds110.voltage = voltage;
-	} else {
-		LOG_ERROR("XDS110: expected one argument to xds110_supply_voltage "
-			"<millivolts>");
-		return ERROR_FAIL;
-	}
+	} else
+		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	return ERROR_OK;
 }
@@ -1997,8 +1991,22 @@ static const struct command_registration xds110_subcommand_handlers[] = {
 		.name = "info",
 		.handler = &xds110_handle_info_command,
 		.mode = COMMAND_EXEC,
-		.usage = "",
 		.help = "show XDS110 info",
+		.usage = "",
+	},
+	{
+		.name = "serial",
+		.handler = &xds110_handle_serial_command,
+		.mode = COMMAND_CONFIG,
+		.help = "set the XDS110 probe serial number",
+		.usage = "serial_string",
+	},
+	{
+		.name = "supply",
+		.handler = &xds110_handle_supply_voltage_command,
+		.mode = COMMAND_CONFIG,
+		.help = "set the XDS110 probe supply voltage",
+		.usage = "voltage_in_millivolts",
 	},
 	COMMAND_REGISTRATION_DONE
 };
@@ -2008,22 +2016,8 @@ static const struct command_registration xds110_command_handlers[] = {
 		.name = "xds110",
 		.mode = COMMAND_ANY,
 		.help = "perform XDS110 management",
-		.usage = "<cmd>",
+		.usage = "",
 		.chain = xds110_subcommand_handlers,
-	},
-	{
-		.name = "xds110_serial",
-		.handler = &xds110_handle_serial_command,
-		.mode = COMMAND_CONFIG,
-		.help = "set the XDS110 probe serial number",
-		.usage = "serial_string",
-	},
-	{
-		.name = "xds110_supply_voltage",
-		.handler = &xds110_handle_supply_voltage_command,
-		.mode = COMMAND_CONFIG,
-		.help = "set the XDS110 probe supply voltage",
-		.usage = "supply_voltage (millivolts)",
 	},
 	COMMAND_REGISTRATION_DONE
 };

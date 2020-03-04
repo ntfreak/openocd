@@ -216,4 +216,14 @@ proc ftdi_location args {
 	eval adapter usb location $args
 }
 
+proc xds110_serial args {
+	echo "DEPRECATED! use 'xds110 serial' not 'xds110_serial'"
+	eval xds110 serial $args
+}
+
+proc xds110_supply_voltage args {
+	echo "DEPRECATED! use 'xds110 supply' not 'xds110_supply_voltage'"
+	eval xds110 supply $args
+}
+
 # END MIGRATION AIDS
