@@ -41,6 +41,12 @@
 #define OCD_FIRMWARE_UPGRADE \
 	"XDS110: upgrade to version 2.3.0.11+ for improved support"
 
+/* Firmware version that introduced improved TCK performance */
+#define FAST_TCK_FIRMWARE_VERSION 0x03000000
+
+/* Firmware version that introduced 10 MHz and 12 MHz TCK support */
+#define FAST_TCK_PLUS_FIRMWARE_VERSION 0x03000003
+
 /***************************************************************************
  *   USB Connection Buffer Definitions                                     *
  ***************************************************************************/
@@ -91,8 +97,17 @@
 
 /* TCK frequency limits */
 #define XDS110_MIN_TCK_SPEED  100 /* kHz */
-#define XDS110_MAX_TCK_SPEED 2500 /* kHz */
-#define XDS110_TCK_PULSE_INCREMENT 66.0
+#define XDS110_MAX_SLOW_TCK_SPEED 2500 /* kHz */
+#define XDS110_MAX_FAST_TCK_SPEED 14000 /* kHz */
+#define XDS110_DEFAULT_TCK_SPEED 2500 /* kHz */
+
+/* Fixed TCK delay values for "Fast" TCK frequencies */
+#define FAST_TCK_DELAY_14000_KHZ 0
+#define FAST_TCK_DELAY_10000_KHZ 0xfffffffd
+#define FAST_TCK_DELAY_12000_KHZ 0xfffffffe
+#define FAST_TCK_DELAY_8500_KHZ 1
+#define FAST_TCK_DELAY_5500_KHZ 2
+/* For TCK frequencies below 5500 kHz, use calculated delay */
 
 /* Scan mode on connect */
 #define MODE_JTAG 1
@@ -249,7 +264,7 @@ static struct xds110_info xds110 = {
 	.is_cmapi_acquired = false,
 	.is_swd_mode = false,
 	.is_ap_dirty = false,
-	.speed = XDS110_MAX_TCK_SPEED,
+	.speed = XDS110_DEFAULT_TCK_SPEED,
 	.delay_count = 0,
 	.serial = {0},
 	.voltage = 0,
@@ -1842,6 +1857,8 @@ static int xds110_execute_queue(void)
 
 static int xds110_speed(int speed)
 {
+	double freq_to_use;
+	uint32_t delay_count;
 	bool success;
 
 	if (speed == 0) {
@@ -1849,61 +1866,110 @@ static int xds110_speed(int speed)
 		return ERROR_JTAG_NOT_IMPLEMENTED;
 	}
 
-	if (speed > XDS110_MAX_TCK_SPEED) {
-		LOG_INFO("XDS110: reduce speed request: %dkHz to %dkHz maximum",
-			speed, XDS110_MAX_TCK_SPEED);
-		speed = XDS110_MAX_TCK_SPEED;
-	}
-
 	if (speed < XDS110_MIN_TCK_SPEED) {
-		LOG_INFO("XDS110: increase speed request: %dkHz to %dkHz minimum",
+		LOG_INFO("XDS110: increase speed request: %d kHz to %d kHz minimum",
 			speed, XDS110_MIN_TCK_SPEED);
 		speed = XDS110_MIN_TCK_SPEED;
 	}
 
-	/* The default is the maximum frequency the XDS110 can support */
-	uint32_t freq_to_use = XDS110_MAX_TCK_SPEED * 1000; /* Hz */
-	uint32_t delay_count = 0;
+	/* Older XDS110 firmware had inefficient scan routines and could only */
+	/* achieve a peak TCK frequency of about 2500 kHz */
+	if (xds110.firmware < FAST_TCK_FIRMWARE_VERSION) {
 
-	if (XDS110_MAX_TCK_SPEED != speed) {
-		freq_to_use = speed * 1000; /* Hz */
+		/* Check for request for top speed or higher */
+		if (speed >= XDS110_MAX_SLOW_TCK_SPEED) {
 
-		/* Calculate the delay count value */
-		double one_giga = 1000000000;
-		/* Get the pulse duration for the maximum frequency supported in ns */
-		double max_freq_pulse_duration = one_giga /
-			(XDS110_MAX_TCK_SPEED * 1000);
+			/* Inform user that speed was adjusted down to max possible */
+			if (speed > XDS110_MAX_SLOW_TCK_SPEED) {
+				LOG_INFO(
+					"XDS110: reduce speed request: %d kHz to %d kHz maximum",
+					speed, XDS110_MAX_SLOW_TCK_SPEED);
+				speed = XDS110_MAX_SLOW_TCK_SPEED;
+			}
+			delay_count = 0;
 
-		/* Convert frequency to pulse duration */
-		double freq_to_pulse_width_in_ns = one_giga / freq_to_use;
+		} else {
 
-		/*
-		 * Start with the pulse duration for the maximum frequency. Keep
-		 * decrementing the time added by each count value till the requested
-		 * frequency pulse is less than the calculated value.
-		 */
-		double current_value = max_freq_pulse_duration;
+			const double XDS110_TCK_PULSE_INCREMENT = 66.0;
+			freq_to_use = speed * 1000; /* Hz */
+			delay_count = 0;
 
-		while (current_value < freq_to_pulse_width_in_ns) {
-			current_value += XDS110_TCK_PULSE_INCREMENT;
-			++delay_count;
+			/* Calculate the delay count value */
+			double one_giga = 1000000000;
+			/* Get the pulse duration for the max frequency supported in ns */
+			double max_freq_pulse_duration = one_giga /
+				(XDS110_MAX_SLOW_TCK_SPEED * 1000);
+
+			/* Convert frequency to pulse duration */
+			double freq_to_pulse_width_in_ns = one_giga / freq_to_use;
+
+			/*
+			* Start with the pulse duration for the maximum frequency. Keep
+			* decrementing time added by each count value till the requested
+			* frequency pulse is less than the calculated value.
+			*/
+			double current_value = max_freq_pulse_duration;
+
+			while (current_value < freq_to_pulse_width_in_ns) {
+				current_value += XDS110_TCK_PULSE_INCREMENT;
+				++delay_count;
+			}
+
+			/*
+			* Determine which delay count yields the best match.
+			* The one obtained above or one less.
+			*/
+			if (delay_count) {
+				double diff_freq_1 = freq_to_use -
+					(one_giga / (max_freq_pulse_duration +
+					(XDS110_TCK_PULSE_INCREMENT * delay_count)));
+				double diff_freq_2 = (one_giga / (max_freq_pulse_duration +
+					(XDS110_TCK_PULSE_INCREMENT * (delay_count - 1)))) -
+					freq_to_use;
+
+				/* One less count value yields a better match */
+				if (diff_freq_1 > diff_freq_2)
+					--delay_count;
+			}
 		}
 
-		/*
-		 * Determine which delay count yields the best match.
-		 * The one obtained above or one less.
-		 */
-		if (delay_count) {
-			double diff_freq_1 = freq_to_use -
-				(one_giga / (max_freq_pulse_duration +
-				(XDS110_TCK_PULSE_INCREMENT * delay_count)));
-			double diff_freq_2 = (one_giga / (max_freq_pulse_duration +
-				(XDS110_TCK_PULSE_INCREMENT * (delay_count - 1)))) -
-				freq_to_use;
+	/* Newer firmware has reworked TCK routines that are much more efficient */
+	/* and can now achieve a peak TCK frequency of 14000 kHz */
+	} else {
 
-			/* One less count value yields a better match */
-			if (diff_freq_1 > diff_freq_2)
-				--delay_count;
+		if (speed >= XDS110_MAX_FAST_TCK_SPEED) {
+			if (speed > XDS110_MAX_FAST_TCK_SPEED) {
+				LOG_INFO(
+					"XDS110: reduce speed request: %d kHz to %d kHz maximum",
+					speed, XDS110_MAX_FAST_TCK_SPEED);
+				speed = XDS110_MAX_FAST_TCK_SPEED;
+			}
+			delay_count = 0;
+		} else if (speed >= 12000 && xds110.firmware >=
+			FAST_TCK_PLUS_FIRMWARE_VERSION) {
+			delay_count = FAST_TCK_DELAY_12000_KHZ;
+		} else if (speed >= 10000 && xds110.firmware >=
+			FAST_TCK_PLUS_FIRMWARE_VERSION) {
+			delay_count = FAST_TCK_DELAY_10000_KHZ;
+		} else if (speed >= 8500) {
+			delay_count = FAST_TCK_DELAY_8500_KHZ;
+		} else if (speed >= 5500) {
+			delay_count = FAST_TCK_DELAY_5500_KHZ;
+		} else {
+			/* Calculate the delay count to set the frequency */
+			/* Formula determined by measuring the waveform on Saeleae logic */
+			/* analyzer using known values for delay count */
+			const double m = 17100000.0; /* slope */
+			const double b = -1.02;      /* y-intercept */
+
+			freq_to_use = speed * 1000; /* Hz */
+			double period = 1.0/freq_to_use;
+			double delay = m * period + b;
+
+			if (delay < 1.0)
+				delay_count = 1;
+			else
+				delay_count = (uint32_t)delay;
 		}
 	}
 
