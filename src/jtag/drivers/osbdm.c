@@ -374,7 +374,7 @@ static int osbdm_flush(struct osbdm *osbdm, struct queue *queue)
 static int osbdm_open(struct osbdm *osbdm)
 {
 	(void)memset(osbdm, 0, sizeof(*osbdm));
-	if (jtag_libusb_open(osbdm_vid, osbdm_pid, NULL, &osbdm->devh) != ERROR_OK)
+	if (jtag_libusb_open(osbdm_vid, osbdm_pid, NULL, &osbdm->devh, NULL) != ERROR_OK)
 		return ERROR_FAIL;
 
 	if (libusb_claim_interface(osbdm->devh, 0) != ERROR_OK)

@@ -22,9 +22,15 @@
 
 #include <libusb.h>
 
+/* this callback should return a non NULL value only when the serial could not
+ * be retrieved by the standard 'libusb_get_string_descriptor_ascii' */
+typedef char * (*adapter_get_alternate_serial_fn)(libusb_device_handle *device,
+		struct libusb_device_descriptor *dev_desc);
+
 int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 		const char *serial,
-		struct libusb_device_handle **out);
+		struct libusb_device_handle **out,
+		adapter_get_alternate_serial_fn adapter_get_alternate_serial);
 void jtag_libusb_close(struct libusb_device_handle *dev);
 int jtag_libusb_control_transfer(struct libusb_device_handle *dev,
 		uint8_t requestType, uint8_t request, uint16_t wValue,
