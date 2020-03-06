@@ -715,7 +715,7 @@ struct opendous_jtag *opendous_usb_open(void)
 	struct opendous_jtag *result;
 
 	struct libusb_device_handle *devh;
-	if (jtag_libusb_open(opendous_probe->VID, opendous_probe->PID, NULL, &devh) != ERROR_OK)
+	if (jtag_libusb_open(opendous_probe->VID, opendous_probe->PID, NULL, &devh, NULL) != ERROR_OK)
 		return NULL;
 
 	jtag_libusb_set_configuration(devh, 0);
