@@ -1624,7 +1624,11 @@ static int xds110_reset(int trst, int srst)
 			retval = ERROR_FAIL;
 
 		/* Toggle TCK to trigger HIB on CC13x/CC26x devices */
-		success = xds_cycle_tck(60000);
+		if (success && !xds110.is_swd_mode) {
+			/* Toggle TCK for about 50 ms */
+			success = xds_cycle_tck(xds110.speed * 50);
+		}
+
 		if (!success)
 			retval = ERROR_FAIL;
 	}
