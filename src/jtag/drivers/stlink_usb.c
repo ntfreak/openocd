@@ -47,6 +47,8 @@
 #define USE_LIBUSB_ASYNCIO
 #endif
 
+#define STLINK_SERIAL_LEN 24
+
 #define ENDPOINT_IN  0x80
 #define ENDPOINT_OUT 0x00
 
@@ -2745,6 +2747,85 @@ static int stlink_usb_close(void *handle)
 	return ERROR_OK;
 }
 
+/* Compute ST-Link serial number from the device descriptor
+ * this function will help to work-around a bug in old ST-Link/V2 DFU
+ * the buggy DFU returns an incorrect serial in the USB descriptor
+ * example for the following serial "57FF72067265575742132067"
+ *  - the correct descriptor serial is:
+ *    0x32, 0x03, 0x35, 0x00, 0x37, 0x00, 0x46, 0x00, 0x46, 0x00, 0x37, 0x00, 0x32, 0x00 ...
+ *    this contains the length (0x32 = 50), the type (0x3 = DT_STRING) and the serial in unicode format
+ *    the serial part is: 0x0035, 0x0037, 0x0046, 0x0046, 0x0037, 0x0032 ... >>  57FF72 ...
+ *    this format could be read correctly by 'libusb_get_string_descriptor_ascii'
+ *    so this case is managed by libusb_helper::string_descriptor_equal
+ *  - the buggy DFU is not doing any unicode conversion and returns a raw serial data in the descriptor
+ *    0x1a, 0x03, 0x57, 0x00, 0xFF, 0x00, 0x72, 0x00 ...
+ *            >>    57          FF          72       ...
+ *    based on the length (0x1a = 26) we could easily decide if we have to fixup the serial
+ *    and then we have just to convert the raw data into printable characters using sprintf
+ */
+char *stlink_usb_get_alternate_serial(libusb_device_handle *device,
+		struct libusb_device_descriptor *dev_desc)
+{
+	int usb_retval;
+	unsigned char desc_serial[(STLINK_SERIAL_LEN + 1) * 2];
+
+	if (dev_desc->iSerialNumber == 0)
+		return NULL;
+
+	/* get the LANGID from String Descriptor Zero */
+	usb_retval = libusb_get_string_descriptor(device, 0, 0, desc_serial,
+			sizeof(desc_serial));
+
+	if (usb_retval < LIBUSB_SUCCESS) {
+		LOG_ERROR("libusb_get_string_descriptor() failed: %s(%d)",
+				libusb_error_name(usb_retval), usb_retval);
+		return NULL;
+	} else if (usb_retval < 4) {
+		/* the size should be least 4 bytes to contain a minimum of 1 supported LANGID */
+		LOG_ERROR("could not get the LANGID");
+		return NULL;
+	}
+
+	uint32_t langid = desc_serial[2] | (desc_serial[3] << 8);
+
+	/* get the serial */
+	usb_retval = libusb_get_string_descriptor(device, dev_desc->iSerialNumber,
+			langid, desc_serial, sizeof(desc_serial));
+
+	unsigned char len = desc_serial[0];
+
+	if (usb_retval < LIBUSB_SUCCESS) {
+		LOG_ERROR("libusb_get_string_descriptor() failed: %s(%d)",
+				libusb_error_name(usb_retval), usb_retval);
+		return NULL;
+	} else if (desc_serial[1] != LIBUSB_DT_STRING || len > usb_retval) {
+		LOG_ERROR("invalid string in ST-LINK USB serial descriptor");
+		return NULL;
+	}
+
+	if (len == ((STLINK_SERIAL_LEN + 1) * 2)) {
+		/* good ST-Link adapter, this case is managed by
+		 * libusb::libusb_get_string_descriptor_ascii */
+		return NULL;
+	} else if (len != ((STLINK_SERIAL_LEN / 2 + 1) * 2)) {
+		LOG_ERROR("unexpected serial length (%d) in descriptor", len);
+		return NULL;
+	}
+
+	/* else (len == 26) => buggy ST-Link */
+
+	char *alternate_serial = malloc((STLINK_SERIAL_LEN + 1) * sizeof(char));
+	if (alternate_serial == NULL)
+		return NULL;
+
+	for (unsigned int i = 0; i < STLINK_SERIAL_LEN; i += 2)
+		sprintf(alternate_serial + i, "%02X", desc_serial[i + 2]);
+
+	alternate_serial[STLINK_SERIAL_LEN] = '\0';
+
+	return alternate_serial;
+}
+
 /** */
 static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 {
@@ -2779,7 +2860,7 @@ static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 	 */
 	do {
 		if (jtag_libusb_open(param->vid, param->pid, param->serial,
-				&h->fd, NULL) != ERROR_OK) {
+				&h->fd, stlink_usb_get_alternate_serial) != ERROR_OK) {
 			LOG_ERROR("open failed");
 			goto error_open;
 		}
