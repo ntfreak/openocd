@@ -188,6 +188,10 @@ static const struct stm32l4_rev stm32_495_revs[] = {
 	{ 0x2001, "2.1" },
 };
 
+static const struct stm32l4_rev stm32_496_revs[] = {
+	{ 0x1000, "A" },
+};
+
 static const struct stm32l4_rev stm32_497_revs[] = {
 	{ 0x1000, "1.0" },
 };
@@ -309,6 +313,16 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_495_revs),
 	  .device_str            = "STM32WB5x",
 	  .max_flash_size_kb     = 1024,
+	  .has_dual_bank         = false,
+	  .flash_regs_base       = 0x58004000,
+	  .fsize_addr            = 0x1FFF75E0,
+	},
+	{
+	  .id                    = 0x496,
+	  .revs                  = stm32_496_revs,
+	  .num_revs              = ARRAY_SIZE(stm32_496_revs),
+	  .device_str            = "STM32WB3x",
+	  .max_flash_size_kb     = 512,
 	  .has_dual_bank         = false,
 	  .flash_regs_base       = 0x58004000,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -985,6 +999,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 		}
 		break;
 	case 0x495: /* STM32WB5x */
+	case 0x496: /* STM32WB3x */
 		/* single bank flash */
 		page_size_kb = 4;
 		num_pages = flash_size_kb / page_size_kb;
