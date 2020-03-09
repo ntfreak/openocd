@@ -671,7 +671,6 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	uint32_t offset, uint32_t count)
 {
 	struct target *target = bank->target;
-	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
 	uint32_t buffer_size;
 	struct working_area *write_algorithm;
 	struct working_area *source;
@@ -727,8 +726,8 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	buf_set_u32(reg_params[1].value, 0, 32, source->address + source->size);
 	buf_set_u32(reg_params[2].value, 0, 32, address);
 	buf_set_u32(reg_params[3].value, 0, 32, count);
-	buf_set_u32(reg_params[4].value, 0, 32, stm32l4_info->part_info->flash_regs_base + STM32_FLASH_SR);
-	buf_set_u32(reg_params[5].value, 0, 32, stm32l4_info->part_info->flash_regs_base + STM32_FLASH_CR);
+	buf_set_u32(reg_params[4].value, 0, 32, stm32l4_get_flash_reg(bank, STM32_FLASH_SR));
+	buf_set_u32(reg_params[5].value, 0, 32, stm32l4_get_flash_reg(bank, STM32_FLASH_CR));
 
 	retval = target_run_flash_async_algorithm(target, buffer, count, 8,
 			0, NULL,
@@ -1144,7 +1143,7 @@ static int stm32l4_mass_erase(struct flash_bank *bank)
 	if (retval != ERROR_OK)
 		goto err_lock;
 
-	retval = stm32l4_wait_status_busy(bank,  FLASH_ERASE_TIMEOUT);
+	retval = stm32l4_wait_status_busy(bank, FLASH_ERASE_TIMEOUT);
 
 err_lock:
 	retval2 = stm32l4_write_flash_reg(bank, STM32_FLASH_CR, FLASH_LOCK);
