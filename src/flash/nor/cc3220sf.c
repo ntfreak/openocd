@@ -477,6 +477,12 @@ static int cc3220sf_auto_probe(struct flash_bank *bank)
 	return retval;
 }
 
+static int cc3220sf_protect_check(struct flash_bank *bank)
+{
+	/* Added to suppress warning, not needed for CC3220SF flash */
+	return ERROR_OK;
+}
+
 static int cc3220sf_info(struct flash_bank *bank, char *buf, int buf_size)
 {
 	int printed;
@@ -498,6 +504,7 @@ const struct flash_driver cc3220sf_flash = {
 	.probe = cc3220sf_probe,
 	.auto_probe = cc3220sf_auto_probe,
 	.erase_check = default_flash_blank_check,
+	.protect_check = cc3220sf_protect_check,
 	.info = cc3220sf_info,
 	.free_driver_priv = default_flash_free_driver_priv,
 };
