@@ -81,8 +81,7 @@
  * http://www.st.com/resource/en/reference_manual/dm00530369.pdf
  */
 
-/*
- * STM32G0xxx series for reference.
+/* STM32G0xxx series for reference.
  *
  * RM0444 (STM32G0x1)
  * http://www.st.com/resource/en/reference_manual/dm00371828.pdf
@@ -91,8 +90,7 @@
  * http://www.st.com/resource/en/reference_manual/dm00463896.pdf
  */
 
-/*
- * STM32G4xxx series for reference.
+/* STM32G4xxx series for reference.
  *
  * RM0440 (STM32G43x/44x/47x/48x)
  * http://www.st.com/resource/en/reference_manual/dm00355726.pdf
@@ -110,6 +108,33 @@
 
 #define FLASH_ERASE_TIMEOUT 250
 
+enum stm32l4_flash_reg {
+	STM32_FLASH_ACR,
+	STM32_FLASH_KEYR,
+	STM32_FLASH_OPTKEYR,
+	STM32_FLASH_SR,
+	STM32_FLASH_CR,
+	STM32_FLASH_OPTR,
+	STM32_FLASH_WRP1AR,
+	STM32_FLASH_WRP1BR,
+	STM32_FLASH_WRP2AR,
+	STM32_FLASH_WRP2BR,
+	STM32_FLASH_REG_NUM,
+};
+
+static const uint32_t stm32l4_flash_regs[STM32_FLASH_REG_NUM] = {
+	[STM32_FLASH_ACR] = STM32L4_FLASH_ACR,
+	[STM32_FLASH_KEYR] = STM32L4_FLASH_KEYR,
+	[STM32_FLASH_OPTKEYR] = STM32L4_FLASH_OPTKEYR,
+	[STM32_FLASH_SR] STM32L4_FLASH_SR,
+	[STM32_FLASH_CR] = STM32L4_FLASH_CR,
+	[STM32_FLASH_OPTR] = STM32L4_FLASH_OPTR,
+	[STM32_FLASH_WRP1AR] = STM32L4_FLASH_WRP1AR,
+	[STM32_FLASH_WRP1BR] = STM32L4_FLASH_WRP1BR,
+	[STM32_FLASH_WRP2AR] = STM32L4_FLASH_WRP2AR,
+	[STM32_FLASH_WRP2BR] = STM32L4_FLASH_WRP2BR,
+};
+
 struct stm32l4_rev {
 	const uint16_t rev;
 	const char *str;
@@ -123,6 +148,7 @@ struct stm32l4_part_info {
 	const uint16_t max_flash_size_kb;
 	const bool has_dual_bank;
 	const uint32_t flash_regs_base;
+	const uint32_t *default_flash_regs;
 	const uint32_t fsize_addr;
 };
 
@@ -135,10 +161,11 @@ struct stm32l4_flash_bank {
 	uint32_t user_bank_size;
 	uint32_t wrpxxr_mask;
 	const struct stm32l4_part_info *part_info;
+	const uint32_t *flash_regs;
 };
 
-/* human readable list of families this drivers supports */
-static const char *device_families = "STM32L4/L4+/WB/WL/G4/G0";
+/* human readable list of families this drivers supports (sorted alphabetically) */
+static const char *device_families = "STM32G0/G4/L4/L4+/WB/WL";
 
 static const struct stm32l4_rev stm32_415_revs[] = {
 	{ 0x1000, "1" }, { 0x1001, "2" }, { 0x1003, "3" }, { 0x1007, "4" }
@@ -205,6 +232,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 1024,
 	  .has_dual_bank         = true,
 	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -215,6 +243,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 256,
 	  .has_dual_bank         = false,
 	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -225,6 +254,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 128,
 	  .has_dual_bank         = false,
 	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -235,6 +265,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 1024,
 	  .has_dual_bank         = true,
 	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -245,6 +276,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 512,
 	  .has_dual_bank         = false,
 	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -255,6 +287,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 128,
 	  .has_dual_bank         = false,
 	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -265,6 +298,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 64,
 	  .has_dual_bank         = false,
 	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -275,6 +309,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 128,
 	  .has_dual_bank         = false,
 	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -285,6 +320,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 512,
 	  .has_dual_bank         = true,
 	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -295,6 +331,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 2048,
 	  .has_dual_bank         = true,
 	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -305,6 +342,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 1024,
 	  .has_dual_bank         = true,
 	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -315,6 +353,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 1024,
 	  .has_dual_bank         = false,
 	  .flash_regs_base       = 0x58004000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -325,6 +364,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 512,
 	  .has_dual_bank         = false,
 	  .flash_regs_base       = 0x58004000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
@@ -335,6 +375,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .max_flash_size_kb     = 256,
 	  .has_dual_bank         = false,
 	  .flash_regs_base       = 0x58004000,
+	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 };
@@ -365,7 +406,7 @@ FLASH_BANK_COMMAND_HANDLER(stm32l4_flash_bank_command)
 static inline uint32_t stm32l4_get_flash_reg(struct flash_bank *bank, uint32_t reg_offset)
 {
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
-	return stm32l4_info->part_info->flash_regs_base + reg_offset;
+	return stm32l4_info->part_info->flash_regs_base + stm32l4_info->flash_regs[reg_offset];
 }
 
 static inline int stm32l4_read_flash_reg(struct flash_bank *bank, uint32_t reg_offset, uint32_t *value)
@@ -534,7 +575,7 @@ static int stm32l4_protect_check(struct flash_bank *bank)
 		stm32l4_read_flash_reg(bank, STM32_FLASH_WRP2AR, &wrp2ar);
 		stm32l4_read_flash_reg(bank, STM32_FLASH_WRP2BR, &wrp2br);
 	} else {
-		/* prevent unintialized errors */
+		/* prevent uninitialized errors */
 		wrp2ar = 0;
 		wrp2br = 0;
 	}
@@ -879,6 +920,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 	}
 
 	part_info = stm32l4_info->part_info;
+	stm32l4_info->flash_regs = stm32l4_info->part_info->default_flash_regs;
 
 	char device_info[1024];
 	retval = bank->driver->info(bank, device_info, sizeof(device_info));
