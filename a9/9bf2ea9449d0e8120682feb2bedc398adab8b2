@@ -1,0 +1,10 @@
+Verified+1: jenkins
+Code-Review+1: Tarek BOCHKATI <tarek.bouchkati@gmail.com>
+Code-Review+1: Muhammad Omair Javaid <omair.javaid@linaro.org>
+Code-Review+2: Tim Newsome <tim@sifive.com>
+Code-Review+1: Liviu Ionescu <ilg@livius.net>
+Submitted-by: Tomas Vanek <vanekt@fbl.cz>
+Submitted-at: Tue, 10 Mar 2020 20:20:22 +0000
+Reviewed-on: http://openocd.zylin.com/5473
+Project: openocd
+Branch: refs/heads/master
