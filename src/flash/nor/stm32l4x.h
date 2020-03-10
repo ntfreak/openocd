@@ -31,6 +31,18 @@
 #define STM32L4_FLASH_WRP2AR	0x4c
 #define STM32L4_FLASH_WRP2BR	0x50
 
+/* STM32L5 Flash registers offsets */
+#define STM32L5_FLASH_ACR		0x00
+#define STM32L5_FLASH_NSKEYR	0x08
+#define STM32L5_FLASH_OPTKEYR	0x10
+#define STM32L5_FLASH_NSSR		0x20
+#define STM32L5_FLASH_NSCR		0x28
+#define STM32L5_FLASH_OPTR		0x40
+#define STM32L5_FLASH_WRP1AR	0x58
+#define STM32L5_FLASH_WRP1BR	0x5c
+#define STM32L5_FLASH_WRP2AR	0x68
+#define STM32L5_FLASH_WRP2BR	0x6c
+
 /* FLASH_CR register bits */
 #define FLASH_PG				(1 << 0)
 #define FLASH_PER				(1 << 1)
