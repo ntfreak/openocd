@@ -679,12 +679,14 @@ static int jim_arc_add_reg(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 	int e = ERROR_OK;
 
 	/* At least we need to specify 4 parameters: name, number, type and gdb_feature,
-	 * which means there should be 8 arguments */
-	if (goi.argc < 8) {
+	 * which means there should be 8 arguments. Also there can be additional paramters
+	 * "-g" and  "-core" or "-bcr" which makes maximum 10 parameters. */
+	if (goi.argc < 8 || goi.argc > 10) {
 		free_reg_desc(reg);
 		Jim_SetResultFormatted(goi.interp,
-			"Should be at least 8 argnuments: -name <name> "
-			"-num <num> -type <type> -feature <gdb_feature>.");
+			"Should be at least 8 argnuments and not greater than 10: "
+			" -name <name> -num <num> -type <type> "
+			" -feature <gdb_feature> [-core|-bcr] [-g].");
 		return JIM_ERR;
 	}
 
