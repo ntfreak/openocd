@@ -402,8 +402,12 @@ static int armv8_read_reg32(struct armv8_common *armv8, int regnum, uint64_t *re
 				ARMV4_5_MRC(15, 4, 0, 5, 2, 0),
 				&value);
 		break;
-	case ARMV8_ESR_EL3: /* FIXME: no equivalent in aarch32? */
-		retval = ERROR_FAIL;
+	case ARMV8_ESR_EL3:
+		/* for Cortex-A53 as example, the ARMV8_ESR_EL3 is mapped to DFSR(S),
+		 * but this mapping is not architecturally mandated.
+		 * avoid false errors in state polling, and unneeded target re-examination.
+		 */
+		retval = ERROR_OK;
 		break;
 	case ARMV8_SPSR_EL1: /* mapped to SPSR_svc */
 		retval = dpm->instr_read_data_r0(dpm,
@@ -536,8 +540,12 @@ static int armv8_write_reg32(struct armv8_common *armv8, int regnum, uint64_t va
 				ARMV4_5_MCR(15, 4, 0, 5, 2, 0),
 				value);
 		break;
-	case ARMV8_ESR_EL3: /* FIXME: no equivalent in aarch32? */
-		retval = ERROR_FAIL;
+	case ARMV8_ESR_EL3:
+		/* for Cortex-A53 as example, the ARMV8_ESR_EL3 is mapped to DFSR(S),
+		 * but this mapping is not architecturally mandated.
+		 * avoid false errors in state polling, and unneeded target re-examination.
+		 */
+		retval = ERROR_OK;
 		break;
 	case ARMV8_SPSR_EL1: /* mapped to SPSR_svc */
 		retval = dpm->instr_write_data_r0(dpm,
