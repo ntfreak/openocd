@@ -54,6 +54,7 @@ struct avrf_type {
 	int flash_page_num;
 	int eeprom_page_size;
 	int eeprom_page_num;
+	int user_signature_page_num;
 };
 
 struct avrf_flash_bank {
@@ -63,18 +64,19 @@ struct avrf_flash_bank {
 
 static const struct avrf_type avft_chips_info[] = {
 /*	name, chip_id,	flash_page_size, flash_page_num,
- *			eeprom_page_size, eeprom_page_num
+ *			eeprom_page_size, eeprom_page_num,
+ *			user_signature_num
  */
-	{"atmega128", 0x9702, 256, 512, 8, 512},
-	{"atmega128rfa1", 0xa701, 128, 512, 8, 512},
-	{"atmega256rfr2", 0xa802, 256, 1024, 8, 1024},
-	{"at90can128", 0x9781, 256, 512, 8, 512},
-	{"at90usb128", 0x9782, 256, 512, 8, 512},
-	{"atmega164p", 0x940a, 128, 128, 4, 128},
-	{"atmega324p", 0x9508, 128, 256, 4, 256},
-	{"atmega324pa", 0x9511, 128, 256, 4, 256},
-	{"atmega644p", 0x960a, 256, 256, 8, 256},
-	{"atmega1284p", 0x9705, 256, 512, 8, 512},
+	{"atmega128", 0x9702, 256, 512, 8, 512, 0},
+	{"atmega128rfa1", 0xa701, 128, 512, 8, 512, 3},
+	{"atmega256rfr2", 0xa802, 256, 1024, 8, 1024, 3},
+	{"at90can128", 0x9781, 256, 512, 8, 512, 0},
+	{"at90usb128", 0x9782, 256, 512, 8, 512, 0},
+	{"atmega164p", 0x940a, 128, 128, 4, 128, 0},
+	{"atmega324p", 0x9508, 128, 256, 4, 256, 0},
+	{"atmega324pa", 0x9511, 128, 256, 4, 256, 0},
+	{"atmega644p", 0x960a, 256, 256, 8, 256, 0},
+	{"atmega1284p", 0x9705, 256, 512, 8, 512, 0},
 };
 
 /* avr program functions */
@@ -118,12 +120,12 @@ static int avr_jtagprg_leaveprogmode(struct avr_common *avr)
 	return ERROR_OK;
 }
 
-static int avr_jtagprg_chiperase(struct avr_common *avr)
+static int avr_jtagprg_chiperase(struct avr_common *avr, uint32_t enter_cmd)
 {
 	uint32_t poll_value;
 
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2380, AVR_JTAG_REG_ProgrammingCommand_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, enter_cmd /* 0x2380 */, AVR_JTAG_REG_ProgrammingCommand_Len);
 	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3180, AVR_JTAG_REG_ProgrammingCommand_Len);
 	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3380, AVR_JTAG_REG_ProgrammingCommand_Len);
 	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3380, AVR_JTAG_REG_ProgrammingCommand_Len);
@@ -147,12 +149,13 @@ static int avr_jtagprg_writeflashpage(struct avr_common *avr,
 	const uint8_t *page_buf,
 	uint32_t buf_size,
 	uint32_t addr,
-	uint32_t page_size)
+	uint32_t page_size,
+	uint32_t enter_cmd)
 {
 	uint32_t poll_value;
 
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2310, AVR_JTAG_REG_ProgrammingCommand_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, enter_cmd/* 0x2310 */, AVR_JTAG_REG_ProgrammingCommand_Len);
 
 	/* load extended high byte */
 	if (ext_addressing)
@@ -338,8 +341,7 @@ FLASH_BANK_COMMAND_HANDLER(avrf_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int avrf_erase(struct flash_bank *bank, unsigned int first,
-		unsigned int last)
+static int avrf_common_erase(struct flash_bank *bank, int first, int last, uint32_t enter_cmd)
 {
 	struct target *target = bank->target;
 	struct avr_common *avr = target->arch_info;
@@ -356,14 +358,23 @@ static int avrf_erase(struct flash_bank *bank, unsigned int first,
 	if (status != ERROR_OK)
 		return status;
 
-	status = avr_jtagprg_chiperase(avr);
+	status = avr_jtagprg_chiperase(avr, enter_cmd);
 	if (status != ERROR_OK)
 		return status;
 
 	return avr_jtagprg_leaveprogmode(avr);
 }
 
-static int avrf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t offset, uint32_t count)
+static int avrf_erase(struct flash_bank *bank, unsigned int first, unsigned int last)
+{
+	return avrf_common_erase(bank, first, last, 0x2380);
+}
+
+static int avrf_common_write(struct flash_bank *bank,
+	const uint8_t *buffer,
+	uint32_t offset,
+	uint32_t count,
+	uint32_t enter_cmd)
 {
 	struct target *target = bank->target;
 	struct avr_common *avr = target->arch_info;
@@ -405,7 +416,8 @@ static int avrf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t o
 			buffer + cur_size,
 			cur_buffer_size,
 			offset + cur_size,
-			page_size);
+			page_size,
+			enter_cmd);
 		count -= cur_buffer_size;
 		cur_size += cur_buffer_size;
 
@@ -415,7 +427,16 @@ static int avrf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t o
 	return avr_jtagprg_leaveprogmode(avr);
 }
 
-static int avrf_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset, uint32_t count)
+static int avrf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+	return avrf_common_write(bank, buffer, offset, count, 0x2310);
+}
+
+static int avr_common_flash_read(struct flash_bank *bank,
+	uint8_t *buffer,
+        uint32_t offset,
+	uint32_t count,
+	uint32_t enter_cmd)
 {
 	struct target *target = bank->target;
 	struct avr_common *avr = target->arch_info;
@@ -445,7 +466,7 @@ static int avrf_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset, 
 		ext_addressing = false;
 
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2302, AVR_JTAG_REG_ProgrammingCommand_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, enter_cmd, AVR_JTAG_REG_ProgrammingCommand_Len);
 
 	for (uint32_t i = 0; i < count; i += 2) {
 		/* load extended high byte */
@@ -478,6 +499,11 @@ static int avrf_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset, 
 	}
 
 	return avr_jtagprg_leaveprogmode(avr);
+}
+
+static int avrf_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+	return avr_common_flash_read(bank, buffer, offset, count, 0x2302);
 }
 
 #define EXTRACT_MFG(X)  (((X) & 0xffe) >> 1)
@@ -594,7 +620,7 @@ static int avrf_mass_erase(struct flash_bank *bank)
 	}
 
 	if ((ERROR_OK != avr_jtagprg_enterprogmode(avr))
-	    || (ERROR_OK != avr_jtagprg_chiperase(avr))
+	    || (ERROR_OK != avr_jtagprg_chiperase(avr, 0x2380))
 	    || (ERROR_OK != avr_jtagprg_leaveprogmode(avr)))
 		return ERROR_FAIL;
 
@@ -1071,5 +1097,142 @@ const struct flash_driver avr_fuses = {
 	.erase = avrf_erase,
 	.erase_check = default_flash_blank_check,
 	.write = avr_fuses_write,
+	.free_driver_priv = default_flash_free_driver_priv,
+};
+
+/*
+ * User Signature data
+ */
+struct avr_user_signature_flash_bank {
+	int ppage_size;
+	int probed;
+	const struct avrf_type *avr_info;
+};
+
+static int avr_user_signature_erase(struct flash_bank *bank, unsigned int first, unsigned int last)
+{
+	return avrf_common_erase(bank, first, last, 0x2384);
+}
+
+static int avr_user_signature_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+	return avrf_common_write(bank, buffer, offset, count, 0x2312);
+}
+
+static int avr_user_signature_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+	return avr_common_flash_read(bank, buffer, offset, count, 0x2308);
+}
+
+static int avr_user_signature_probe(struct flash_bank *bank)
+{
+	uint8_t ver;
+	struct avrf_flash_bank *avrf_info = bank->driver_priv;
+	const struct avrf_type *avr_info;
+	int error = avrf_identify_chip(bank, &avr_info, &ver);
+
+	if ((error == ERROR_OK) && (avr_info->user_signature_page_num > 0)) {
+		if (bank->sectors) {
+			free(bank->sectors);
+			bank->sectors = NULL;
+		}
+
+		/* chip found */
+		bank->base = 0x00000000;
+		bank->size = (avr_info->flash_page_size * avr_info->user_signature_page_num);
+		bank->num_sectors = avr_info->user_signature_page_num;
+		bank->sectors = malloc(sizeof(struct flash_sector) * avr_info->user_signature_page_num);
+
+		for (int i = 0; i < avr_info->user_signature_page_num; i++) {
+			bank->sectors[i].offset = i * avr_info->flash_page_size;
+			bank->sectors[i].size = avr_info->flash_page_size;
+			bank->sectors[i].is_erased = -1;
+			bank->sectors[i].is_protected = -1;
+		}
+
+		avrf_info->probed = true;
+		return ERROR_OK;
+	}
+
+	avrf_info->probed = true;
+	if (error == ERROR_FLASH_OPERATION_FAILED) {
+		/* chip not supported */
+		LOG_ERROR("device id is not supported for avr");
+		return ERROR_FAIL;
+	}
+
+	if (avr_info->user_signature_page_num == 0)
+		LOG_ERROR("This chip does not have user signature pages.");
+
+	return error;
+}
+
+static int avr_user_signature_auto_probe(struct flash_bank *bank)
+{
+	struct avrf_flash_bank *avrf_info = bank->driver_priv;
+	if (avrf_info->probed)
+		return ERROR_OK;
+	return avr_user_signature_probe(bank);
+}
+
+FLASH_BANK_COMMAND_HANDLER(avr_user_signature_flash_bank_command)
+{
+	struct avr_user_signature_flash_bank *avr_user_signature_bank;
+
+	avr_user_signature_bank = malloc(sizeof(struct avr_user_signature_flash_bank));
+	if (!avr_user_signature_bank)
+		return ERROR_FLASH_OPERATION_FAILED;
+
+	avr_user_signature_bank->probed = false;
+	bank->driver_priv = avr_user_signature_bank;
+
+	return ERROR_OK;
+}
+
+static int avr_user_signature_info(struct flash_bank *bank, char *buf, int buf_size)
+{
+	uint8_t ver;
+	struct avr_user_signature_flash_bank *avr_user_signature_bank = bank->driver_priv;
+	const struct avrf_type *avr_info;
+	int error = avrf_identify_chip(bank, &avr_info, &ver);
+
+	if (error == ERROR_OK) {
+		/* chip found */
+		snprintf(buf, buf_size, "%s - Rev: 0x%" PRIx32 "", avr_info->name,
+				ver);
+		avr_user_signature_bank->avr_info = avr_info;
+	} else
+		if (error == ERROR_FLASH_OPERATION_FAILED)
+			snprintf(buf, buf_size, "Cannot identify target as a avr\n");
+
+	return error;
+}
+
+static const struct command_registration avr_user_signature_exec_command_handlers[] = {
+	COMMAND_REGISTRATION_DONE
+};
+
+static const struct command_registration avr_user_signature_command_handlers[] = {
+	{
+		.name = "avr_user_signature",
+		.mode = COMMAND_ANY,
+		.help = "AVR flash command group",
+		.usage = "",
+		.chain = avr_user_signature_exec_command_handlers,
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
+const struct flash_driver avr_user_signature = {
+	.name = "avr_user_signature",
+	.commands = avr_user_signature_command_handlers,
+	.flash_bank_command = avr_user_signature_flash_bank_command,
+	.erase = avr_user_signature_erase,
+	.write = avr_user_signature_write,
+	.read = avr_user_signature_read,
+	.probe = avr_user_signature_probe,
+	.auto_probe = avr_user_signature_auto_probe,
+	.erase_check = default_flash_blank_check,
+	.info = avr_user_signature_info,
 	.free_driver_priv = default_flash_free_driver_priv,
 };
