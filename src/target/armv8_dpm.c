@@ -681,6 +681,10 @@ static int dpmv8_read_reg(struct arm_dpm *dpm, struct reg *r, unsigned regnum)
 			LOG_DEBUG("READ: %s, hvalue=%16.8llx", r->name, (unsigned long long) hvalue);
 		}
 	}
+
+	if (retval != ERROR_OK)
+		LOG_ERROR("Failed to read %s register", r->name);
+
 	return retval;
 }
 
@@ -719,6 +723,9 @@ static int dpmv8_write_reg(struct arm_dpm *dpm, struct reg *r, unsigned regnum)
 			LOG_DEBUG("WRITE: %s, hvalue=%16.8llx", r->name, (unsigned long long) hvalue);
 		}
 	}
+
+	if (retval != ERROR_OK)
+		LOG_ERROR("Failed to write %s register", r->name);
 
 	return retval;
 }
