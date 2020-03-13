@@ -263,6 +263,7 @@ int nand_read_status(struct nand_device *nand, uint8_t *status)
 		return ERROR_NAND_DEVICE_NOT_PROBED;
 
 	/* Send read status command */
+	/* FIXME: errors returned from nand->controller are mostly ignored! */
 	nand->controller->command(nand, NAND_CMD_STATUS);
 
 	alive_sleep(1);
@@ -301,7 +302,8 @@ static int nand_poll_ready(struct nand_device *nand, int timeout)
 int nand_probe(struct nand_device *nand)
 {
 	uint8_t manufacturer_id, device_id;
-	uint8_t id_buff[6];
+	uint8_t id_buff[6] = { 0 };	/* zero buff to silence false warning
+					 * from clang static analyzer */
 	int retval;
 	int i;
 
@@ -392,19 +394,34 @@ int nand_probe(struct nand_device *nand)
 	if (nand->device->page_size == 0 ||
 			nand->device->erase_size == 0) {
 		if (nand->bus_width == 8) {
-			nand->controller->read_data(nand, id_buff + 3);
-			nand->controller->read_data(nand, id_buff + 4);
-			nand->controller->read_data(nand, id_buff + 5);
+			retval = nand->controller->read_data(nand, id_buff + 3);
+			if (retval != ERROR_OK)
+				return retval;
+
+			retval = nand->controller->read_data(nand, id_buff + 4);
+			if (retval != ERROR_OK)
+				return retval;
+
+			retval = nand->controller->read_data(nand, id_buff + 5);
+			if (retval != ERROR_OK)
+				return retval;
+
 		} else {
 			uint16_t data_buf;
 
-			nand->controller->read_data(nand, &data_buf);
+			retval = nand->controller->read_data(nand, &data_buf);
+			if (retval != ERROR_OK)
+				return retval;
 			id_buff[3] = data_buf;
 
-			nand->controller->read_data(nand, &data_buf);
+			retval = nand->controller->read_data(nand, &data_buf);
+			if (retval != ERROR_OK)
+				return retval;
 			id_buff[4] = data_buf;
 
-			nand->controller->read_data(nand, &data_buf);
+			retval = nand->controller->read_data(nand, &data_buf);
+			if (retval != ERROR_OK)
+				return retval;
 			id_buff[5] = data_buf >> 8;
 		}
 	}
