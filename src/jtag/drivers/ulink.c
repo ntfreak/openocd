@@ -2210,14 +2210,17 @@ static int ulink_init(void)
 	}
 	ulink_clear_queue(ulink_handle);
 
-	ulink_append_get_signals_cmd(ulink_handle);
-	ulink_execute_queued_commands(ulink_handle, 200);
+	ret = ulink_append_get_signals_cmd(ulink_handle);
+	if (ret == ERROR_OK)
+		ret = ulink_execute_queued_commands(ulink_handle, 200);
 
-	/* Post-process the single CMD_GET_SIGNALS command */
-	input_signals = ulink_handle->queue_start->payload_in[0];
-	output_signals = ulink_handle->queue_start->payload_in[1];
+	if (ret == ERROR_OK) {
+		/* Post-process the single CMD_GET_SIGNALS command */
+		input_signals = ulink_handle->queue_start->payload_in[0];
+		output_signals = ulink_handle->queue_start->payload_in[1];
 
-	ulink_print_signal_states(input_signals, output_signals);
+		ulink_print_signal_states(input_signals, output_signals);
+	}
 
 	ulink_clear_queue(ulink_handle);
 
