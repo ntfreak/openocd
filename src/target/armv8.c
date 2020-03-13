@@ -399,7 +399,10 @@ static int armv8_read_reg32(struct armv8_common *armv8, int regnum, uint64_t *re
 				&value);
 		break;
 	case ARMV8_ESR_EL3: /* FIXME: no equivalent in aarch32? */
-		retval = ERROR_FAIL;
+		/* avoid false errors in state polling which may lead to reexamine the
+		 * target and re-execute examine-state and examine-end event handlers */
+		LOG_WARNING("Unsupported read from ESR_EL3 in AArch32 state");
+		retval = ERROR_OK;
 		break;
 	case ARMV8_SPSR_EL1: /* mapped to SPSR_svc */
 		retval = dpm->instr_read_data_r0(dpm,
@@ -533,7 +536,10 @@ static int armv8_write_reg32(struct armv8_common *armv8, int regnum, uint64_t va
 				value);
 		break;
 	case ARMV8_ESR_EL3: /* FIXME: no equivalent in aarch32? */
-		retval = ERROR_FAIL;
+		/* avoid false errors in state polling which may lead to reexamine the
+		 * target and re-execute examine-state and examine-end event handlers */
+		LOG_WARNING("Unsupported write to ESR_EL3 in AArch32 state");
+		retval = ERROR_OK;
 		break;
 	case ARMV8_SPSR_EL1: /* mapped to SPSR_svc */
 		retval = dpm->instr_write_data_r0(dpm,
