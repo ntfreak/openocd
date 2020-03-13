@@ -650,7 +650,7 @@ void ulink_clear_queue(struct ulink *device)
 int ulink_append_queue(struct ulink *device, struct ulink_cmd *ulink_cmd)
 {
 	int newsize_out, newsize_in;
-	int ret;
+	int ret = ERROR_OK;
 
 	newsize_out = ulink_get_queue_size(device, PAYLOAD_DIRECTION_OUT) + 1
 		+ ulink_cmd->payload_out_size;
@@ -663,14 +663,12 @@ int ulink_append_queue(struct ulink *device, struct ulink_cmd *ulink_cmd)
 		/* New command does not fit. Execute all commands in queue before starting
 		 * new queue with the current command as first entry. */
 		ret = ulink_execute_queued_commands(device, USB_TIMEOUT);
-		if (ret != ERROR_OK)
-			return ret;
 
-		ret = ulink_post_process_queue(device);
-		if (ret != ERROR_OK)
-			return ret;
+		if (ret == ERROR_OK)
+			ret = ulink_post_process_queue(device);
 
-		ulink_clear_queue(device);
+		if (ret == ERROR_OK)
+			ulink_clear_queue(device);
 	}
 
 	if (device->queue_start == NULL) {
@@ -687,7 +685,10 @@ int ulink_append_queue(struct ulink *device, struct ulink_cmd *ulink_cmd)
 		device->queue_end = ulink_cmd;
 	}
 
-	return ERROR_OK;
+	if (ret != ERROR_OK)
+		ulink_clear_queue(device);
+
+	return ret;
 }
 
 /**
