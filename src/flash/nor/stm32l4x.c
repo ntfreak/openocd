@@ -175,7 +175,7 @@ static const struct stm32l4_rev stm32_470_revs[] = {
 };
 
 static const struct stm32l4_rev stm32_471_revs[] = {
-	{ 0x1000, "1" },
+	{ 0x1001, "Z" },
 };
 
 static const struct stm32l4_rev stm32_495_revs[] = {
