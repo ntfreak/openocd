@@ -1342,6 +1342,158 @@ int arc_read_instruction_u32(struct target *target, uint32_t address,
 	return ERROR_OK;
 }
 
+static int arc_set_breakpoint(struct target *target,
+		struct breakpoint *breakpoint)
+{
+
+	if (breakpoint->set) {
+		LOG_WARNING("breakpoint already set");
+		return ERROR_OK;
+	}
+
+	if (breakpoint->type == BKPT_SOFT) {
+		LOG_DEBUG("bpid: %" PRIu32, breakpoint->unique_id);
+
+		if (breakpoint->length == 4) {
+			uint32_t verify = 0xffffffff;
+
+			CHECK_RETVAL(target_read_buffer(target, breakpoint->address, breakpoint->length,
+					breakpoint->orig_instr));
+
+			CHECK_RETVAL(arc_write_instruction_u32(target, breakpoint->address,
+					ARC_SDBBP_32));
+
+			CHECK_RETVAL(arc_read_instruction_u32(target, breakpoint->address, &verify));
+
+			if (verify != ARC_SDBBP_32) {
+				LOG_ERROR("Unable to set 32bit breakpoint at address @0x%" TARGET_PRIxADDR
+						" - check that memory is read/writable", breakpoint->address);
+				return ERROR_FAIL;
+			}
+		} else if (breakpoint->length == 2) {
+			uint16_t verify = 0xffff;
+
+			CHECK_RETVAL(target_read_buffer(target, breakpoint->address, breakpoint->length,
+					breakpoint->orig_instr));
+			CHECK_RETVAL(target_write_u16(target, breakpoint->address, ARC_SDBBP_16));
+
+			CHECK_RETVAL(target_read_u16(target, breakpoint->address, &verify));
+			if (verify != ARC_SDBBP_16) {
+				LOG_ERROR("Unable to set 16bit breakpoint at address @0x%" TARGET_PRIxADDR
+						" - check that memory is read/writable", breakpoint->address);
+				return ERROR_FAIL;
+			}
+		} else {
+			LOG_ERROR("Invalid breakpoint length: target supports only 2 or 4");
+			return ERROR_COMMAND_ARGUMENT_INVALID;
+		}
+
+		breakpoint->set = 64; /* Any nice value but 0 */
+	} else if (breakpoint->type == BKPT_HARD) {
+		LOG_DEBUG("Hardware breakpoints are not supported yet!");
+		return ERROR_FAIL;
+	} else {
+		LOG_DEBUG("ERROR: setting unknown breakpoint type");
+		return ERROR_FAIL;
+	}
+	/* core instruction cache is now invalid,
+	 * TODO: add cache invalidation function here (when implemented). */
+
+	return ERROR_OK;
+}
+
+static int arc_unset_breakpoint(struct target *target,
+		struct breakpoint *breakpoint)
+{
+	int retval = ERROR_OK;
+
+	if (!breakpoint->set) {
+		LOG_WARNING("breakpoint not set");
+		return ERROR_OK;
+	}
+
+	if (breakpoint->type == BKPT_SOFT) {
+		/* restore original instruction (kept in target endianness) */
+		LOG_DEBUG("bpid: %" PRIu32, breakpoint->unique_id);
+		if (breakpoint->length == 4) {
+			uint32_t current_instr;
+
+			/* check that user program has not modified breakpoint instruction */
+			CHECK_RETVAL(arc_read_instruction_u32(target, breakpoint->address, &current_instr));
+
+			if (current_instr == ARC_SDBBP_32) {
+				retval = target_write_buffer(target, breakpoint->address,
+					breakpoint->length, breakpoint->orig_instr);
+				if (retval != ERROR_OK)
+					return retval;
+			} else {
+				LOG_WARNING("Software breakpoint @0x%" TARGET_PRIxADDR
+					" has been overwritten outside of debugger."
+					"Expected: @0x%" PRIx32 ", got: @0x%" PRIx32,
+					breakpoint->address, ARC_SDBBP_32, current_instr);
+			}
+		} else if (breakpoint->length == 2) {
+			uint16_t current_instr;
+
+			/* check that user program has not modified breakpoint instruction */
+			CHECK_RETVAL(target_read_u16(target, breakpoint->address, &current_instr));
+			if (current_instr == ARC_SDBBP_16) {
+				retval = target_write_buffer(target, breakpoint->address,
+					breakpoint->length, breakpoint->orig_instr);
+				if (retval != ERROR_OK)
+					return retval;
+			} else {
+				LOG_WARNING("Software breakpoint @0x%" TARGET_PRIxADDR
+					" has been overwritten outside of debugger. "
+					"Expected: 0x%04" PRIx16 ", got: 0x%04" PRIx16,
+					breakpoint->address, ARC_SDBBP_16, current_instr);
+			}
+		} else {
+			LOG_ERROR("Invalid breakpoint length: target supports only 2 or 4");
+			return ERROR_COMMAND_ARGUMENT_INVALID;
+		}
+		breakpoint->set = 0;
+
+	}	else if (breakpoint->type == BKPT_HARD) {
+			LOG_WARNING("Hardware breakpoints are not supported yet!");
+			return ERROR_FAIL;
+	} else {
+			LOG_DEBUG("ERROR: unsetting unknown breakpoint type");
+			return ERROR_FAIL;
+	}
+
+	/* core instruction cache is now invalid.
+	 * TODO: Add cache invalidation function */
+
+	return retval;
+}
+
+
+static int arc_add_breakpoint(struct target *target, struct breakpoint *breakpoint)
+{
+	if (target->state == TARGET_HALTED) {
+		return arc_set_breakpoint(target, breakpoint);
+
+	} else {
+		LOG_WARNING(" > core was not halted, please try again.");
+		return ERROR_TARGET_NOT_HALTED;
+	}
+}
+
+static int arc_remove_breakpoint(struct target *target,
+	struct breakpoint *breakpoint)
+{
+	if (target->state == TARGET_HALTED) {
+		if (breakpoint->set)
+			CHECK_RETVAL(arc_unset_breakpoint(target, breakpoint));
+	} else {
+		LOG_WARNING("target not halted");
+		return ERROR_TARGET_NOT_HALTED;
+	}
+
+	return ERROR_OK;
+}
+
 /* Helper function which swiches core to single_step mode by
  * doing aux r/w operations.  */
 int arc_config_step(struct target *target, int enable_step)
@@ -1443,6 +1595,8 @@ int arc_step(struct target *target, int current, target_addr_t address,
 	return ERROR_OK;
 }
 
+
+
 /* ARC v2 target */
 struct target_type arcv2_target = {
 	.name = "arcv2",
@@ -1472,10 +1626,10 @@ struct target_type arcv2_target = {
 	.checksum_memory = NULL,
 	.blank_check_memory = NULL,
 
-	.add_breakpoint = NULL,
+	.add_breakpoint = arc_add_breakpoint,
 	.add_context_breakpoint = NULL,
 	.add_hybrid_breakpoint = NULL,
-	.remove_breakpoint = NULL,
+	.remove_breakpoint = arc_remove_breakpoint,
 	.add_watchpoint = NULL,
 	.remove_watchpoint = NULL,
 	.hit_watchpoint = NULL,

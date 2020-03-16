@@ -54,6 +54,12 @@
 /* Limit reg_type/reg_type_field  name to 20 symbols */
 #define REG_TYPE_MAX_NAME_LENGTH	20
 
+/* ARC 32bits opcodes */
+#define ARC_SDBBP_32 0x256F003F  /* BRK */
+
+/* ARC 16bits opcodes */
+#define ARC_SDBBP_16 0x7FFF      /* BRK_S */
+
 struct arc_reg_bitfield {
 	struct reg_data_type_bitfield bitfield;
 	char name[REG_TYPE_MAX_NAME_LENGTH];
