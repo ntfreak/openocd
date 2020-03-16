@@ -155,6 +155,29 @@ static inline struct arc_common *target_to_arc(struct target *target)
 	return target->arch_info;
 }
 
+/* ----- Inlined functions ------------------------------------------------- */
+
+/**
+ * Convert data in host endianness to the middle endian. This is required to
+ * write 4-byte instructions.
+ */
+static inline void arc_h_u32_to_me(uint8_t *buf, int val)
+{
+	buf[1] = (uint8_t) (val >> 24);
+	buf[0] = (uint8_t) (val >> 16);
+	buf[3] = (uint8_t) (val >> 8);
+	buf[2] = (uint8_t) (val >> 0);
+}
+
+/**
+ * Convert data in middle endian to host endian. This is required to read 32-bit
+ * instruction from little endian ARCs.
+ */
+static inline uint32_t arc_me_to_h_u32(const uint8_t *buf)
+{
+	return (uint32_t)(buf[2] | buf[3] << 8 | buf[0] << 16 | buf[1] << 24);
+}
+
 
 /* ARC Register description */
 struct arc_reg_desc {
