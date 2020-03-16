@@ -1469,6 +1469,31 @@ static int arc_unset_breakpoint(struct target *target,
 }
 
 
+static int arc_add_breakpoint(struct target *target, struct breakpoint *breakpoint)
+{
+	if (target->state == TARGET_HALTED) {
+		return arc_set_breakpoint(target, breakpoint);
+
+	} else {
+		LOG_WARNING(" > core was not halted, please try again.");
+		return ERROR_TARGET_NOT_HALTED;
+	}
+}
+
+static int arc_remove_breakpoint(struct target *target,
+	struct breakpoint *breakpoint)
+{
+	if (target->state != TARGET_HALTED) {
+		LOG_WARNING("target not halted");
+		return ERROR_TARGET_NOT_HALTED;
+	}
+
+	if (breakpoint->set)
+		CHECK_RETVAL(arc_unset_breakpoint(target, breakpoint));
+
+	return ERROR_OK;
+}
+
 /* ARC v2 target */
 struct target_type arcv2_target = {
 	.name = "arcv2",
@@ -1498,10 +1523,10 @@ struct target_type arcv2_target = {
 	.checksum_memory = NULL,
 	.blank_check_memory = NULL,
 
-	.add_breakpoint = NULL,
+	.add_breakpoint = arc_add_breakpoint,
 	.add_context_breakpoint = NULL,
 	.add_hybrid_breakpoint = NULL,
-	.remove_breakpoint = NULL,
+	.remove_breakpoint = arc_remove_breakpoint,
 	.add_watchpoint = NULL,
 	.remove_watchpoint = NULL,
 	.hit_watchpoint = NULL,
