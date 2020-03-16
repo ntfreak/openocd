@@ -1163,23 +1163,16 @@ COMMAND_HANDLER(nrf5_handle_mass_erase_command)
 	}
 
 	res = nrf5_erase_all(chip);
-	if (res != ERROR_OK) {
-		LOG_ERROR("Failed to erase the chip");
-		nrf5_protect_check(bank);
-		return res;
-	}
-
-	res = nrf5_protect_check(bank);
-	if (res != ERROR_OK) {
-		LOG_ERROR("Failed to check chip's write protection");
-		return res;
-	}
-
-	res = get_flash_bank_by_addr(target, NRF5_UICR_BASE, true, &bank);
 	if (res != ERROR_OK)
-		return res;
+		LOG_ERROR("Failed to erase the chip");
 
-	return ERROR_OK;
+	/* Protection is checked here as the preparation for an eventual flash
+	 * write/erase. Don't complain if the check fails.
+	 * The NVMC has no indicator of a protection violation - that's the reason
+	 * both write and erase check for protected state before starting. */
+	(void)nrf5_protect_check(bank);
+
+	return res;
 }
 
 COMMAND_HANDLER(nrf5_handle_info_command)
