@@ -928,8 +928,10 @@ static int arc_poll(struct target *target)
 		CHECK_RETVAL(arc_get_register_value(target, "status32", &value));
 		if (value & AUX_STATUS32_REG_HALT_BIT) {
 			LOG_DEBUG("ARC core in halt or reset state.");
+			/* Save context if target was not in reset state */
+			if (target->state == TARGET_RUNNING)
+				CHECK_RETVAL(arc_debug_entry(target));
 			target->state = TARGET_HALTED;
-			CHECK_RETVAL(arc_debug_entry(target));
 			CHECK_RETVAL(target_call_event_callbacks(target, TARGET_EVENT_HALTED));
 		} else {
 		LOG_DEBUG("Discrepancy of STATUS32[0] HALT bit and ARC_JTAG_STAT_RU, "
