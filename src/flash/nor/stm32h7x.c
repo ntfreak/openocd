@@ -114,13 +114,13 @@ struct stm32h7x_part_info {
 	const struct stm32h7x_rev *revs;
 	size_t num_revs;
 	unsigned int page_size_kb;
-	unsigned int block_size;     /* flash write word size in bytes */
+	unsigned int block_size;    /* flash write word size in bytes */
 	uint16_t max_flash_size_kb;
-	uint8_t has_dual_bank;
-	uint16_t max_bank_size_kb; /* Used when has_dual_bank is true */
-	uint32_t flash_regs_base;    /* Flash controller registers location */
-	uint32_t fsize_addr;         /* Location of FSIZE register */
-	uint32_t wps_group_size; /* write protection group sectors' count */
+	bool has_dual_bank;
+	uint16_t max_bank_size_kb;  /* Used when has_dual_bank is true */
+	uint32_t flash_regs_base;   /* Flash controller registers location */
+	uint32_t fsize_addr;        /* Location of FSIZE register */
+	uint32_t wps_group_size;    /* write protection group sectors' count */
 	uint32_t wps_mask;
 	/* function to compute flash_cr register values */
 	uint32_t (*compute_flash_cr)(uint32_t cmd, int snb);
@@ -174,7 +174,7 @@ static const struct stm32h7x_part_info stm32h7x_parts[] = {
 	.block_size			= 32,
 	.max_flash_size_kb	= 2048,
 	.max_bank_size_kb	= 1024,
-	.has_dual_bank		= 1,
+	.has_dual_bank		= true,
 	.flash_regs_base	= FLASH_REG_BASE_B0,
 	.fsize_addr			= 0x1FF1E880,
 	.wps_group_size		= 1,
@@ -190,7 +190,7 @@ static const struct stm32h7x_part_info stm32h7x_parts[] = {
 	.block_size			= 16,
 	.max_flash_size_kb	= 2048,
 	.max_bank_size_kb	= 1024,
-	.has_dual_bank		= 1,
+	.has_dual_bank		= true,
 	.flash_regs_base	= FLASH_REG_BASE_B0,
 	.fsize_addr			= 0x08FFF80C,
 	.wps_group_size		= 4,
