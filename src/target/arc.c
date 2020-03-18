@@ -1494,6 +1494,107 @@ static int arc_remove_breakpoint(struct target *target,
 	return ERROR_OK;
 }
 
+/* Helper function which swiches core to single_step mode by
+ * doing aux r/w operations.  */
+int arc_config_step(struct target *target, int enable_step)
+{
+	uint32_t value;
+
+	struct arc_common *arc = target_to_arc(target);
+
+	/* enable core debug step mode */
+	if (enable_step) {
+		CHECK_RETVAL(arc_jtag_read_aux_reg_one(&arc->jtag_info, AUX_STATUS32_REG,
+			&value));
+		value &= ~SET_CORE_AE_BIT; /* clear the AE bit */
+		CHECK_RETVAL(arc_jtag_write_aux_reg_one(&arc->jtag_info, AUX_STATUS32_REG,
+			value));
+		LOG_DEBUG(" [status32:0x%08" PRIx32 "]", value);
+
+		/* Doing read-modify-write, because DEBUG might contain manually set
+		 * bits like UB or ED, which should be preserved.  */
+		CHECK_RETVAL(arc_jtag_read_aux_reg_one(&arc->jtag_info,
+					AUX_DEBUG_REG, &value));
+		value |= SET_CORE_SINGLE_INSTR_STEP; /* set the IS bit */
+		CHECK_RETVAL(arc_jtag_write_aux_reg_one(&arc->jtag_info, AUX_DEBUG_REG,
+			value));
+		LOG_DEBUG("core debug step mode enabled [debug-reg:0x%08" PRIx32 "]", value);
+
+	} else {	/* disable core debug step mode */
+		CHECK_RETVAL(arc_jtag_read_aux_reg_one(&arc->jtag_info, AUX_DEBUG_REG,
+			&value));
+		value &= ~SET_CORE_SINGLE_INSTR_STEP; /* clear the IS bit */
+		CHECK_RETVAL(arc_jtag_write_aux_reg_one(&arc->jtag_info, AUX_DEBUG_REG,
+			value));
+		LOG_DEBUG("core debug step mode disabled");
+	}
+
+	return ERROR_OK;
+}
+
+int arc_step(struct target *target, int current, target_addr_t address,
+	int handle_breakpoints)
+{
+	/* get pointers to arch-specific information */
+	struct arc_common *arc = target_to_arc(target);
+	struct breakpoint *breakpoint = NULL;
+	struct reg *pc = &(arc->core_and_aux_cache->reg_list[arc->pc_index_in_cache]);
+
+	if (target->state != TARGET_HALTED) {
+		LOG_WARNING("target not halted");
+		return ERROR_TARGET_NOT_HALTED;
+	}
+
+	/* current = 1: continue on current pc, otherwise continue at <address> */
+	if (!current) {
+		buf_set_u32(pc->value, 0, 32, address);
+		pc->dirty = 1;
+		pc->valid = 1;
+	}
+
+	LOG_DEBUG("Target steps one instruction from PC=0x%" PRIx32,
+		buf_get_u32(pc->value, 0, 32));
+
+	/* the front-end may request us not to handle breakpoints */
+	if (handle_breakpoints) {
+		breakpoint = breakpoint_find(target, buf_get_u32(pc->value, 0, 32));
+		if (breakpoint)
+			CHECK_RETVAL(arc_unset_breakpoint(target, breakpoint));
+	}
+
+	/* restore context */
+	CHECK_RETVAL(arc_restore_context(target));
+
+	target->debug_reason = DBG_REASON_SINGLESTEP;
+
+	CHECK_RETVAL(target_call_event_callbacks(target, TARGET_EVENT_RESUMED));
+
+	/* disable interrupts while stepping */
+	CHECK_RETVAL(arc_enable_interrupts(target, 0));
+
+	/* do a single step */
+	CHECK_RETVAL(arc_config_step(target, 1));
+
+	/* make sure we done our step */
+	alive_sleep(1);
+
+	/* registers are now invalid */
+	register_cache_invalidate(arc->core_and_aux_cache);
+
+	if (breakpoint)
+		CHECK_RETVAL(arc_set_breakpoint(target, breakpoint));
+
+	LOG_DEBUG("target stepped ");
+
+	target->state = TARGET_HALTED;
+
+	/* Saving context */
+	CHECK_RETVAL(arc_debug_entry(target));
+	CHECK_RETVAL(target_call_event_callbacks(target, TARGET_EVENT_HALTED));
+
+	return ERROR_OK;
+}
+
 /* ARC v2 target */
 struct target_type arcv2_target = {
 	.name = "arcv2",
@@ -1508,7 +1609,7 @@ struct target_type arcv2_target = {
 
 	.halt = arc_halt,
 	.resume = arc_resume,
-	.step = NULL,
+	.step = arc_step,
 
 	.assert_reset = arc_assert_reset,
 	.deassert_reset = arc_deassert_reset,

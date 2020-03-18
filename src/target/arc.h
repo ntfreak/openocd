@@ -33,9 +33,14 @@
 #define AUX_PC_REG                      0x6
 #define AUX_STATUS32_REG                0xA
 
+
 #define SET_CORE_FORCE_HALT             BIT(1)
 #define SET_CORE_HALT_BIT               BIT(0)      /* STATUS32[0] = H field */
-#define SET_CORE_ENABLE_INTERRUPTS			BIT(31)
+#define SET_CORE_ENABLE_INTERRUPTS      BIT(31)
+/* STATUS32[5] or AE bit indicates if the processor is in exception state */
+#define SET_CORE_AE_BIT                 BIT(5)
+/* Single instruction step bit in Debug register */
+#define SET_CORE_SINGLE_INSTR_STEP      BIT(11)
 
 #define AUX_STATUS32_REG_HALT_BIT       BIT(0)
 #define AUX_STATUS32_REG_IE_BIT         BIT(31)    /* STATUS32[31] = IE field */
