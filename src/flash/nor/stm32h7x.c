@@ -765,6 +765,10 @@ static int stm32x_probe(struct flash_bank *bank)
 
 	/* update the address of controller from data base */
 	stm32x_info->flash_regs_base = stm32x_info->part_info->flash_regs_base;
+	if (bank->base == FLASH_BANK1_ADDRESS) {
+		stm32x_info->flash_regs_base = FLASH_REG_BASE_B1;
+	}
+	LOG_INFO("flash_regs_base: 0x%x", stm32x_info->flash_regs_base);
 
 	/* get flash size from target */
 	retval = target_read_u16(target, stm32x_info->part_info->fsize_addr, &flash_size_in_kb);
