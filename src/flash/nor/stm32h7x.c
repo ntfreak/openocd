@@ -118,7 +118,7 @@ struct stm32h7x_part_info {
 	uint16_t max_flash_size_kb;
 	uint8_t has_dual_bank;
 	uint16_t max_bank_size_kb; /* Used when has_dual_bank is true */
-	uint32_t flash_regs_base;    /* Flash controller registers location */
+	uint32_t flash_regs_base[2];    /* Flash controller registers location */
 	uint32_t fsize_addr;         /* Location of FSIZE register */
 	uint32_t wps_group_size; /* write protection group sectors' count */
 	uint32_t wps_mask;
@@ -175,7 +175,8 @@ static const struct stm32h7x_part_info stm32h7x_parts[] = {
 	.max_flash_size_kb	= 2048,
 	.max_bank_size_kb	= 1024,
 	.has_dual_bank		= 1,
-	.flash_regs_base	= FLASH_REG_BASE_B0,
+	.flash_regs_base[0]	= FLASH_REG_BASE_B0,
+	.flash_regs_base[1]	= FLASH_REG_BASE_B1,
 	.fsize_addr			= 0x1FF1E880,
 	.wps_group_size		= 1,
 	.wps_mask			= 0xFF,
@@ -191,7 +192,8 @@ static const struct stm32h7x_part_info stm32h7x_parts[] = {
 	.max_flash_size_kb	= 2048,
 	.max_bank_size_kb	= 1024,
 	.has_dual_bank		= 1,
-	.flash_regs_base	= FLASH_REG_BASE_B0,
+	.flash_regs_base[0]	= FLASH_REG_BASE_B0,
+	.flash_regs_base[1]	= FLASH_REG_BASE_B1,
 	.fsize_addr			= 0x08FFF80C,
 	.wps_group_size		= 4,
 	.wps_mask			= 0xFFFFFFFF,
@@ -764,7 +766,9 @@ static int stm32x_probe(struct flash_bank *bank)
 	}
 
 	/* update the address of controller from data base */
-	stm32x_info->flash_regs_base = stm32x_info->part_info->flash_regs_base;
+	stm32x_info->flash_regs_base = stm32x_info->part_info->flash_regs_base[bank->bank_number];
+
+	LOG_INFO("flash_regs_base: 0x%x", stm32x_info->flash_regs_base);
 
 	/* get flash size from target */
 	retval = target_read_u16(target, stm32x_info->part_info->fsize_addr, &flash_size_in_kb);
