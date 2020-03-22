@@ -3020,6 +3020,7 @@ COMMAND_HANDLER(kinetis_fcf_source_handler)
 	}
 
 	if (allow_fcf_writes) {
+		CALL_COMMAND_HANDLER(flash_print_protection_warning, 0);
 		command_print(CMD, "Arbitrary Flash Configuration Field writes enabled.");
 		command_print(CMD, "Protection info writes to FCF disabled.");
 		LOG_WARNING("BEWARE: incorrect flash configuration may permanently lock the device.");

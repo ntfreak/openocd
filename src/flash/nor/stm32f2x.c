@@ -1451,6 +1451,8 @@ COMMAND_HANDLER(stm32x_handle_lock_command)
 		/* return ERROR_TARGET_NOT_HALTED; */
 	}
 
+	CALL_COMMAND_HANDLER(flash_print_protection_warning, 0);
+
 	if (stm32x_read_options(bank) != ERROR_OK) {
 		command_print(CMD, "%s failed to read options", bank->driver->name);
 		return ERROR_OK;

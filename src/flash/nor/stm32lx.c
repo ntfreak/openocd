@@ -342,6 +342,8 @@ COMMAND_HANDLER(stm32lx_handle_lock_command)
 	if (ERROR_OK != retval)
 		return retval;
 
+	CALL_COMMAND_HANDLER(flash_print_protection_warning, 0);
+
 	retval = stm32lx_lock(bank);
 
 	if (retval == ERROR_OK)

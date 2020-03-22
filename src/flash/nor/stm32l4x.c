@@ -1093,6 +1093,8 @@ COMMAND_HANDLER(stm32l4_handle_lock_command)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
+	CALL_COMMAND_HANDLER(flash_print_protection_warning, 0);
+
 	/* set readout protection level 1 by erasing the RDP option byte */
 	if (stm32l4_write_option(bank, STM32_FLASH_OPTR, 0, 0x000000FF) != ERROR_OK) {
 		command_print(CMD, "%s failed to lock device", bank->driver->name);

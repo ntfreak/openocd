@@ -775,6 +775,8 @@ COMMAND_HANDLER(em357_handle_lock_command)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
+	CALL_COMMAND_HANDLER(flash_print_protection_warning, 0);
+
 	if (em357_erase_options(bank) != ERROR_OK) {
 		command_print(CMD, "em357 failed to erase options");
 		return ERROR_OK;
