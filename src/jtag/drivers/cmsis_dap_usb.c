@@ -509,15 +509,15 @@ static int cmsis_dap_cmd_DAP_Info(uint8_t info, uint8_t **data)
 	return ERROR_OK;
 }
 
-static int cmsis_dap_cmd_DAP_LED(uint8_t leds)
+static int cmsis_dap_cmd_DAP_LED(uint8_t led, uint8_t state)
 {
 	int retval;
 	uint8_t *buffer = cmsis_dap_handle->packet_buffer;
 
 	buffer[0] = 0;	/* report number */
 	buffer[1] = CMD_DAP_LED;
-	buffer[2] = 0x00;
-	buffer[3] = leds;
+	buffer[2] = led;
+	buffer[3] = state;
 	retval = cmsis_dap_usb_xfer(cmsis_dap_handle, 4);
 
 	if (retval != ERROR_OK || buffer[1] != 0x00) {
@@ -1086,8 +1086,12 @@ static int cmsis_dap_init(void)
 		if (retval != ERROR_OK)
 			return ERROR_FAIL;
 	}
+	/* Both LEDs on */
+	retval = cmsis_dap_cmd_DAP_LED(LED_ID_CONNECT, LED_ON);
+	if (retval != ERROR_OK)
+		return ERROR_FAIL;
 
-	retval = cmsis_dap_cmd_DAP_LED(0x03);		/* Both LEDs on */
+	retval = cmsis_dap_cmd_DAP_LED(LED_ID_RUN, LED_ON);
 	if (retval != ERROR_OK)
 		return ERROR_FAIL;
 
@@ -1102,9 +1106,6 @@ static int cmsis_dap_init(void)
 			LOG_INFO("Connecting under reset");
 		}
 	}
-
-	cmsis_dap_cmd_DAP_LED(0x00);			/* Both LEDs off */
-
 	LOG_INFO("CMSIS-DAP: Interface ready");
 
 	return ERROR_OK;
@@ -1119,7 +1120,9 @@ static int cmsis_dap_swd_init(void)
 static int cmsis_dap_quit(void)
 {
 	cmsis_dap_cmd_DAP_Disconnect();
-	cmsis_dap_cmd_DAP_LED(0x00);		/* Both LEDs off */
+	/* Both LEDs off */
+	cmsis_dap_cmd_DAP_LED(LED_ID_RUN, LED_OFF);
+	cmsis_dap_cmd_DAP_LED(LED_ID_CONNECT, LED_OFF);
 
 	cmsis_dap_usb_close(cmsis_dap_handle);
 
