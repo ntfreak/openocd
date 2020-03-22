@@ -1218,19 +1218,19 @@ static int get_stm32l4_info(struct flash_bank *bank, char *buf, int buf_size)
 		for (unsigned int i = 0; i < part_info->num_revs; i++) {
 			if (rev_id == part_info->revs[i].rev) {
 				rev_str = part_info->revs[i].str;
-
-				if (rev_str != NULL) {
-					snprintf(buf, buf_size, "%s - Rev: %s%s",
-						part_info->device_str, rev_str, stm32l4_info->probed ?
-							(stm32l4_info->dual_bank_mode ? " dual-bank" : " single-bank") : "");
-					return ERROR_OK;
-				}
+				break;
 			}
 		}
 
-		snprintf(buf, buf_size, "%s - Rev: unknown (0x%04x)%s",
-			part_info->device_str, rev_id, stm32l4_info->probed ?
-				(stm32l4_info->dual_bank_mode ? " dual-bank" : " single-bank") : "");
+		snprintf(buf, buf_size, "%s - Rev %s : 0x%04x",
+				part_info->device_str, rev_str ? rev_str : "'unknown'", rev_id);
+
+		if (stm32l4_info->probed) {
+			int buf_len = strlen(buf);
+			snprintf(buf + buf_len, buf_size - buf_len, " - %s-bank",
+					stm32l4_info->dual_bank_mode ? "Flash dual" : "Flash single");
+		}
+
 		return ERROR_OK;
 	} else {
 		snprintf(buf, buf_size, "Cannot identify target as an %s device", device_families);
