@@ -174,6 +174,8 @@ struct stm32l4_part_info {
 	const uint32_t flash_regs_base;
 	const uint32_t *default_flash_regs;
 	const uint32_t fsize_addr;
+	const uint32_t otp_base;
+	const uint32_t otp_size;
 };
 
 struct stm32l4_flash_bank {
@@ -186,6 +188,7 @@ struct stm32l4_flash_bank {
 	uint32_t wrpxxr_mask;
 	const struct stm32l4_part_info *part_info;
 	const uint32_t *flash_regs;
+	bool otp_enabled;
 };
 
 /* human readable list of families this drivers supports (sorted alphabetically) */
@@ -262,6 +265,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x435,
@@ -273,6 +278,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x460,
@@ -284,6 +291,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x461,
@@ -295,6 +304,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x462,
@@ -306,6 +317,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x464,
@@ -317,6 +330,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x466,
@@ -328,6 +343,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x468,
@@ -339,6 +356,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x469,
@@ -350,6 +369,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x470,
@@ -361,6 +382,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x471,
@@ -372,6 +395,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x472,
@@ -383,6 +408,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l5_ns_flash_regs,
 	  .fsize_addr            = 0x0BFA05E0,
+	  .otp_base              = 0x0BFA0000,
+	  .otp_size              = 512,
 	},
 	{
 	  .id                    = 0x495,
@@ -394,6 +421,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x58004000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x496,
@@ -405,6 +434,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x58004000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x497,
@@ -416,6 +447,8 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .flash_regs_base       = 0x58004000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 };
 
@@ -427,6 +460,10 @@ FLASH_BANK_COMMAND_HANDLER(stm32l4_flash_bank_command)
 	if (CMD_ARGC < 6)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
+	/* fix-up bank base address: 0 is used for normal flash memory */
+	if (bank->base == 0)
+		bank->base = STM32_FLASH_BANK_BASE;
+
 	stm32l4_info = malloc(sizeof(struct stm32l4_flash_bank));
 	if (!stm32l4_info)
 		return ERROR_FAIL; /* Checkme: What better error to use?*/
@@ -437,9 +474,41 @@ FLASH_BANK_COMMAND_HANDLER(stm32l4_flash_bank_command)
 	bank->write_start_alignment = bank->write_end_alignment = 8;
 
 	stm32l4_info->probed = false;
+	stm32l4_info->otp_enabled = false;
 	stm32l4_info->user_bank_size = bank->size;
 
 	return ERROR_OK;
+}
+
+static inline bool stm32l4_is_otp(struct flash_bank *bank)
+{
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+	return bank->base == stm32l4_info->part_info->otp_base;
+}
+
+static int stm32l4_otp_enable(struct flash_bank *bank, bool enable)
+{
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+
+	if (!stm32l4_is_otp(bank))
+		return ERROR_FAIL;
+
+	char *op_str = enable ? "enabled" : "disabled";
+
+	LOG_INFO("OTP memory (bank #%d) is %s%s for write commands",
+			bank->bank_number,
+			stm32l4_info->otp_enabled == enable ? "already " : "",
+			op_str);
+
+	stm32l4_info->otp_enabled = enable;
+
+	return ERROR_OK;
+}
+
+static inline bool stm32l4_otp_is_enabled(struct flash_bank *bank)
+{
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+	return stm32l4_info->otp_enabled;
 }
 
 static inline uint32_t stm32l4_get_flash_reg(struct flash_bank *bank, uint32_t reg,
@@ -664,6 +733,11 @@ static int stm32l4_erase(struct flash_bank *bank, int first, int last)
 
 	assert((0 <= first) && (first <= last) && (last < bank->num_sectors));
 
+	if (stm32l4_is_otp(bank)) {
+		LOG_ERROR("cannot erase OTP memory");
+		return ERROR_FLASH_OPER_UNSUPPORTED;
+	}
+
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -718,6 +792,11 @@ static int stm32l4_protect(struct flash_bank *bank, int set, int first, int last
 {
 	struct target *target = bank->target;
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+
+	if (stm32l4_is_otp(bank)) {
+		LOG_ERROR("cannot protect/unprotect OTP memory");
+		return ERROR_FLASH_OPER_UNSUPPORTED;
+	}
 
 	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -853,6 +932,11 @@ static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 {
 	int retval = ERROR_OK, retval2;
 
+	if (stm32l4_is_otp(bank) && !stm32l4_otp_is_enabled(bank)) {
+		LOG_ERROR("OTP memory is disabled for write commands");
+		return ERROR_FAIL;
+	}
+
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -970,6 +1054,31 @@ static int stm32l4_probe(struct flash_bank *bank)
 		return retval;
 
 	LOG_INFO("device idcode = 0x%08" PRIx32 " (%s)", stm32l4_info->idcode, device_info);
+
+	if (stm32l4_is_otp(bank)) {
+		bank->size = part_info->otp_size;
+
+		LOG_INFO("OTP size is %d bytes, base address is " TARGET_ADDR_FMT, bank->size, bank->base);
+
+		if (bank->sectors)
+			free(bank->sectors);
+
+		/* OTP memory is considered as one sector */
+		bank->num_sectors = 1;
+		bank->sectors = alloc_block_array(0, part_info->otp_size, 1);
+
+		if (!bank->sectors) {
+			LOG_ERROR("failed to allocate bank sectors");
+			return ERROR_FAIL;
+		}
+
+
+		stm32l4_info->probed = true;
+		return ERROR_OK;
+	} else if (bank->base != STM32_FLASH_BANK_BASE) {
+		LOG_ERROR("invalid bank base address");
+		return ERROR_FAIL;
+	}
 
 	/* get flash size from target. */
 	retval = target_read_u16(target, part_info->fsize_addr, &flash_size_kb);
@@ -1147,7 +1256,6 @@ static int stm32l4_probe(struct flash_bank *bank)
 	}
 
 	bank->size = (flash_size_kb + gap_size_kb) * 1024;
-	bank->base = STM32_FLASH_BANK_BASE;
 	bank->num_sectors = num_pages;
 	bank->sectors = malloc(sizeof(struct flash_sector) * bank->num_sectors);
 	if (bank->sectors == NULL) {
@@ -1200,6 +1308,7 @@ static int get_stm32l4_info(struct flash_bank *bank, char *buf, int buf_size)
 		if (stm32l4_info->probed) {
 			int buf_len = strlen(buf);
 			snprintf(buf + buf_len, buf_size - buf_len, " - %s-bank",
+					stm32l4_is_otp(bank) ? "OTP" :
 					stm32l4_info->dual_bank_mode ? "Flash dual" : "Flash single");
 		}
 
@@ -1217,6 +1326,11 @@ static int stm32l4_mass_erase(struct flash_bank *bank)
 	int retval, retval2;
 	struct target *target = bank->target;
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+
+	if (stm32l4_is_otp(bank)) {
+		LOG_ERROR("cannot erase OTP memory");
+		return ERROR_FLASH_OPER_UNSUPPORTED;
+	}
 
 	uint32_t action = FLASH_MER1;
 
@@ -1384,6 +1498,11 @@ COMMAND_HANDLER(stm32l4_handle_lock_command)
 	if (ERROR_OK != retval)
 		return retval;
 
+	if (stm32l4_is_otp(bank)) {
+		LOG_ERROR("cannot lock/unlock OTP memory");
+		return ERROR_FLASH_OPER_UNSUPPORTED;
+	}
+
 	target = bank->target;
 
 	if (target->state != TARGET_HALTED) {
@@ -1412,6 +1531,11 @@ COMMAND_HANDLER(stm32l4_handle_unlock_command)
 	if (ERROR_OK != retval)
 		return retval;
 
+	if (stm32l4_is_otp(bank)) {
+		LOG_ERROR("cannot lock/unlock OTP memory");
+		return ERROR_FLASH_OPER_UNSUPPORTED;
+	}
+
 	target = bank->target;
 
 	if (target->state != TARGET_HALTED) {
@@ -1423,6 +1547,33 @@ COMMAND_HANDLER(stm32l4_handle_unlock_command)
 		command_print(CMD, "%s failed to unlock device", bank->driver->name);
 		return ERROR_OK;
 	}
+
+	return ERROR_OK;
+}
+
+COMMAND_HANDLER(stm32l4_handle_otp_command)
+{
+	if (CMD_ARGC < 2)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	struct flash_bank *bank;
+	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
+	if (ERROR_OK != retval)
+		return retval;
+
+	if (!stm32l4_is_otp(bank)) {
+		command_print(CMD, "the specified bank is not an OTP memory");
+		return ERROR_FAIL;
+	}
+	if (strcmp(CMD_ARGV[1], "enable") == 0)
+		stm32l4_otp_enable(bank, true);
+	else if (strcmp(CMD_ARGV[1], "disable") == 0)
+		stm32l4_otp_enable(bank, false);
+	else if (strcmp(CMD_ARGV[1], "show") == 0)
+		command_print(CMD, "OTP memory bank #%d is %s for write commands.",
+				bank->bank_number, stm32l4_otp_is_enabled(bank) ? "enabled" : "disabled");
+	else
+		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	return ERROR_OK;
 }
@@ -1469,6 +1620,13 @@ static const struct command_registration stm32l4_exec_command_handlers[] = {
 		.mode = COMMAND_EXEC,
 		.usage = "bank_id",
 		.help = "Force re-load of device options (will cause device reset).",
+	},
+	{
+		.name = "otp",
+		.handler = stm32l4_handle_otp_command,
+		.mode = COMMAND_EXEC,
+		.usage = "<bank_id> <enable|disable|show>",
+		.help = "OTP (One Time Programmable) memory write enable/disable",
 	},
 	COMMAND_REGISTRATION_DONE
 };
