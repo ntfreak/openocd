@@ -1179,6 +1179,8 @@ COMMAND_HANDLER(stm32x_handle_lock_command)
 	if (ERROR_OK != retval)
 		return retval;
 
+	CALL_COMMAND_HANDLER(flash_print_protection_warning, 0);
+
 	if (stm32x_erase_options(bank) != ERROR_OK) {
 		command_print(CMD, "stm32x failed to erase options");
 		return ERROR_OK;

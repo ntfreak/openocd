@@ -276,5 +276,7 @@ int get_flash_bank_by_addr(struct target *target, target_addr_t addr, bool check
  * @returns A struct flash_sector pointer or NULL when allocation failed.
  */
 struct flash_sector *alloc_block_array(uint32_t offset, uint32_t size, int num_blocks);
+/** Print a warning about potential insecurities of protections. */
+COMMAND_HELPER(flash_print_protection_warning, int dummy);
 
 #endif /* OPENOCD_FLASH_NOR_CORE_H */

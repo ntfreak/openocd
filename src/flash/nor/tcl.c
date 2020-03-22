@@ -1223,6 +1223,13 @@ COMMAND_HANDLER(handle_flash_init_command)
 	return flash_init_drivers(CMD_CTX);
 }
 
+COMMAND_HELPER(flash_print_protection_warning, int dummy)
+{
+	command_print(CMD, "Enabling protection. Please regularly check the CVE database"
+			" and other sources if you count on the security of this feature.");
+	return ERROR_OK;
+}
+
 static const struct command_registration flash_config_command_handlers[] = {
 	{
 		.name = "bank",

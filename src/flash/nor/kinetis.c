@@ -3019,6 +3019,8 @@ COMMAND_HANDLER(kinetis_fcf_source_handler)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 
+	CALL_COMMAND_HANDLER(flash_print_protection_warning, 0);
+
 	if (allow_fcf_writes) {
 		command_print(CMD, "Arbitrary Flash Configuration Field writes enabled.");
 		command_print(CMD, "Protection info writes to FCF disabled.");
