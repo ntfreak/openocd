@@ -3782,7 +3782,7 @@ static const struct swim_driver stlink_swim_ops = {
 	.reconnect = stlink_swim_op_reconnect,
 };
 
-static const char *const stlink_dap_transport[] = { "dapdirect_jtag", "dapdirect_swd", "swim", NULL };
+static const char *const stlink_dap_transport[] = { "dapdirect_swd", "dapdirect_jtag", "swim", NULL };
 
 struct adapter_driver stlink_dap_adapter_driver = {
 	.name = "st-link",
