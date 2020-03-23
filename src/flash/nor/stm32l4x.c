@@ -115,6 +115,18 @@
 
 #define FLASH_ERASE_TIMEOUT 250
 
+/* relevant STM32L4 flags ****************************************************/
+#define F_NONE              0
+/* this flag indicates if the device flash is with dual bank architecture */
+#define F_HAS_DUAL_BANK     BIT(0)
+/* this flags is used for dual bank devices only, it indicates if the
+ * 4 WRPxx are usable if the device is configured in single-bank mode */
+#define F_USE_ALL_WRPXX     BIT(1)
+/* this flag indicates if the device embeds a TrustZone security feature */
+#define F_HAS_TZ            BIT(2)
+/* end of STM32L4 flags ******************************************************/
+
+
 enum reg_param_type {
 	REG_OFFSET,
 	REG_INDEX,
@@ -171,10 +183,7 @@ struct stm32l4_part_info {
 	const struct stm32l4_rev *revs;
 	const size_t num_revs;
 	const uint16_t max_flash_size_kb;
-	const bool has_dual_bank;
-	/* this field is used for dual bank devices only, it indicates if the
-	 * 4 WRPxx are usable if the device is configured in single-bank mode */
-	const bool use_all_wrpxx;
+	const uint32_t flags; /* one bit per feature, see STM32L4 flags: macros F_XXX */
 	const uint32_t flash_regs_base;
 	const uint32_t *default_flash_regs;
 	const uint32_t fsize_addr;
@@ -280,8 +289,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_415_revs),
 	  .device_str            = "STM32L47/L48xx",
 	  .max_flash_size_kb     = 1024,
-	  .has_dual_bank         = true,
-	  .use_all_wrpxx         = false,
+	  .flags                 = F_HAS_DUAL_BANK,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -294,8 +302,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_435_revs),
 	  .device_str            = "STM32L43/L44xx",
 	  .max_flash_size_kb     = 256,
-	  .has_dual_bank         = false,
-	  .use_all_wrpxx         = false,
+	  .flags                 = F_NONE,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -308,8 +315,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_460_revs),
 	  .device_str            = "STM32G07/G08xx",
 	  .max_flash_size_kb     = 128,
-	  .has_dual_bank         = false,
-	  .use_all_wrpxx         = false,
+	  .flags                 = F_NONE,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -322,8 +328,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_461_revs),
 	  .device_str            = "STM32L49/L4Axx",
 	  .max_flash_size_kb     = 1024,
-	  .has_dual_bank         = true,
-	  .use_all_wrpxx         = false,
+	  .flags                 = F_HAS_DUAL_BANK,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -336,8 +341,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_462_revs),
 	  .device_str            = "STM32L45/L46xx",
 	  .max_flash_size_kb     = 512,
-	  .has_dual_bank         = false,
-	  .use_all_wrpxx         = false,
+	  .flags                 = F_NONE,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -350,8 +354,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_464_revs),
 	  .device_str            = "STM32L41/L42xx",
 	  .max_flash_size_kb     = 128,
-	  .has_dual_bank         = false,
-	  .use_all_wrpxx         = false,
+	  .flags                 = F_NONE,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -364,8 +367,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_466_revs),
 	  .device_str            = "STM32G03/G04xx",
 	  .max_flash_size_kb     = 64,
-	  .has_dual_bank         = false,
-	  .use_all_wrpxx         = false,
+	  .flags                 = F_NONE,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -378,8 +380,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_468_revs),
 	  .device_str            = "STM32G43/G44xx",
 	  .max_flash_size_kb     = 128,
-	  .has_dual_bank         = false,
-	  .use_all_wrpxx         = false,
+	  .flags                 = F_NONE,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -392,8 +393,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_469_revs),
 	  .device_str            = "STM32G47/G48xx",
 	  .max_flash_size_kb     = 512,
-	  .has_dual_bank         = true,
-	  .use_all_wrpxx         = true,
+	  .flags                 = F_HAS_DUAL_BANK | F_USE_ALL_WRPXX,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -406,8 +406,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_470_revs),
 	  .device_str            = "STM32L4R/L4Sxx",
 	  .max_flash_size_kb     = 2048,
-	  .has_dual_bank         = true,
-	  .use_all_wrpxx         = true,
+	  .flags                 = F_HAS_DUAL_BANK | F_USE_ALL_WRPXX,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -420,8 +419,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_471_revs),
 	  .device_str            = "STM32L4P5/L4Q5x",
 	  .max_flash_size_kb     = 1024,
-	  .has_dual_bank         = true,
-	  .use_all_wrpxx         = true,
+	  .flags                 = F_HAS_DUAL_BANK | F_USE_ALL_WRPXX,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -434,8 +432,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_472_revs),
 	  .device_str            = "STM32L55/L56xx",
 	  .max_flash_size_kb     = 512,
-	  .has_dual_bank         = true,
-	  .use_all_wrpxx         = true,
+	  .flags                 = F_HAS_DUAL_BANK | F_USE_ALL_WRPXX | F_HAS_TZ,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l5_ns_flash_regs,
 	  .fsize_addr            = 0x0BFA05E0,
@@ -448,8 +445,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_495_revs),
 	  .device_str            = "STM32WB5x",
 	  .max_flash_size_kb     = 1024,
-	  .has_dual_bank         = false,
-	  .use_all_wrpxx         = false,
+	  .flags                 = F_NONE,
 	  .flash_regs_base       = 0x58004000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -462,8 +458,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_496_revs),
 	  .device_str            = "STM32WB3x",
 	  .max_flash_size_kb     = 512,
-	  .has_dual_bank         = false,
-	  .use_all_wrpxx         = false,
+	  .flags                 = F_NONE,
 	  .flash_regs_base       = 0x58004000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -476,8 +471,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_497_revs),
 	  .device_str            = "STM32WLEx",
 	  .max_flash_size_kb     = 256,
-	  .has_dual_bank         = false,
-	  .use_all_wrpxx         = false,
+	  .flags                 = F_NONE,
 	  .flash_regs_base       = 0x58004000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -731,7 +725,7 @@ static int stm32l4_get_wrpxy(struct flash_bank *bank, enum stm32_bank_id dev_ban
 		wrpxy[(*n_wrp)++] = (struct stm32l4_wrp){.reg_idx = STM32_FLASH_WRP1AR, .offset = 0};
 		wrpxy[(*n_wrp)++] = (struct stm32l4_wrp){.reg_idx = STM32_FLASH_WRP1BR, .offset = 0};
 		/* for some devices (like STM32L4R/S) in single-bank mode, the 4 WRPxx are usable */
-		if (stm32l4_info->part_info->use_all_wrpxx && !stm32l4_info->dual_bank_mode)
+		if ((stm32l4_info->part_info->flags & F_USE_ALL_WRPXX) && !stm32l4_info->dual_bank_mode)
 			wrp2y_sectors_offset = 0;
 	}
 
@@ -1491,7 +1485,7 @@ static int stm32l4_mass_erase(struct flash_bank *bank)
 
 	uint32_t action = FLASH_MER1;
 
-	if (stm32l4_info->part_info->has_dual_bank)
+	if (stm32l4_info->part_info->flags & F_HAS_DUAL_BANK)
 		action |= FLASH_MER2;
 
 	if (target->state != TARGET_HALTED) {
@@ -1730,7 +1724,7 @@ COMMAND_HANDLER(stm32l4_handle_wrp_desc_command)
 	}
 
 	if (dev_bank_id == STM32_BANK2) {
-		if (!stm32l4_info->part_info->has_dual_bank) {
+		if (!(stm32l4_info->part_info->flags & F_HAS_DUAL_BANK)) {
 			LOG_ERROR("this device has not a second bank");
 			return ERROR_FAIL;
 		} else if (!stm32l4_info->dual_bank_mode) {
