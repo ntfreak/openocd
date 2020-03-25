@@ -790,6 +790,41 @@ static int stm32l4_unlock_option_reg(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
+static int stm32l4_perform_obl_launch(struct flash_bank *bank)
+{
+	int retval, retval2;
+
+	retval = stm32l4_unlock_reg(bank);
+	if (retval != ERROR_OK)
+		goto err_lock;
+
+	retval = stm32l4_unlock_option_reg(bank);
+	if (ERROR_OK != retval)
+		goto err_lock;
+
+	/* Set OBL_LAUNCH bit in CR -> system reset and option bytes reload,
+	 * but the RMs explicitly do *NOT* list this as power-on reset cause, and:
+	 * "Note: If the read protection is set while the debugger is still
+	 * connected through JTAG/SWD, apply a POR (power-on reset) instead of a system reset."
+	 */
+
+	/* ignore the returned error value because the device is reset after OBL Launch*/
+	retval = ERROR_OK;
+	stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, FLASH_OBL_LAUNCH);
+
+	/* Need to re-probe after change */
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+	stm32l4_info->probed = false;
+
+err_lock:
+	retval2 = stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, FLASH_LOCK | FLASH_OPTLOCK);
+
+	if (retval != ERROR_OK)
+		return retval;
+
+	return retval2;
+}
+
 static int stm32l4_write_option(struct flash_bank *bank, uint32_t reg_offset,
 	uint32_t value, uint32_t mask)
 {
@@ -1767,7 +1802,70 @@ COMMAND_HANDLER(stm32l4_handle_option_write_command)
 				"INFO: a reset or power cycle is required "
 				"for the new settings to take effect.", bank->driver->name);
 
+
 	retval = stm32l4_write_option(bank, reg_offset, value, mask);
+	return retval;
+}
+
+COMMAND_HANDLER(stm32l4_handle_trustzone_command)
+{
+	if (CMD_ARGC < 1 || CMD_ARGC > 2)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	struct flash_bank *bank;
+	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
+	if (ERROR_OK != retval)
+		return retval;
+
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+	if (!(stm32l4_info->part_info->flags & F_HAS_TZ)) {
+		LOG_ERROR("This device does not have a TrustZone");
+		return ERROR_FAIL;
+	}
+
+	uint32_t optr;
+	retval = stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_OPTR_INDEX, &optr);
+	if (retval != ERROR_OK)
+		return retval;
+
+	stm32l4_sync_rdp_tzen(bank, optr);
+
+	if (CMD_ARGC == 1) {
+		/* only display the TZEN value */
+		LOG_INFO("Global TrustZone Security is %s", stm32l4_info->tzen ? "enabled" : "disabled");
+		return ERROR_OK;
+	}
+
+	bool new_tzen;
+	COMMAND_PARSE_ENABLE(CMD_ARGV[1], new_tzen);
+
+	if (new_tzen == stm32l4_info->tzen) {
+		LOG_INFO("The requested TZEN is already programmed");
+		return ERROR_OK;
+	}
+
+	if (new_tzen) {
+		if (stm32l4_info->rdp != RDP_LEVEL_0) {
+			LOG_ERROR("TZEN can be set only when RDP level is 0");
+			return ERROR_FAIL;
+		}
+		retval = stm32l4_write_option(bank, stm32l4_info->flash_regs[STM32_FLASH_OPTR_INDEX],
+				FLASH_TZEN, FLASH_TZEN);
+	} else {
+		/* Deactivation of TZEN (from 1 to 0) is only possible when the RDP is
+		 * changing to level 0 (from level 1 to level 0 or from level 0.5 to level 0). */
+		if (stm32l4_info->rdp != RDP_LEVEL_1 && stm32l4_info->rdp != RDP_LEVEL_0_5) {
+			LOG_ERROR("Deactivation of TZEN is only possible when the RDP is changing to level 0");
+			return ERROR_FAIL;
+		}
+
+		retval = stm32l4_write_option(bank, stm32l4_info->flash_regs[STM32_FLASH_OPTR_INDEX],
+				RDP_LEVEL_0 | FLASH_TZEN, FLASH_RDP_MASK | FLASH_TZEN);
+	}
+
+	if (retval != ERROR_OK)
+		retval = stm32l4_perform_obl_launch(bank);
+
 	return retval;
 }
 
@@ -1781,28 +1879,15 @@ COMMAND_HANDLER(stm32l4_handle_option_load_command)
 	if (ERROR_OK != retval)
 		return retval;
 
-	retval = stm32l4_unlock_reg(bank);
-	if (ERROR_OK != retval)
+	retval = stm32l4_perform_obl_launch(bank);
+	if (retval != ERROR_OK) {
+		command_print(CMD, "stm32l4x option load failed");
 		return retval;
-
-	retval = stm32l4_unlock_option_reg(bank);
-	if (ERROR_OK != retval)
-		return retval;
-
-	/* Set OBL_LAUNCH bit in CR -> system reset and option bytes reload,
-	 * but the RMs explicitly do *NOT* list this as power-on reset cause, and:
-	 * "Note: If the read protection is set while the debugger is still
-	 * connected through JTAG/SWD, apply a POR (power-on reset) instead of a system reset."
-	 */
-	retval = stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, FLASH_OBL_LAUNCH);
+	}
 
 	command_print(CMD, "stm32l4x option load completed. Power-on reset might be required");
 
-	/* Need to re-probe after change */
-	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
-	stm32l4_info->probed = false;
-
-	return retval;
+	return ERROR_OK;
 }
 
 COMMAND_HANDLER(stm32l4_handle_lock_command)
@@ -2008,6 +2093,13 @@ static const struct command_registration stm32l4_exec_command_handlers[] = {
 		.mode = COMMAND_EXEC,
 		.usage = "bank_id reg_offset value mask",
 		.help = "Write device option bit fields with provided value.",
+	},
+	{
+		.name = "trustzone",
+		.handler = stm32l4_handle_trustzone_command,
+		.mode = COMMAND_EXEC,
+		.usage = "<bank_id> [enable|disable]",
+		.help = "Configure TrustZone security",
 	},
 	{
 		.name = "wrp_info",

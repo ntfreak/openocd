@@ -7310,6 +7310,14 @@ write protected areas in a specific @var{device_bank}
 Forces a re-load of the option byte registers. Will cause a system reset of the device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
+
+@deffn Command {stm32l4x trustzone} num [@option{enable} | @option{disable}]
+Enables or disables Global TrustZone Security, using the TZEN option bit.
+if neither @option{enabled} nor @option{disable} are specified, the command will display
+the TrustZone status.
+@emph{Note:} This command works only with devices with TrusZone, eg. STM32L5.
+@emph{Note:} This command will perform an OBL_Launch after modifying the TZEN.
+@end deffn
 @end deffn
 
 @deffn {Flash Driver} str7x
