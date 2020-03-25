@@ -139,6 +139,11 @@ enum stm32l4_rdp {
 	RDP_LEVEL_2   = 0xCC
 };
 
+enum stm32l4_obl_launch {
+	OBL_LAUNCH_PERFORM,
+	OBL_LAUNCH_POSTPONE
+};
+
 enum stm32l4_flash_reg {
 	STM32_FLASH_ACR,
 	STM32_FLASH_KEYR,
@@ -703,7 +708,8 @@ static int stm32l4_unlock_option_reg(struct flash_bank *bank)
 }
 
 static int stm32l4_write_option(struct flash_bank *bank, uint32_t reg,
-	enum reg_param_type reg_param_type,	uint32_t value, uint32_t mask)
+	enum reg_param_type reg_param_type,	uint32_t value, uint32_t mask,
+	enum stm32l4_obl_launch obl_launch)
 {
 	uint32_t optiondata;
 	int retval, retval2;
@@ -731,6 +737,13 @@ static int stm32l4_write_option(struct flash_bank *bank, uint32_t reg,
 		goto err_lock;
 
 	retval = stm32l4_wait_status_busy(bank, FLASH_ERASE_TIMEOUT);
+	if (retval != ERROR_OK)
+		goto err_lock;
+
+	if (obl_launch == OBL_LAUNCH_PERFORM) {
+		stm32l4_write_flash_reg(bank, STM32_FLASH_CR, REG_INDEX, FLASH_OBL_LAUNCH);
+		return ERROR_OK;
+	}
 
 err_lock:
 	retval2 = stm32l4_write_flash_reg(bank, STM32_FLASH_CR, REG_INDEX, FLASH_LOCK | FLASH_OPTLOCK);
@@ -1003,7 +1016,8 @@ static int stm32l4_protect(struct flash_bank *bank, int set, int first, int last
 
 		uint32_t wrp_value = (wrp_start & 0xff) | ((wrp_end & 0xff) << 16);
 
-		ret = stm32l4_write_option(bank, wrpxy[i].reg_idx, REG_INDEX, wrp_value, 0xffffffff);
+		ret = stm32l4_write_option(bank, wrpxy[i].reg_idx, REG_INDEX, wrp_value,
+				0xffffffff, OBL_LAUNCH_POSTPONE);
 
 		if (ret != ERROR_OK)
 			goto protect_err;
@@ -1647,7 +1661,73 @@ COMMAND_HANDLER(stm32l4_handle_option_write_command)
 				"INFO: a reset or power cycle is required "
 				"for the new settings to take effect.", bank->driver->name);
 
-	retval = stm32l4_write_option(bank, reg_offset, REG_OFFSET, value, mask);
+	retval = stm32l4_write_option(bank, reg_offset, REG_OFFSET, value, mask, OBL_LAUNCH_POSTPONE);
+	return retval;
+}
+
+COMMAND_HANDLER(stm32l4_handle_tzen_command)
+{
+	if (CMD_ARGC < 1 || CMD_ARGC > 2)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	struct flash_bank *bank;
+	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
+	if (ERROR_OK != retval)
+		return retval;
+
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+	if (!(stm32l4_info->part_info->flags & F_HAS_TZ)) {
+		LOG_ERROR("This device does not have a TrustZone");
+		return ERROR_FAIL;
+	}
+
+	uint32_t optr;
+	retval = stm32l4_read_flash_reg(bank, STM32_FLASH_OPTR, REG_INDEX, &optr);
+	if (retval != ERROR_OK)
+		return retval;
+
+	stm32l4_sync_rdp_tzen(bank, optr);
+
+	if (CMD_ARGC == 1) {
+		/* only display the TZEN value */
+		LOG_INFO("Global TrustZone Security is %s", stm32l4_info->tzen ? "enabled" : "disabled");
+		return ERROR_OK;
+	}
+
+	bool new_tzen;
+	COMMAND_PARSE_ENABLE(CMD_ARGV[1], new_tzen);
+
+	if (new_tzen == stm32l4_info->tzen) {
+		LOG_INFO("The requested TZEN is already programmed");
+		return ERROR_OK;
+	}
+
+	if (new_tzen) {
+		if (stm32l4_info->rdp != RDP_LEVEL_0) {
+			LOG_ERROR("TZEN can be set only when RDP level is 0");
+			return ERROR_FAIL;
+		}
+		retval = stm32l4_write_option(bank, STM32_FLASH_OPTR, REG_INDEX,
+				FLASH_TZEN, FLASH_TZEN, OBL_LAUNCH_PERFORM);
+	} else {
+		/* Deactivation of TZEN (from 1 to 0) is only possible when the RDP is
+		 * changing to level 0 (from level 1 to level 0 or from level 0.5 to level 0). */
+		if (stm32l4_info->rdp != RDP_LEVEL_1 && stm32l4_info->rdp != RDP_LEVEL_0_5) {
+			LOG_ERROR("Deactivation of TZEN is only possible when the RDP is changing to level 0");
+			return ERROR_FAIL;
+		}
+
+		retval = stm32l4_write_option(bank, STM32_FLASH_OPTR, REG_INDEX,
+				RDP_LEVEL_0 | FLASH_TZEN, FLASH_RDP_MASK | FLASH_TZEN,
+				OBL_LAUNCH_PERFORM);
+	}
+
+	/* force re-probe */
+	stm32l4_info->probed = false;
+
+	if (retval != ERROR_OK)
+		return retval;
+
 	return retval;
 }
 
@@ -1710,7 +1790,8 @@ COMMAND_HANDLER(stm32l4_handle_lock_command)
 	}
 
 	/* set readout protection level 1 by erasing the RDP option byte */
-	if (stm32l4_write_option(bank, STM32_FLASH_OPTR, REG_INDEX, RDP_LEVEL_1, FLASH_RDP_MASK) != ERROR_OK) {
+	if (stm32l4_write_option(bank, STM32_FLASH_OPTR, REG_INDEX, RDP_LEVEL_1,
+			FLASH_RDP_MASK, OBL_LAUNCH_POSTPONE) != ERROR_OK) {
 		command_print(CMD, "%s failed to lock device", bank->driver->name);
 		return ERROR_OK;
 	}
@@ -1742,7 +1823,8 @@ COMMAND_HANDLER(stm32l4_handle_unlock_command)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (stm32l4_write_option(bank, STM32_FLASH_OPTR, REG_INDEX, RDP_LEVEL_0, FLASH_RDP_MASK) != ERROR_OK) {
+	if (stm32l4_write_option(bank, STM32_FLASH_OPTR, REG_INDEX, RDP_LEVEL_0,
+			FLASH_RDP_MASK, OBL_LAUNCH_POSTPONE) != ERROR_OK) {
 		command_print(CMD, "%s failed to unlock device", bank->driver->name);
 		return ERROR_OK;
 	}
@@ -1874,6 +1956,13 @@ static const struct command_registration stm32l4_exec_command_handlers[] = {
 		.mode = COMMAND_EXEC,
 		.usage = "bank_id reg_offset value mask",
 		.help = "Write device option bit fields with provided value.",
+	},
+	{
+		.name = "tzen",
+		.handler = stm32l4_handle_tzen_command,
+		.mode = COMMAND_EXEC,
+		.usage = "<bank_id> [enable|disable]",
+		.help = "Configure TZEN option bit",
 	},
 	{
 		.name = "wrp_desc",
