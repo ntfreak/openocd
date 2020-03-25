@@ -56,9 +56,9 @@
 #define OPTKEY1					0x08192A3B
 #define OPTKEY2					0x4C5D6E7F
 
-#define RDP_LEVEL_0				0xAA
-#define RDP_LEVEL_1				0xBB
-#define RDP_LEVEL_2				0xCC
+/* FLASH_OPTR register bits */
+#define FLASH_RDP_MASK			0xFF
+#define FLASH_TZEN				(1 << 31)
 
 /* other registers */
 #define DBGMCU_IDCODE_G0		0x40015800
