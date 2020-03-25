@@ -106,6 +106,12 @@
  * Cat. 4 devices have single bank only, page size is 2kByte.
  */
 
+/* STM32L5xxx series for reference.
+ *
+ * RM0428 (STM32L552xx/STM32L562xx)
+ * http://www.st.com/resource/en/reference_manual/dm00346336.pdf
+ */
+
 /* Erase time can be as high as 25ms, 10x this and assume it's toast... */
 
 #define FLASH_ERASE_TIMEOUT 250
@@ -135,6 +141,19 @@ static const uint32_t stm32l4_flash_regs[STM32_FLASH_REG_INDEX_NUM] = {
 	[STM32_FLASH_WRP1BR_INDEX]   = 0x030,
 	[STM32_FLASH_WRP2AR_INDEX]   = 0x04C,
 	[STM32_FLASH_WRP2BR_INDEX]   = 0x050,
+};
+
+static const uint32_t stm32l5_ns_flash_regs[STM32_FLASH_REG_INDEX_NUM] = {
+	[STM32_FLASH_ACR_INDEX]      = 0x000,
+	[STM32_FLASH_KEYR_INDEX]     = 0x008,
+	[STM32_FLASH_OPTKEYR_INDEX]  = 0x010,
+	[STM32_FLASH_SR_INDEX]       = 0x020,
+	[STM32_FLASH_CR_INDEX]       = 0x028,
+	[STM32_FLASH_OPTR_INDEX]     = 0x040,
+	[STM32_FLASH_WRP1AR_INDEX]   = 0x058,
+	[STM32_FLASH_WRP1BR_INDEX]   = 0x05C,
+	[STM32_FLASH_WRP2AR_INDEX]   = 0x068,
+	[STM32_FLASH_WRP2BR_INDEX]   = 0x06C,
 };
 
 struct stm32l4_rev {
@@ -167,7 +186,7 @@ struct stm32l4_flash_bank {
 };
 
 /* human readable list of families this drivers supports (sorted alphabetically) */
-static const char *device_families = "STM32G0/G4/L4/L4+/WB/WL";
+static const char *device_families = "STM32G0/G4/L4/L4+/L5/WB/WL";
 
 static const struct stm32l4_rev stm32_415_revs[] = {
 	{ 0x1000, "1" }, { 0x1001, "2" }, { 0x1003, "3" }, { 0x1007, "4" }
@@ -211,6 +230,10 @@ static const struct stm32l4_rev stm32_470_revs[] = {
 
 static const struct stm32l4_rev stm32_471_revs[] = {
 	{ 0x1001, "Z" },
+};
+
+static const struct stm32l4_rev stm32_472_revs[] = {
+	{ 0x1000, "A" }, { 0x2000, "B" },
 };
 
 static const struct stm32l4_rev stm32_479_revs[] = {
@@ -352,6 +375,17 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .fsize_addr            = 0x1FFF75E0,
 	},
 	{
+	  .id                    = 0x472,
+	  .revs                  = stm32_472_revs,
+	  .num_revs              = ARRAY_SIZE(stm32_472_revs),
+	  .device_str            = "STM32L55/L56xx",
+	  .max_flash_size_kb     = 512,
+	  .has_dual_bank         = true,
+	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l5_ns_flash_regs,
+	  .fsize_addr            = 0x0BFA05E0,
+	},
+	{
 	  .id                    = 0x479,
 	  .revs                  = stm32_479_revs,
 	  .num_revs              = ARRAY_SIZE(stm32_479_revs),
@@ -476,7 +510,6 @@ static int stm32l4_wait_status_busy(struct flash_bank *bank, int timeout)
 		}
 		alive_sleep(1);
 	}
-
 
 	if (status & FLASH_WRPERR) {
 		LOG_ERROR("stm32x device protected");
@@ -917,17 +950,17 @@ static int stm32l4_read_idcode(struct flash_bank *bank, uint32_t *id)
 {
 	int retval;
 
-	/* try stm32l4/l4+/wb/g4 id register first, then stm32g0 id register */
-	retval = target_read_u32(bank->target, DBGMCU_IDCODE_L4_G4, id);
-	if ((retval != ERROR_OK) || ((*id & 0xfff) == 0) || ((*id & 0xfff) == 0xfff)) {
-		retval = target_read_u32(bank->target, DBGMCU_IDCODE_G0, id);
-		if ((retval != ERROR_OK) || ((*id & 0xfff) == 0) || ((*id & 0xfff) == 0xfff)) {
-			LOG_ERROR("can't get device id");
-			return (retval == ERROR_OK) ? ERROR_FAIL : retval;
-		}
+	/* try reading possible IDCODE registers, in the following order */
+	uint32_t DBGMCU_IDCODE[] = {DBGMCU_IDCODE_L4_G4, DBGMCU_IDCODE_G0, DBGMCU_IDCODE_L5};
+
+	for (unsigned int i = 0; i < ARRAY_SIZE(DBGMCU_IDCODE); i++) {
+		retval = target_read_u32(bank->target, DBGMCU_IDCODE[i], id);
+		if ((retval == ERROR_OK) && ((*id & 0xfff) != 0) && ((*id & 0xfff) != 0xfff))
+			return ERROR_OK;
 	}
 
-	return retval;
+	LOG_ERROR("can't get the device id");
+	return (retval == ERROR_OK) ? ERROR_FAIL : retval;
 }
 
 static int stm32l4_probe(struct flash_bank *bank)
@@ -1004,6 +1037,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 	int page_size_kb = 0;
 
 	stm32l4_info->dual_bank_mode = false;
+	bool use_dbank_bit = false;
 
 	switch (device_id) {
 	case 0x415: /* STM32L47/L48xx */
@@ -1070,11 +1104,28 @@ static int stm32l4_probe(struct flash_bank *bank)
 		page_size_kb = 8;
 		num_pages = flash_size_kb / page_size_kb;
 		stm32l4_info->bank1_sectors = num_pages;
-		const bool use_dbank_bit = flash_size_kb == part_info->max_flash_size_kb;
+		use_dbank_bit = flash_size_kb == part_info->max_flash_size_kb;
 		if ((use_dbank_bit && (options & BIT(22))) ||
 			(!use_dbank_bit && (options & BIT(21)))) {
 			stm32l4_info->dual_bank_mode = true;
 			page_size_kb = 4;
+			num_pages = flash_size_kb / page_size_kb;
+			stm32l4_info->bank1_sectors = num_pages / 2;
+		}
+		break;
+	case 0x472: /* STM32L55/L56xx */
+		/* STM32L55/L56xx can be single/dual bank:
+		 *   if size = 512K check DBANK bit(22)
+		 *   if size = 256K check DB256K bit(21)
+		 */
+		page_size_kb = 4;
+		num_pages = flash_size_kb / page_size_kb;
+		stm32l4_info->bank1_sectors = num_pages;
+		use_dbank_bit = flash_size_kb == part_info->max_flash_size_kb;
+		if ((use_dbank_bit && (options & BIT(22))) ||
+			(!use_dbank_bit && (options & BIT(21)))) {
+			stm32l4_info->dual_bank_mode = true;
+			page_size_kb = 2;
 			num_pages = flash_size_kb / page_size_kb;
 			stm32l4_info->bank1_sectors = num_pages / 2;
 		}
