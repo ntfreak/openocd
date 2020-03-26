@@ -570,9 +570,10 @@ static int nrf5_protect(struct flash_bank *bank, int set, int first, int last)
 
 static bool nrf5_info_variant_to_str(uint32_t variant, char *bf)
 {
-	h_u32_to_be((uint8_t *)bf, variant);
+	uint8_t *ubf = (uint8_t *)bf;
+	h_u32_to_be(ubf, variant);
 	bf[4] = '\0';
-	if (isalnum(bf[0]) && isalnum(bf[1]) && isalnum(bf[2]) && isalnum(bf[3]))
+	if (isalnum(ubf[0]) && isalnum(ubf[1]) && isalnum(ubf[2]) && isalnum(ubf[3]))
 		return true;
 
 	strcpy(bf, "xxxx");
