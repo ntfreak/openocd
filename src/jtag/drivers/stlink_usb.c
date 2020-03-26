@@ -835,7 +835,7 @@ static int stlink_cmd_allow_retry(void *handle, const uint8_t *buf, int size)
 
 		res = stlink_usb_error_check(handle);
 		if (res == ERROR_WAIT && retries < MAX_WAIT_RETRIES) {
-			useconds_t delay_us = (1<<retries++) * 1000;
+			unsigned int delay_us = (1<<retries++) * 1000;
 			LOG_DEBUG("stlink_cmd_allow_retry ERROR_WAIT, retry %d, delaying %u microseconds", retries, delay_us);
 			usleep(delay_us);
 			continue;
