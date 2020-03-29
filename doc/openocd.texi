@@ -9168,7 +9168,7 @@ Selects whether interrupts will be processed when single stepping
 @cindex ITM
 @cindex ETM
 
-@deffn Command {tpiu config} (@option{disable} | ((@option{external} | @option{internal (@var{filename} | -)}) @
+@deffn Command {tpiu config} (@option{disable} | ((@option{external} | @option{internal (@var{filename} | @var{:port} | -)}) @
                (@option{sync @var{port_width}} | ((@option{manchester} | @option{uart}) @var{formatter_enable})) @
                @var{TRACECLKIN_freq} [@var{trace_freq}]))
 
@@ -9188,23 +9188,28 @@ Command options:
 @itemize @minus
 @item @option{disable} disable TPIU handling;
 @item @option{external} configure TPIU to let user capture trace
-output externally (with an additional UART or logic analyzer hardware);
-@item @option{internal @var{filename}} configure TPIU and debug adapter to
-gather trace data and append it to @var{filename} (which can be
-either a regular file or a named pipe);
-@item @option{internal -} configure TPIU and debug adapter to
-gather trace data, but not write to any file. Useful in conjunction with the @command{tcl_trace} command;
+output externally (with an additional UART or logic analyzer hardware).
+@item @option{internal (@var{filename} | @var{:port} | -)} configure TPIU and debug adapter to
+gather trace data then:
+
+@itemize @minus
+@item append it to a regular file or a named pipe if @var{filename} is specified.
+@item listen to a TCP/IP port if @var{:port} is specified, then broadcast the trace data over this port.
+@item if '-' is specified, OpenOCD will forward trace data to @command{tcl_trace} command.
+@*@b{Note:} while broadcasting to file or TCP, the forwarding to @command{tcl_trace} will remain active.
+@end itemize
+
 @item @option{sync @var{port_width}} use synchronous parallel trace output
-mode, and set port width to @var{port_width};
+mode, and set port width to @var{port_width}.
 @item @option{manchester} use asynchronous SWO mode with Manchester
-coding;
+coding.
 @item @option{uart} use asynchronous SWO mode with NRZ (same as
-regular UART 8N1) coding;
+regular UART 8N1) coding.
 @item @var{formatter_enable} is @option{on} or @option{off} to enable
 or disable TPIU formatter which needs to be used when both ITM and ETM
-data is to be output via SWO;
+data is to be output via SWO.
 @item @var{TRACECLKIN_freq} this should be specified to match target's
-current TRACECLKIN frequency (usually the same as HCLK);
+current TRACECLKIN frequency (usually the same as HCLK).
 @item @var{trace_freq} trace port frequency. Can be omitted in
 internal mode to let the adapter driver select the maximum supported
 rate automatically.
