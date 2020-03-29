@@ -1232,9 +1232,8 @@ static int stlink_usb_mode_enter(void *handle, enum stlink_mode type)
 		case STLINK_MODE_DEBUG_SWIM:
 			h->cmdbuf[h->cmdidx++] = STLINK_SWIM_COMMAND;
 			h->cmdbuf[h->cmdidx++] = STLINK_SWIM_ENTER;
-			/* no answer for this function... */
-			rx_size = 0;
-			break;
+			/* swim enter does not return any response or status */
+			return stlink_usb_xfer_noerrcheck(handle, h->databuf, 0);
 		case STLINK_MODE_DFU:
 		case STLINK_MODE_MASS:
 		default:
