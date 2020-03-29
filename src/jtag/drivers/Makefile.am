@@ -38,6 +38,11 @@ if USE_LIBFTDI
 %C%_libocdjtagdrivers_la_LIBADD += $(LIBFTDI_LIBS)
 endif
 
+if USE_LIBGPIOD
+%C%_libocdjtagdrivers_la_CPPFLAGS += $(LIBGPIOD_CFLAGS)
+%C%_libocdjtagdrivers_la_LIBADD += $(LIBGPIOD_LIBS)
+endif
+
 if USE_HIDAPI
 %C%_libocdjtagdrivers_la_CPPFLAGS += $(HIDAPI_CFLAGS)
 %C%_libocdjtagdrivers_la_LIBADD += $(HIDAPI_LIBS)
@@ -70,6 +75,9 @@ DRIVERFILES += %D%/dummy.c
 endif
 if FTDI
 DRIVERFILES += %D%/ftdi.c %D%/mpsse.c
+endif
+if LINUXGPIOD
+DRIVERFILES += %D%/linuxgpiod.c
 endif
 if JTAG_VPI
 DRIVERFILES += %D%/jtag_vpi.c
