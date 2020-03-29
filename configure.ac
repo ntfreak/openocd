@@ -137,6 +137,9 @@ m4_define([LIBFTDI_ADAPTERS],
 	[[presto], [ASIX Presto Adapter], [PRESTO]],
 	[[openjtag], [OpenJTAG Adapter], [OPENJTAG]]])
 
+m4_define([LIBGPIOD_ADAPTERS],
+	[[[linuxgpiod], [Linux GPIO bitbang through libgpiod], [LINUXGPIOD]]])
+
 m4_define([LIBJAYLINK_ADAPTERS],
 	[[[jlink], [SEGGER J-Link Programmer], [JLINK]]])
 
@@ -237,6 +240,7 @@ AC_ARG_ADAPTERS([
   HIDAPI_ADAPTERS,
   HIDAPI_USB1_ADAPTERS,
   LIBFTDI_ADAPTERS,
+  LIBGPIOD_ADAPTERS,
   LIBJAYLINK_ADAPTERS
   ],[auto])
 
@@ -329,6 +333,10 @@ AS_CASE([$host_os],
   [
     AS_IF([test "x$build_sysfsgpio" = "xyes"], [
       AC_MSG_ERROR([sysfsgpio is only available on linux])
+    ])
+
+    AS_IF([test "x$enable_linuxgpiod" = "xyes"], [
+      AC_MSG_ERROR([linuxgpiod is only available on linux])
     ])
 
     AS_IF([test "x$build_xlnx_pcie_xvc" = "xyes"], [
@@ -593,6 +601,10 @@ AS_IF([test "x$build_sysfsgpio" = "xyes"], [
   AC_DEFINE([BUILD_SYSFSGPIO], [0], [0 if you don't want SysfsGPIO driver.])
 ])
 
+AS_IF([test "x$enable_linuxgpiod" = "xyes"], [
+  build_bitbang=yes
+])
+
 AS_IF([test "x$build_xlnx_pcie_xvc" = "xyes"], [
   build_xlnx_pcie_xvc=yes
   AC_DEFINE([BUILD_XLNX_PCIE_XVC], [1], [1 if you want the Xilinx XVC/PCIe driver.])
@@ -637,6 +649,8 @@ PKG_CHECK_MODULES([LIBFTDI], [libftdi1], [use_libftdi=yes], [
 	PKG_CHECK_MODULES([LIBFTDI], [libftdi], [use_libftdi=yes], [use_libftdi=no])
 ])
 
+PKG_CHECK_MODULES([LIBGPIOD], [libgpiod], [use_libgpiod=yes], [use_libgpiod=no])
+
 PKG_CHECK_MODULES([LIBJAYLINK], [libjaylink >= 0.2],
 	[use_libjaylink=yes], [use_libjaylink=no])
 
@@ -666,6 +680,7 @@ PROCESS_ADAPTERS([USB0_ADAPTERS], ["x$use_libusb0" = "xyes"], [libusb-0.1])
 PROCESS_ADAPTERS([HIDAPI_ADAPTERS], ["x$use_hidapi" = "xyes"], [hidapi])
 PROCESS_ADAPTERS([HIDAPI_USB1_ADAPTERS], ["x$use_hidapi" = "xyes" -a "x$use_libusb1" = "xyes"], [hidapi and libusb-1.x])
 PROCESS_ADAPTERS([LIBFTDI_ADAPTERS], ["x$use_libftdi" = "xyes"], [libftdi])
+PROCESS_ADAPTERS([LIBGPIOD_ADAPTERS], ["x$use_libgpiod" = "xyes"], [libgpiod])
 PROCESS_ADAPTERS([LIBJAYLINK_ADAPTERS], ["x$use_internal_libjaylink" = "xyes" -o "x$use_libjaylink" = "xyes"], [libjaylink-0.2])
 
 AS_IF([test "x$build_openjtag" = "xyes"], [
@@ -727,6 +742,7 @@ AM_CONDITIONAL([IS_WIN32], [test "x$is_win32" = "xyes"])
 AM_CONDITIONAL([IS_DARWIN], [test "x$is_darwin" = "xyes"])
 AM_CONDITIONAL([BITQ], [test "x$build_bitq" = "xyes"])
 AM_CONDITIONAL([USE_LIBFTDI], [test "x$use_libftdi" = "xyes"])
+AM_CONDITIONAL([USE_LIBGPIOD], [test "x$use_libgpiod" = "xyes"])
 AM_CONDITIONAL([USE_HIDAPI], [test "x$use_hidapi" = "xyes"])
 AM_CONDITIONAL([USE_LIBJAYLINK], [test "x$use_libjaylink" = "xyes"])
 AM_CONDITIONAL([TARGET64], [test "x$build_target64" = "xyes"])
@@ -798,6 +814,7 @@ echo OpenOCD configuration summary
 echo --------------------------------------------------
 m4_foreach([adapter], [USB1_ADAPTERS, USB0_ADAPTERS,
 	HIDAPI_ADAPTERS, HIDAPI_USB1_ADAPTERS, LIBFTDI_ADAPTERS,
+	LIBGPIOD_ADAPTERS,
 	LIBJAYLINK_ADAPTERS, PCIE_ADAPTERS],
 	[s=m4_format(["%-40s"], ADAPTER_DESC([adapter]))
 	AS_CASE([$ADAPTER_VAR([adapter])],
