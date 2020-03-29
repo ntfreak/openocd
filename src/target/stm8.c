@@ -45,6 +45,8 @@ static int stm8_set_breakpoint(struct target *target,
 static void stm8_enable_watchpoints(struct target *target);
 static int stm8_unset_watchpoint(struct target *target,
 		struct watchpoint *watchpoint);
+static int (*adapter_speed)(int speed);
+extern struct adapter_driver *adapter_driver;
 
 static const struct {
 	unsigned id;
@@ -797,8 +799,35 @@ static int stm8_read_memory(struct target *target, target_addr_t address,
 	return retval;
 }
 
+static int stm8_speed(int speed)
+{
+	int retval;
+	uint8_t csr;
+
+	LOG_DEBUG("stm8_speed: %d", speed);
+
+	csr = SAFE_MASK | SWIM_DM;
+	if (speed >= SWIM_FREQ_HIGH)
+		csr |= HS;
+
+	LOG_DEBUG("writing B0 to SWIM_CSR (SAFE_MASK + SWIM_DM + HS:%d)", csr & HS ? 1 : 0);
+	retval = stm8_write_u8(NULL, SWIM_CSR, csr);
+	if (retval != ERROR_OK)
+		return retval;
+	return adapter_speed(speed);
+}
+
 static int stm8_init(struct command_context *cmd_ctx, struct target *target)
 {
+	/*
+	 * FIXME: this is a temporarily hack that needs better implementation.
+	 * Being the only overwrite of adapter_driver, it prevents declaring const
+	 * the struct adapter_driver.
+	 * intercept adapter_driver->speed() calls
+	 */
+	adapter_speed = adapter_driver->speed;
+	adapter_driver->speed = stm8_speed;
+
 	stm8_build_reg_cache(target);
 
 	return ERROR_OK;
@@ -1660,17 +1689,6 @@ static int stm8_examine(struct target *target)
 
 	if (!target_was_examined(target)) {
 		if (!stm8->swim_configured) {
-			/* set SWIM_CSR = 0xa0 (enable mem access & mask reset) */
-			LOG_DEBUG("writing A0 to SWIM_CSR (SAFE_MASK + SWIM_DM)");
-			retval = stm8_write_u8(target, SWIM_CSR, SAFE_MASK + SWIM_DM);
-			if (retval != ERROR_OK)
-				return retval;
-			/* set high speed */
-			LOG_DEBUG("writing B0 to SWIM_CSR (SAFE_MASK + SWIM_DM + HS)");
-			retval = stm8_write_u8(target, SWIM_CSR, SAFE_MASK + SWIM_DM + HS);
-			if (retval != ERROR_OK)
-				return retval;
-			jtag_config_khz(SWIM_FREQ_HIGH);
 			stm8->swim_configured = true;
 			/*
 				Now is the time to deassert reset if connect_under_reset.
