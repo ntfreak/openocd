@@ -117,6 +117,9 @@ extern struct adapter_driver opendous_adapter_driver;
 #if BUILD_SYSFSGPIO == 1
 extern struct adapter_driver sysfsgpio_adapter_driver;
 #endif
+#if BUILD_LINUXGPIOD == 1
+extern struct adapter_driver linuxgpiod_adapter_driver;
+#endif
 #if BUILD_XLNX_PCIE_XVC == 1
 extern struct adapter_driver xlnx_pcie_xvc_adapter_driver;
 #endif
@@ -227,6 +230,9 @@ struct adapter_driver *adapter_drivers[] = {
 #endif
 #if BUILD_SYSFSGPIO == 1
 		&sysfsgpio_adapter_driver,
+#endif
+#if BUILD_LINUXGPIOD == 1
+		&linuxgpiod_adapter_driver,
 #endif
 #if BUILD_XLNX_PCIE_XVC == 1
 		&xlnx_pcie_xvc_adapter_driver,
