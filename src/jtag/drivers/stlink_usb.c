@@ -55,7 +55,6 @@
 #define STLINK_WRITE_TIMEOUT 1000
 #define STLINK_READ_TIMEOUT 1000
 
-#define STLINK_NULL_EP        0
 #define STLINK_RX_EP          (1|ENDPOINT_IN)
 #define STLINK_TX_EP          (2|ENDPOINT_OUT)
 #define STLINK_TRACE_EP       (3|ENDPOINT_IN)
@@ -1252,7 +1251,8 @@ static int stlink_usb_mode_leave(void *handle, enum stlink_mode type)
 
 	assert(handle != NULL);
 
-	stlink_usb_init_buffer(handle, STLINK_NULL_EP, 0);
+	/* command with no reply, use a valid endpoint but zero size */
+	stlink_usb_init_buffer(handle, h->rx_ep, 0);
 
 	switch (type) {
 		case STLINK_MODE_DEBUG_JTAG:
@@ -1273,7 +1273,7 @@ static int stlink_usb_mode_leave(void *handle, enum stlink_mode type)
 			return ERROR_FAIL;
 	}
 
-	res = stlink_usb_xfer_noerrcheck(handle, 0, 0);
+	res = stlink_usb_xfer_noerrcheck(handle, h->databuf, 0);
 
 	if (res != ERROR_OK)
 		return res;
