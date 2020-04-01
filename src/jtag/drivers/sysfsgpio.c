@@ -696,13 +696,6 @@ static int sysfsgpio_init(void)
 			goto out_error;
 	}
 
-	if (sysfsgpio_swd_mode_possible()) {
-		if (swd_mode)
-			bitbang_swd_switch_seq(JTAG_TO_SWD);
-		else
-			bitbang_swd_switch_seq(SWD_TO_JTAG);
-	}
-
 	return ERROR_OK;
 
 out_error:

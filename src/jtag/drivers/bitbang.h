@@ -71,7 +71,5 @@ extern bool swd_mode;
 int bitbang_execute_queue(void);
 
 extern struct bitbang_interface *bitbang_interface;
-void bitbang_switch_to_swd(void);
-int bitbang_swd_switch_seq(enum swd_special_seq seq);
 
 #endif /* OPENOCD_JTAG_DRIVERS_BITBANG_H */

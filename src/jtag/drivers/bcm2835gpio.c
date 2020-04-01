@@ -531,7 +531,6 @@ static int bcm2835gpio_init(void)
 
 	if (swd_mode) {
 		bcm2835gpio_bitbang.write = bcm2835gpio_swd_write;
-		bitbang_switch_to_swd();
 	}
 
 	return ERROR_OK;

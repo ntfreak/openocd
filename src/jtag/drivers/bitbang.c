@@ -416,7 +416,7 @@ static void bitbang_exchange(bool rnw, uint8_t buf[], unsigned int offset, unsig
 	}
 }
 
-int bitbang_swd_switch_seq(enum swd_special_seq seq)
+static int bitbang_swd_switch_seq(enum swd_special_seq seq)
 {
 	LOG_DEBUG("bitbang_swd_switch_seq");
 
@@ -439,12 +439,6 @@ int bitbang_swd_switch_seq(enum swd_special_seq seq)
 	}
 
 	return ERROR_OK;
-}
-
-void bitbang_switch_to_swd(void)
-{
-	LOG_DEBUG("bitbang_switch_to_swd");
-	bitbang_exchange(false, (uint8_t *)swd_seq_jtag_to_swd, 0, swd_seq_jtag_to_swd_len);
 }
 
 static void swd_clear_sticky_errors(void)
