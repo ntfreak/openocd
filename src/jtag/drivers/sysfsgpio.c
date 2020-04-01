@@ -54,6 +54,7 @@
 
 #include <helper/time_support.h>
 #include <jtag/interface.h>
+#include <transport/transport.h>
 #include "bitbang.h"
 
 /*
@@ -588,14 +589,18 @@ static void cleanup_fd(int fd, int gpio)
 
 static void cleanup_all_fds(void)
 {
-	cleanup_fd(tck_fd, tck_gpio);
-	cleanup_fd(tms_fd, tms_gpio);
-	cleanup_fd(tdi_fd, tdi_gpio);
-	cleanup_fd(tdo_fd, tdo_gpio);
-	cleanup_fd(trst_fd, trst_gpio);
+	if (transport_is_jtag()) {
+		cleanup_fd(tck_fd, tck_gpio);
+		cleanup_fd(tms_fd, tms_gpio);
+		cleanup_fd(tdi_fd, tdi_gpio);
+		cleanup_fd(tdo_fd, tdo_gpio);
+		cleanup_fd(trst_fd, trst_gpio);
+	}
+	if (transport_is_swd()) {
+		cleanup_fd(swclk_fd, swclk_gpio);
+		cleanup_fd(swdio_fd, swdio_gpio);
+	}
 	cleanup_fd(srst_fd, srst_gpio);
-	cleanup_fd(swclk_fd, swclk_gpio);
-	cleanup_fd(swdio_fd, swdio_gpio);
 }
 
 static bool sysfsgpio_jtag_mode_possible(void)
@@ -626,52 +631,54 @@ static int sysfsgpio_init(void)
 
 	LOG_INFO("SysfsGPIO JTAG/SWD bitbang driver");
 
-	if (sysfsgpio_jtag_mode_possible()) {
-		if (sysfsgpio_swd_mode_possible())
-			LOG_INFO("JTAG and SWD modes enabled");
-		else
-			LOG_INFO("JTAG only mode enabled (specify swclk and swdio gpio to add SWD mode)");
-	} else if (sysfsgpio_swd_mode_possible()) {
-		LOG_INFO("SWD only mode enabled (specify tck, tms, tdi and tdo gpios to add JTAG mode)");
-	} else {
-		LOG_ERROR("Require tck, tms, tdi and tdo gpios for JTAG mode and/or swclk and swdio gpio for SWD mode");
-		return ERROR_JTAG_INIT_FAILED;
-	}
-
-
 	/*
 	 * Configure TDO as an input, and TDI, TCK, TMS, TRST, SRST
 	 * as outputs.  Drive TDI and TCK low, and TMS/TRST/SRST high.
 	 * For SWD, SWCLK and SWDIO are configures as output high.
 	 */
-	if (tck_gpio >= 0) {
+
+	if (transport_is_jtag()) {
+		if (!sysfsgpio_jtag_mode_possible()) {
+			LOG_ERROR("Require tck, tms, tdi and tdo gpios for JTAG mode");
+			return ERROR_JTAG_INIT_FAILED;
+		}
+
 		tck_fd = setup_sysfs_gpio(tck_gpio, 1, 0);
 		if (tck_fd < 0)
 			goto out_error;
-	}
 
-	if (tms_gpio >= 0) {
 		tms_fd = setup_sysfs_gpio(tms_gpio, 1, 1);
 		if (tms_fd < 0)
 			goto out_error;
-	}
 
-	if (tdi_gpio >= 0) {
 		tdi_fd = setup_sysfs_gpio(tdi_gpio, 1, 0);
 		if (tdi_fd < 0)
 			goto out_error;
-	}
 
-	if (tdo_gpio >= 0) {
 		tdo_fd = setup_sysfs_gpio(tdo_gpio, 0, 0);
 		if (tdo_fd < 0)
 			goto out_error;
+
+		/* assume active low*/
+		if (trst_gpio >= 0) {
+			trst_fd = setup_sysfs_gpio(trst_gpio, 1, 1);
+			if (trst_fd < 0)
+				goto out_error;
+		}
 	}
 
-	/* assume active low*/
-	if (trst_gpio >= 0) {
-		trst_fd = setup_sysfs_gpio(trst_gpio, 1, 1);
-		if (trst_fd < 0)
+	if (transport_is_swd()) {
+		if (!sysfsgpio_swd_mode_possible()) {
+			LOG_ERROR("Require swclk and swdio gpio for SWD mode");
+			return ERROR_JTAG_INIT_FAILED;
+		}
+
+		swclk_fd = setup_sysfs_gpio(swclk_gpio, 1, 0);
+		if (swclk_fd < 0)
+			goto out_error;
+
+		swdio_fd = setup_sysfs_gpio(swdio_gpio, 1, 0);
+		if (swdio_fd < 0)
 			goto out_error;
 	}
 
@@ -679,18 +686,6 @@ static int sysfsgpio_init(void)
 	if (srst_gpio >= 0) {
 		srst_fd = setup_sysfs_gpio(srst_gpio, 1, 1);
 		if (srst_fd < 0)
-			goto out_error;
-	}
-
-	if (swclk_gpio >= 0) {
-		swclk_fd = setup_sysfs_gpio(swclk_gpio, 1, 0);
-		if (swclk_fd < 0)
-			goto out_error;
-	}
-
-	if (swdio_gpio >= 0) {
-		swdio_fd = setup_sysfs_gpio(swdio_gpio, 1, 0);
-		if (swdio_fd < 0)
 			goto out_error;
 	}
 
