@@ -4924,6 +4924,10 @@ when reset disables PLLs needed to use a fast clock.
 @* After all targets have resumed
 @item @b{resumed}
 @* Target has resumed
+@item @b{step-start}
+@* Before a target is single-stepped
+@item @b{step-end}
+@* After single-step has completed
 @item @b{trace-config}
 @* After target hardware trace configuration was changed
 @end itemize
