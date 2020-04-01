@@ -258,6 +258,8 @@ enum target_event {
 	TARGET_EVENT_RESUMED,		/* target resumed to normal execution */
 	TARGET_EVENT_RESUME_START,
 	TARGET_EVENT_RESUME_END,
+	TARGET_EVENT_STEP_START,
+	TARGET_EVENT_STEP_END,
 
 	TARGET_EVENT_GDB_START, /* debugger started execution (step/run) */
 	TARGET_EVENT_GDB_END, /* debugger stopped execution (step/run) */
