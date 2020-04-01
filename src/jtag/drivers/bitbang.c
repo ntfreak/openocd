@@ -382,28 +382,24 @@ int bitbang_execute_queue(void)
 	return retval;
 }
 
-
-bool swd_mode;
 static int queued_retval;
 
 static int bitbang_swd_init(void)
 {
 	LOG_DEBUG("bitbang_swd_init");
-	swd_mode = true;
 	return ERROR_OK;
 }
 
-static void bitbang_exchange(bool rnw, uint8_t buf[], unsigned int offset, unsigned int bit_cnt)
+static void bitbang_swd_exchange(bool rnw, uint8_t buf[], unsigned int offset, unsigned int bit_cnt)
 {
-	LOG_DEBUG("bitbang_exchange");
-	int tdi;
+	LOG_DEBUG("bitbang_swd_exchange");
 
 	for (unsigned int i = offset; i < bit_cnt + offset; i++) {
 		int bytec = i/8;
 		int bcval = 1 << (i % 8);
-		tdi = !rnw && (buf[bytec] & bcval);
+		int swdio = !rnw && (buf[bytec] & bcval);
 
-		bitbang_interface->write(0, 0, tdi);
+		bitbang_interface->swd_write(0, swdio);
 
 		if (rnw && buf) {
 			if (bitbang_interface->swdio_read())
@@ -412,7 +408,7 @@ static void bitbang_exchange(bool rnw, uint8_t buf[], unsigned int offset, unsig
 				buf[bytec] &= ~bcval;
 		}
 
-		bitbang_interface->write(1, 0, tdi);
+		bitbang_interface->swd_write(1, swdio);
 	}
 }
 
@@ -423,15 +419,15 @@ static int bitbang_swd_switch_seq(enum swd_special_seq seq)
 	switch (seq) {
 	case LINE_RESET:
 		LOG_DEBUG("SWD line reset");
-		bitbang_exchange(false, (uint8_t *)swd_seq_line_reset, 0, swd_seq_line_reset_len);
+		bitbang_swd_exchange(false, (uint8_t *)swd_seq_line_reset, 0, swd_seq_line_reset_len);
 		break;
 	case JTAG_TO_SWD:
 		LOG_DEBUG("JTAG-to-SWD");
-		bitbang_exchange(false, (uint8_t *)swd_seq_jtag_to_swd, 0, swd_seq_jtag_to_swd_len);
+		bitbang_swd_exchange(false, (uint8_t *)swd_seq_jtag_to_swd, 0, swd_seq_jtag_to_swd_len);
 		break;
 	case SWD_TO_JTAG:
 		LOG_DEBUG("SWD-to-JTAG");
-		bitbang_exchange(false, (uint8_t *)swd_seq_swd_to_jtag, 0, swd_seq_swd_to_jtag_len);
+		bitbang_swd_exchange(false, (uint8_t *)swd_seq_swd_to_jtag, 0, swd_seq_swd_to_jtag_len);
 		break;
 	default:
 		LOG_ERROR("Sequence %d not supported", seq);
@@ -461,10 +457,10 @@ static void bitbang_swd_read_reg(uint8_t cmd, uint32_t *value, uint32_t ap_delay
 		uint8_t trn_ack_data_parity_trn[DIV_ROUND_UP(4 + 3 + 32 + 1 + 4, 8)];
 
 		cmd |= SWD_CMD_START | (1 << 7);
-		bitbang_exchange(false, &cmd, 0, 8);
+		bitbang_swd_exchange(false, &cmd, 0, 8);
 
 		bitbang_interface->swdio_drive(false);
-		bitbang_exchange(true, trn_ack_data_parity_trn, 0, 1 + 3 + 32 + 1 + 1);
+		bitbang_swd_exchange(true, trn_ack_data_parity_trn, 0, 1 + 3 + 32 + 1 + 1);
 		bitbang_interface->swdio_drive(true);
 
 		int ack = buf_get_u32(trn_ack_data_parity_trn, 1, 3);
@@ -488,7 +484,7 @@ static void bitbang_swd_read_reg(uint8_t cmd, uint32_t *value, uint32_t ap_delay
 			if (value)
 				*value = data;
 			if (cmd & SWD_CMD_APnDP)
-				bitbang_exchange(true, NULL, 0, ap_delay_clk);
+				bitbang_swd_exchange(true, NULL, 0, ap_delay_clk);
 			return;
 		 case SWD_ACK_WAIT:
 			LOG_DEBUG("SWD_ACK_WAIT");
@@ -522,12 +518,12 @@ static void bitbang_swd_write_reg(uint8_t cmd, uint32_t value, uint32_t ap_delay
 		buf_set_u32(trn_ack_data_parity_trn, 1 + 3 + 1 + 32, 1, parity_u32(value));
 
 		cmd |= SWD_CMD_START | (1 << 7);
-		bitbang_exchange(false, &cmd, 0, 8);
+		bitbang_swd_exchange(false, &cmd, 0, 8);
 
 		bitbang_interface->swdio_drive(false);
-		bitbang_exchange(true, trn_ack_data_parity_trn, 0, 1 + 3 + 1);
+		bitbang_swd_exchange(true, trn_ack_data_parity_trn, 0, 1 + 3 + 1);
 		bitbang_interface->swdio_drive(true);
-		bitbang_exchange(false, trn_ack_data_parity_trn, 1 + 3 + 1, 32 + 1);
+		bitbang_swd_exchange(false, trn_ack_data_parity_trn, 1 + 3 + 1, 32 + 1);
 
 		int ack = buf_get_u32(trn_ack_data_parity_trn, 1, 3);
 		LOG_DEBUG("%s %s %s reg %X = %08"PRIx32,
@@ -540,7 +536,7 @@ static void bitbang_swd_write_reg(uint8_t cmd, uint32_t value, uint32_t ap_delay
 		switch (ack) {
 		 case SWD_ACK_OK:
 			if (cmd & SWD_CMD_APnDP)
-				bitbang_exchange(true, NULL, 0, ap_delay_clk);
+				bitbang_swd_exchange(true, NULL, 0, ap_delay_clk);
 			return;
 		 case SWD_ACK_WAIT:
 			LOG_DEBUG("SWD_ACK_WAIT");
@@ -563,7 +559,7 @@ static int bitbang_swd_run_queue(void)
 	LOG_DEBUG("bitbang_swd_run_queue");
 	/* A transaction must be followed by another transaction or at least 8 idle cycles to
 	 * ensure that data is clocked through the AP. */
-	bitbang_exchange(true, NULL, 0, 8);
+	bitbang_swd_exchange(true, NULL, 0, 8);
 
 	int retval = queued_retval;
 	queued_retval = ERROR_OK;
