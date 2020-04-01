@@ -62,11 +62,12 @@ struct bitbang_interface {
 
 	/** Set direction of SWDIO. */
 	void (*swdio_drive)(bool on);
+
+	/** Set SWCLK and SWDIO to the given value. */
+	int (*swd_write)(int swclk, int swdio);
 };
 
 extern const struct swd_driver bitbang_swd;
-
-extern bool swd_mode;
 
 int bitbang_execute_queue(void);
 

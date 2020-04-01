@@ -54,6 +54,7 @@ static int bcm2835gpio_write(int tck, int tms, int tdi);
 
 static int bcm2835_swdio_read(void);
 static void bcm2835_swdio_drive(bool is_output);
+static int bcm2835gpio_swd_write(int swclk, int swdio);
 
 static int bcm2835gpio_init(void);
 static int bcm2835gpio_quit(void);
@@ -63,6 +64,7 @@ static struct bitbang_interface bcm2835gpio_bitbang = {
 	.write = bcm2835gpio_write,
 	.swdio_read = bcm2835_swdio_read,
 	.swdio_drive = bcm2835_swdio_drive,
+	.swd_write = bcm2835gpio_swd_write,
 	.blink = NULL
 };
 
@@ -108,10 +110,10 @@ static int bcm2835gpio_write(int tck, int tms, int tdi)
 	return ERROR_OK;
 }
 
-static int bcm2835gpio_swd_write(int tck, int tms, int tdi)
+static int bcm2835gpio_swd_write(int swclk, int swdio)
 {
-	uint32_t set = tck<<swclk_gpio | tdi<<swdio_gpio;
-	uint32_t clear = !tck<<swclk_gpio | !tdi<<swdio_gpio;
+	uint32_t set = swclk << swclk_gpio | swdio << swdio_gpio;
+	uint32_t clear = !swclk << swclk_gpio | !swdio << swdio_gpio;
 
 	GPIO_SET = set;
 	GPIO_CLR = clear;
@@ -532,10 +534,6 @@ static int bcm2835gpio_init(void)
 	LOG_DEBUG("saved pinmux settings: tck %d tms %d tdi %d "
 		  "tdo %d trst %d srst %d", tck_gpio_mode, tms_gpio_mode,
 		  tdi_gpio_mode, tdo_gpio_mode, trst_gpio_mode, srst_gpio_mode);
-
-	if (swd_mode) {
-		bcm2835gpio_bitbang.write = bcm2835gpio_swd_write;
-	}
 
 	return ERROR_OK;
 }

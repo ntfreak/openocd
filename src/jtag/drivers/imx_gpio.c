@@ -87,6 +87,7 @@ static int imx_gpio_write(int tck, int tms, int tdi);
 
 static int imx_gpio_swdio_read(void);
 static void imx_gpio_swdio_drive(bool is_output);
+static int imx_gpio_swd_write(int swclk, int swdio);
 
 static int imx_gpio_init(void);
 static int imx_gpio_quit(void);
@@ -96,6 +97,7 @@ static struct bitbang_interface imx_gpio_bitbang = {
 	.write = imx_gpio_write,
 	.swdio_read = imx_gpio_swdio_read,
 	.swdio_drive = imx_gpio_swdio_drive,
+	.swd_write = imx_gpio_swd_write,
 	.blink = NULL
 };
 
@@ -143,10 +145,10 @@ static int imx_gpio_write(int tck, int tms, int tdi)
 	return ERROR_OK;
 }
 
-static int imx_gpio_swd_write(int tck, int tms, int tdi)
+static int imx_gpio_swd_write(int swclk, int swdio)
 {
-	tdi ? gpio_set(swdio_gpio) : gpio_clear(swdio_gpio);
-	tck ? gpio_set(swclk_gpio) : gpio_clear(swclk_gpio);
+	swdio ? gpio_set(swdio_gpio) : gpio_clear(swdio_gpio);
+	swclk ? gpio_set(swclk_gpio) : gpio_clear(swclk_gpio);
 
 	for (unsigned int i = 0; i < jtag_delay; i++)
 		asm volatile ("");
@@ -549,10 +551,6 @@ static int imx_gpio_init(void)
 	LOG_DEBUG("saved pinmux settings: tck %d tms %d tdi %d "
 		  "tdo %d trst %d srst %d", tck_gpio_mode, tms_gpio_mode,
 		  tdi_gpio_mode, tdo_gpio_mode, trst_gpio_mode, srst_gpio_mode);
-
-	if (swd_mode) {
-		imx_gpio_bitbang.write = imx_gpio_swd_write;
-	}
 
 	return ERROR_OK;
 }

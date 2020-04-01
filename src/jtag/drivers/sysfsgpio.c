@@ -230,7 +230,7 @@ static int sysfsgpio_swdio_read(void)
 	return buf[0] != '0';
 }
 
-static void sysfsgpio_swdio_write(int swclk, int swdio)
+static int sysfsgpio_swd_write(int swclk, int swdio)
 {
 	const char one[] = "1";
 	const char zero[] = "0";
@@ -255,6 +255,8 @@ static void sysfsgpio_swdio_write(int swclk, int swdio)
 	last_swdio = swdio;
 	last_swclk = swclk;
 	last_stored = true;
+
+	return ERROR_OK;
 }
 
 /*
@@ -287,11 +289,6 @@ static bb_value_t sysfsgpio_read(void)
  */
 static int sysfsgpio_write(int tck, int tms, int tdi)
 {
-	if (swd_mode) {
-		sysfsgpio_swdio_write(tck, tdi);
-		return ERROR_OK;
-	}
-
 	const char one[] = "1";
 	const char zero[] = "0";
 
@@ -572,6 +569,7 @@ static struct bitbang_interface sysfsgpio_bitbang = {
 	.write = sysfsgpio_write,
 	.swdio_read = sysfsgpio_swdio_read,
 	.swdio_drive = sysfsgpio_swdio_drive,
+	.swd_write = sysfsgpio_swd_write,
 	.blink = 0
 };
 
