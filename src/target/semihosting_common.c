@@ -111,6 +111,9 @@ int semihosting_common_init(struct target *target, void *setup,
 	}
 
 	semihosting->is_active = false;
+	semihosting->redirect_channel = SEMIHOSTING_REDIRECT_CONSOLE;
+	semihosting->redirect_file = NULL;
+	semihosting->redirect_connection = NULL;
 	semihosting->is_fileio = false;
 	semihosting->hit_fileio = false;
 	semihosting->is_resumable = false;
@@ -136,6 +139,24 @@ int semihosting_common_init(struct target *target, void *setup,
 	return ERROR_OK;
 }
 
+static int semihosting_putchar(struct semihosting *semihosting, int c)
+{
+	switch (semihosting->redirect_channel) {
+	case SEMIHOSTING_REDIRECT_CONSOLE:
+		return putchar(c);
+	case SEMIHOSTING_REDIRECT_FILE:
+		if (semihosting->redirect_file)
+			return fputc(c, semihosting->redirect_file);
+		break;
+	case SEMIHOSTING_REDIRECT_TCP:
+		if (semihosting->redirect_connection)
+			if (connection_write(semihosting->redirect_connection, &c, 1) == 1)
+				return c;
+	}
+
+	return EOF;
+}
+
 /**
  * Portable implementation of ARM semihosting calls.
  * Performs the currently pending semihosting operation
@@ -145,7 +166,7 @@ int semihosting_common(struct target *target)
 {
 	struct semihosting *semihosting = target->semihosting;
 	if (!semihosting) {
-		/* Silently ignore if the semhosting field was not set. */
+		/* Silently ignore if the semihosting field was not set. */
 		return ERROR_OK;
 	}
 
@@ -1199,7 +1220,7 @@ int semihosting_common(struct target *target)
 				retval = target_read_memory(target, addr, 1, 1, &c);
 				if (retval != ERROR_OK)
 					return retval;
-				putchar(c);
+				semihosting_putchar(semihosting, c);
 				semihosting->result = 0;
 			}
 			break;
@@ -1243,7 +1264,7 @@ int semihosting_common(struct target *target)
 						return retval;
 					if (!c)
 						break;
-					putchar(c);
+					semihosting_putchar(semihosting, c);
 				} while (1);
 				semihosting->result = 0;
 			}
@@ -1457,6 +1478,42 @@ static void semihosting_set_field(struct target *target, uint64_t value,
 		target_buffer_set_u32(target, fields + (index * 4), value);
 }
 
+/* -------------------------------------------------------------------------
+ * Semihosting redirect over TCP functions */
+
+struct semihosting_redirect_service {
+	struct semihosting *semihosting;
+};
+
+static int semihosting_new_connection(struct connection *connection)
+{
+	struct semihosting_redirect_service *service = connection->service->priv;
+	service->semihosting->redirect_connection = connection;
+	return ERROR_OK;
+}
+
+static int semihosting_connection_input(struct connection *connection)
+{
+	/* create a dummy buffer to check if the connection is still active */
+	const int buf_len = 100;
+	unsigned char buf[buf_len];
+	int bytes_read = connection_read(connection, buf, buf_len);
+
+	if (bytes_read == 0)
+		return ERROR_SERVER_REMOTE_CLOSED;
+	else if (bytes_read == -1) {
+		LOG_ERROR("error during read: %s", strerror(errno));
+		return ERROR_SERVER_REMOTE_CLOSED;
+	}
+
+	return ERROR_OK;
+}
+
+static int semihosting_connection_closed(struct connection *connection)
+{
+	/* nothing to do, no connection->priv to free */
+	return ERROR_OK;
+}
 
 /* -------------------------------------------------------------------------
  * Common semihosting commands handlers. */
@@ -1498,6 +1555,66 @@ static __COMMAND_HANDLER(handle_common_semihosting_command)
 	command_print(CMD, "semihosting is %s",
 		semihosting->is_active
 		? "enabled" : "disabled");
+
+	return ERROR_OK;
+}
+
+static __COMMAND_HANDLER(handle_common_semihosting_print_redirect_command)
+{
+	struct target *target = get_current_target(CMD_CTX);
+
+	if (target == NULL) {
+		LOG_ERROR("No target selected");
+		return ERROR_FAIL;
+	}
+
+	struct semihosting *semihosting = target->semihosting;
+	if (!semihosting) {
+		command_print(CMD, "semihosting not supported for current target");
+		return ERROR_FAIL;
+	}
+
+	if (!semihosting->is_active) {
+		command_print(CMD, "semihosting not yet enabled for current target");
+		return ERROR_FAIL;
+	}
+
+	enum semihosting_redirect_channel channel = SEMIHOSTING_REDIRECT_CONSOLE;
+
+	if (CMD_ARGC > 1)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	else if (CMD_ARGC == 1) {
+		if (strcmp(CMD_ARGV[0], "console")) {
+			if (CMD_ARGV[0][0] == ':') {
+				channel = SEMIHOSTING_REDIRECT_TCP;
+				struct semihosting_redirect_service *service =
+						malloc(sizeof(struct semihosting_redirect_service));
+				if (!service) {
+					LOG_ERROR("Failed to allocate semihosting redirect service.");
+					return ERROR_FAIL;
+				}
+				service->semihosting = semihosting;
+
+				int ret = add_service("semihosting_redirect", &(CMD_ARGV[0][1]), 1,
+						semihosting_new_connection, semihosting_connection_input,
+						semihosting_connection_closed, NULL);
+				if (ret != ERROR_OK) {
+					LOG_ERROR("Can't configure semihosting TCP port");
+					return ERROR_FAIL;
+				}
+			} else {
+				channel = SEMIHOSTING_REDIRECT_FILE;
+				semihosting->redirect_file = fopen(CMD_ARGV[0], "ab");
+				if (!semihosting->redirect_file) {
+					LOG_ERROR("Can't open semihosting redirect file");
+					return ERROR_FAIL;
+				}
+			}
+		}
+	}
+
+	semihosting->redirect_channel = channel;
+
 
 	return ERROR_OK;
 }
@@ -1597,28 +1714,35 @@ static __COMMAND_HANDLER(handle_common_semihosting_resumable_exit_command)
 
 const struct command_registration semihosting_common_handlers[] = {
 	{
-		"semihosting",
+		.name = "semihosting",
 		.handler = handle_common_semihosting_command,
 		.mode = COMMAND_EXEC,
 		.usage = "['enable'|'disable']",
 		.help = "activate support for semihosting operations",
 	},
 	{
-		"semihosting_cmdline",
+		.name = "semihosting_print_redirect",
+		.handler = handle_common_semihosting_print_redirect_command,
+		.mode = COMMAND_EXEC,
+		.usage = "[console|file|:<port>]",
+		.help = "redirect semihosting print",
+	},
+	{
+		.name = "semihosting_cmdline",
 		.handler = handle_common_semihosting_cmdline,
 		.mode = COMMAND_EXEC,
 		.usage = "arguments",
 		.help = "command line arguments to be passed to program",
 	},
 	{
-		"semihosting_fileio",
+		.name = "semihosting_fileio",
 		.handler = handle_common_semihosting_fileio_command,
 		.mode = COMMAND_EXEC,
 		.usage = "['enable'|'disable']",
 		.help = "activate support for semihosting fileio operations",
 	},
 	{
-		"semihosting_resexit",
+		.name = "semihosting_resexit",
 		.handler = handle_common_semihosting_resumable_exit_command,
 		.mode = COMMAND_EXEC,
 		.usage = "['enable'|'disable']",
