@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <time.h>
+#include <server/server.h>
 
 /*
  * According to:
@@ -88,6 +89,11 @@ enum semihosting_reported_exceptions {
 	ADP_STOPPED_RUN_TIME_ERROR = ((2 << 16) + 35),
 };
 
+enum semihosting_redirect_channel {
+	SEMIHOSTING_REDIRECT_CONSOLE,
+	SEMIHOSTING_REDIRECT_TCP,
+};
+
 struct target;
 
 /*
@@ -97,6 +103,15 @@ struct semihosting {
 
 	/** A flag reporting whether semihosting is active. */
 	bool is_active;
+
+	/** STD IN, OUT and ERR file descriptors */
+	int stdin_fd, stdout_fd, stderr_fd;
+
+	/** Redirection configuration, to console by default */
+	enum semihosting_redirect_channel redirect_channel;
+
+	/** Handle to redirect semihosting print via tcp */
+	struct connection *redirect_connection;
 
 	/** A flag reporting whether semihosting fileio is active. */
 	bool is_fileio;
