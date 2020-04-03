@@ -1,6 +1,8 @@
 /***************************************************************************
  *   Copyright (C) 2015 by David Ung                                       *
  *                                                                         *
+ *   Copyright (C) 2019-2020, Ampere Computing LLC                         *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -1083,6 +1085,7 @@ static int aarch64_step(struct target *target, int current, target_addr_t addres
 {
 	struct armv8_common *armv8 = target_to_armv8(target);
 	struct aarch64_common *aarch64 = target_to_aarch64(target);
+	struct target_list *head;
 	int saved_retval = ERROR_OK;
 	int retval;
 	uint32_t edecr;
@@ -1111,23 +1114,33 @@ static int aarch64_step(struct target *target, int current, target_addr_t addres
 	if (retval != ERROR_OK)
 		return retval;
 
-	if (target->smp && (current == 1)) {
-		/*
-		 * isolate current target so that it doesn't get resumed
-		 * together with the others
-		 */
-		retval = arm_cti_gate_channel(armv8->cti, 1);
-		/* resume all other targets in the group */
-		if (retval == ERROR_OK)
-			retval = aarch64_step_restart_smp(target);
-		if (retval != ERROR_OK) {
-			LOG_ERROR("Failed to restart non-stepping targets in SMP group");
-			return retval;
+	if (target->smp) {
+		if ((current != 1) || (aarch64->step_only_mode == AARCH64_STEPONLY_ON)) {
+			struct target *curr = target;
+
+			foreach_smp_target(head, target->head) {
+				curr = head->target;
+				if ((curr != target) && (curr->debug_reason == DBG_REASON_SINGLESTEP))
+					curr->debug_reason = DBG_REASON_DBGRQ;
+			}
+		} else {
+			/*
+			 * isolate current target so that it doesn't get resumed
+			 * together with the others
+			 */
+			retval = arm_cti_gate_channel(armv8->cti, 1);
+			/* resume all other targets in the group */
+			if (retval == ERROR_OK)
+				retval = aarch64_step_restart_smp(target);
+			if (retval != ERROR_OK) {
+				LOG_ERROR("Failed to restart non-stepping targets in SMP group");
+				return retval;
+			}
+			LOG_DEBUG("Restarted all non-stepping targets in SMP group");
 		}
-		LOG_DEBUG("Restarted all non-stepping targets in SMP group");
 	}
 
-	/* all other targets running, restore and restart the current target */
+	/* all other targets running in SMP, restore and restart the current target */
 	retval = aarch64_restore_one(target, current, &address, 0, 0);
 	if (retval == ERROR_OK)
 		retval = aarch64_restart_one(target, RESTART_LAZY);
@@ -2371,7 +2384,6 @@ static int aarch64_examine_first(struct target *target)
 
 	target->state = TARGET_UNKNOWN;
 	target->debug_reason = DBG_REASON_NOTHALTED;
-	aarch64->isrmasking_mode = AARCH64_ISRMASK_ON;
 	target_set_examined(target);
 	return ERROR_OK;
 }
@@ -2410,6 +2422,8 @@ static int aarch64_init_arch_info(struct target *target,
 
 	/* Setup struct aarch64_common */
 	aarch64->common_magic = AARCH64_COMMON_MAGIC;
+	aarch64->isrmasking_mode = AARCH64_ISRMASK_ON;
+	aarch64->step_only_mode = AARCH64_STEPONLY_OFF; /* resume smp cpus while stepping single cpu */
 	armv8->arm.dap = dap;
 
 	/* register arch-specific functions */
@@ -2648,6 +2662,38 @@ COMMAND_HANDLER(aarch64_mask_interrupts_command)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(aarch64_step_only_command)
+{
+	struct target *target = get_current_target(CMD_CTX);
+	struct target_list *head;
+	struct aarch64_common *aarch64 = target_to_aarch64(target);
+
+	static const Jim_Nvp nvp_steponly_modes[] = {
+		{ .name = "off", .value = AARCH64_STEPONLY_OFF },
+		{ .name = "on", .value = AARCH64_STEPONLY_ON },
+		{ .name = NULL, .value = -1 },
+	};
+	const Jim_Nvp *n;
+
+	if (CMD_ARGC > 0) {
+		n = Jim_Nvp_name2value_simple(nvp_steponly_modes, CMD_ARGV[0]);
+		if (n->name == NULL) {
+			LOG_ERROR("Unknown parameter: %s - should be off or on", CMD_ARGV[0]);
+			return ERROR_COMMAND_SYNTAX_ERROR;
+		}
+		foreach_smp_target(head, target->head) {
+			aarch64 = target_to_aarch64(head->target);
+			aarch64->step_only_mode = n->value;
+			/* head->target->step_only_mode = n->value; */
+		}
+	}
+
+	n = Jim_Nvp_value2name_simple(nvp_steponly_modes, aarch64->step_only_mode);
+	command_print(CMD, "aarch64 step only mode %s", n->name);
+
+	return ERROR_OK;
+}
+
 static int jim_mcrmrc(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 {
 	struct command_context *context;
@@ -2812,6 +2858,13 @@ static const struct command_registration aarch64_exec_command_handlers[] = {
 		.handler = aarch64_mask_interrupts_command,
 		.mode = COMMAND_ANY,
 		.help = "mask aarch64 interrupts during single-step",
+		.usage = "['on'|'off']",
+	},
+	{
+		.name = "steponly",
+		.handler = aarch64_step_only_command,
+		.mode = COMMAND_ANY,
+		.help = "do not resume aarch64 smp cpus during single-step",
 		.usage = "['on'|'off']",
 	},
 	{

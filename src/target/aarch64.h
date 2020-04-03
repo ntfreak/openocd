@@ -1,6 +1,8 @@
 /***************************************************************************
  *   Copyright (C) 2015 by David Ung                                       *
  *                                                                         *
+ *   Copyright (C) 2019, Ampere Computing LLC                              *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -41,6 +43,11 @@ enum aarch64_isrmasking_mode {
 	AARCH64_ISRMASK_ON,
 };
 
+enum aarch64_steponly_mode {
+	AARCH64_STEPONLY_OFF,
+	AARCH64_STEPONLY_ON,
+};
+
 struct aarch64_brp {
 	int used;
 	int type;
@@ -65,6 +72,8 @@ struct aarch64_common {
 	struct armv8_common armv8_common;
 
 	enum aarch64_isrmasking_mode isrmasking_mode;
+
+	enum aarch64_steponly_mode step_only_mode;
 };
 
 static inline struct aarch64_common *
