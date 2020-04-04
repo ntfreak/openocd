@@ -615,6 +615,12 @@ produced, PDF schematics are easily found and it is easy to make.
 @* A JTAG driver acting as a client for the JTAG VPI server interface.
 @* Link: @url{http://github.com/fjullien/jtag_vpi}
 
+@item @b{jtag_dpi}
+@* A JTAG driver acting as a client for the SystemVerilog Direct Programming
+Interface (DPI) for JTAG devices. DPI allows OpenOCD to connect to the JTAG
+interface of a hardware model written in SystemVerilog, for example, on an
+emulation model of target hardware.
+
 @item @b{xlnx_pcie_xvc}
 @* A JTAG driver exposing Xilinx Virtual Cable over PCI Express to OpenOCD as JTAG/SWD interface.
 
@@ -3234,6 +3240,22 @@ The USB device description string of the adapter.
 This value is only used with the standard variant.
 @end deffn
 @end deffn
+
+
+@deffn {Interface Driver} {jtag_dpi}
+SystemVerilog Direct Programming Interface (DPI) compatible driver for
+JTAG devices in emulation. The driver acts as a client for the SystemVerilog
+DPI server interface.
+
+@deffn {Config Command} {jtag_dpi_set_port} port
+Specifies the TCP/IP port number of the SystemVerilog DPI server interface.
+@end deffn
+
+@deffn {Config Command} {jtag_dpi_set_address} address
+Specifies the TCP/IP address of the SystemVerilog DPI server interface.
+@end deffn
+@end deffn
+
 
 @section Transport Configuration
 @cindex Transport
