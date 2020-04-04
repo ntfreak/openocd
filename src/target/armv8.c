@@ -4,6 +4,8 @@
  *   Copyright (C) 2018 by Liviu Ionescu                                   *
  *   <ilg@livius.net>                                                      *
  *                                                                         *
+ *   Copyright (C) 2019-2020, Ampere Computing LLC                         *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -1703,6 +1705,43 @@ struct reg *armv8_reg_current(struct arm *arm, unsigned regnum)
 	return r;
 }
 
+static struct reg *armv8_reg_current_read(struct arm *arm, unsigned regnum)
+{
+	struct reg *r;
+	int retval;
+
+
+	if (regnum > (ARMV8_LAST_REG - 1))
+		return NULL;
+
+	r = arm->core_cache->reg_list + regnum;
+	if (!r->valid) {
+		retval = r->type->get(r);
+		if (retval != ERROR_OK)
+			LOG_ERROR("Failure trying to read %s", r->name);
+	}
+
+	return r;
+}
+
+static struct reg *armv8_reg32_current_read(struct arm *arm, unsigned regnum)
+{
+	struct reg *r;
+	int retval;
+
+	if (regnum > (arm->core_cache->next->num_regs - 1))
+		return NULL;
+
+	r = arm->core_cache->next->reg_list + regnum;
+	if (!r->valid) {
+		retval = r->type->get(r);
+		if (retval != ERROR_OK)
+			LOG_ERROR("Failure trying to read %s", r->name);
+	}
+
+	return r;
+}
+
 static void armv8_free_cache(struct reg_cache *cache, bool regs32)
 {
 	struct reg *reg;
@@ -1756,6 +1795,68 @@ const char *armv8_get_gdb_arch(struct target *target)
 }
 
 int armv8_get_gdb_reg_list(struct target *target,
+	struct reg **reg_list[], int *reg_list_size,
+	enum target_register_class reg_class)
+{
+	struct arm *arm = target_to_arm(target);
+	int i;
+
+	if (arm->core_state == ARM_STATE_AARCH64) {
+
+		LOG_DEBUG("Creating Aarch64 register list for target %s", target_name(target));
+
+		switch (reg_class) {
+		case REG_CLASS_GENERAL:
+			*reg_list_size = ARMV8_V0;
+			*reg_list = malloc(sizeof(struct reg *) * (*reg_list_size));
+
+			for (i = 0; i < *reg_list_size; i++)
+					(*reg_list)[i] = armv8_reg_current_read(arm, i);
+			return ERROR_OK;
+
+		case REG_CLASS_ALL:
+			*reg_list_size = ARMV8_LAST_REG;
+			*reg_list = malloc(sizeof(struct reg *) * (*reg_list_size));
+
+			for (i = 0; i < *reg_list_size; i++)
+					(*reg_list)[i] = armv8_reg_current_read(arm, i);
+
+			return ERROR_OK;
+
+		default:
+			LOG_ERROR("not a valid register class type in query.");
+			return ERROR_FAIL;
+		}
+	} else {
+		struct reg_cache *cache32 = arm->core_cache->next;
+
+		LOG_DEBUG("Creating Aarch32 register list for target %s", target_name(target));
+
+		switch (reg_class) {
+		case REG_CLASS_GENERAL:
+			*reg_list_size = ARMV8_R14 + 3;
+			*reg_list = malloc(sizeof(struct reg *) * (*reg_list_size));
+
+			for (i = 0; i < *reg_list_size; i++)
+				(*reg_list)[i] = armv8_reg32_current_read(arm, i);
+
+			return ERROR_OK;
+		case REG_CLASS_ALL:
+			*reg_list_size = cache32->num_regs;
+			*reg_list = malloc(sizeof(struct reg *) * (*reg_list_size));
+
+			for (i = 0; i < *reg_list_size; i++)
+				(*reg_list)[i] = armv8_reg32_current_read(arm, i);
+
+			return ERROR_OK;
+		default:
+			LOG_ERROR("not a valid register class type in query.");
+			return ERROR_FAIL;
+		}
+	}
+}
+
+int armv8_get_gdb_reg_list_noread(struct target *target,
 	struct reg **reg_list[], int *reg_list_size,
 	enum target_register_class reg_class)
 {
