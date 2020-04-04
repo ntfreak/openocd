@@ -394,6 +394,11 @@ static void bitbang_swd_exchange(bool rnw, uint8_t buf[], unsigned int offset, u
 {
 	LOG_DEBUG("bitbang_swd_exchange");
 
+	if (bitbang_interface->blink) {
+		/* FIXME: we should manage errors */
+		bitbang_interface->blink(1);
+	}
+
 	for (unsigned int i = offset; i < bit_cnt + offset; i++) {
 		int bytec = i/8;
 		int bcval = 1 << (i % 8);
@@ -409,6 +414,11 @@ static void bitbang_swd_exchange(bool rnw, uint8_t buf[], unsigned int offset, u
 		}
 
 		bitbang_interface->swd_write(1, swdio);
+	}
+
+	if (bitbang_interface->blink) {
+		/* FIXME: we should manage errors */
+		bitbang_interface->blink(0);
 	}
 }
 
