@@ -224,7 +224,7 @@ AC_ARG_ENABLE([dummy],
 
 AC_ARG_ENABLE([rshim],
   AS_HELP_STRING([--enable-rshim], [Enable building the rshim driver]),
-  [build_rshim=$enableval], [build_rshim=yes])
+  [build_rshim=$enableval], [build_rshim=no])
 
 m4_define([AC_ARG_ADAPTERS], [
   m4_foreach([adapter], [$1],
