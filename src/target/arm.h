@@ -290,6 +290,9 @@ const char *armv8_get_gdb_arch(struct target *target);
 int armv8_get_gdb_reg_list(struct target *target,
 		struct reg **reg_list[], int *reg_list_size,
 		enum target_register_class reg_class);
+int armv8_get_gdb_reg_list_noread(struct target *target,
+		struct reg **reg_list[], int *reg_list_size,
+		enum target_register_class reg_class);
 
 int arm_init_arch_info(struct target *target, struct arm *arm);
 

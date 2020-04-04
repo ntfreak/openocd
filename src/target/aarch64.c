@@ -2875,6 +2875,7 @@ struct target_type aarch64_target = {
 	/* REVISIT allow exporting VFP3 registers ... */
 	.get_gdb_arch = armv8_get_gdb_arch,
 	.get_gdb_reg_list = armv8_get_gdb_reg_list,
+	.get_gdb_reg_list_noread = armv8_get_gdb_reg_list_noread,
 
 	.read_memory = aarch64_read_memory,
 	.write_memory = aarch64_write_memory,
