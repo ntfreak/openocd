@@ -222,11 +222,9 @@ AC_ARG_ENABLE([dummy],
   AS_HELP_STRING([--enable-dummy], [Enable building the dummy port driver]),
   [build_dummy=$enableval], [build_dummy=no])
 
-AS_CASE([$host_os], [linux*], [host_os_linux=yes], [host_os_linux=no])
-
 AC_ARG_ENABLE([rshim],
   AS_HELP_STRING([--enable-rshim], [Enable building the rshim driver]),
-  [build_rshim=$enableval], [build_rshim=$host_os_linux])
+  [build_rshim=$enableval], [build_rshim=no])
 
 m4_define([AC_ARG_ADAPTERS], [
   m4_foreach([adapter], [$1],
