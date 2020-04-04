@@ -27,6 +27,7 @@ static int trst_gpio = -1;
 static int srst_gpio = -1;
 static int swclk_gpio = -1;
 static int swdio_gpio = -1;
+static int led_gpio = -1;
 static int gpiochip = -1;
 
 static struct gpiod_chip *gpiod_chip;
@@ -38,6 +39,7 @@ static struct gpiod_line *gpiod_trst;
 static struct gpiod_line *gpiod_swclk;
 static struct gpiod_line *gpiod_swdio;
 static struct gpiod_line *gpiod_srst;
+static struct gpiod_line *gpiod_led;
 
 static int last_swclk;
 static int last_swdio;
@@ -171,13 +173,26 @@ static int linuxgpiod_swd_write(int swclk, int swdio)
 	return ERROR_OK;
 }
 
+static int linuxgpiod_blink(int on)
+{
+	int retval;
+
+	if (!gpiod_led)
+		return ERROR_OK;
+
+	retval = gpiod_line_set_value(gpiod_led, on);
+	if (retval < 0)
+		LOG_WARNING("Fail set led");
+	return retval;
+}
+
 static struct bitbang_interface linuxgpiod_bitbang = {
 	.read = linuxgpiod_read,
 	.write = linuxgpiod_write,
 	.swdio_read = linuxgpiod_swdio_read,
 	.swdio_drive = linuxgpiod_swdio_drive,
 	.swd_write = linuxgpiod_swd_write,
-	.blink = NULL,
+	.blink = linuxgpiod_blink,
 };
 
 /*
@@ -248,6 +263,7 @@ static inline void helper_release(struct gpiod_line *line)
 
 static int linuxgpiod_quit(void)
 {
+	helper_release(gpiod_led);
 	helper_release(gpiod_srst);
 	helper_release(gpiod_swdio);
 	helper_release(gpiod_swclk);
@@ -370,6 +386,12 @@ static int linuxgpiod_init(void)
 			goto out_error;
 	}
 
+	if (is_gpio_valid(led_gpio)) {
+		gpiod_led = helper_get_output_line("led", led_gpio, 0);
+		if (gpiod_led == NULL)
+			goto out_error;
+	}
+
 	return ERROR_OK;
 
 out_error:
@@ -484,6 +506,15 @@ COMMAND_HANDLER(linuxgpiod_handle_swd_gpionum_swdio)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(linuxgpiod_handle_gpionum_led)
+{
+	if (CMD_ARGC == 1)
+		COMMAND_PARSE_NUMBER(int, CMD_ARGV[0], led_gpio);
+
+	command_print(CMD, "LinuxGPIOD num: led = %d", led_gpio);
+	return ERROR_OK;
+}
+
 COMMAND_HANDLER(linuxgpiod_handle_gpiochip)
 {
 	if (CMD_ARGC == 1)
@@ -563,6 +594,13 @@ static const struct command_registration linuxgpiod_command_handlers[] = {
 		.mode = COMMAND_CONFIG,
 		.help = "gpio number for swdio.",
 		.usage = "swdio",
+	},
+	{
+		.name = "linuxgpiod_led_num",
+		.handler = linuxgpiod_handle_gpionum_led,
+		.mode = COMMAND_CONFIG,
+		.help = "gpio number for LED.",
+		.usage = "led",
 	},
 	{
 		.name = "linuxgpiod_gpiochip",
