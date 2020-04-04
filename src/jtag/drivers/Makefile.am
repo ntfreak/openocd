@@ -82,6 +82,9 @@ endif
 if JTAG_VPI
 DRIVERFILES += %D%/jtag_vpi.c
 endif
+if JTAG_DPI
+DRIVERFILES += %D%/jtag_dpi.c
+endif
 if USB_BLASTER_DRIVER
 %C%_libocdjtagdrivers_la_LIBADD += %D%/usb_blaster/libocdusbblaster.la
 include %D%/usb_blaster/Makefile.am
