@@ -49,7 +49,7 @@ struct connection {
 	struct sockaddr_in sin;
 	struct command_context *cmd_ctx;
 	struct service *service;
-	int input_pending;
+	bool input_pending;
 	void *priv;
 	struct connection *next;
 };
