@@ -76,7 +76,7 @@ static int add_connection(struct service *service, struct command_context *cmd_c
 	memset(&c->sin, 0, sizeof(c->sin));
 	c->cmd_ctx = copy_command_context(cmd_ctx);
 	c->service = service;
-	c->input_pending = 0;
+	c->input_pending = false;
 	c->priv = NULL;
 	c->next = NULL;
 
