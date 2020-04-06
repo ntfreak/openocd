@@ -466,7 +466,11 @@ static int bcm2835gpio_init(void)
 		return ERROR_JTAG_INIT_FAILED;
 	}
 
-	dev_mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
+	dev_mem_fd = open("/dev/gpiomem", O_RDWR | O_SYNC);
+	if (dev_mem_fd < 0) {
+		LOG_DEBUG("Cannot open /dev/gpiomem, fallback to /dev/mem");
+		dev_mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
+	}
 	if (dev_mem_fd < 0) {
 		perror("open");
 		return ERROR_JTAG_INIT_FAILED;
