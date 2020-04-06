@@ -71,7 +71,7 @@ struct gdb_connection {
 	char buffer[GDB_BUFFER_SIZE + 1]; /* Extra byte for nul-termination */
 	char *buf_p;
 	int buf_cnt;
-	int ctrl_c;
+	bool ctrl_c;
 	enum target_state frontend_state;
 	struct image *vflash_image;
 	bool closed;
@@ -444,7 +444,7 @@ static int gdb_put_packet_inner(struct connection *connection,
 			log_remove_callback(gdb_log_callback, connection);
 			LOG_WARNING("negative reply, retrying");
 		} else if (reply == 0x3) {
-			gdb_con->ctrl_c = 1;
+			gdb_con->ctrl_c = true;
 			retval = gdb_get_char(connection, &reply);
 			if (retval != ERROR_OK)
 				return retval;
@@ -649,7 +649,7 @@ static int gdb_get_packet_inner(struct connection *connection,
 					LOG_WARNING("negative acknowledgment, but no packet pending");
 					break;
 				case 0x3:
-					gdb_con->ctrl_c = 1;
+					gdb_con->ctrl_c = true;
 					*len = 0;
 					return ERROR_OK;
 				default:
@@ -785,7 +785,7 @@ static void gdb_signal_reply(struct target *target, struct connection *connectio
 		sig_reply_len = snprintf(sig_reply, sizeof(sig_reply), "T%2.2x%s%s",
 				signal_var, stop_reason, current_thread);
 
-		gdb_connection->ctrl_c = 0;
+		gdb_connection->ctrl_c = false;
 	}
 
 	gdb_put_packet(connection, sig_reply, sig_reply_len);
@@ -942,7 +942,7 @@ static int gdb_new_connection(struct connection *connection)
 	/* initialize gdb connection information */
 	gdb_connection->buf_p = gdb_connection->buffer;
 	gdb_connection->buf_cnt = 0;
-	gdb_connection->ctrl_c = 0;
+	gdb_connection->ctrl_c = false;
 	gdb_connection->frontend_state = TARGET_HALTED;
 	gdb_connection->vflash_image = NULL;
 	gdb_connection->closed = false;
@@ -3453,7 +3453,7 @@ static int gdb_input_inner(struct connection *connection)
 					retval = target_poll(t);
 				if (retval != ERROR_OK)
 					target_call_event_callbacks(target, TARGET_EVENT_GDB_HALT);
-				gdb_con->ctrl_c = 0;
+				gdb_con->ctrl_c = false;
 			} else {
 				LOG_INFO("The target is not running when halt was requested, stopping GDB.");
 				target_call_event_callbacks(target, TARGET_EVENT_GDB_HALT);
