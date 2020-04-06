@@ -9014,6 +9014,17 @@ requests by using a special SVC instruction that is trapped at the
 Supervisor Call vector by OpenOCD.
 @end deffn
 
+@deffn Command {arm semihosting_redirect} (@option{disable} | @option{tcp} <port>
+[@option{debug}|@option{stdio}|@option{all})
+@cindex ARM semihosting
+Redirect semihosting messages to a specified TCP port.
+
+This command redirects debug (READC, WRITEC and WRITE0) and stdio (READ, WRITE)
+semihsoting opetations to the specified TCP port.
+The command allows to select which type of operations to redirect (debug, stdio, all (default)).
+Note: for stdio operations, only I/O from/to ':tt' file descriptors are redirected.
+@end deffn
+
 @deffn Command {arm semihosting_cmdline} [@option{enable}|@option{disable}]
 @cindex ARM semihosting
 Set the command line to be passed to the debugger.
