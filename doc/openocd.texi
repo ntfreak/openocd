@@ -6649,6 +6649,116 @@ Note: only Main and Work flash regions support Erase operation.
 @end deffn
 @end deffn
 
+@deffn {Flash Driver} qn908x
+The NXP QN908x microcontrollers feature a Cortex-M4F with integrated Bluetooth
+5 support and an internal flash of up to 512 kB. These chips only support SWD
+interface.
+
+The @var{qn908x} driver uses the internal "Flash Memory Controller" block via
+SWD to erase, program and read the internal flash. This driver does not
+support the ISP (In-System Programming) mode which is an alternate way to
+program the flash via UART, SPI or USB.
+
+The internal flash is 512 kB in size in all released chips and it starts at
+the address 0x01000000 although it can be mapped to address 0 and it is
+aliased to other addresses. This driver only recognizes the bank starting at
+address 0x01000000.
+
+The internal bootloader stored in ROM is in charge of loading and verifying
+the image from flash, or enter ISP mode. The programmed image must start at
+the beginning of the flash and contain a valid header with a specific
+checksum. Additionally, the image header contains a "Code Read Protection"
+(CRP) word which indicates whether SWD access is enabled, as well as whether
+ISP mode is enabled. Therefore, it is possible to program an image that
+disables SWD and ISP making it impossible to program another image in the
+future through these interfaces, or even debug the current image. While this is
+a valid use case for production deployments where the chips are locked down, by
+default this driver doesn't allow such images that disable the SWD interface.
+To program such images see the @command{qn908x allow_brick} command.
+
+Apart from the CRP field which is located in the image header, the last page
+of the flash memory contains a "Flash lock and protect" descriptor which allows
+to individually protect each 2 kB page, as well as disabling SWD access to the
+flash and RAM. If this access is disabled it is not possible to read, erase or
+program individual pages from the SWD interface or even access the read-only
+"Flash information page" with information about the bootloader version and
+flash size. However when this protection is in place, it is still possible to
+mass erase the whole chip and then program a new image, for which you can use
+the @command{qn908x mass_erase}.
+
+Example:
+@example
+flash bank $FLASHNAME qn908x 0x01000000 0 0 0 $TARGETNAME calc_checksum
+@end example
+
+Parameters:
+@itemize
+@item @option{calc_checksum} optional parameter to compute the required
+checksum of the first bytes in the vector table.
+@quotation Note
+If the checksum in the header of your image is invalid and you don't provide the
+@option{calc_checksum} option the boot ROM will not boot your image and it may
+render the flash inaccessible. On the other hand, if you use this option to
+compute the checksum keep in mind that @command{verify_image} will fail on
+those four bytes of the checksum since those bytes in the flash will have the
+updated checksum.
+@end quotation
+@end itemize
+
+@deffn Command {qn908x allow_brick}
+Allow the qn908x driver to program images with a "Code Read Protection" byte
+that disables the SWD access. Programming such image will cause OpenOCD to
+not be able to reach the target over SWD anymore after the new image is
+programmed and its configuration takes effect, like after a reboot. After
+executing @command{qn908x allow_brick} these images will be allowed to be
+programmed when writing to the flash.
+@end deffn
+
+@deffn Command {qn908x disable_wdog}
+Disable the watchdog timer (WDT) by resetting its CTRL field. The WDT starts
+enabled after a @command{reset halt} and it doesn't run while the target is
+halted. However, the verification process in this driver uses the generic
+Cortex-M verification process which executes a payload in RAM and thus
+requires the watchdog to be disabled before running @command{verify_image}
+after a reset halt or any other condition where the watchdog is running.
+Note that this is not done automatically and you must run this command in
+those scenarios.
+@end deffn
+
+@deffn Command {qn908x mass_erase}
+Erases the complete flash using the mass_erase method. Mass erase is only
+allowed if enabled in the Lock Status Register 8 (LOCK_STAT_8) which is read
+from the last sector of the flash on boot. However, this mass_erase lock
+protection can be bypassed and this command does so automatically.
+
+In the same LOCK_STAT_8 the flash and RAM access from SWD can be disabled by
+setting two bits in this register. After a mass_erase, all the bits of the
+flash would be set, making it the default to restrict SWD access to the flash
+and RAM regions. This new after erase LOCK_STAT_8 value only takes effect after
+being read from flash on the next reboot for example. After a mass_erase the
+LOCK_STAT_8 register is changed by the hardware to allow access to flash and
+RAM regardless of the value on flash, but only right after a mass_erase and
+until the next boot. Therefore it is possible to perform a mass_erase, program
+a new image, verify it and then reboot to a valid image that's locked from the
+SWD access.
+
+The @command{qn908x mass_erase} command clears the bits that would be loaded
+from the flash into LOCK_STAT_8 after erasing the whole chip to allow SWD
+access for debugging or re-flashing an image without a mass_erase by default.
+If the image being programmed also programs the last page of the flash with its
+own settings, this mass_erase behavior will interfere with that write since a
+new erase of at least the last page would need to be performed before writing
+to it again. For this reason the optional @option{keep_lock} argument can be
+used to leave the flash and RAM lock set. For development environments, the
+default behavior is desired.
+
+The mass erase locking mechanism is independent from the individual page
+locking bits, so it is possible that you can't erase a given page that is
+locked and you can't unprotect that page because the locking bits are also
+locked, but can still mass erase the whole flash.
+@end deffn
+@end deffn
+
 @deffn {Flash Driver} sim3x
 All members of the SiM3 microcontroller family from Silicon Laboratories
 include internal flash and use ARM Cortex-M3 cores. It supports both JTAG
