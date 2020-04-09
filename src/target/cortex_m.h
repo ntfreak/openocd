@@ -90,28 +90,28 @@
 #define TPIU_ACPR_MAX_SWOSCALER	0x1fff
 
 /* DCB_DHCSR bit and field definitions */
-#define DBGKEY		(0xA05F << 16)
-#define C_DEBUGEN	(1 << 0)
-#define C_HALT		(1 << 1)
-#define C_STEP		(1 << 2)
-#define C_MASKINTS	(1 << 3)
-#define S_REGRDY	(1 << 16)
-#define S_HALT		(1 << 17)
-#define S_SLEEP		(1 << 18)
-#define S_LOCKUP	(1 << 19)
-#define S_RETIRE_ST	(1 << 24)
-#define S_RESET_ST	(1 << 25)
+#define DBGKEY		(0xA05Fu << 16)
+#define C_DEBUGEN	(1u << 0)
+#define C_HALT		(1u << 1)
+#define C_STEP		(1u << 2)
+#define C_MASKINTS	(1u << 3)
+#define S_REGRDY	(1u << 16)
+#define S_HALT		(1u << 17)
+#define S_SLEEP		(1u << 18)
+#define S_LOCKUP	(1u << 19)
+#define S_RETIRE_ST	(1u << 24)
+#define S_RESET_ST	(1u << 25)
 
 /* DCB_DEMCR bit and field definitions */
-#define TRCENA			(1 << 24)
-#define VC_HARDERR		(1 << 10)
-#define VC_INTERR		(1 << 9)
-#define VC_BUSERR		(1 << 8)
-#define VC_STATERR		(1 << 7)
-#define VC_CHKERR		(1 << 6)
-#define VC_NOCPERR		(1 << 5)
-#define VC_MMERR		(1 << 4)
-#define VC_CORERESET	(1 << 0)
+#define TRCENA			(1u << 24)
+#define VC_HARDERR		(1u << 10)
+#define VC_INTERR		(1u << 9)
+#define VC_BUSERR		(1u << 8)
+#define VC_STATERR		(1u << 7)
+#define VC_CHKERR		(1u << 6)
+#define VC_NOCPERR		(1u << 5)
+#define VC_MMERR		(1u << 4)
+#define VC_CORERESET	(1u << 0)
 
 #define NVIC_ICTR		0xE000E004
 #define NVIC_ISE0		0xE000E100
