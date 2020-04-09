@@ -129,7 +129,7 @@ static int cortex_m_write_debug_halt_mask(struct target *target,
 	struct armv7m_common *armv7m = &cortex_m->armv7m;
 
 	/* mask off status bits */
-	cortex_m->dcb_dhcsr &= ~((0xFFFF << 16) | mask_off);
+	cortex_m->dcb_dhcsr &= ~((0xFFFFul << 16) | mask_off);
 	/* create new register mask */
 	cortex_m->dcb_dhcsr |= DBGKEY | C_DEBUGEN | mask_on;
 

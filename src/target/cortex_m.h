@@ -26,6 +26,7 @@
 #define OPENOCD_TARGET_CORTEX_M_H
 
 #include "armv7m.h"
+#include "helper/bits.h"
 
 #define CORTEX_M_COMMON_MAGIC 0x1A451A45
 
@@ -50,7 +51,7 @@
 #define DCB_DCRDR	0xE000EDF8
 #define DCB_DEMCR	0xE000EDFC
 
-#define DCRSR_WnR	(1 << 16)
+#define DCRSR_WnR	BIT(16)
 
 #define DWT_CTRL	0xE0001000
 #define DWT_CYCCNT	0xE0001004
@@ -90,28 +91,28 @@
 #define TPIU_ACPR_MAX_SWOSCALER	0x1fff
 
 /* DCB_DHCSR bit and field definitions */
-#define DBGKEY		(0xA05F << 16)
-#define C_DEBUGEN	(1 << 0)
-#define C_HALT		(1 << 1)
-#define C_STEP		(1 << 2)
-#define C_MASKINTS	(1 << 3)
-#define S_REGRDY	(1 << 16)
-#define S_HALT		(1 << 17)
-#define S_SLEEP		(1 << 18)
-#define S_LOCKUP	(1 << 19)
-#define S_RETIRE_ST	(1 << 24)
-#define S_RESET_ST	(1 << 25)
+#define DBGKEY		(0xA05Ful << 16)
+#define C_DEBUGEN	BIT(0)
+#define C_HALT		BIT(1)
+#define C_STEP		BIT(2)
+#define C_MASKINTS	BIT(3)
+#define S_REGRDY	BIT(16)
+#define S_HALT		BIT(17)
+#define S_SLEEP		BIT(18)
+#define S_LOCKUP	BIT(19)
+#define S_RETIRE_ST	BIT(24)
+#define S_RESET_ST	BIT(25)
 
 /* DCB_DEMCR bit and field definitions */
-#define TRCENA			(1 << 24)
-#define VC_HARDERR		(1 << 10)
-#define VC_INTERR		(1 << 9)
-#define VC_BUSERR		(1 << 8)
-#define VC_STATERR		(1 << 7)
-#define VC_CHKERR		(1 << 6)
-#define VC_NOCPERR		(1 << 5)
-#define VC_MMERR		(1 << 4)
-#define VC_CORERESET	(1 << 0)
+#define TRCENA			BIT(24)
+#define VC_HARDERR		BIT(10)
+#define VC_INTERR		BIT(9)
+#define VC_BUSERR		BIT(8)
+#define VC_STATERR		BIT(7)
+#define VC_CHKERR		BIT(6)
+#define VC_NOCPERR		BIT(5)
+#define VC_MMERR		BIT(4)
+#define VC_CORERESET	BIT(0)
 
 #define NVIC_ICTR		0xE000E004
 #define NVIC_ISE0		0xE000E100
@@ -128,12 +129,12 @@
 #define NVIC_BFAR		0xE000ED38
 
 /* NVIC_AIRCR bits */
-#define AIRCR_VECTKEY		(0x5FA << 16)
-#define AIRCR_SYSRESETREQ	(1 << 2)
-#define AIRCR_VECTCLRACTIVE	(1 << 1)
-#define AIRCR_VECTRESET		(1 << 0)
+#define AIRCR_VECTKEY		(0x5FAul << 16)
+#define AIRCR_SYSRESETREQ	BIT(2)
+#define AIRCR_VECTCLRACTIVE	BIT(1)
+#define AIRCR_VECTRESET		BIT(0)
 /* NVIC_SHCSR bits */
-#define SHCSR_BUSFAULTENA	(1 << 17)
+#define SHCSR_BUSFAULTENA	BIT(17)
 /* NVIC_DFSR bits */
 #define DFSR_HALTED			1
 #define DFSR_BKPT			2
@@ -143,10 +144,10 @@
 
 #define FPCR_CODE 0
 #define FPCR_LITERAL 1
-#define FPCR_REPLACE_REMAP  (0 << 30)
-#define FPCR_REPLACE_BKPT_LOW  (1 << 30)
-#define FPCR_REPLACE_BKPT_HIGH  (2 << 30)
-#define FPCR_REPLACE_BKPT_BOTH  (3 << 30)
+#define FPCR_REPLACE_REMAP  (0ul << 30)
+#define FPCR_REPLACE_BKPT_LOW  (1ul << 30)
+#define FPCR_REPLACE_BKPT_HIGH  (2ul << 30)
+#define FPCR_REPLACE_BKPT_BOTH  (3ul << 30)
 
 struct cortex_m_fp_comparator {
 	bool used;
