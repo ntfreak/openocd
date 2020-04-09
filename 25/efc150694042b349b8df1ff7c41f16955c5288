@@ -1,0 +1,7 @@
+Verified+1: jenkins
+Code-Review+2: Tim Newsome <tim@sifive.com>
+Submitted-by: Tomas Vanek <vanekt@fbl.cz>
+Submitted-at: Thu, 09 Apr 2020 11:06:39 +0100
+Reviewed-on: http://openocd.zylin.com/5551
+Project: openocd
+Branch: refs/heads/master
