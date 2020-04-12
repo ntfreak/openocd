@@ -512,25 +512,13 @@ static int nrf5_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int nrf5_protect(struct flash_bank *bank, int set, unsigned int first,
+static int nrf5_protect_clenr0(struct flash_bank *bank, int set, unsigned int first,
 		unsigned int last)
 {
 	int res;
 	uint32_t clenr0, ppfc;
-	struct nrf5_info *chip;
-
-	/* UICR cannot be write protected so just bail out early */
-	if (bank->base == NRF5_UICR_BASE)
-		return ERROR_FAIL;
-
-	res = nrf5_get_probed_chip_if_halted(bank, &chip);
-	if (res != ERROR_OK)
-		return res;
-
-	if (!(chip->features & NRF5_FEATURE_SERIES_51)) {
-		LOG_ERROR("Flash protection setting of this nRF device is not supported");
-		return ERROR_FLASH_OPER_UNSUPPORTED;
-	}
+	struct nrf5_bank *nbank = bank->driver_priv;
+	struct nrf5_info *chip = nbank->chip;
 
 	if (first != 0) {
 		LOG_ERROR("Code region 0 must start at the beginning of the bank");
@@ -552,25 +540,61 @@ static int nrf5_protect(struct flash_bank *bank, int set, unsigned int first,
 	res = target_read_u32(chip->target, NRF51_UICR_CLENR0,
 			      &clenr0);
 	if (res != ERROR_OK) {
-		LOG_ERROR("Couldn't read code region 0 size[UICR]");
+		LOG_ERROR("Couldn't read code region 0 size from UICR");
 		return res;
 	}
 
-	if (clenr0 == 0xFFFFFFFF) {
-		res = target_write_u32(chip->target, NRF51_UICR_CLENR0,
-				       clenr0);
-		if (res != ERROR_OK) {
-			LOG_ERROR("Couldn't write code region 0 size[UICR]");
-			return res;
-		}
-
-	} else {
+	if (!set || clenr0 != 0xFFFFFFFF) {
 		LOG_ERROR("You need to perform chip erase before changing the protection settings");
+		return ERROR_FAIL;
 	}
+
+	res = nrf5_nvmc_write_enable(chip);
+	if (res != ERROR_OK)
+		goto error;
+
+	clenr0 = bank->sectors[last].offset + bank->sectors[last].size;
+	res = target_write_u32(chip->target, NRF51_UICR_CLENR0, clenr0);
+
+	int res2 = nrf5_wait_for_nvmc(chip);
+
+	if (res == ERROR_OK)
+		res = res2;
+
+	if (res == ERROR_OK)
+		LOG_INFO("A reset or power cycle is required for the new protection settings to take effect.");
+	else
+		LOG_ERROR("Couldn't write code region 0 size to UICR");
+
+error:
+	nrf5_nvmc_read_only(chip);
 
 	nrf5_protect_check(bank);
 
-	return ERROR_OK;
+	return res;
+}
+
+static int nrf5_protect(struct flash_bank *bank, int set, unsigned int first,
+		unsigned int last)
+{
+	int res;
+	struct nrf5_info *chip;
+
+	/* UICR cannot be write protected so just bail out early */
+	if (bank->base == NRF5_UICR_BASE) {
+		LOG_ERROR("UICR page does not support protection");
+		return ERROR_FLASH_OPER_UNSUPPORTED;
+	}
+
+	res = nrf5_get_probed_chip_if_halted(bank, &chip);
+	if (res != ERROR_OK)
+		return res;
+
+	if (chip->features & NRF5_FEATURE_SERIES_51)
+		return nrf5_protect_clenr0(bank, set, first, last);
+
+	LOG_ERROR("Flash protection setting is not supported on this nRF5 device");
+	return ERROR_FLASH_OPER_UNSUPPORTED;
 }
 
 static bool nrf5_info_variant_to_str(uint32_t variant, char *bf)
