@@ -324,7 +324,7 @@ static int nrf5_wait_for_nvmc(struct nrf5_info *chip)
 	do {
 		res = target_read_u32(chip->target, NRF5_NVMC_READY, &ready);
 		if (res != ERROR_OK) {
-			LOG_ERROR("Couldn't read NVMC_READY register");
+			LOG_ERROR("Error waiting NVMC_READY: generic flash write/erase error (check protection etc...)");
 			return res;
 		}
 
@@ -1022,7 +1022,7 @@ static int nrf5_ll_flash_write(struct nrf5_info *chip, uint32_t address, const u
 			0, NULL,
 			4, reg_params,
 			source->address, source->size,
-			write_algorithm->address, 0,
+			write_algorithm->address, write_algorithm->address + sizeof(nrf5_flash_write_code) - 2,
 			&armv7m_info);
 
 	target_free_working_area(target, source);
