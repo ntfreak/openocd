@@ -154,7 +154,7 @@ struct nrf5_info {
 	bool ficr_info_valid;
 	struct nrf52_ficr_info ficr_info;
 	const struct nrf5_device_spec *spec;
-	uint32_t hwid;
+	uint16_t hwid;
 	enum nrf5_features features;
 	unsigned int flash_size_kb;
 	unsigned int ram_size_kb;
@@ -642,7 +642,7 @@ static int nrf5_info(struct flash_bank *bank, char *buf, int buf_size)
 				variant, &variant[2]);
 
 	} else {
-		res = snprintf(buf, buf_size, "nRF51xxx (HWID 0x%08" PRIx32 ")",
+		res = snprintf(buf, buf_size, "nRF51xxx (HWID 0x%04" PRIx16 ")",
 				chip->hwid);
 	}
 	if (res <= 0)
@@ -759,14 +759,15 @@ static int nrf5_probe(struct flash_bank *bank)
 	struct nrf5_info *chip = nbank->chip;
 	struct target *target = chip->target;
 
-	res = target_read_u32(target, NRF5_FICR_CONFIGID, &chip->hwid);
+	uint32_t configid;
+	res = target_read_u32(target, NRF5_FICR_CONFIGID, &configid);
 	if (res != ERROR_OK) {
 		LOG_ERROR("Couldn't read CONFIGID register");
 		return res;
 	}
 
-	chip->hwid &= 0xFFFF;	/* HWID is stored in the lower two
-			 * bytes of the CONFIGID register */
+	/* HWID is stored in the lower two bytes of the CONFIGID register */
+	chip->hwid = configid & 0xFFFF;
 
 	/* guess a nRF51 series if the device has no FICR INFO and we don't know HWID */
 	chip->features = NRF5_FEATURE_SERIES_51;
