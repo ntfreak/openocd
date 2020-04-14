@@ -2687,7 +2687,7 @@ static int jim_mcrmrc(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 		return ERROR_TARGET_NOT_HALTED;
 
 	if (arm->core_state == ARM_STATE_AARCH64) {
-		LOG_ERROR("%s: not 32-bit arm target", target_name(target));
+		LOG_ERROR("%s: is not in AArch32 state", target_name(target));
 		return JIM_ERR;
 	}
 
@@ -2785,6 +2785,142 @@ static int jim_mcrmrc(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 	return JIM_OK;
 }
 
+COMMAND_HANDLER(aarch64_msr_mrs)
+{
+	struct target *target = get_current_target(CMD_CTX);
+	struct armv8_common *armv8;
+	struct arm *arm;
+	int retval;
+	bool is_msr;
+	unsigned int arg_cnt;
+	uint32_t op0;
+	uint32_t op1;
+	uint32_t op2;
+	uint32_t CRn;
+	uint32_t CRm;
+	uint64_t value;
+	uint32_t ns_requested = MSRMRS_NOOPTION;
+	int index = 0;
+
+	if (!strcmp(CMD_NAME, "mrs")) {
+		is_msr = false;
+		arg_cnt = 5;
+	} else {
+		is_msr = true;
+		arg_cnt = 6;
+	}
+
+	/* check to see if user is specifying a security preference */
+	if (CMD_ARGC > 0) {
+		if (!strcmp(CMD_ARGV[0], "sec")) {
+			ns_requested = MSRMRS_SECURE;
+			arg_cnt++;
+			index++;
+		} else if (!strcmp(CMD_ARGV[0], "nsec")) {
+			ns_requested = MSRMRS_NONSECURE;
+			arg_cnt++;
+			index++;
+		} else if (!strcmp(CMD_ARGV[0], "asis")) {
+			ns_requested = MSRMRS_ASIS;
+			arg_cnt++;
+			index++;
+		}
+	}
+
+	if (CMD_ARGC != arg_cnt) {
+		LOG_ERROR("%s command failed: wrong number of arguments", CMD_NAME);
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	}
+
+	if (target == NULL) {
+		LOG_ERROR("%s: target not found", CMD_NAME);
+		return ERROR_FAIL;
+	}
+
+	if (!target_was_examined(target)) {
+		LOG_ERROR("%s: not yet examined", target_name(target));
+		return ERROR_FAIL;
+	}
+
+	armv8 = target_to_armv8(target);
+	if (!is_armv8(armv8)) {
+		LOG_ERROR("%s: not an ARMv8", target_name(target));
+		return ERROR_FAIL;
+	}
+
+	if (target->state != TARGET_HALTED) {
+		LOG_ERROR("%s: not halted", target_name(target));
+		return ERROR_TARGET_NOT_HALTED;
+	}
+
+	arm = &armv8->arm;
+	if (arm->core_state != ARM_STATE_AARCH64) {
+		LOG_ERROR("%s: is not in AArch64 state", target_name(target));
+		return ERROR_FAIL;
+	}
+
+	/* NOTE:  parameter sequence matches ARM instruction set usage:
+	 *      MSR <sec/nsec> op0, op1, rX, CRn, CRm, op2 ; write System Reg from rX
+	 *      MRS <sec/nsec> op0, op1, rX, CRn, CRm, op2 ; read System Reg into rX
+	 * The "rX" is necessarily omitted; it uses Tcl mechanisms.
+	 */
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[index++], op0);
+	if (op0 & ~0x3) {
+		LOG_ERROR("%s: %s %d out of range", CMD_NAME,
+			"op0", (int) op0);
+		return ERROR_FAIL;
+	}
+
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[index++], op1);
+	if (op1 & ~0x7) {
+		LOG_ERROR("%s: %s %d out of range", CMD_NAME,
+			"op1", (int) op1);
+		return ERROR_FAIL;
+	}
+
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[index++], CRn);
+	if (CRn & ~0xf) {
+		LOG_ERROR("%s: %s %d out of range", CMD_NAME,
+			"CRn", (int) CRn);
+		return ERROR_FAIL;
+	}
+
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[index++], CRm);
+	if (CRm & ~0xf) {
+		LOG_ERROR("%s: %s %d out of range", CMD_NAME,
+			"CRm", (int) CRm);
+		return ERROR_FAIL;
+	}
+
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[index++], op2);
+	if (op2 & ~0x7) {
+		LOG_ERROR("%s: %s %d out of range", CMD_NAME,
+			"op2", (int) op2);
+		return ERROR_FAIL;
+	}
+
+	value = 0;
+
+	if (is_msr == true) {
+		COMMAND_PARSE_NUMBER(u64, CMD_ARGV[index], value);
+		/* NOTE: parameters reordered! */
+		/* ARMV8_MSR(ns, op0, op1, 0, CRn, CRm, op2) */
+		retval = arm->msr(target, ns_requested, op0, op1, op2, CRn, CRm, value);
+		if (retval != ERROR_OK)
+			LOG_ERROR("%s: error encountered writing the designated register", CMD_NAME);
+	} else {
+		/* NOTE: parameters reordered! */
+		/* ARMV8_MRS(ns, op0, op1, 0, CRn, CRm, op2) */
+		retval = arm->mrs(target, ns_requested, op0, op1, op2, CRn, CRm, &value);
+		if (retval == ERROR_OK)
+			command_print(CMD, "0x%16.16" PRIx64, value);
+		else
+			LOG_ERROR("%s: error encountered reading the designated register", CMD_NAME);
+	}
+
+	return retval;
+}
+
 static const struct command_registration aarch64_exec_command_handlers[] = {
 	{
 		.name = "cache_info",
@@ -2827,6 +2963,20 @@ static const struct command_registration aarch64_exec_command_handlers[] = {
 		.jim_handler = jim_mcrmrc,
 		.help = "read coprocessor register",
 		.usage = "cpnum op1 CRn CRm op2",
+	},
+	{
+		.name = "msr",
+		.mode = COMMAND_EXEC,
+		.handler = aarch64_msr_mrs,
+		.help = "write system register",
+		.usage = "['sec' | 'nsec' | ' ' | 'asis'] op0 op1 CRn CRm op2 value",
+	},
+	{
+		.name = "mrs",
+		.mode = COMMAND_EXEC,
+		.handler = aarch64_msr_mrs,
+		.help = "read system register",
+		.usage = "['sec' | 'nsec' | ' ' | 'asis'] op0 op1 CRn CRm op2",
 	},
 	{
 		.chain = smp_command_handlers,
