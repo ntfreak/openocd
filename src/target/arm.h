@@ -11,6 +11,8 @@
  * Copyright (C) 2018 by Liviu Ionescu
  *   <ilg@livius.net>
  *
+ * Copyright (C) 2019-2020, Ampere Computing LLC
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -236,6 +238,18 @@ struct arm {
 			uint32_t op1, uint32_t op2,
 			uint32_t CRn, uint32_t CRm,
 			uint32_t value);
+
+	/** Read system register.  */
+	int (*mrs)(struct target *target, uint32_t ns_requested, uint32_t op0,
+			uint32_t op1, uint32_t op2,
+			uint32_t CRn, uint32_t CRm,
+			uint64_t *value);
+
+	/** Write system register.  */
+	int (*msr)(struct target *target, uint32_t ns_requested, uint32_t op0,
+			uint32_t op1, uint32_t op2,
+			uint32_t CRn, uint32_t CRm,
+			uint64_t value);
 
 	void *arch_info;
 
