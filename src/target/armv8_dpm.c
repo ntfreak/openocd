@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2009 by David Brownell
  *
+ * Copyright (C) 2019-2020, Ampere Computing LLC
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -536,6 +538,219 @@ static int dpmv8_mcr(struct target *target, int cpnum,
 			value);
 
 	/* (void) */ dpm->finish(dpm);
+	return retval;
+}
+
+/* determine highest Exception Level for this target */
+static int dpmv8_maximum_el(struct arm_dpm *dpm, enum arm_mode *highest_mode)
+{
+	int retval;
+	uint32_t edpfr_lower;
+
+	struct armv8_common *armv8 = (struct armv8_common *) dpm->arm->arch_info;
+
+	if (armv8->max_aarch64_el == ARMV8_64_EL0T) {
+		/* read EDPFR register to see what ELs exist in AARCH64 state */
+		retval = mem_ap_read_atomic_u32(armv8->debug_ap,
+				armv8->debug_base + CPUV8_DBG_PFR,
+				&edpfr_lower);
+		if (retval != ERROR_OK)
+			return retval;
+		if ((edpfr_lower >> 12) & 0xf)	/* aarch64 EL3 present */
+			*highest_mode = ARMV8_64_EL3H;
+		else if ((edpfr_lower >> 8) & 0xf)	/* EL2 present bits */
+			*highest_mode = ARMV8_64_EL2H;
+		else
+			*highest_mode = ARMV8_64_EL1H;
+
+		armv8->max_aarch64_el = *highest_mode;
+	} else
+		*highest_mode = armv8->max_aarch64_el;
+
+	return ERROR_OK;
+}
+
+/*
+ * System register support
+ */
+
+/* Read system register */
+static int dpmv8_mrs(struct target *target, uint32_t ns_requested, uint32_t op0,
+	uint32_t op1, uint32_t op2, uint32_t CRn, uint32_t CRm,
+	uint64_t *value)
+{
+	struct arm *arm = target_to_arm(target);
+	struct arm_dpm *dpm = arm->dpm;
+	int retval;
+	enum arm_mode highest_mode;
+	uint32_t target_el, highest_el;
+	uint64_t scr_value;
+	bool restore_scr;
+
+	target_el = 0;
+	highest_el = target_el; /* set default to run with current exception level */
+	restore_scr = false;    /* indicate the scr does not need to be restored */
+
+	LOG_DEBUG("MRS %d, %d, x0, c%d, c%d, %d", (int) op0,
+		(int) op1, (int) CRn,
+		(int) CRm, (int) op2);
+
+	retval = dpm->prepare(dpm);
+	if (retval != ERROR_OK)
+		return retval;
+
+	if (ns_requested != MSRMRS_ASIS) {
+		/* user wants to execute the command at the highest exception level */
+		retval = dpmv8_maximum_el(dpm, &highest_mode);
+		if (retval != ERROR_OK) {
+			LOG_ERROR("Unable to determine highest EL level to use on MSR operation");
+			goto fail;
+		}
+
+		target_el = ((buf_get_u32(dpm->arm->cpsr->value, 0, 32) >> 2) & 3); /* current el */
+		highest_el = ((uint32_t) highest_mode) >> 2;
+		if (target_el < highest_el) {
+			retval = armv8_dpm_modeswitch(dpm, highest_mode); /* all accesses at highest EL */
+			if (retval != ERROR_OK) {
+				LOG_ERROR("Unable to switch to highest exception level on MSR operation");
+				highest_el = target_el; /* no need to try to restore exception level */
+				goto fail;
+			}
+		}
+		if (ns_requested != MSRMRS_NOOPTION) { /* user specified a specific security setting */
+			if (ns_requested == MSRMRS_SECURE && highest_mode != ARMV8_64_EL3H) {
+				LOG_ERROR("MSR %d, %d, x0, c%d, c%d, %d secure does not exist",
+					(int) op0, (int) op1, (int) CRn,
+					(int) CRm, (int) op2);
+				goto fail; /* may need to restore target_el */
+			} else if (highest_mode == ARMV8_64_EL3H) {
+				/* Need to see if EL3's NS bit is set correctly */
+				/* by reading SCR_EL3 */
+				retval = dpm->instr_read_data_r0_64(dpm,
+					ARMV8_MRS_INSTR(3, 6, 0, 1, 1, 0),
+					&scr_value);
+				if (retval != ERROR_OK)
+					goto fail;
+				if (ns_requested != (scr_value & 0x1)) {
+					retval = dpm->instr_write_data_r0_64(dpm,
+						ARMV8_MSR_INSTR(3, 6, 0, 1, 1, 0),
+						((scr_value & 0xFFFFFFFFFFFFFFFE) | ns_requested));
+					if (retval != ERROR_OK)
+						goto fail;
+					else
+						restore_scr = true;
+				}
+			}
+		}
+	}
+
+	/* read system register into x0; return via DCC */
+	retval = dpm->instr_read_data_r0_64(dpm,
+			ARMV8_MRS_INSTR(op0, op1, 0, CRn, CRm, op2), value);
+
+fail:
+	if (restore_scr == true) {
+		/* need to restore scr_el3.ns before leaving */
+		retval += dpm->instr_write_data_r0_64(dpm,
+			ARMV8_MSR_INSTR(3, 6, 0, 1, 1, 0),
+			scr_value);
+	}
+	if (target_el < highest_el) {
+		/* need to restore exception level */
+		retval += armv8_dpm_modeswitch(dpm, ARM_MODE_ANY); /* return to previous access */
+	}
+
+	dpm->finish(dpm);
+	return retval;
+}
+
+/* Write system register */
+static int dpmv8_msr(struct target *target, uint32_t ns_requested, uint32_t op0,
+	uint32_t op1, uint32_t op2, uint32_t CRn, uint32_t CRm,
+	uint64_t value)
+{
+	struct arm *arm = target_to_arm(target);
+	struct arm_dpm *dpm = arm->dpm;
+	int retval;
+	enum arm_mode highest_mode;
+	uint32_t target_el, highest_el;
+	uint64_t scr_value;
+	bool restore_scr;
+
+	target_el = 0;
+	highest_el = target_el; /* set default not to restore exception level */
+	restore_scr = false;    /* indicate the scr does not need to be restored */
+
+	LOG_DEBUG("MSR %d, %d, x0, c%d, c%d, %d", (int) op0,
+		(int) op1, (int) CRn,
+		(int) CRm, (int) op2);
+
+	retval = dpm->prepare(dpm);
+	if (retval != ERROR_OK)
+		return retval;
+
+	if (ns_requested != MSRMRS_ASIS) {
+		/* user wants to execute the command at the highest exception level */
+		retval = dpmv8_maximum_el(dpm, &highest_mode);
+		if (retval != ERROR_OK) {
+			LOG_ERROR("Unable to determine highest EL level to use on MSR operation");
+			goto fail;
+		}
+
+		target_el = ((buf_get_u32(dpm->arm->cpsr->value, 0, 32) >> 2) & 3); /* current el */
+		highest_el = ((uint32_t) highest_mode) >> 2;
+		if (target_el < highest_el) {
+			retval = armv8_dpm_modeswitch(dpm, highest_mode); /* all accesses at highest EL */
+			if (retval != ERROR_OK) {
+				LOG_ERROR("Unable to switch to highest exception level on MSR operation");
+				highest_el = target_el; /* no need to try to restore exception level */
+				goto fail;
+			}
+		}
+		if (ns_requested != MSRMRS_NOOPTION) { /* user specified a specific security setting */
+			if (ns_requested == MSRMRS_SECURE && highest_mode != ARMV8_64_EL3H) {
+				LOG_ERROR("MSR %d, %d, x0, c%d, c%d, %d secure does not exist",
+					(int) op0, (int) op1, (int) CRn,
+					(int) CRm, (int) op2);
+				goto fail; /* may need to restore target_el */
+			} else if (highest_mode == ARMV8_64_EL3H) {
+				/* Need to see if EL3's NS bit is set correctly */
+				/* by reading SCR_EL3 */
+				retval = dpm->instr_read_data_r0_64(dpm,
+					ARMV8_MRS_INSTR(3, 6, 0, 1, 1, 0),
+					&scr_value);
+				if (retval != ERROR_OK)
+					goto fail;
+				if (ns_requested != (scr_value & 0x1)) {
+					retval = dpm->instr_write_data_r0_64(dpm,
+						ARMV8_MSR_INSTR(3, 6, 0, 1, 1, 0),
+						((scr_value & 0xFFFFFFFFFFFFFFFE) | ns_requested));
+					if (retval != ERROR_OK)
+						goto fail;
+					else
+						restore_scr = true;
+				}
+			}
+		}
+	}
+
+	/* read DCC into x0; then write system register from R0 */
+	retval = dpm->instr_write_data_r0_64(dpm,
+			ARMV8_MSR_INSTR(op0, op1, 0, CRn, CRm, op2), value);
+
+fail:
+	if (restore_scr == true) {
+		/* need to restore scr_el3.ns before leaving */
+		retval += dpm->instr_write_data_r0_64(dpm,
+			ARMV8_MSR_INSTR(3, 6, 0, 1, 1, 0),
+			scr_value);
+	}
+	if (target_el < highest_el) {
+		/* need to restore exception level */
+		retval += armv8_dpm_modeswitch(dpm, ARM_MODE_ANY); /* return to previous access */
+	}
+
+	dpm->finish(dpm);
 	return retval;
 }
 
@@ -1437,6 +1652,10 @@ int armv8_dpm_setup(struct arm_dpm *dpm)
 	/* coprocessor access setup */
 	arm->mrc = dpmv8_mrc;
 	arm->mcr = dpmv8_mcr;
+
+	/* system register setup */
+	arm->mrs = dpmv8_mrs;
+	arm->msr = dpmv8_msr;
 
 	dpm->prepare = dpmv8_dpm_prepare;
 	dpm->finish = dpmv8_dpm_finish;

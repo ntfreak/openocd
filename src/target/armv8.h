@@ -1,6 +1,8 @@
 /***************************************************************************
  *   Copyright (C) 2015 by David Ung                                       *
  *                                                                         *
+ *   Copyright (C) 2019-2020, Ampere Computing LLC                         *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -199,6 +201,8 @@ struct armv8_common {
 	uint32_t debug_base;
 	struct adiv5_ap *debug_ap;
 
+	enum arm_mode max_aarch64_el;
+
 	const uint32_t *opcodes;
 
 	/* mdir */
@@ -246,9 +250,16 @@ static inline bool is_armv8(struct armv8_common *armv8)
 	return armv8->common_magic == ARMV8_COMMON_MAGIC;
 }
 
+/* msr/mrs command options */
+#define MSRMRS_SECURE		0
+#define MSRMRS_NONSECURE	1
+#define MSRMRS_ASIS		2
+#define MSRMRS_NOOPTION		3
+
 /* register offsets from armv8.debug_base */
 #define CPUV8_DBG_MAINID0		0xD00
 #define CPUV8_DBG_CPUFEATURE0	0xD20
+#define CPUV8_DBG_PFR		0xD20
 #define CPUV8_DBG_DBGFEATURE0	0xD28
 #define CPUV8_DBG_MEMFEATURE0	0xD38
 
