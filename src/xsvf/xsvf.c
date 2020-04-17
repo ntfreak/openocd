@@ -525,7 +525,7 @@ COMMAND_HANDLER(handle_xsvf_command)
 						jtag_add_clocks(xruntest);
 					else
 						jtag_add_sleep(xruntest);
-				} else if (xendir != TAP_DRPAUSE) {
+				} else if (xenddr != TAP_DRPAUSE) {
 					/* we are already in TAP_DRPAUSE */
 					result = svf_add_statemove(xenddr);
 					if (result != ERROR_OK)
