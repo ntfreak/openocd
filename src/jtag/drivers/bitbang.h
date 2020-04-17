@@ -56,7 +56,7 @@ struct bitbang_interface {
 	void (*swdio_drive)(bool on);
 };
 
-const struct swd_driver bitbang_swd;
+extern const struct swd_driver bitbang_swd;
 
 extern bool swd_mode;
 
