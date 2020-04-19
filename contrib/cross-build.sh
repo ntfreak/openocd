@@ -56,7 +56,8 @@ SYSROOT=$WORK_DIR/$HOST_TRIPLET-root
 : ${PREFIX=/usr}
 
 ## OpenOCD-only install dir for packaging
-PACKAGE_DIR=$WORK_DIR/openocd_`git --git-dir=$OPENOCD_SRC/.git describe`_$HOST_TRIPLET
+: ${OPENOCD_TAG:=`git --git-dir=$OPENOCD_SRC/.git describe --tags`}
+PACKAGE_DIR=$WORK_DIR/openocd_${OPENOCD_TAG}_${HOST_TRIPLET}
 
 #######
 

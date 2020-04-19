@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Copyright (C) 2020 by Tarek BOUCHKATI <tarek.bouchkati@gmail.com
+
+on: push
+
+name: OpenOCD Snapshot
+
+jobs:
+  package:
+    runs-on: [ubuntu-18.04]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Setup Environment
+        run: |
+          # install needed packages
+          sudo apt-get install make libtool pkg-config autoconf automake texinfo texlive gcc-mingw-w64-i686
+          # prepare openocd
+          ./bootstrap
+          OPENOCD_TAG="`git tag --points-at HEAD`"
+          [ -z $OPENOCD_TAG ] && OPENOCD_TAG="`git rev-parse --short HEAD`"
+          echo "::set-env name=OPENOCD_SRC::$PWD"
+          echo "::set-env name=OPENOCD_TAG::$OPENOCD_TAG"
+          # prepare dependencies
+          mkdir -p dl && cd dl
+          # get libusb1
+          LIBUSB1_VER=1.0.22
+          wget "http://sourceforge.net/projects/libusb/files/libusb-1.0/libusb-${LIBUSB1_VER}/libusb-${LIBUSB1_VER}.tar.bz2"
+          tar -xjf libusb-${LIBUSB1_VER}.tar.bz2
+          echo "::set-env name=LIBUSB1_SRC::$PWD/libusb-${LIBUSB1_VER}"
+          echo "::set-env name=LIBUSB1_CONFIG::--enable-shared --disable-static"
+      # Publish windows package
+      - name: Package OpenOCD for windows
+        run: |
+          mkdir -p build &&  cd build
+          HOST=i686-w64-mingw32
+          OCD_xYES="stlink ti-icdi ulink vsllink jlink"
+          OCD_xNO="cmsis-dap ftdi usb-blaster-2 ft232r xds110 osbdm opendous aice usbprog rlink armjtagew kitprog usb-blaster presto openjtag"
+          OCD_OPT=""
+          export OPENOCD_CONFIG="`sed -E 's/\S+/--enable-\0/g' <<< $OCD_xYES` `sed -E 's/\S+/--enable-\0=no/g' <<< $OCD_xNO` $OCD_OPT"
+          export MAKE_JOBS=2
+          bash ../contrib/cross-build.sh $HOST
+          # compress the artifact
+          cd $HOST-root/usr
+          ARTIFACT="openocd-${OPENOCD_TAG}-${HOST}.tar.gz"
+          tar -czf $ARTIFACT *
+          echo "::set-env name=ARTIFACT_NAME::$ARTIFACT"
+          echo "::set-env name=ARTIFACT_PATH::$PWD/$ARTIFACT"
+      - name: Publish OpenOCD packaged for windows
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.ARTIFACT_PATH }}
+
