@@ -705,7 +705,7 @@ static const struct command_registration telnet_command_handlers[] = {
 	{
 		.name = "telnet_port",
 		.handler = handle_telnet_port_command,
-		.mode = COMMAND_ANY,
+		.mode = COMMAND_CONFIG,
 		.help = "Specify port on which to listen "
 			"for incoming telnet connections.  "
 			"Read help on 'gdb_port'.",

@@ -799,7 +799,7 @@ static const struct command_registration server_command_handlers[] = {
 	{
 		.name = "bindto",
 		.handler = &handle_bindto_command,
-		.mode = COMMAND_ANY,
+		.mode = COMMAND_CONFIG,
 		.usage = "[name]",
 		.help = "Specify address by name on which to listen for "
 			"incoming TCP/IP connections",

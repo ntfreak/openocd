@@ -3739,7 +3739,7 @@ static const struct command_registration gdb_command_handlers[] = {
 	{
 		.name = "gdb_port",
 		.handler = handle_gdb_port_command,
-		.mode = COMMAND_ANY,
+		.mode = COMMAND_CONFIG,
 		.help = "Normally gdb listens to a TCP/IP port. Each subsequent GDB "
 			"server listens for the next port number after the "
 			"base port number specified. "
