@@ -15,8 +15,8 @@
 #
 # This script is probably more useful as a reference than as a complete build
 # tool but for some configurations it may be usable as-is. It only cross-
-# builds libusb-1.0 from source, but the script can be extended to build other
-# prerequisities in a similar manner.
+# builds libusb-1.0 and hidapi from source, but the script can be extended
+# to build other prerequisities in a similar manner.
 #
 # Usage:
 # export LIBUSB1_SRC=/path/to/libusb-1.0
@@ -55,8 +55,12 @@ SYSROOT=$WORK_DIR/$HOST_TRIPLET-root
 ## Install location within host file tree
 : ${PREFIX=/usr}
 
+## Make parallel jobs
+: ${MAKE_JOBS=1}
+
 ## OpenOCD-only install dir for packaging
-PACKAGE_DIR=$WORK_DIR/openocd_`git --git-dir=$OPENOCD_SRC/.git describe`_$HOST_TRIPLET
+: ${OPENOCD_TAG:=`git --git-dir=$OPENOCD_SRC/.git describe --tags`}
+PACKAGE_DIR=$WORK_DIR/openocd_${OPENOCD_TAG}_${HOST_TRIPLET}
 
 #######
 
@@ -91,7 +95,7 @@ cd $LIBUSB1_BUILD_DIR
 $LIBUSB1_SRC/configure --build=`$LIBUSB1_SRC/config.guess` --host=$HOST_TRIPLET \
 --with-sysroot=$SYSROOT --prefix=$PREFIX \
 $LIBUSB1_CONFIG
-make
+make -j $MAKE_JOBS
 make install DESTDIR=$SYSROOT
 
 # hidapi build & install into sysroot
@@ -101,7 +105,7 @@ if [ -d $HIDAPI_SRC ] ; then
   $HIDAPI_SRC/configure --build=`$HIDAPI_SRC/config.guess` --host=$HOST_TRIPLET \
     --with-sysroot=$SYSROOT --prefix=$PREFIX \
     $HIDAPI_CONFIG
-  make
+  make -j $MAKE_JOBS
   make install DESTDIR=$SYSROOT
 fi
 
@@ -111,8 +115,8 @@ cd $OPENOCD_BUILD_DIR
 $OPENOCD_SRC/configure --build=`$OPENOCD_SRC/config.guess` --host=$HOST_TRIPLET \
 --with-sysroot=$SYSROOT --prefix=$PREFIX \
 $OPENOCD_CONFIG
-make
-make install DESTDIR=$SYSROOT
+make -j $MAKE_JOBS
+make install-strip DESTDIR=$SYSROOT
 
 # Separate OpenOCD install w/o dependencies. OpenOCD will have to be linked
 # statically or have dependencies packaged/installed separately.

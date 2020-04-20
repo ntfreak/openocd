@@ -1,0 +1,66 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Copyright (C) 2020 by Tarek BOUCHKATI <tarek.bouchkati@gmail.com
+
+on: push
+
+name: OpenOCD Snapshot
+
+jobs:
+  package:
+    runs-on: [ubuntu-18.04]
+    env:
+      DL_DIR: ../downloads
+      BUILD_DIR: build
+      LIBUSB1_VER: 1.0.22
+      HIDAPI_VER: 0.8.0-rc1
+    steps:
+      - name: Install needed packages
+        run: sudo apt-get install autotools-dev autoconf automake libtool pkg-config texinfo texlive g++-mingw-w64-i686
+      - uses: actions/checkout@v1
+      - run: ./bootstrap
+      - name: Prepare libusb1
+        run: |
+          mkdir -p $DL_DIR && cd $DL_DIR
+          wget "http://sourceforge.net/projects/libusb/files/libusb-1.0/libusb-${LIBUSB1_VER}/libusb-${LIBUSB1_VER}.tar.bz2"
+          tar -xjf libusb-${LIBUSB1_VER}.tar.bz2
+          echo "::set-env name=LIBUSB1_SRC::$PWD/libusb-${LIBUSB1_VER}"
+      - name: Prepare hidapi
+        run: |
+          mkdir -p $DL_DIR && cd $DL_DIR
+          wget "https://github.com/libusb/hidapi/archive/hidapi-${HIDAPI_VER}.tar.gz"
+          tar -xzf hidapi-${HIDAPI_VER}.tar.gz
+          cd hidapi-hidapi-${HIDAPI_VER}
+          ./bootstrap
+          echo "::set-env name=HIDAPI_SRC::$PWD"
+      - name: Package OpenOCD for windows
+        env:
+          MAKE_JOBS: 2
+          HOST: i686-w64-mingw32
+          LIBUSB1_CONFIG: --enable-shared --disable-static
+          HIDAPI_CONFIG: --enable-shared --disable-static --disable-testgui
+          OOCD_xYes: stlink ti-icdi ulink vsllink jlink cmsis-dap
+          OOCD_xNo: ftdi usb-blaster-2 ft232r xds110 osbdm opendous aice usbprog rlink armjtagew kitprog usb-blaster presto openjtag
+          OOCD_EX_OPT: ""
+        run: |
+          # set snapshot tag
+          OPENOCD_TAG="`git tag --points-at HEAD`"
+          [ -z $OPENOCD_TAG ] && OPENOCD_TAG="`git rev-parse --short HEAD`"
+          # set env and call cross-build.sh
+          export OPENOCD_TAG=$OPENOCD_TAG
+          export OPENOCD_SRC=$PWD
+          export OPENOCD_CONFIG="`sed -E 's/\S+/--enable-\0/g' <<< $OOCD_xYES` `sed -E 's/\S+/--enable-\0=no/g' <<< $OOCD_xNO` $OOCD_EX_OPT"
+          mkdir -p $BUILD_DIR &&  cd $BUILD_DIR
+          bash ../contrib/cross-build.sh $HOST
+          # compress the artifact
+          cd $HOST-root/usr
+          ARTIFACT="openocd-${OPENOCD_TAG}-${HOST}.tar.gz"
+          tar -czf $ARTIFACT *
+          echo "::set-env name=ARTIFACT_NAME::$ARTIFACT"
+          echo "::set-env name=ARTIFACT_PATH::$PWD/$ARTIFACT"
+      - name: Publish OpenOCD packaged for windows
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.ARTIFACT_PATH }}
+
