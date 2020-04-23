@@ -99,7 +99,6 @@
 static int stm32lx_unlock_program_memory(struct flash_bank *bank);
 static int stm32lx_lock_program_memory(struct flash_bank *bank);
 static int stm32lx_enable_write_half_page(struct flash_bank *bank);
-static int stm32lx_erase_sector(struct flash_bank *bank, int sector);
 static int stm32lx_wait_until_bsy_clear(struct flash_bank *bank);
 static int stm32lx_lock(struct flash_bank *bank);
 static int stm32lx_unlock(struct flash_bank *bank);
@@ -399,26 +398,88 @@ static int stm32lx_protect_check(struct flash_bank *bank)
 static int stm32lx_erase(struct flash_bank *bank, int first, int last)
 {
 	int retval;
+	struct target *target = bank->target;
+	struct stm32lx_flash_bank *stm32lx_info = bank->driver_priv;
+	struct working_area *erase_algorithm;
+	struct reg_param reg_params[4];
+	struct armv7m_algorithm armv7m_info;
+	static const uint8_t stm32lx_flash_erase_code[] = {
+#include "../../../contrib/loaders/flash/stm32/stm32lx_erase.inc"
+	};
 
 	/*
 	 * It could be possible to do a mass erase if all sectors must be
 	 * erased, but it is not implemented yet.
 	 */
 
-	if (bank->target->state != TARGET_HALTED) {
+	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	/*
-	 * Loop over the selected sectors and erase them
-	 */
-	for (int i = first; i <= last; i++) {
-		retval = stm32lx_erase_sector(bank, i);
-		if (retval != ERROR_OK)
-			return retval;
-		bank->sectors[i].is_erased = 1;
+	/* Allocate the erase code */
+	if (target_alloc_working_area(target, sizeof(stm32lx_flash_erase_code),
+			&erase_algorithm) != ERROR_OK) {
+		LOG_DEBUG("no working area for block memory writes");
+		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 	}
+
+	/* Write the erase code */
+	retval = target_write_buffer(target,
+			erase_algorithm->address,
+			sizeof(stm32lx_flash_erase_code),
+			stm32lx_flash_erase_code);
+	if (retval != ERROR_OK) {
+		target_free_working_area(target, erase_algorithm);
+		return retval;
+	}
+
+	armv7m_info.common_magic = ARMV7M_COMMON_MAGIC;
+	armv7m_info.core_mode = ARM_MODE_THREAD;
+	init_reg_param(&reg_params[0], "r0", 32, PARAM_OUT);
+	init_reg_param(&reg_params[1], "r1", 32, PARAM_OUT);
+	init_reg_param(&reg_params[2], "r2", 32, PARAM_OUT);
+	init_reg_param(&reg_params[3], "r3", 32, PARAM_OUT);
+
+	retval = stm32lx_unlock_program_memory(bank);
+	if (retval != ERROR_OK) {
+		target_free_working_area(target, erase_algorithm);
+		destroy_reg_param(&reg_params[0]);
+		destroy_reg_param(&reg_params[1]);
+		destroy_reg_param(&reg_params[2]);
+		destroy_reg_param(&reg_params[3]);
+		return retval;
+	}
+
+	/* Pass parameters */
+	uint32_t totalBytes = bank->sectors[last].offset + bank->sectors[last].size - bank->sectors[first].offset;
+	uint32_t totalPages = totalBytes / stm32lx_info->part_info.page_size;
+	buf_set_u32(reg_params[0].value, 0, 32, bank->base + bank->sectors[first].offset);
+	buf_set_u32(reg_params[1].value, 0, 32, totalPages);
+	buf_set_u32(reg_params[2].value, 0, 32, stm32lx_info->part_info.page_size);
+	buf_set_u32(reg_params[3].value, 0, 32, stm32lx_info->flash_base);
+
+	/* Execute the erase code */
+	retval = target_run_algorithm(target, 0, NULL, sizeof(reg_params)
+			/ sizeof(*reg_params), reg_params,
+			erase_algorithm->address, 0, 5000 + totalPages * 8, &armv7m_info);
+
+	target_free_working_area(target, erase_algorithm);
+	destroy_reg_param(&reg_params[0]);
+	destroy_reg_param(&reg_params[1]);
+	destroy_reg_param(&reg_params[2]);
+	destroy_reg_param(&reg_params[3]);
+	
+	if (retval != ERROR_OK)
+		return retval;
+	
+	retval = stm32lx_lock_program_memory(bank);
+	if (retval != ERROR_OK)
+		return retval;
+	
+	for (int i = first; i <= last; i++)
+		bank->sectors[i].is_erased = 1;
+
 	return ERROR_OK;
 }
 
@@ -1088,53 +1149,6 @@ static int stm32lx_lock_program_memory(struct flash_bank *bank)
 	reg32 |= FLASH_PECR__PELOCK;
 	retval = target_write_u32(target, stm32lx_info->flash_base + FLASH_PECR,
 			reg32);
-	if (retval != ERROR_OK)
-		return retval;
-
-	return ERROR_OK;
-}
-
-static int stm32lx_erase_sector(struct flash_bank *bank, int sector)
-{
-	struct target *target = bank->target;
-	struct stm32lx_flash_bank *stm32lx_info = bank->driver_priv;
-	int retval;
-	uint32_t reg32;
-
-	/*
-	 * To erase a sector (i.e. stm32lx_info->part_info.pages_per_sector pages),
-	 * first unlock the memory, loop over the pages of this sector
-	 * and write 0x0 to its first word.
-	 */
-
-	retval = stm32lx_unlock_program_memory(bank);
-	if (retval != ERROR_OK)
-		return retval;
-
-	for (int page = 0; page < (int)stm32lx_info->part_info.pages_per_sector;
-			page++) {
-		reg32 = FLASH_PECR__PROG | FLASH_PECR__ERASE;
-		retval = target_write_u32(target,
-				stm32lx_info->flash_base + FLASH_PECR, reg32);
-		if (retval != ERROR_OK)
-			return retval;
-
-		retval = stm32lx_wait_until_bsy_clear(bank);
-		if (retval != ERROR_OK)
-			return retval;
-
-		uint32_t addr = bank->base + bank->sectors[sector].offset + (page
-				* stm32lx_info->part_info.page_size);
-		retval = target_write_u32(target, addr, 0x0);
-		if (retval != ERROR_OK)
-			return retval;
-
-		retval = stm32lx_wait_until_bsy_clear(bank);
-		if (retval != ERROR_OK)
-			return retval;
-	}
-
-	retval = stm32lx_lock_program_memory(bank);
 	if (retval != ERROR_OK)
 		return retval;
 
