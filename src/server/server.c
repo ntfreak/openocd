@@ -631,7 +631,7 @@ static void sigkey_handler(int sig)
 #endif
 
 
-int server_preinit(void)
+int server_host_os_entry(void)
 {
 	/* this currently only calls WSAStartup on native win32 systems
 	 * before any socket operations are performed.
@@ -647,7 +647,21 @@ int server_preinit(void)
 		LOG_ERROR("Failed to Open Winsock");
 		return ERROR_FAIL;
 	}
+#endif
+	return ERROR_OK;
+}
 
+int server_host_os_close(void)
+{
+#ifdef _WIN32
+	WSACleanup();
+#endif
+	return ERROR_OK;
+}
+
+int server_preinit(void)
+{
+#ifdef _WIN32
 	/* register ctrl-c handler */
 	SetConsoleCtrlHandler(ControlHandler, TRUE);
 
@@ -688,7 +702,6 @@ int server_quit(void)
 	target_quit();
 
 #ifdef _WIN32
-	WSACleanup();
 	SetConsoleCtrlHandler(ControlHandler, FALSE);
 
 	return ERROR_OK;

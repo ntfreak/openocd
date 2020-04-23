@@ -80,6 +80,9 @@ int add_service(char *name, const char *port,
 		void *priv);
 int remove_service(const char *name, const char *port);
 
+int server_host_os_entry(void);
+int server_host_os_close(void);
+
 int server_preinit(void);
 int server_init(struct command_context *cmd_ctx);
 int server_quit(void);

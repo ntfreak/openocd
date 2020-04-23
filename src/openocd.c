@@ -345,6 +345,8 @@ int openocd_main(int argc, char *argv[])
 	command_context_mode(cmd_ctx, COMMAND_CONFIG);
 	command_set_output_handler(cmd_ctx, configuration_output_handler, NULL);
 
+	server_host_os_entry();
+
 	/* Start the executable meat that can evolve into thread in future. */
 	ret = openocd_thread(argc, argv, cmd_ctx);
 
@@ -359,6 +361,8 @@ int openocd_main(int argc, char *argv[])
 	arm_cti_cleanup_all();
 
 	adapter_quit();
+
+	server_host_os_close();
 
 	/* Shutdown commandline interface */
 	command_exit(cmd_ctx);
