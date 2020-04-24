@@ -60,4 +60,3 @@ test_done:
 
 	// Set breakpoint to exit
 	bkpt	#0x00
-
