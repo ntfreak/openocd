@@ -51,6 +51,7 @@ EXTRA_DIST += \
 	README.OSX \
 	$(wildcard $(srcdir)/NEWS*) \
 	Doxyfile.in \
+	LICENSES/preferred/GPL-2.0 \
 	tools/logger.pl \
 	tools/rlink_make_speed_table \
 	tools/st7_dtc_as \
