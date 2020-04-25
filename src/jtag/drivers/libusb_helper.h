@@ -21,11 +21,39 @@
 #define OPENOCD_JTAG_DRIVERS_LIBUSB_HELPER_H
 
 #include <libusb.h>
+#define jtag_libusb_device			libusb_device
+#define jtag_libusb_device_handle		libusb_device_handle
+#define jtag_libusb_device_descriptor		libusb_device_descriptor
+#define jtag_libusb_interface			libusb_interface
+#define jtag_libusb_interface_descriptor	libusb_interface_descriptor
+#define jtag_libusb_endpoint_descriptor		libusb_endpoint_descriptor
+#define jtag_libusb_config_descriptor		libusb_config_descriptor
+
+#define jtag_libusb_reset_device(dev)		libusb_reset_device(dev)
+#define jtag_libusb_get_device(devh)		libusb_get_device(devh)
 
 /* this callback should return a non NULL value only when the serial could not
  * be retrieved by the standard 'libusb_get_string_descriptor_ascii' */
 typedef char * (*adapter_get_alternate_serial_fn)(libusb_device_handle *device,
 		struct libusb_device_descriptor *dev_desc);
+
+static inline int jtag_libusb_detach_kernel_driver(jtag_libusb_device_handle *devh,
+		int iface)
+{
+	return libusb_detach_kernel_driver(devh, iface);
+};
+
+static inline int jtag_libusb_claim_interface(jtag_libusb_device_handle *devh,
+		int iface)
+{
+	return libusb_claim_interface(devh, iface);
+};
+
+static inline int jtag_libusb_release_interface(jtag_libusb_device_handle *devh,
+		int iface)
+{
+	return libusb_release_interface(devh, iface);
+}
 
 int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 		const char *serial,
@@ -35,11 +63,15 @@ void jtag_libusb_close(struct libusb_device_handle *dev);
 int jtag_libusb_control_transfer(struct libusb_device_handle *dev,
 		uint8_t requestType, uint8_t request, uint16_t wValue,
 		uint16_t wIndex, char *bytes,	uint16_t size, unsigned int timeout);
-int jtag_libusb_bulk_write(struct libusb_device_handle *dev, int ep,
+int jtag_libusb_interrupt_write(struct jtag_libusb_device_handle *dev, int ep,
+	char *bytes, int size, int timeout);
+int jtag_libusb_interrupt_read(struct jtag_libusb_device_handle *dev, int ep,
+	char *bytes, int size, int timeout);
+int jtag_libusb_bulk_write(struct jtag_libusb_device_handle *dev, int ep,
+		char *bytes,	int size, int timeout, int *transferred);
+int jtag_libusb_bulk_read(struct jtag_libusb_device_handle *dev, int ep,
 		char *bytes, int size, int timeout, int *transferred);
-int jtag_libusb_bulk_read(struct libusb_device_handle *dev, int ep,
-		char *bytes, int size, int timeout, int *transferred);
-int jtag_libusb_set_configuration(struct libusb_device_handle *devh,
+int jtag_libusb_set_configuration(jtag_libusb_device_handle *devh,
 		int configuration);
 /**
  * Find the first interface optionally matching class, subclass and
