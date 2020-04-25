@@ -1474,7 +1474,7 @@ While the default is normally provided by the chip manufacturer,
 board files may need to distinguish between instances of a chip.
 @item @code{ENDIAN} ...
 By default @option{little} - although chips may hard-wire @option{big}.
-Chips that can't change endianess don't need to use this variable.
+Chips that can't change endianness don't need to use this variable.
 @item @code{CPUTAPID} ...
 When OpenOCD examines the JTAG chain, it can be told verify the
 chips against the JTAG IDCODE register.
@@ -6459,7 +6459,7 @@ code.
 @end deffn
 
 @deffn Command {nrf5 info}
-Decodes and shows informations from FICR and UICR registers.
+Decodes and shows information from FICR and UICR registers.
 @end deffn
 
 @end deffn
@@ -9774,7 +9774,7 @@ or a custom types described with @command{arc add-reg-type-[flags|struct]}.
 @item @code{-g}
 @* If specified then this is a "general" register. General registers are always
 read by OpenOCD on context save (when core has just been halted) and is always
-transfered to GDB client in a response to g-packet. Contrary to this,
+transferred to GDB client in a response to g-packet. Contrary to this,
 non-general registers are read and sent to GDB client on-demand. In general it
 is not recommended to apply this option to custom registers.
 
@@ -9815,7 +9815,7 @@ therefore it is unsafe to use if that register can be operated by other means.
 @end deffn
 
 @deffn {Command} {arc jtag set-core-reg} regnum value
-This command is similiar to @command{arc jtag set-aux-reg} but is for core
+This command is similar to @command{arc jtag set-aux-reg} but is for core
 registers.
 @end deffn
 
@@ -9827,7 +9827,7 @@ therefore it is unsafe to use if that register can be operated by other means.
 @end deffn
 
 @deffn {Command} {arc jtag get-core-reg} regnum
-This command is similiar to @command{arc jtag get-aux-reg} but is for core
+This command is similar to @command{arc jtag get-aux-reg} but is for core
 registers.
 @end deffn
 

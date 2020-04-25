@@ -395,7 +395,7 @@ for (i = 0; i < count; i++)
 
 Each time when OpenOCD fills data to CPU (via dongle, via dmseg), CPU takes it and proceeds in executing the handler. However, since handler is in a assembly loop,
 CPU comes to next instruction which also fetches data from FASTDATA area. So it stalls.
-Then OpenOCD fills the data again, from it's (OpenOCD's) loop. And this game continues untill all the data has been filled.
+Then OpenOCD fills the data again, from it's (OpenOCD's) loop. And this game continues until all the data has been filled.
 
 After the last data has been given to CPU it sees that it reached the end address, so it proceeds with next instruction. However, this instruction do not point into dmseg, so
 CPU executes bunch of handler instructions (all prologue) and in the end jumps to MIPS32_PRACC_TEXT address.
