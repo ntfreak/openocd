@@ -15,7 +15,7 @@ proc helpC100 {} {
     echo "12) ooma_board_detect: will show which version of Telo you have"
     echo "13) setupDDR2:         will configure DDR2 controller, you must have PLLs configureg"
     echo "14) showDDR2:          will show DDR2 config registers"
-    echo "15) showWatchdog:      will show current regster config for watchdog"
+    echo "15) showWatchdog:      will show current register config for watchdog"
     echo "16) reboot:            will trigger watchdog and reboot Telo (hw reset)"
     echo "17) bootNOR:           will boot Telo from NOR"
     echo "18) setupUART0:        will configure UART0 for 115200 8N1, PLLs have to be confiured"
@@ -176,7 +176,7 @@ proc setupAmbaClk {} {
     mmw $CLKCORE_AHB_CLK_CNTRL 0x0 0xFFFFFF
     mmw $CLKCORE_AHB_CLK_CNTRL [expr (($x << 16) + ($w << 8) + $y)] 0x0
     # wait for PLL to lock
-    echo "Wating for Amba PLL to lock"
+    echo "Waiting for Amba PLL to lock"
     while {[expr [mrw $CLKCORE_PLL_STATUS] & $AHBCLK_PLL_LOCK] == 0} { sleep 1 }
     # remove the internal PLL bypass
     mmw $CLKCORE_AHB_CLK_CNTRL 0x0 $AHB_PLL_BY_CTRL
@@ -250,7 +250,7 @@ proc setupArmClk {} {
     mmw $CLKCORE_ARM_CLK_CNTRL 0x0 0xFFFFFF
     mmw $CLKCORE_ARM_CLK_CNTRL [expr (($x << 16) + ($w << 8) + $y)] 0x0
     # wait for PLL to lock
-    echo "Wating for Amba PLL to lock"
+    echo "Waiting for Amba PLL to lock"
     while {[expr [mrw $CLKCORE_PLL_STATUS] & $FCLK_PLL_LOCK] == 0} { sleep 1 }
     # remove the internal PLL bypass
     mmw $CLKCORE_ARM_CLK_CNTRL 0x0 $ARM_PLL_BY_CTRL
@@ -300,7 +300,7 @@ proc setupDDR2 {} {
 
     # Memory setup register
     mww $MEMORY_MAX_ADDR  [expr ($ddr_size - 1) + $MEMORY_BASE_ADDR]
-    # disbale ROM remap
+    # disable ROM remap
     mww $MEMORY_CR 0x0
     # Take DDR controller out of reset
     mmw $BLOCK_RESET_REG $DDR_RST 0x0
@@ -486,7 +486,7 @@ proc reboot {} {
     set TIMER_WDT_CURRENT_COUNT	[regs TIMER_WDT_CURRENT_COUNT]
 
     # allow the counter to count to high value  before triggering
-    # this is because regsiter writes are slow over JTAG and
+    # this is because register writes are slow over JTAG and
     # I don't want to miss the high_bound==curr_count condition
     mww $TIMER_WDT_HIGH_BOUND  0xffffff
     mww $TIMER_WDT_CURRENT_COUNT 0x0
@@ -494,7 +494,7 @@ proc reboot {} {
     adapter speed 100
     mww $TIMER_WDT_CONTROL 0x1
     # wait until the reset
-    echo -n "Wating for watchdog to trigger..."
+    echo -n "Waiting for watchdog to trigger..."
     #while {[mrw $TIMER_WDT_CONTROL] == 1} {
     #    echo [format "TIMER_WDT_CURRENT_COUNT (0x%x): 0x%x" $TIMER_WDT_CURRENT_COUNT [mrw $TIMER_WDT_CURRENT_COUNT]]
     #    sleep 1

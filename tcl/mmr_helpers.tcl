@@ -28,7 +28,7 @@ proc show_mmr32_reg { NAME } {
 }
 
 
-# Give: NAMES - an array of names accessable
+# Give: NAMES - an array of names accessible
 #               in the callers symbol-scope.
 #       VAL - the bits to display.
 

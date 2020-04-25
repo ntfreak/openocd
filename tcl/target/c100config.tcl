@@ -1,5 +1,5 @@
 
-# board(-config) specfic parameters file.
+# board(-config) specific parameters file.
 
 # set CFG_REFCLKFREQ [configC100 CFG_REFCLKFREQ]
 proc config {label} {

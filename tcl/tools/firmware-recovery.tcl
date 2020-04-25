@@ -38,7 +38,7 @@ openocd -f interface/ftdi/tumpa.cfg -f tools/firmware-recovery.tcl \\
     shutdown
 }
 
-# set default, can be overriden later
+# set default, can be overridden later
 adapter speed 1000
 
 proc get_partition { name } {
