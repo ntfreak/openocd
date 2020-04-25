@@ -53,7 +53,7 @@
 #define EFM32_MSC_USER_DATA             EFM32_MSC_INFO_BASE
 #define EFM32_MSC_LOCK_BITS             (EFM32_MSC_INFO_BASE+0x4000)
 #define EFM32_MSC_DEV_INFO              (EFM32_MSC_INFO_BASE+0x8000)
-
+#define EFM32_MSC_BOOTLOADER		(EFM32_MSC_INFO_BASE+0x10000)
 /* PAGE_SIZE is not present in Zero, Happy and the original Gecko MCU */
 #define EFM32_MSC_DI_PAGE_SIZE          (EFM32_MSC_DEV_INFO+0x1e7)
 #define EFM32_MSC_DI_FLASH_SZ           (EFM32_MSC_DEV_INFO+0x1f8)
@@ -964,7 +964,6 @@ static int efm32x_probe(struct flash_bank *bank)
 	struct efm32_info efm32_mcu_info;
 	int ret;
 	int i;
-	uint32_t base_address = 0x00000000;
 	char buf[256];
 
 	efm32x_info->probed = 0;
@@ -978,6 +977,20 @@ static int efm32x_probe(struct flash_bank *bank)
 	if (ERROR_OK != ret)
 		return ret;
 
+	if ((bank->base == EFM32_MSC_USER_DATA) ||
+		bank->base == EFM32_MSC_LOCK_BITS) {
+		efm32_mcu_info.flash_sz_kib = 2;
+		efm32_mcu_info.page_size = 2048;
+	}
+	else if (bank->base == EFM32_MSC_DEV_INFO) {
+		/* FIXME? not true base address */
+		efm32_mcu_info.flash_sz_kib = 2;
+		efm32_mcu_info.page_size = 2048;
+	}
+	else if (bank->base == EFM32_MSC_BOOTLOADER) {
+                efm32_mcu_info.flash_sz_kib = 32;
+		efm32_mcu_info.page_size = 2048;
+	}
 	LOG_INFO("detected part: %s", buf);
 	LOG_INFO("flash size = %dkbytes", efm32_mcu_info.flash_sz_kib);
 	LOG_INFO("flash page size = %dbytes", efm32_mcu_info.page_size);
@@ -994,7 +1007,6 @@ static int efm32x_probe(struct flash_bank *bank)
 		bank->sectors = NULL;
 	}
 
-	bank->base = base_address;
 	bank->size = (num_pages * efm32_mcu_info.page_size);
 	bank->num_sectors = num_pages;
 
@@ -1012,7 +1024,6 @@ static int efm32x_probe(struct flash_bank *bank)
 		bank->sectors[i].is_erased = -1;
 		bank->sectors[i].is_protected = 1;
 	}
-
 	efm32x_info->probed = 1;
 
 	return ERROR_OK;
