@@ -61,12 +61,28 @@ int armv7m_trace_tpiu_config(struct target *target)
 
 	target_unregister_timer_callback(armv7m_poll_trace, target);
 
-	retval = adapter_config_trace(trace_config->config_type == TRACE_CONFIG_TYPE_INTERNAL,
+	if (trace_config->config_type == TRACE_CONFIG_TYPE_EXTERNAL) {
+		prescaler = trace_config->traceclkin_freq / trace_config->trace_freq;
+
+		if (trace_config->traceclkin_freq % trace_config->trace_freq) {
+			prescaler++;
+
+			int trace_freq = trace_config->traceclkin_freq / prescaler;
+			LOG_INFO("Can not obtain %u trace port frequency from %u "
+				"TRACECLKIN frequency, using %u instead",
+				trace_config->trace_freq, trace_config->traceclkin_freq,
+				trace_freq);
+
+			trace_config->trace_freq = trace_freq;
+		}
+	} else {
+		retval = adapter_config_trace(trace_config->config_type == TRACE_CONFIG_TYPE_INTERNAL,
 		trace_config->pin_protocol, trace_config->port_size,
 		&trace_config->trace_freq, trace_config->traceclkin_freq, &prescaler);
 
-	if (retval != ERROR_OK)
-		return retval;
+		if (retval != ERROR_OK)
+			return retval;
+	}
 
 	if (!trace_config->trace_freq) {
 		LOG_ERROR("Trace port frequency is 0, can't enable TPIU");
