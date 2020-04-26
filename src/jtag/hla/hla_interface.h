@@ -41,8 +41,6 @@ struct hl_interface_param_s {
 	/** List of recognised PIDs */
 	uint16_t pid[HLA_MAX_USB_IDS + 1];
 	/** */
-	unsigned api;
-	/** */
 	enum hl_transports transport;
 	/** */
 	bool connect_under_reset;

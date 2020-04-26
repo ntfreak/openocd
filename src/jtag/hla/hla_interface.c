@@ -35,7 +35,7 @@
 
 #include <target/target.h>
 
-static struct hl_interface_s hl_if = { {0, 0, { 0 }, { 0 }, 0, HL_TRANSPORT_UNKNOWN, false, -1}, 0, 0 };
+static struct hl_interface_s hl_if = { {0, 0, { 0 }, { 0 }, HL_TRANSPORT_UNKNOWN, false, -1}, 0, 0 };
 
 int hl_interface_open(enum hl_transports tr)
 {
