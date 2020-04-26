@@ -898,6 +898,15 @@ sub is_maintained_obsolete {
 sub is_SPDX_License_valid {
 	my ($license) = @_;
 
+	$license =~ s/[ \t\*\/]*$//;
+	return 1 if ($license =~ /^SPDX-License-Identifier: GPL-2\.0-or-later$/);
+	return 1 if ($license =~ /^SPDX-License-Identifier: GPL-2\.0$/);
+	return 0;
+}
+
+sub is_SPDX_License_valid_original_now_unused {
+	my ($license) = @_;
+
 	return 1 if (!$tree || which("python") eq "" || !(-e "$root/scripts/spdxcheck.py") || !(-e "$root/.git"));
 
 	my $root_path = abs_path($root);
