@@ -33,7 +33,8 @@ def read_spdxdata(repo):
 
     # The subdirectories of LICENSES in the kernel source
     # Note: exceptions needs to be parsed as last directory.
-    license_dirs = [ "preferred", "dual", "deprecated", "exceptions" ]
+    # OpenOCD specific
+    license_dirs = [ "preferred", "stand-alone" ]
     lictree = repo.head.commit.tree['LICENSES']
 
     spdx = SPDXdata()
