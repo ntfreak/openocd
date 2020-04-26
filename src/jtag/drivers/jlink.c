@@ -1324,17 +1324,15 @@ static int config_trace(bool enabled, enum tpiu_pin_protocol pin_protocol,
 	uint32_t min_freq;
 	uint32_t max_freq;
 
+	trace_enabled = enabled;
+
 	if (!jaylink_has_cap(caps, JAYLINK_DEV_CAP_SWO)) {
+		if (!enabled)
+			return ERROR_OK;
+
 		LOG_ERROR("Trace capturing is not supported by the device.");
 		return ERROR_FAIL;
 	}
-
-	if (pin_protocol != TPIU_PIN_PROTOCOL_ASYNC_UART) {
-		LOG_ERROR("Selected pin protocol is not supported.");
-		return ERROR_FAIL;
-	}
-
-	trace_enabled = enabled;
 
 	ret = jaylink_swo_stop(devh);
 
@@ -1352,6 +1350,11 @@ static int config_trace(bool enabled, enum tpiu_pin_protocol pin_protocol,
 			return ERROR_FAIL;
 
 		return ERROR_OK;
+	}
+
+	if (pin_protocol != TPIU_PIN_PROTOCOL_ASYNC_UART) {
+		LOG_ERROR("Selected pin protocol is not supported.");
+		return ERROR_FAIL;
 	}
 
 	buffer_size = calculate_trace_buffer_size();
