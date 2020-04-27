@@ -35,7 +35,7 @@
 
 #include <target/target.h>
 
-static struct hl_interface_s hl_if = { {0, 0, { 0 }, { 0 }, HL_TRANSPORT_UNKNOWN, false, -1}, 0, 0 };
+static struct hl_interface_s hl_if = { {0, 0, { 0 }, { 0 }, HL_TRANSPORT_UNKNOWN, false, -1, false, 7184}, 0, 0 };
 
 int hl_interface_open(enum hl_transports tr)
 {
@@ -321,28 +321,28 @@ static const struct command_registration hl_interface_command_handlers[] = {
 	 .mode = COMMAND_CONFIG,
 	 .help = "set the serial number of the adapter",
 	 .usage = "serial_string",
-	 },
+	},
 	{
 	 .name = "hla_layout",
 	 .handler = &hl_interface_handle_layout_command,
 	 .mode = COMMAND_CONFIG,
 	 .help = "set the layout of the adapter",
 	 .usage = "layout_name",
-	 },
+	},
 	{
 	 .name = "hla_vid_pid",
 	 .handler = &hl_interface_handle_vid_pid_command,
 	 .mode = COMMAND_CONFIG,
 	 .help = "the vendor and product ID of the adapter",
 	 .usage = "(vid pid)* ",
-	 },
-	 {
+	},
+	{
 	 .name = "hla_command",
 	 .handler = &interface_handle_hla_command,
 	 .mode = COMMAND_EXEC,
 	 .help = "execute a custom adapter-specific command",
 	 .usage = "hla_command <command>",
-	 },
+	},
 	COMMAND_REGISTRATION_DONE
 };
 
