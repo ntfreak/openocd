@@ -1303,12 +1303,11 @@ static enum stlink_mode stlink_get_mode(enum hl_transports t)
 }
 
 /** */
-static int stlink_usb_init_mode(void *handle, bool connect_under_reset, int initial_interface_speed)
+static int stlink_usb_exit_mode(void *handle)
 {
 	int res;
 	uint8_t mode;
 	enum stlink_mode emode;
-	struct stlink_usb_handle_s *h = handle;
 
 	assert(handle != NULL);
 
@@ -1337,12 +1336,25 @@ static int stlink_usb_init_mode(void *handle, bool connect_under_reset, int init
 			break;
 	}
 
-	if (emode != STLINK_MODE_UNKNOWN) {
-		res = stlink_usb_mode_leave(handle, emode);
+	if (emode != STLINK_MODE_UNKNOWN)
+		return stlink_usb_mode_leave(handle, emode);
 
-		if (res != ERROR_OK)
-			return res;
-	}
+	return ERROR_OK;
+}
+
+/** */
+static int stlink_usb_init_mode(void *handle, bool connect_under_reset, int initial_interface_speed)
+{
+	int res;
+	uint8_t mode;
+	enum stlink_mode emode;
+	struct stlink_usb_handle_s *h = handle;
+
+	assert(handle != NULL);
+
+	res = stlink_usb_exit_mode(handle);
+	if (res != ERROR_OK)
+		return res;
 
 	res = stlink_usb_current_mode(handle, &mode);
 
@@ -2683,45 +2695,14 @@ static int stlink_speed(void *handle, int khz, bool query)
 /** */
 static int stlink_usb_close(void *handle)
 {
-	int res;
-	uint8_t mode;
-	enum stlink_mode emode;
 	struct stlink_usb_handle_s *h = handle;
 
-	if (h && h->fd)
-		res = stlink_usb_current_mode(handle, &mode);
-	else
-		res = ERROR_FAIL;
-	/* do not exit if return code != ERROR_OK,
-	   it prevents us from closing jtag_libusb */
-
-	if (res == ERROR_OK) {
-		/* try to exit current mode */
-		switch (mode) {
-			case STLINK_DEV_DFU_MODE:
-				emode = STLINK_MODE_DFU;
-				break;
-			case STLINK_DEV_DEBUG_MODE:
-				emode = STLINK_MODE_DEBUG_SWD;
-				break;
-			case STLINK_DEV_SWIM_MODE:
-				emode = STLINK_MODE_DEBUG_SWIM;
-				break;
-			case STLINK_DEV_BOOTLOADER_MODE:
-			case STLINK_DEV_MASS_MODE:
-			default:
-				emode = STLINK_MODE_UNKNOWN;
-				break;
-		}
-
-		if (emode != STLINK_MODE_UNKNOWN)
-			stlink_usb_mode_leave(handle, emode);
-			/* do not check return code, it prevent
-			us from closing jtag_libusb */
-	}
-
-	if (h && h->fd)
+	if (h && h->fd) {
+		stlink_usb_exit_mode(h);
+		/* do not check return code, it prevent
+		us from closing jtag_libusb */
 		jtag_libusb_close(h->fd);
+	}
 
 	free(h);
 
