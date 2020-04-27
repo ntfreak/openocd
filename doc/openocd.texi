@@ -536,24 +536,6 @@ debuggers to ARM Cortex based targets @url{http://www.keil.com/support/man/docs/
 @* Link: @url{http://www.keil.com/ulink1/}
 
 @item @b{TI XDS110 Debug Probe}
-@* The XDS110 is included as the embedded debug probe on many Texas Instruments
-LaunchPad evaluation boards. The XDS110 is also available as a stand-alone USB
-debug probe with the added capability to supply power to the target board. The
-following commands are supported by the XDS110 driver:
-@*@deffn {Config Command} {xds110 serial} serial_string
-Specifies the serial number of which XDS110 probe to use. Otherwise, the first
-XDS110 found will be used.
-@end deffn
-@*@deffn {Config Command} {xds110 supply} voltage_in_millivolts
-Available only on the XDS110 stand-alone probe. Sets the voltage level of the
-XDS110 power supply. A value of 0 leaves the supply off. Otherwise, the supply
-can be set to any value in the range 1800 to 3600 millivolts.
-@end deffn
-@*@deffn {Command} {xds110 info}
-Displays information about the connected XDS110 debug probe (e.g. firmware
-version).
-@end deffn
-@* Further information can be found at the following sites:
 @* Link: @url{https://software-dl.ti.com/ccs/esd/documents/xdsdebugprobes/emu_xds110.html}
 @* Link: @url{https://software-dl.ti.com/ccs/esd/documents/xdsdebugprobes/emu_xds_software_package_download.html#xds110-support-utilities}
 @end itemize
@@ -3139,6 +3121,29 @@ opendous-jtag is a freely programmable USB adapter.
 
 @deffn {Interface Driver} {ulink}
 This is the Keil ULINK v1 JTAG debugger.
+@end deffn
+
+@deffn {Interface Driver} {xds110}
+The XDS110 is included as the embedded debug probe on many Texas Instruments
+LaunchPad evaluation boards. The XDS110 is also available as a stand-alone USB
+debug probe with the added capability to supply power to the target board. The
+following commands are supported by the XDS110 driver:
+
+@deffn {Config Command} {xds110 serial} serial_string
+Specifies the serial number of which XDS110 probe to use. Otherwise, the first
+XDS110 found will be used.
+@end deffn
+
+@deffn {Config Command} {xds110 supply} voltage_in_millivolts
+Available only on the XDS110 stand-alone probe. Sets the voltage level of the
+XDS110 power supply. A value of 0 leaves the supply off. Otherwise, the supply
+can be set to any value in the range 1800 to 3600 millivolts.
+@end deffn
+
+@deffn {Command} {xds110 info}
+Displays information about the connected XDS110 debug probe (e.g. firmware
+version).
+@end deffn
 @end deffn
 
 @deffn {Interface Driver} {xlnx_pcie_xvc}
