@@ -219,6 +219,19 @@ void jtag_libusb_close(struct libusb_device_handle *dev)
 	libusb_exit(jtag_libusb_context);
 }
 
+int jtag_libusb_reset_device(struct libusb_device_handle *dev)
+{
+	int ret;
+
+	ret = libusb_reset_device(dev);
+	if (ret != LIBUSB_SUCCESS) {
+		LOG_ERROR("libusb_reset_device error: %s", libusb_error_name(ret));
+		return jtag_libusb_error(ret);
+	}
+
+	return ERROR_OK;
+}
+
 int jtag_libusb_control_transfer(struct libusb_device_handle *dev, uint8_t requestType,
 		uint8_t request, uint16_t wValue, uint16_t wIndex, char *bytes,
 		uint16_t size, unsigned int timeout)
@@ -232,6 +245,42 @@ int jtag_libusb_control_transfer(struct libusb_device_handle *dev, uint8_t reque
 		transferred = 0;
 
 	return transferred;
+}
+
+int jtag_libusb_interrupt_write(struct libusb_device_handle *dev, int ep, char *bytes,
+				int size, int timeout, int *transferred)
+{
+	int ret;
+
+	*transferred = 0;
+
+	ret = libusb_interrupt_transfer(dev, ep, (unsigned char *)bytes, size,
+					transferred, timeout);
+
+	if (ret != LIBUSB_SUCCESS) {
+		LOG_ERROR("libusb_interrupt_transfer error: %s", libusb_error_name(ret));
+		return jtag_libusb_error(ret);
+	}
+
+	return ERROR_OK;
+}
+
+int jtag_libusb_interrupt_read(struct libusb_device_handle *dev, int ep, char *bytes,
+			       int size, int timeout, int *transferred)
+{
+	int ret;
+
+	*transferred = 0;
+
+	ret = libusb_interrupt_transfer(dev, ep, (unsigned char *)bytes, size,
+					transferred, timeout);
+
+	if (ret != LIBUSB_SUCCESS) {
+		LOG_ERROR("libusb_interrupt_transfer error: %s", libusb_error_name(ret));
+		return jtag_libusb_error(ret);
+	}
+
+	return ERROR_OK;
 }
 
 int jtag_libusb_bulk_write(struct libusb_device_handle *dev, int ep, char *bytes,
@@ -357,6 +406,30 @@ int jtag_libusb_get_pid(struct libusb_device *dev, uint16_t *pid)
 
 		return ERROR_OK;
 	}
+
+	return ERROR_FAIL;
+}
+
+int jtag_libusb_detach_kernel_driver(struct libusb_device_handle *devh, int iface)
+{
+	if (libusb_detach_kernel_driver(devh, iface) == 0)
+		return ERROR_OK;
+
+	return ERROR_FAIL;
+}
+
+int jtag_libusb_claim_interface(struct libusb_device_handle *devh, int iface)
+{
+	if (libusb_claim_interface(devh, iface) == 0)
+		return ERROR_OK;
+
+	return ERROR_FAIL;
+}
+
+int jtag_libusb_release_interface(struct libusb_device_handle *devh, int iface)
+{
+	if (libusb_release_interface(devh, iface) == 0)
+		return ERROR_OK;
 
 	return ERROR_FAIL;
 }
