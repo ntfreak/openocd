@@ -135,6 +135,9 @@ endif
 if HLADAPTER_ICDI
 DRIVERFILES += %D%/ti_icdi_usb.c
 endif
+if HLADAPTER_NULINK
+DRIVERFILES += %D%/nulink_usb.c
+endif
 if RSHIM
 DRIVERFILES += %D%/rshim.c
 endif
