@@ -22,7 +22,7 @@ AH_BOTTOM([
 #include <helper/replacements.h>
 ])
 
-AC_LANG_C
+AC_LANG([C])
 AC_PROG_CC
 AC_PROG_CC_C99
 AM_PROG_CC_C_O
@@ -34,7 +34,7 @@ m4_defun([_LT_AC_LANG_CXX_CONFIG], [:])
 m4_defun([_LT_AC_LANG_F77_CONFIG], [:])
 m4_defun([_LT_AC_LANG_GCJ_CONFIG], [:])
 AC_DISABLE_SHARED
-AC_PROG_LIBTOOL
+LT_INIT
 AC_SUBST([LIBTOOL_DEPS])
 
 dnl configure checks required for Jim files (these are obsolete w/ C99)
