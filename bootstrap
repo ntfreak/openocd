@@ -24,11 +24,11 @@ fi
 # bootstrap the autotools
 (
 set -x
-aclocal
-${libtoolize} --automake --copy
-autoconf
-autoheader
-automake --gnu --add-missing --copy
+aclocal --warnings=all
+${libtoolize} --warnings=all --automake --copy
+autoconf --warnings=all
+autoheader --warnings=all
+automake --warnings=all --gnu --add-missing --copy
 )
 
 if [ -n "$SKIP_SUBMODULE" ]; then
