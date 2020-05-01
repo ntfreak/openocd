@@ -1230,6 +1230,21 @@ static const struct command_registration command_subcommand_handlers[] = {
 
 static const struct command_registration command_builtin_handlers[] = {
 	{
+		.name = "ocd_find",
+		.mode = COMMAND_ANY,
+		.jim_handler = jim_find,
+		.help = "find full path to file",
+		.usage = "file",
+	},
+	{
+		.name = "capture",
+		.mode = COMMAND_ANY,
+		.jim_handler = jim_capture,
+		.help = "Capture progress output and return as tcl return value. If the "
+				"progress output was empty, return tcl return value.",
+		.usage = "command",
+	},
+	{
 		.name = "echo",
 		.handler = jim_echo,
 		.mode = COMMAND_ANY,
@@ -1338,9 +1353,6 @@ struct command_context *command_init(const char *startup_tcl, Jim_Interp *interp
 #endif
 	Jim_SetGlobalVariableStr(interp, "ocd_HOSTOS",
 		Jim_NewStringObj(interp, HostOs, strlen(HostOs)));
-
-	Jim_CreateCommand(interp, "ocd_find", jim_find, NULL, NULL);
-	Jim_CreateCommand(interp, "capture", jim_capture, NULL, NULL);
 
 	register_commands(context, NULL, command_builtin_handlers);
 
