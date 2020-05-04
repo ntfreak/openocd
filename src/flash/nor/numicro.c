@@ -1401,6 +1401,33 @@ COMMAND_HANDLER(numicro_handle_write_isp_command)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(numicro_handle_erase_isp_command)
+{
+	uint32_t address;
+	uint32_t ispdat;
+	int retval = ERROR_OK;
+
+	if (CMD_ARGC != 1)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], address);
+
+	struct target *target = get_current_target(CMD_CTX);
+
+	numicro_get_arm_arch(target);
+	retval = numicro_init_isp(target);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = numicro_fmc_cmd(target, ISPCMD_ERASE, address, 0, &ispdat);
+	if (retval != ERROR_OK)
+		return retval;
+
+	LOG_INFO("0x%08" PRIx32 ": 0x%08" PRIx32, address, ispdat);
+
+	return ERROR_OK;
+}
+
 COMMAND_HANDLER(numicro_handle_chip_erase_command)
 {
 	int retval = ERROR_OK;
@@ -1441,6 +1468,13 @@ static const struct command_registration numicro_exec_command_handlers[] = {
 		.usage = "address value",
 		.mode = COMMAND_EXEC,
 		.help = "write flash through ISP.",
+	},
+	{
+		.name = "erase_isp",
+		.handler = numicro_handle_erase_isp_command,
+		.usage = "address",
+		.mode = COMMAND_EXEC,
+		.help = "erase flash through ISP.",
 	},
 	{
 		.name = "chip_erase",
