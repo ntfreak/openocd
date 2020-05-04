@@ -981,125 +981,6 @@ static uint32_t numicro_fmc_cmd(struct target *target, uint32_t cmd, uint32_t ad
 	return ERROR_OK;
 }
 
-/* NuMicro Program-LongWord Microcodes */
-static const uint8_t numicro_flash_write_code[] = {
-	/* Params:
-	 * r0 - workarea buffer / result
-	 * r1 - target address
-	 * r2 - wordcount
-	 * Clobbered:
-	 * r4 - tmp
-	 * r5 - tmp
-	 * r6 - tmp
-	 * r7 - tmp
-	 */
-
-	/* .L1: */
-	/* for(register uint32_t i=0;i<wcount;i++) */
-	0x04, 0x1C,				/* mov    r4, r0          */
-	0x00, 0x23,				/* mov    r3, #0          */
-	/* .L2: */
-	0x0D, 0x1A,				/* sub    r5, r1, r0      */
-	0x67, 0x19,				/* add    r7, r4, r7      */
-	0x93, 0x42,				/* cmp	  r3, r2		  */
-	0x0C, 0xD0,				/* beq    .L7             */
-	/* .L4: */
-	/* NUMICRO_FLASH_ISPADR = faddr; */
-	0x08, 0x4E,				/* ldr	r6, .L8           */
-	0x37, 0x60,				/* str	r7, [r6]          */
-	/* NUMICRO_FLASH_ISPDAT = *pLW; */
-	0x80, 0xCC,				/* ldmia	r4!, {r7}     */
-	0x08, 0x4D,				/* ldr	r5, .L8+4         */
-	0x2F, 0x60,				/* str	r7, [r5]		  */
-	/* faddr += 4; */
-	/* pLW++; */
-	/*  Trigger write action  */
-	/* NUMICRO_FLASH_ISPTRG = ISPTRG_ISPGO; */
-	0x08, 0x4D,				/* ldr	r5, .L8+8         */
-	0x01, 0x26,				/* mov	r6, #1            */
-	0x2E, 0x60,				/* str	r6, [r5]          */
-	/* .L3: */
-	/* while((NUMICRO_FLASH_ISPTRG & ISPTRG_ISPGO) == ISPTRG_ISPGO){}; */
-	0x2F, 0x68,				/* ldr	r7, [r5]          */
-	0xFF, 0x07,				/* lsl	r7, r7, #31       */
-	0xFC, 0xD4,				/* bmi	.L3               */
-
-	0x01, 0x33,				/* add	r3, r3, #1        */
-	0xEE, 0xE7,				/* b	.L2               */
-	/* .L7: */
-	/* return (NUMICRO_FLASH_ISPCON & ISPCON_ISPFF); */
-	0x05, 0x4B,				/* ldr	r3, .L8+12        */
-	0x18, 0x68,				/* ldr	r0, [r3]          */
-	0x40, 0x21,				/* mov	r1, #64           */
-	0x08, 0x40,				/* and	r0, r1            */
-	/* .L9: */
-	0x00, 0xBE,				/* bkpt    #0             */
-	/* .L8: */
-	0x04, 0xC0, 0x00, 0x50,/* .word	1342226436    */
-	0x08, 0xC0, 0x00, 0x50,/* .word	1342226440    */
-	0x10, 0xC0, 0x00, 0x50,/* .word	1342226448    */
-	0x00, 0xC0, 0x00, 0x50 /* .word	1342226432    */
-};
-
-static const uint8_t numicro_M4_flash_write_code[] = {
-	/* Params:
-	* r0 - workarea buffer / result
-	* r1 - target address
-	* r2 - wordcount
-	* Clobbered:
-	* r4 - tmp
-	* r5 - tmp
-	* r6 - tmp
-	* r7 - tmp
-	*/
-
-	/* .L1: */
-	/* for(register uint32_t i=0;i<wcount;i++) */
-	0x04, 0x1C,				/* mov    r4, r0          */
-	0x00, 0x23,				/* mov    r3, #0          */
-	/* .L2: */
-	0x0D, 0x1A,				/* sub    r5, r1, r0      */
-	0x67, 0x19,				/* add    r7, r4, r7      */
-	0x93, 0x42,				/* cmp	  r3, r2		  */
-	0x0C, 0xD0,				/* beq    .L7             */
-	/* .L4: */
-	/* NUMICRO_FLASH_ISPADR = faddr; */
-	0x08, 0x4E,				/* ldr	r6, .L8           */
-	0x37, 0x60,				/* str	r7, [r6]          */
-	/* NUMICRO_FLASH_ISPDAT = *pLW; */
-	0x80, 0xCC,				/* ldmia	r4!, {r7}     */
-	0x08, 0x4D,				/* ldr	r5, .L8+4         */
-	0x2F, 0x60,				/* str	r7, [r5]		  */
-	/* faddr += 4; */
-	/* pLW++; */
-	/*  Trigger write action  */
-	/* NUMICRO_FLASH_ISPTRG = ISPTRG_ISPGO; */
-	0x08, 0x4D,				/* ldr	r5, .L8+8         */
-	0x01, 0x26,				/* mov	r6, #1            */
-	0x2E, 0x60,				/* str	r6, [r5]          */
-	/* .L3: */
-	/* while((NUMICRO_FLASH_ISPTRG & ISPTRG_ISPGO) == ISPTRG_ISPGO){}; */
-	0x2F, 0x68,				/* ldr	r7, [r5]          */
-	0xFF, 0x07,				/* lsl	r7, r7, #31       */
-	0xFC, 0xD4,				/* bmi	.L3               */
-
-	0x01, 0x33,				/* add	r3, r3, #1        */
-	0xEE, 0xE7,				/* b	.L2               */
-	/* .L7: */
-	/* return (NUMICRO_FLASH_ISPCON & ISPCON_ISPFF); */
-	0x05, 0x4B,				/* ldr	r3, .L8+12        */
-	0x18, 0x68,				/* ldr	r0, [r3]          */
-	0x40, 0x21,				/* mov	r1, #64           */
-	0x08, 0x40,				/* and	r0, r1            */
-	/* .L9: */
-	0x00, 0xBE,				/* bkpt    #0             */
-	/* .L8: */
-	0x04, 0xC0, 0x00, 0x40,/* .word	0x4000C004    */
-	0x08, 0xC0, 0x00, 0x40,/* .word	0x4000C008    */
-	0x10, 0xC0, 0x00, 0x40,/* .word	0x4000C010    */
-	0x00, 0xC0, 0x00, 0x40 /* .word	0x4000C000    */
-};
-
 /* Program LongWord Block Write */
 static int numicro_writeblock(struct flash_bank *bank, const uint8_t *buffer,
 		uint32_t offset, uint32_t count)
@@ -1112,6 +993,14 @@ static int numicro_writeblock(struct flash_bank *bank, const uint8_t *buffer,
 	struct reg_param reg_params[3];
 	struct armv7m_algorithm armv7m_info;
 	int retval = ERROR_OK;
+
+	static const uint8_t numicro_flash_write_code[] = {
+#include "../../../contrib/loaders/flash/numicro/numicro_m0.inc"
+	};
+
+	static const uint8_t numicro_M4_flash_write_code[] = {
+#include "../../../contrib/loaders/flash/numicro/numicro_m4.inc"
+	};
 
 	/* Params:
 	 * r0 - workarea buffer / result
