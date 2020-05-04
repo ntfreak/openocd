@@ -653,7 +653,7 @@ static int sh_qspi_read(struct flash_bank *bank, uint8_t *buffer,
 	destroy_reg_param(&reg_params[2]);
 	destroy_reg_param(&reg_params[3]);
 
-	return ERROR_OK;
+	return ret;
 }
 
 /* Return ID of flash device */
