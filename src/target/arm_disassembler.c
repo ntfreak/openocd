@@ -2086,7 +2086,7 @@ static int evaluate_b_bl_blx_thumb(uint16_t opcode,
 			break;
 		/* BL/BLX prefix */
 		case 2:
-			instruction->type = ARM_UNKNOWN_INSTUCTION;
+			instruction->type = ARM_UNKNOWN_INSTRUCTION;
 			mnemonic = "prefix";
 			target_address = offset << 12;
 			break;

@@ -20,7 +20,7 @@
 #define OPENOCD_TARGET_ARM_DISASSEMBLER_H
 
 enum arm_instruction_type {
-	ARM_UNKNOWN_INSTUCTION,
+	ARM_UNKNOWN_INSTRUCTION,
 
 	/* Branch instructions */
 	ARM_B,
