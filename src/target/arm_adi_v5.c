@@ -1610,8 +1610,10 @@ COMMAND_HANDLER(handle_dap_info_command)
 		break;
 	case 1:
 		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], apsel);
-		if (apsel > DP_APSEL_MAX)
-			return ERROR_COMMAND_SYNTAX_ERROR;
+		if (apsel > DP_APSEL_MAX) {
+			LOG_ERROR("Invalid AP number");
+			return ERROR_COMMAND_ARGUMENT_INVALID;
+		}
 		break;
 	default:
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -1633,8 +1635,10 @@ COMMAND_HANDLER(dap_baseaddr_command)
 	case 1:
 		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], apsel);
 		/* AP address is in bits 31:24 of DP_SELECT */
-		if (apsel > DP_APSEL_MAX)
-			return ERROR_COMMAND_SYNTAX_ERROR;
+		if (apsel > DP_APSEL_MAX) {
+			LOG_ERROR("Invalid AP number");
+			return ERROR_COMMAND_ARGUMENT_INVALID;
+		}
 		break;
 	default:
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -1692,8 +1696,10 @@ COMMAND_HANDLER(dap_apsel_command)
 	case 1:
 		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], apsel);
 		/* AP address is in bits 31:24 of DP_SELECT */
-		if (apsel > DP_APSEL_MAX)
-			return ERROR_COMMAND_SYNTAX_ERROR;
+		if (apsel > DP_APSEL_MAX) {
+			LOG_ERROR("Invalid AP number");
+			return ERROR_COMMAND_ARGUMENT_INVALID;
+		}
 		break;
 	default:
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -1722,7 +1728,7 @@ COMMAND_HANDLER(dap_apcsw_command)
 
 		if (csw_val & (CSW_SIZE_MASK | CSW_ADDRINC_MASK)) {
 			LOG_ERROR("CSW value cannot include 'Size' and 'AddrInc' bit-fields");
-			return ERROR_COMMAND_SYNTAX_ERROR;
+			return ERROR_COMMAND_ARGUMENT_INVALID;
 		}
 		apcsw = csw_val;
 		break;
@@ -1731,7 +1737,7 @@ COMMAND_HANDLER(dap_apcsw_command)
 		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[1], csw_mask);
 		if (csw_mask & (CSW_SIZE_MASK | CSW_ADDRINC_MASK)) {
 			LOG_ERROR("CSW mask cannot include 'Size' and 'AddrInc' bit-fields");
-			return ERROR_COMMAND_SYNTAX_ERROR;
+			return ERROR_COMMAND_ARGUMENT_INVALID;
 		}
 		apcsw = (apcsw & ~csw_mask) | (csw_val & csw_mask);
 		break;
@@ -1758,8 +1764,10 @@ COMMAND_HANDLER(dap_apid_command)
 	case 1:
 		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], apsel);
 		/* AP address is in bits 31:24 of DP_SELECT */
-		if (apsel > DP_APSEL_MAX)
-			return ERROR_COMMAND_SYNTAX_ERROR;
+		if (apsel > DP_APSEL_MAX) {
+			LOG_ERROR("Invalid AP number");
+			return ERROR_COMMAND_ARGUMENT_INVALID;
+		}
 		break;
 	default:
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -1789,13 +1797,18 @@ COMMAND_HANDLER(dap_apreg_command)
 
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], apsel);
 	/* AP address is in bits 31:24 of DP_SELECT */
-	if (apsel > DP_APSEL_MAX)
-		return ERROR_COMMAND_SYNTAX_ERROR;
+	if (apsel > DP_APSEL_MAX) {
+		LOG_ERROR("Invalid AP number");
+		return ERROR_COMMAND_ARGUMENT_INVALID;
+	}
+
 	ap = dap_ap(dap, apsel);
 
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[1], reg);
-	if (reg >= 256 || (reg & 3))
-		return ERROR_COMMAND_SYNTAX_ERROR;
+	if (reg >= 256 || (reg & 3)) {
+		LOG_ERROR("Invalid reg value (should be less than 256 and 4 bytes aligned)");
+		return ERROR_COMMAND_ARGUMENT_INVALID;
+	}
 
 	if (CMD_ARGC == 3) {
 		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[2], value);
@@ -1839,8 +1852,10 @@ COMMAND_HANDLER(dap_dpreg_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], reg);
-	if (reg >= 256 || (reg & 3))
-		return ERROR_COMMAND_SYNTAX_ERROR;
+	if (reg >= 256 || (reg & 3)) {
+		LOG_ERROR("Invalid reg value (should be less than 256 and 4 bytes aligned)");
+		return ERROR_COMMAND_ARGUMENT_INVALID;
+	}
 
 	if (CMD_ARGC == 2) {
 		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[1], value);
@@ -1871,7 +1886,7 @@ COMMAND_HANDLER(dap_ti_be_32_quirks_command)
 	case 1:
 		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], enable);
 		if (enable > 1)
-			return ERROR_COMMAND_SYNTAX_ERROR;
+			return ERROR_COMMAND_ARGUMENT_INVALID;
 		break;
 	default:
 		return ERROR_COMMAND_SYNTAX_ERROR;
