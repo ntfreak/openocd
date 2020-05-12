@@ -3025,12 +3025,8 @@ int stlink_config_trace(void *handle, bool enabled,
 		return ERROR_FAIL;
 	}
 
-	if (!enabled) {
-		stlink_usb_trace_disable(h);
-		return ERROR_OK;
-	}
-
-	if (*trace_freq > STLINK_TRACE_MAX_HZ) {
+	/* Only concern ourselves with the frequency if the STlink is processing it. */
+	if (enabled && *trace_freq > STLINK_TRACE_MAX_HZ) {
 		LOG_ERROR("ST-LINK doesn't support SWO frequency higher than %u",
 			  STLINK_TRACE_MAX_HZ);
 		return ERROR_FAIL;
@@ -3053,6 +3049,11 @@ int stlink_config_trace(void *handle, bool enabled,
 	}
 
 	*prescaler = presc;
+
+	if (!enabled) {
+		return ERROR_OK;
+	}
+
 	h->trace.source_hz = *trace_freq;
 
 	return stlink_usb_trace_enable(h);
