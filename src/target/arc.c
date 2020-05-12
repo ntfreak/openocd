@@ -1445,7 +1445,7 @@ static int arc_unset_breakpoint(struct target *target,
 			} else {
 				LOG_WARNING("Software breakpoint @0x%" TARGET_PRIxADDR
 					" has been overwritten outside of debugger. "
-					"Expected: 0x%04" PRIx16 ", got: 0x%04" PRIx16,
+					"Expected: 0x%04x, got: 0x%04" PRIx16,
 					breakpoint->address, ARC_SDBBP_16, current_instr);
 			}
 		} else {
