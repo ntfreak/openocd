@@ -131,26 +131,6 @@ COMMAND_HANDLER(default_handle_smp_command)
 	return ERROR_COMMAND_SYNTAX_ERROR;
 }
 
-COMMAND_HANDLER(deprecated_handle_smp_on_command)
-{
-	const char *argv[] = {"on", NULL};
-
-	LOG_WARNING("\'smp_on\' is deprecated, please use \'smp on\' instead.");
-	CMD_ARGC = 1;
-	CMD_ARGV = argv;
-	return CALL_COMMAND_HANDLER(default_handle_smp_command);
-}
-
-COMMAND_HANDLER(deprecated_handle_smp_off_command)
-{
-	const char *argv[] = {"off", NULL};
-
-	LOG_WARNING("\'smp_off\' is deprecated, please use \'smp off\' instead.");
-	CMD_ARGC = 1;
-	CMD_ARGV = argv;
-	return CALL_COMMAND_HANDLER(default_handle_smp_command);
-}
-
 COMMAND_HANDLER(handle_smp_gdb_command)
 {
 	struct target *target = get_current_target(CMD_CTX);
@@ -179,20 +159,6 @@ const struct command_registration smp_command_handlers[] = {
 		.mode = COMMAND_EXEC,
 		.help = "smp handling",
 		.usage = "[on|off]",
-	},
-	{
-		.name = "smp_on",
-		.handler = deprecated_handle_smp_on_command,
-		.mode = COMMAND_EXEC,
-		.help = "Restart smp handling",
-		.usage = "",
-	},
-	{
-		.name = "smp_off",
-		.handler = deprecated_handle_smp_off_command,
-		.mode = COMMAND_EXEC,
-		.help = "Stop smp handling",
-		.usage = "",
 	},
 	{
 		.name = "smp_gdb",
