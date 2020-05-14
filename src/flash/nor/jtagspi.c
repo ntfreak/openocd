@@ -228,13 +228,17 @@ static int jtagspi_probe(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static void jtagspi_read_status(struct flash_bank *bank, uint32_t *status)
+static int jtagspi_read_status(struct flash_bank *bank, uint32_t *status)
 {
 	uint8_t buf;
-	if (jtagspi_cmd(bank, SPIFLASH_READ_STATUS, NULL, &buf, -8) == ERROR_OK) {
-		*status = buf;
-		/* LOG_DEBUG("status=0x%08" PRIx32, *status); */
-	}
+	int retval;
+
+	retval = jtagspi_cmd(bank, SPIFLASH_READ_STATUS, NULL, &buf, -8);
+	if (retval != ERROR_OK)
+		return retval;
+
+	*status = buf;
+	return ERROR_OK;
 }
 
 static int jtagspi_wait(struct flash_bank *bank, int timeout_ms)
@@ -242,10 +246,13 @@ static int jtagspi_wait(struct flash_bank *bank, int timeout_ms)
 	uint32_t status;
 	int64_t t0 = timeval_ms();
 	int64_t dt;
+	int retval;
 
 	do {
 		dt = timeval_ms() - t0;
-		jtagspi_read_status(bank, &status);
+		retval = jtagspi_read_status(bank, &status);
+		if (retval != ERROR_OK)
+			return retval;
 		if ((status & SPIFLASH_BSY_BIT) == 0) {
 			LOG_DEBUG("waited %" PRId64 " ms", dt);
 			return ERROR_OK;
@@ -260,9 +267,12 @@ static int jtagspi_wait(struct flash_bank *bank, int timeout_ms)
 static int jtagspi_write_enable(struct flash_bank *bank)
 {
 	uint32_t status;
+	int retval;
 
 	jtagspi_cmd(bank, SPIFLASH_WRITE_ENABLE, NULL, NULL, 0);
-	jtagspi_read_status(bank, &status);
+	retval = jtagspi_read_status(bank, &status);
+	if (retval != ERROR_OK)
+		return retval;
 	if ((status & SPIFLASH_WE_BIT) == 0) {
 		LOG_ERROR("Cannot enable write to flash. Status=0x%08" PRIx32, status);
 		return ERROR_FAIL;
