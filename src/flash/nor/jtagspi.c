@@ -239,7 +239,7 @@ static void jtagspi_read_status(struct flash_bank *bank, uint32_t *status)
 
 static int jtagspi_wait(struct flash_bank *bank, int timeout_ms)
 {
-	uint32_t status;
+	uint32_t status = 0;
 	int64_t t0 = timeval_ms();
 	int64_t dt;
 
@@ -259,7 +259,7 @@ static int jtagspi_wait(struct flash_bank *bank, int timeout_ms)
 
 static int jtagspi_write_enable(struct flash_bank *bank)
 {
-	uint32_t status;
+	uint32_t status = 0;
 
 	jtagspi_cmd(bank, SPIFLASH_WRITE_ENABLE, NULL, NULL, 0);
 	jtagspi_read_status(bank, &status);
