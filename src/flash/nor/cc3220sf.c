@@ -363,6 +363,8 @@ static int cc3220sf_write(struct flash_bank *bank, const uint8_t *buffer,
 			LOG_ERROR("cc3220sf: Flash operation failed");
 			break;
 		}
+
+		keep_alive();
 	}
 
 	/* Do one word write for any final bytes less than a full word */
