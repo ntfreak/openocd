@@ -180,6 +180,8 @@ COMMAND_HANDLER(handle_reset_config_command)
 			tmp = RESET_HAS_SRST;
 		else if (strcmp(*CMD_ARGV, "trst_and_srst") == 0)
 			tmp = RESET_HAS_TRST | RESET_HAS_SRST;
+		else if (strcmp(*CMD_ARGV, "srst_once") == 0)
+			tmp = RESET_HAS_SRST | RESET_SRST_ONCE;
 		else
 			m = 0;
 		if (mask & m) {

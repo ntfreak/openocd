@@ -1153,10 +1153,10 @@ static int cortex_m_assert_reset(struct target *target)
 
 	if (jtag_reset_config & RESET_HAS_SRST) {
 		/* default to asserting srst */
-		if (!srst_asserted)
+		if (!srst_asserted && !(jtag_reset_config & RESET_SRST_ONCE))
 			adapter_assert_reset();
 
-		/* srst is asserted, ignore AP access errors */
+		/* if srst is asserted, ignore AP access errors */
 		retval = ERROR_OK;
 	} else {
 		/* Use a standard Cortex-M3 software reset mechanism.
