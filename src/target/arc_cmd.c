@@ -909,10 +909,60 @@ static int jim_arc_get_reg_field(Jim_Interp *interp, int argc, Jim_Obj * const *
 	return JIM_OK;
 }
 
+COMMAND_HANDLER(arc_l1_cache_disable_auto_cmd)
+{
+	bool value;
+	int retval = 0;
+	struct arc_common *arc = target_to_arc(get_current_target(CMD_CTX));
+	retval = CALL_COMMAND_HANDLER(handle_command_parse_bool,
+		&value, "target has caches enabled");
+	arc->has_l2cache = value;
+	arc->has_dcache = value;
+	arc->has_icache = value;
+	return retval;
+}
+
+COMMAND_HANDLER(arc_l2_cache_disable_auto_cmd)
+{
+	struct arc_common *arc = target_to_arc(get_current_target(CMD_CTX));
+	return CALL_COMMAND_HANDLER(handle_command_parse_bool,
+		&arc->has_l2cache, "target has l2 cache enabled");
+}
+
 /* ----- Exported target commands ------------------------------------------ */
 
+const struct command_registration arc_l2_cache_group_handlers[] = {
+	{
+		.name = "auto",
+		.handler = arc_l2_cache_disable_auto_cmd,
+		.mode = COMMAND_ANY,
+		.usage = "(1|0)",
+		.help = "Disable or enable L2",
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
+const struct command_registration arc_cache_group_handlers[] = {
+	{
+		.name = "auto",
+		.handler = arc_l1_cache_disable_auto_cmd,
+		.mode = COMMAND_ANY,
+		.help = "Disable or enable L1",
+		.usage = "(1|0)",
+	},
+	{
+		.name = "l2",
+		.mode = COMMAND_ANY,
+		.help = "L2 cache command group",
+		.usage = "",
+		.chain = arc_l2_cache_group_handlers,
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
+
 static const struct command_registration arc_core_command_handlers[] = {
-{
+	{
 		.name = "add-reg-type-flags",
 		.jim_handler = jim_arc_add_reg_type_flags,
 		.mode = COMMAND_CONFIG,
@@ -966,6 +1016,13 @@ static const struct command_registration arc_core_command_handlers[] = {
 		.help = "ARC JTAG specific commands",
 		.usage = "",
 		.chain = arc_jtag_command_group,
+	},
+	{
+		.name = "cache",
+		.mode = COMMAND_ANY,
+		.help = "cache command group",
+		.usage = "",
+		.chain = arc_cache_group_handlers,
 	},
 	COMMAND_REGISTRATION_DONE
 };

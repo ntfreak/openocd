@@ -60,6 +60,24 @@
 /* ARC 16bits opcodes */
 #define ARC_SDBBP_16 0x7FFF      /* BRK_S */
 
+/* Cache registers */
+#define AUX_IC_IVIC_REG			0X10
+#define IC_IVIC_INVALIDATE		0XFFFFFFFF
+
+#define AUX_DC_IVDC_REG			0X47
+#define DC_IVDC_INVALIDATE		BIT(0)
+#define AUX_DC_CTRL_REG			0X48
+#define DC_CTRL_IM			BIT(6)
+
+/* L2 cache registers */
+#define SLC_AUX_CACHE_CTRL		0x903
+#define L2_CTRL_IM			BIT(6)
+#define L2_CTRL_BS			BIT(8)		/* Busy flag */
+#define SLC_AUX_CACHE_FLUSH		0x904
+#define L2_FLUSH_FL			BIT(0)
+#define SLC_AUX_CACHE_INV		0x905
+#define L2_INV_IV			BIT(0)
+
 struct arc_reg_bitfield {
 	struct reg_data_type_bitfield bitfield;
 	char name[REG_TYPE_MAX_NAME_LENGTH];
@@ -108,6 +126,22 @@ struct arc_common {
 
 	struct reg_cache *core_and_aux_cache;
 	struct reg_cache *bcr_cache;
+
+	/* Cache control */
+	bool has_dcache;
+	bool has_icache;
+	bool has_l2cache;
+	/* If true, then D$ has been already flushed since core has been
+	 * halted. */
+	bool dcache_flushed;
+	/* If true, then L2 has been already flushed since core has been
+	 * halted. */
+	bool l2cache_flushed;
+	/* If true, then caches have been already flushed since core has been
+	 * halted. */
+	bool icache_invalidated;
+	bool dcache_invalidated;
+	bool l2cache_invalidated;
 
 	/* Indicate if cach was built (for deinit function) */
 	bool core_aux_cache_built;
@@ -246,5 +280,8 @@ struct reg *arc_reg_get_by_name(struct reg_cache *first,
 
 int arc_reg_get_field(struct target *target, const char *reg_name,
 		const char *field_name, uint32_t *value_ptr);
+
+int arc_cache_flush(struct target *target);
+int arc_cache_invalidate(struct target *target);
 
 #endif /* OPENOCD_TARGET_ARC_H */
