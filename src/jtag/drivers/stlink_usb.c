@@ -319,6 +319,7 @@ enum stlink_mode {
 #define STLINK_F_HAS_AP_INIT            BIT(7)
 #define STLINK_F_HAS_DPBANKSEL          BIT(8)
 #define STLINK_F_HAS_RW8_512BYTES       BIT(9)
+#define STLINK_F_FIX_CLOSE_AP           BIT(10)
 
 /* aliases */
 #define STLINK_F_HAS_TARGET_VOLT        STLINK_F_HAS_TRACE
@@ -1030,6 +1031,10 @@ static int stlink_usb_version(void *handle)
 		if (h->version.jtag >= 28)
 			flags |= STLINK_F_HAS_AP_INIT;
 
+		/* API required to return proper error code on close AP from J29 */
+		if (h->version.jtag >= 29)
+			flags |= STLINK_F_FIX_CLOSE_AP;
+
 		/* Banked regs (DPv1 & DPv2) support from V2J32 */
 		if (h->version.jtag >= 32)
 			flags |= STLINK_F_HAS_DPBANKSEL;
@@ -1056,6 +1061,9 @@ static int stlink_usb_version(void *handle)
 
 		/* API required to init AP before any AP access */
 		flags |= STLINK_F_HAS_AP_INIT;
+
+		/* API required to return proper error code on close AP */
+		flags |= STLINK_F_FIX_CLOSE_AP;
 
 		/* Banked regs (DPv1 & DPv2) support from V3J2 */
 		if (h->version.jtag >= 2)
@@ -3093,7 +3101,12 @@ static int stlink_usb_close_access_port(void *handle, unsigned char ap_num)
 	h->cmdbuf[h->cmdidx++] = STLINK_DEBUG_APIV2_CLOSE_AP_DBG;
 	h->cmdbuf[h->cmdidx++] = ap_num;
 
-	return stlink_usb_xfer_errcheck(handle, h->databuf, 2);
+	/* ignore incorrectly returned error on bogus FW */
+	if (h->version.flags & STLINK_F_FIX_CLOSE_AP)
+		return stlink_usb_xfer_errcheck(handle, h->databuf, 2);
+	else
+		return stlink_usb_xfer_noerrcheck(handle, h->databuf, 2);
+
 }
 
 /** */
