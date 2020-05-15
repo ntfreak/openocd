@@ -909,6 +909,13 @@ static int jim_arc_get_reg_field(Jim_Interp *interp, int argc, Jim_Obj * const *
 	return JIM_OK;
 }
 
+COMMAND_HANDLER(arc_handle_has_l2cache)
+{
+	struct arc_common *arc = target_to_arc(get_current_target(CMD_CTX));
+	return CALL_COMMAND_HANDLER(handle_command_parse_bool,
+		&arc->has_l2cache, "target has l2 cache");
+}
+
 /* ----- Exported target commands ------------------------------------------ */
 
 static const struct command_registration arc_core_command_handlers[] = {
@@ -966,6 +973,13 @@ static const struct command_registration arc_core_command_handlers[] = {
 		.help = "ARC JTAG specific commands",
 		.usage = "",
 		.chain = arc_jtag_command_group,
+	},
+	{
+		.name = "has-l2cache",
+		.handler = arc_handle_has_l2cache,
+		.mode = COMMAND_ANY,
+		.usage = "[true|false]",
+		.help = "Does target have L2$? If yes it will be flushed before memory reading."
 	},
 	COMMAND_REGISTRATION_DONE
 };

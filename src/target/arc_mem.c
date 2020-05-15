@@ -41,9 +41,17 @@ static int arc_mem_write_block32(struct target *target, uint32_t addr,
 	/* Check arguments */
 	assert(!(addr & 3));
 
+	/* We need to flush the cache since it might contain dirty
+	 * lines, so the cache invalidation may cause data inconsistency. */
+	CHECK_RETVAL(arc_cache_flush(target));
+
+
 	/* No need to flush cache, because we don't read values from memory. */
 	CHECK_RETVAL(arc_jtag_write_memory(&arc->jtag_info, addr, count,
 				(uint32_t *)buf));
+
+	/* Invalidate caches. */
+	CHECK_RETVAL(arc_cache_invalidate(target));
 
 	return ERROR_OK;
 }
@@ -63,6 +71,9 @@ static int arc_mem_write_block16(struct target *target, uint32_t addr,
 
 	/* Check arguments */
 	assert(!(addr & 1));
+
+	/* We will read data from memory, so we need to flush the cache. */
+	CHECK_RETVAL(arc_cache_flush(target));
 
 	/* non-word writes are less common, than 4-byte writes, so I suppose we can
 	 * allowe ourselves to write this in a cycle, instead of calling arc_jtag
@@ -97,6 +108,9 @@ static int arc_mem_write_block16(struct target *target, uint32_t addr,
 			(addr + i * sizeof(uint16_t)) & ~3u, 1, &buffer_he));
 	}
 
+	/* Invalidate caches. */
+	CHECK_RETVAL(arc_cache_invalidate(target));
+
 	return ERROR_OK;
 }
 
@@ -113,6 +127,9 @@ static int arc_mem_write_block8(struct target *target, uint32_t addr,
 	LOG_DEBUG("Write 1-byte memory block: addr=0x%08" PRIx32 ", count=%" PRIu32,
 			addr, count);
 
+	/* We will read data from memory, so we need to flush the cache. */
+	CHECK_RETVAL(arc_cache_flush(target));
+
 	/* non-word writes are less common, than 4-byte writes, so I suppose we can
 	 * allowe ourselves to write this in a cycle, instead of calling arc_jtag
 	 * with count > 1. */
@@ -127,6 +144,9 @@ static int arc_mem_write_block8(struct target *target, uint32_t addr,
 		buffer_he = target_buffer_get_u32(target, buffer_te);
 		CHECK_RETVAL(arc_jtag_write_memory(&arc->jtag_info, (addr + i) & ~3, 1, &buffer_he));
 	}
+
+	/* Invalidate caches. */
+	CHECK_RETVAL(arc_cache_invalidate(target));
 
 	return ERROR_OK;
 }
@@ -204,6 +224,9 @@ static int arc_mem_read_block(struct target *target, target_addr_t addr,
 			", count=%" PRIu32, addr, size, count);
 	assert(!(addr & 3));
 	assert(size == 4);
+
+	/* Flush cache before memory access */
+	CHECK_RETVAL(arc_cache_flush(target));
 
 	CHECK_RETVAL(arc_jtag_read_memory(&arc->jtag_info, addr, count, buf,
 		    arc_mem_is_slow_memory(arc, addr, size, count)));
