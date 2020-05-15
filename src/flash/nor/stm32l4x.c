@@ -1238,7 +1238,7 @@ COMMAND_HANDLER(stm32l4_handle_option_write_command)
 
 COMMAND_HANDLER(stm32l4_handle_option_load_command)
 {
-	if (CMD_ARGC < 1)
+	if (CMD_ARGC != 1)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	struct flash_bank *bank;
