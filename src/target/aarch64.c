@@ -1029,16 +1029,17 @@ static int aarch64_post_debug_entry(struct target *target)
 		instr = ARMV8_MRS(SYSTEM_SCTLR_EL3, 0);
 		break;
 
-	case ARM_MODE_SVC:
-	case ARM_MODE_ABT:
 	case ARM_MODE_FIQ:
 	case ARM_MODE_IRQ:
+	case ARM_MODE_SVC:
+	case ARM_MODE_ABT:
+	case ARM_MODE_HYP:
 	case ARM_MODE_SYS:
 		instr = ARMV4_5_MRC(15, 0, 0, 1, 0, 0);
 		break;
 
 	default:
-		LOG_INFO("cannot read system control register in this mode");
+		LOG_ERROR("cannot read system control register in this mode");
 		return ERROR_FAIL;
 	}
 
