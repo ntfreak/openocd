@@ -153,12 +153,12 @@ static int jtagspi_cmd(struct flash_bank *bank, uint8_t cmd,
 	jtagspi_set_ir(bank);
 	/* passing from an IR scan to SHIFT-DR clears BYPASS registers */
 	jtag_add_dr_scan(info->tap, n, fields, TAP_IDLE);
-	jtag_execute_queue();
+	int retval = jtag_execute_queue();
 
 	if (is_read)
 		flip_u8(data_buf, data, lenb);
 	free(data_buf);
-	return ERROR_OK;
+	return retval;
 }
 
 static int jtagspi_probe(struct flash_bank *bank)
