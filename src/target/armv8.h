@@ -330,6 +330,7 @@ static inline unsigned int armv8_curel_from_core_mode(enum arm_mode core_mode)
 	}
 }
 
+const char *armv8_mode_name(unsigned psr_mode);
 void armv8_select_reg_access(struct armv8_common *armv8, bool is_aarch64);
 int armv8_set_dbgreg_bits(struct armv8_common *armv8, unsigned int reg, unsigned long mask, unsigned long value);
 

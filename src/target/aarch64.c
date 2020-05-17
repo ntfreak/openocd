@@ -99,12 +99,14 @@ static int aarch64_restore_system_control_reg(struct target *target)
 		case ARM_MODE_ABT:
 		case ARM_MODE_FIQ:
 		case ARM_MODE_IRQ:
+		case ARM_MODE_HYP:
 		case ARM_MODE_SYS:
 			instr = ARMV4_5_MCR(15, 0, 0, 1, 0, 0);
 			break;
 
 		default:
-			LOG_INFO("cannot read system control register in this mode");
+			LOG_ERROR("cannot read system control register in this mode: (%s : 0x%" PRIx32 ")",
+					armv8_mode_name(armv8->arm.core_mode), armv8->arm.core_mode);
 			return ERROR_FAIL;
 		}
 
@@ -172,6 +174,7 @@ static int aarch64_mmu_modify(struct target *target, int enable)
 	case ARM_MODE_ABT:
 	case ARM_MODE_FIQ:
 	case ARM_MODE_IRQ:
+	case ARM_MODE_HYP:
 	case ARM_MODE_SYS:
 		instr = ARMV4_5_MCR(15, 0, 0, 1, 0, 0);
 		break;
@@ -1033,12 +1036,14 @@ static int aarch64_post_debug_entry(struct target *target)
 	case ARM_MODE_ABT:
 	case ARM_MODE_FIQ:
 	case ARM_MODE_IRQ:
+	case ARM_MODE_HYP:
 	case ARM_MODE_SYS:
 		instr = ARMV4_5_MRC(15, 0, 0, 1, 0, 0);
 		break;
 
 	default:
-		LOG_INFO("cannot read system control register in this mode");
+		LOG_ERROR("cannot read system control register in this mode: (%s : 0x%" PRIx32 ")",
+				armv8_mode_name(armv8->arm.core_mode), armv8->arm.core_mode);
 		return ERROR_FAIL;
 	}
 
