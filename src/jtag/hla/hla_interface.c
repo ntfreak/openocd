@@ -35,7 +35,7 @@
 
 #include <target/target.h>
 
-static struct hl_interface_s hl_if = { {0, 0, { 0 }, { 0 }, HL_TRANSPORT_UNKNOWN, false, -1}, 0, 0 };
+static struct hl_interface_s hl_if = { {0, 0, { 0 }, { 0 }, HL_TRANSPORT_UNKNOWN, false, -1, false, 7184}, 0, 0 };
 
 int hl_interface_open(enum hl_transports tr)
 {
@@ -292,6 +292,28 @@ COMMAND_HANDLER(hl_interface_handle_vid_pid_command)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(hl_interface_handle_stlink_interface_command)
+{
+	/* default values */
+	bool use_stlink_server = false;
+	uint16_t stlink_server_port = 7184;
+
+	if (CMD_ARGC == 0 || CMD_ARGC > 2)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	else if (strcmp(CMD_ARGV[0], "usb") == 0 && CMD_ARGC > 1)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	else if (strcmp(CMD_ARGV[0], "server") == 0) {
+		use_stlink_server = true;
+		if (CMD_ARGC == 2)
+			COMMAND_PARSE_NUMBER(u16, CMD_ARGV[1], stlink_server_port);
+	}
+
+	hl_if.param.use_stlink_server = use_stlink_server;
+	hl_if.param.stlink_server_port = stlink_server_port;
+
+	return ERROR_OK;
+}
+
 COMMAND_HANDLER(interface_handle_hla_command)
 {
 	if (CMD_ARGC != 1)
@@ -321,28 +343,35 @@ static const struct command_registration hl_interface_command_handlers[] = {
 	 .mode = COMMAND_CONFIG,
 	 .help = "set the serial number of the adapter",
 	 .usage = "serial_string",
-	 },
+	},
 	{
 	 .name = "hla_layout",
 	 .handler = &hl_interface_handle_layout_command,
 	 .mode = COMMAND_CONFIG,
 	 .help = "set the layout of the adapter",
 	 .usage = "layout_name",
-	 },
+	},
 	{
 	 .name = "hla_vid_pid",
 	 .handler = &hl_interface_handle_vid_pid_command,
 	 .mode = COMMAND_CONFIG,
 	 .help = "the vendor and product ID of the adapter",
 	 .usage = "(vid pid)* ",
-	 },
-	 {
+	},
+	{
+	 .name = "hla_stlink_interface",
+	 .handler = &hl_interface_handle_stlink_interface_command,
+	 .mode = COMMAND_CONFIG,
+	 .help = "select which ST-Link interface to use",
+	 .usage = "usb | server [port]",
+	},
+	{
 	 .name = "hla_command",
 	 .handler = &interface_handle_hla_command,
 	 .mode = COMMAND_EXEC,
 	 .help = "execute a custom adapter-specific command",
 	 .usage = "hla_command <command>",
-	 },
+	},
 	COMMAND_REGISTRATION_DONE
 };
 

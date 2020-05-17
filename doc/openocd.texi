@@ -3104,6 +3104,12 @@ Specifies the adapter layout to use.
 Pairs of vendor IDs and product IDs of the device.
 @end deffn
 
+@deffn {Config Command} {hla_stlink_interface} (usb | server [port])
+@emph{ST-Link only:} Choose between 'exclusive' USB communication or 'shared'
+mode using ST-Link server.
+The default ST-Link server port is 7184.
+@end deffn
+
 @deffn {Command} {hla_command} command
 Execute a custom adapter-specific command. The @var{command} string is
 passed as is to the underlying adapter layout handler.
@@ -3123,6 +3129,12 @@ An error is returned for any AP number above the maximum allowed value.
 
 @emph{Note:} Either these same adapters and their older versions are
 also supported by @ref{hla_interface, the hla interface driver}.
+
+@deffn {Config Command} {st-link interface} (usb | server [port])
+Choose between 'exclusive' USB communication or 'shared' mode using ST-Link server.
+The default ST-Link server port is 7184.
+@emph{Note:} ST-Link server does not support the SWIM transport.
+@end deffn
 
 @deffn {Config Command} {st-link serial} serial
 Specifies the serial number of the adapter.
