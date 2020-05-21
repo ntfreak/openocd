@@ -1129,14 +1129,19 @@ COMMAND_HANDLER(handle_irscan_command)
 
 			return ERROR_FAIL;
 		}
-		int field_size = tap->ir_length;
-		fields[i].num_bits = field_size;
-		uint8_t *v = calloc(1, DIV_ROUND_UP(field_size, 8));
-
 		uint64_t value;
 		retval = parse_u64(CMD_ARGV[i * 2 + 1], &value);
 		if (ERROR_OK != retval)
 			goto error_return;
+
+		int field_size = tap->ir_length;
+		fields[i].num_bits = field_size;
+		uint8_t *v = calloc(1, DIV_ROUND_UP(field_size, 8));
+		if (!v) {
+			LOG_ERROR("Out of memory");
+			goto error_return;
+		}
+
 		buf_set_u64(v, 0, field_size, value);
 		fields[i].out_value = v;
 		fields[i].in_value = NULL;
