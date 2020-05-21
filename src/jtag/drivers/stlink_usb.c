@@ -360,6 +360,7 @@ static int stlink_swim_status(void *handle);
 void stlink_dump_speed_map(const struct speed_map *map, unsigned int map_size);
 static int stlink_get_com_freq(void *handle, bool is_jtag, struct speed_map *map);
 static int stlink_speed(void *handle, int khz, bool query);
+static int stlink_usb_open_ap(void *handle, unsigned short apsel);
 
 /** */
 static unsigned int stlink_usb_block(void *handle)
@@ -2989,6 +2990,7 @@ static int stlink_usb_open(struct hl_interface_param_s *param, void **fd)
 	h->max_mem_packet = (1 << 10);
 
 	uint8_t buffer[4];
+	stlink_usb_open_ap(h, 0);
 	err = stlink_usb_read_mem32(h, CPUID, 4, buffer);
 	if (err == ERROR_OK) {
 		uint32_t cpuid = le_to_h_u32(buffer);
@@ -3211,13 +3213,13 @@ static int stlink_dap_get_and_clear_error(void)
 	return retval;
 }
 
-/** */
-static int stlink_dap_open_ap(unsigned short apsel)
+static int stlink_usb_open_ap(void *handle, unsigned short apsel)
 {
+	struct stlink_usb_handle_s *h = handle;
 	int retval;
 
 	/* nothing to do on old versions */
-	if (!(stlink_dap_handle->version.flags & STLINK_F_HAS_AP_INIT))
+	if (!(h->version.flags & STLINK_F_HAS_AP_INIT))
 		return ERROR_OK;
 
 	if (apsel > DP_APSEL_MAX)
@@ -3226,13 +3228,18 @@ static int stlink_dap_open_ap(unsigned short apsel)
 	if (test_bit(apsel, opened_ap))
 		return ERROR_OK;
 
-	retval = stlink_usb_init_access_port(stlink_dap_handle, apsel);
+	retval = stlink_usb_init_access_port(h, apsel);
 	if (retval != ERROR_OK)
 		return retval;
 
 	LOG_DEBUG("AP %d enabled", apsel);
 	set_bit(apsel, opened_ap);
 	return ERROR_OK;
+}
+
+static int stlink_dap_open_ap(unsigned short apsel)
+{
+	return stlink_usb_open_ap(stlink_dap_handle, apsel);
 }
 
 /** */
