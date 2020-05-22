@@ -2959,6 +2959,7 @@ static void cortex_a_deinit_target(struct target *target)
 	}
 
 	free(cortex_a->brp_list);
+	arm_free_reg_cache(dpm->arm);
 	free(dpm->dbp);
 	free(dpm->dwp);
 	free(target->private_config);

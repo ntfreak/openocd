@@ -769,6 +769,27 @@ struct reg_cache *arm_build_reg_cache(struct target *target, struct arm *arm)
 	return cache;
 }
 
+void arm_free_reg_cache(struct arm *arm)
+{
+	if (!arm || !arm->core_cache)
+		return;
+
+	struct reg_cache *cache = arm->core_cache;
+
+	for (unsigned int i = 0; i < cache->num_regs; i++) {
+		struct reg *reg = &cache->reg_list[i];
+
+		free(reg->feature);
+		free(reg->reg_data_type);
+	}
+
+	free(cache->reg_list[0].arch_info);
+	free(cache->reg_list);
+	free(cache);
+
+	arm->core_cache = NULL;
+}
+
 int arm_arch_state(struct target *target)
 {
 	struct arm *arm = target_to_arm(target);

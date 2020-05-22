@@ -272,6 +272,8 @@ struct arm_reg {
 };
 
 struct reg_cache *arm_build_reg_cache(struct target *target, struct arm *arm);
+void arm_free_reg_cache(struct arm *arm);
+
 struct reg_cache *armv8_build_reg_cache(struct target *target);
 
 extern const struct command_registration arm_command_handlers[];
