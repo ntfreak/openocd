@@ -1100,6 +1100,7 @@ int arm_dpm_setup(struct arm_dpm *dpm)
 	dpm->dwp = calloc(dpm->nwp, sizeof(*dpm->dwp));
 
 	if (!dpm->dbp || !dpm->dwp) {
+		arm_free_reg_cache(arm);
 		free(dpm->dbp);
 		free(dpm->dwp);
 		return ERROR_FAIL;
