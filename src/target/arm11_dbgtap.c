@@ -1193,3 +1193,13 @@ int arm11_dpm_init(struct arm11_common *arm11, uint32_t didr)
 
 	return arm11_bpwp_flush(arm11);
 }
+
+void arm11_dpm_deinit(struct arm11_common *arm11)
+{
+	struct arm_dpm *dpm = &arm11->dpm;
+
+	free(arm11->bpwp_actions);
+	arm_free_reg_cache(dpm->arm);
+	free(dpm->dbp);
+	free(dpm->dwp);
+}

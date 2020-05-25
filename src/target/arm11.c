@@ -1131,6 +1131,13 @@ static int arm11_init_target(struct command_context *cmd_ctx,
 	return ERROR_OK;
 }
 
+static void arm11_deinit_target(struct target *target)
+{
+	struct arm11_common *arm11 = target_to_arm11(target);
+
+	arm11_dpm_deinit(arm11);
+}
+
 /* talk to the target and set things up */
 static int arm11_examine(struct target *target)
 {
@@ -1379,5 +1386,6 @@ struct target_type arm11_target = {
 	.commands = arm11_command_handlers,
 	.target_create = arm11_target_create,
 	.init_target = arm11_init_target,
+	.deinit_target = arm11_deinit_target,
 	.examine = arm11_examine,
 };

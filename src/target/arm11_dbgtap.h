@@ -78,6 +78,7 @@ int arm11_read_memory_word(struct arm11_common *arm11,
 		uint32_t address, uint32_t *result);
 
 int arm11_dpm_init(struct arm11_common *arm11, uint32_t didr);
+void arm11_dpm_deinit(struct arm11_common *arm11);
 int arm11_bpwp_flush(struct arm11_common *arm11);
 
 #endif /* OPENOCD_TARGET_ARM11_DBGTAP_H */
