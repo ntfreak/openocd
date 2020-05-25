@@ -56,6 +56,16 @@ static int arm966e_target_create(struct target *target, Jim_Interp *interp)
 	return arm966e_init_arch_info(target, arm966e, target->tap);
 }
 
+static void arm966e_deinit_target(struct target *target)
+{
+	struct arm *arm = target_to_arm(target);
+	struct arm966e_common *arm966e = target_to_arm966(target);
+
+	arm7_9_deinit(target);
+	arm_free_reg_cache(arm);
+	free(arm966e);
+}
+
 static int arm966e_verify_pointer(struct command_invocation *cmd,
 		struct arm966e_common *arm966e)
 {
@@ -278,6 +288,7 @@ struct target_type arm966e_target = {
 	.commands = arm966e_command_handlers,
 	.target_create = arm966e_target_create,
 	.init_target = arm9tdmi_init_target,
+	.deinit_target = arm966e_deinit_target,
 	.examine = arm7_9_examine,
 	.check_reset = arm7_9_check_reset,
 };

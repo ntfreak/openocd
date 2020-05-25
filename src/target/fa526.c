@@ -347,6 +347,16 @@ static int fa526_target_create(struct target *target, Jim_Interp *interp)
 	return fa526_init_arch_info(target, arm920t, target->tap);
 }
 
+static void fa526_deinit_target(struct target *target)
+{
+	struct arm *arm = target_to_arm(target);
+	struct arm920t_common *arm920t = target_to_arm920(target);
+
+	arm7_9_deinit(target);
+	arm_free_reg_cache(arm);
+	free(arm920t);
+}
+
 /** Holds methods for FA526 targets. */
 struct target_type fa526_target = {
 	.name = "fa526",
@@ -383,6 +393,7 @@ struct target_type fa526_target = {
 	.commands = arm920t_command_handlers,
 	.target_create = fa526_target_create,
 	.init_target = arm9tdmi_init_target,
+	.deinit_target = fa526_deinit_target,
 	.examine = arm7_9_examine,
 	.check_reset = arm7_9_check_reset,
 };

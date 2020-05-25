@@ -99,6 +99,16 @@ static int arm946e_target_create(struct target *target, Jim_Interp *interp)
 	return ERROR_OK;
 }
 
+static void arm946e_deinit_target(struct target *target)
+{
+	struct arm *arm = target_to_arm(target);
+	struct arm946e_common *arm946e = target_to_arm946(target);
+
+	arm7_9_deinit(target);
+	arm_free_reg_cache(arm);
+	free(arm946e);
+}
+
 static int arm946e_verify_pointer(struct command_invocation *cmd,
 	struct arm946e_common *arm946e)
 {
@@ -776,6 +786,7 @@ struct target_type arm946e_target = {
 	.commands = arm946e_command_handlers,
 	.target_create = arm946e_target_create,
 	.init_target = arm9tdmi_init_target,
+	.deinit_target = arm946e_deinit_target,
 	.examine = arm7_9_examine,
 	.check_reset = arm7_9_check_reset,
 };

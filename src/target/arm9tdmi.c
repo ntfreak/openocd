@@ -786,6 +786,16 @@ static int arm9tdmi_target_create(struct target *target, Jim_Interp *interp)
 	return ERROR_OK;
 }
 
+void arm9tdmi_deinit_target(struct target *target)
+{
+	struct arm *arm = target_to_arm(target);
+	struct arm7_9_common *arm7_9 = target_to_arm7_9(target);
+
+	arm7_9_deinit(target);
+	arm_free_reg_cache(arm);
+	free(arm7_9);
+}
+
 COMMAND_HANDLER(handle_arm9tdmi_catch_vectors_command)
 {
 	struct target *target = get_current_target(CMD_CTX);
@@ -921,6 +931,7 @@ struct target_type arm9tdmi_target = {
 	.commands = arm9tdmi_command_handlers,
 	.target_create = arm9tdmi_target_create,
 	.init_target = arm9tdmi_init_target,
+	.deinit_target = arm9tdmi_deinit_target,
 	.examine = arm7_9_examine,
 	.check_reset = arm7_9_check_reset,
 };
