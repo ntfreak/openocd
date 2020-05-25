@@ -613,11 +613,23 @@ static void arm7tdmi_build_reg_cache(struct target *target)
 	(*cache_p) = arm_build_reg_cache(target, arm);
 }
 
+static void arm7tdmi_free_reg_cache(struct target *target)
+{
+	struct arm *arm = target_to_arm(target);
+
+	arm_free_reg_cache(arm);
+}
+
 int arm7tdmi_init_target(struct command_context *cmd_ctx, struct target *target)
 {
 	arm7tdmi_build_reg_cache(target);
 	arm_semihosting_init(target);
 	return ERROR_OK;
+}
+
+void arm7tdmi_deinit_target(struct target *target)
+{
+	arm7tdmi_free_reg_cache(target);
 }
 
 int arm7tdmi_init_arch_info(struct target *target,
@@ -718,6 +730,7 @@ struct target_type arm7tdmi_target = {
 	.commands  = arm7_9_command_handlers,
 	.target_create  = arm7tdmi_target_create,
 	.init_target = arm7tdmi_init_target,
+	.deinit_target = arm7tdmi_deinit_target,
 	.examine = arm7_9_examine,
 	.check_reset = arm7_9_check_reset,
 };
