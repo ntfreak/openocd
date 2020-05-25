@@ -28,5 +28,6 @@ int arm7tdmi_init_arch_info(struct target *target,
 		struct arm7_9_common *arm7_9, struct jtag_tap *tap);
 int arm7tdmi_init_target(struct command_context *cmd_ctx,
 		struct target *target);
+void arm7tdmi_deinit_target(struct target *target);
 
 #endif /* OPENOCD_TARGET_ARM7TDMI_H */
