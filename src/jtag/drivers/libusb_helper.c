@@ -208,6 +208,9 @@ int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 	if (serial_mismatch)
 		LOG_INFO("No device matches the serial string");
 
+	if (retval != ERROR_OK)
+		libusb_exit(jtag_libusb_context);
+
 	return retval;
 }
 
