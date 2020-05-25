@@ -26,6 +26,7 @@
 
 int arm9tdmi_init_target(struct command_context *cmd_ctx,
 		struct target *target);
+void arm9tdmi_deinit_target(struct target *target);
 int arm9tdmi_init_arch_info(struct target *target,
 		struct arm7_9_common *arm7_9, struct jtag_tap *tap);
 extern const struct command_registration arm9tdmi_command_handlers[];
