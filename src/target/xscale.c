@@ -2903,11 +2903,31 @@ static void xscale_build_reg_cache(struct target *target)
 	xscale->reg_cache = (*cache_p);
 }
 
+static void xscale_free_reg_cache(struct target *target)
+{
+	struct xscale_common *xscale = target_to_xscale(target);
+	struct reg_cache *cache = xscale->reg_cache;
+
+	for (unsigned int i = 0; i < ARRAY_SIZE(xscale_reg_arch_info); i++)
+		free(cache->reg_list[i].value);
+
+	free(cache->reg_list[0].arch_info);
+	free(cache->reg_list);
+	free(cache);
+
+	arm_free_reg_cache(&xscale->arm);
+}
+
 static int xscale_init_target(struct command_context *cmd_ctx,
 	struct target *target)
 {
 	xscale_build_reg_cache(target);
 	return ERROR_OK;
+}
+
+static void xscale_deinit_target(struct target *target)
+{
+	xscale_free_reg_cache(target);
 }
 
 static int xscale_init_arch_info(struct target *target,
@@ -3725,6 +3745,7 @@ struct target_type xscale_target = {
 	.commands = xscale_command_handlers,
 	.target_create = xscale_target_create,
 	.init_target = xscale_init_target,
+	.deinit_target = xscale_deinit_target,
 
 	.virt2phys = xscale_virt2phys,
 	.mmu = xscale_mmu
