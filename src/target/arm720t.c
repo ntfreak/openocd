@@ -391,6 +391,11 @@ static int arm720t_init_target(struct command_context *cmd_ctx, struct target *t
 	return arm7tdmi_init_target(cmd_ctx, target);
 }
 
+static void arm720t_deinit_target(struct target *target)
+{
+	arm7tdmi_deinit_target(target);
+}
+
 /* FIXME remove forward decls */
 static int arm720t_mrc(struct target *target, int cpnum,
 		uint32_t op1, uint32_t op2,
@@ -583,6 +588,7 @@ struct target_type arm720t_target = {
 	.commands = arm720t_command_handlers,
 	.target_create = arm720t_target_create,
 	.init_target = arm720t_init_target,
+	.deinit_target = arm720t_deinit_target,
 	.examine = arm7_9_examine,
 	.check_reset = arm7_9_check_reset,
 };
