@@ -776,6 +776,7 @@ struct target_type arm946e_target = {
 	.commands = arm946e_command_handlers,
 	.target_create = arm946e_target_create,
 	.init_target = arm9tdmi_init_target,
+	.deinit_target = arm9tdmi_deinit_target,
 	.examine = arm7_9_examine,
 	.check_reset = arm7_9_check_reset,
 };

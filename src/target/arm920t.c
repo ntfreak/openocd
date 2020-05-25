@@ -1716,6 +1716,7 @@ struct target_type arm920t_target = {
 	.commands = arm920t_command_handlers,
 	.target_create = arm920t_target_create,
 	.init_target = arm9tdmi_init_target,
+	.deinit_target = arm9tdmi_deinit_target,
 	.examine = arm7_9_examine,
 	.check_reset = arm7_9_check_reset,
 };
