@@ -27,6 +27,7 @@
 #include "imp.h"
 #include "helper/binarybuffer.h"
 
+#include <helper/time_support.h>
 #include <target/cortex_m.h>
 
 /* A note to prefixing.
@@ -338,19 +339,28 @@ static int same5_probe(struct flash_bank *bank)
 static int same5_wait_and_check_error(struct target *target)
 {
 	int ret, ret2;
-	int rep_cnt = 100;
+	/* Table 54-40 lists the maximum erase block time as 200 ms.
+	 * Include some margin.
+	 */
+	int timeout_ms = 200 * 5;
+	int64_t ts_start = timeval_ms();
 	uint16_t intflag;
 
 	do {
 		ret = target_read_u16(target,
 			SAMD_NVMCTRL + SAME5_NVMCTRL_INTFLAG, &intflag);
-		if (ret == ERROR_OK && intflag & SAME5_NVMCTRL_INTFLAG_DONE)
+		if (ret != ERROR_OK) {
+			LOG_ERROR("SAM: error reading the NVMCTRL_INTFLAG register");
+			return ret;
+		}
+		if (intflag & SAME5_NVMCTRL_INTFLAG_DONE)
 			break;
-	} while (--rep_cnt);
+		keep_alive();
+	} while (timeval_ms() - ts_start < timeout_ms);
 
-	if (ret != ERROR_OK) {
-		LOG_ERROR("Can't read NVM INTFLAG");
-		return ret;
+	if (!(intflag & SAME5_NVMCTRL_INTFLAG_DONE)) {
+		LOG_ERROR("SAM: NVM programming timed out");
+		ret = ERROR_FLASH_OPERATION_FAILED;
 	}
 #if 0
 	if (intflag & SAME5_NVMCTRL_INTFLAG_ECCSE)
