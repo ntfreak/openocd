@@ -1793,6 +1793,8 @@ static int kinetis_write_sections(struct flash_bank *bank, const uint8_t *buffer
 		buffer += size;
 		offset += size;
 		count -= size;
+
+		keep_alive();
 	}
 
 	free(buffer_aligned);
@@ -1885,6 +1887,8 @@ static int kinetis_write_inner(struct flash_bank *bank, const uint8_t *buffer,
 				buffer += 4;
 				offset += 4;
 				words_remaining--;
+
+				keep_alive();
 			}
 		}
 		free(new_buffer);
