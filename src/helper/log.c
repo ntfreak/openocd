@@ -401,25 +401,43 @@ char *alloc_printf(const char *format, ...)
  * fast when invoked more often than every 500ms.
  *
  */
+#define KEEP_ALIVE_KICK_TIME_MS  500
+#define KEEP_ALIVE_TIMEOUT_MS   1000
+
+static void gdb_timeout_warning(int64_t delta_time)
+{
+	extern int gdb_actual_connections;
+
+	if (gdb_actual_connections)
+		LOG_WARNING("keep_alive() was not invoked in the "
+			"%d ms timelimit. GDB alive packet not "
+			"sent! (%" PRId64 " ms). Workaround: increase "
+			"\"set remotetimeout\" in GDB",
+			KEEP_ALIVE_TIMEOUT_MS,
+			delta_time);
+	else
+		LOG_DEBUG("keep_alive() was not invoked in the "
+			"%d ms timelimit (%" PRId64 " ms). This may cause "
+			"trouble with GDB connections.",
+			KEEP_ALIVE_TIMEOUT_MS,
+			delta_time);
+}
+
 void keep_alive(void)
 {
 	current_time = timeval_ms();
-	if (current_time-last_time > 1000) {
-		extern int gdb_actual_connections;
 
-		if (gdb_actual_connections)
-			LOG_WARNING("keep_alive() was not invoked in the "
-				"1000ms timelimit. GDB alive packet not "
-				"sent! (%" PRId64 "). Workaround: increase "
-				"\"set remotetimeout\" in GDB",
-				current_time-last_time);
-		else
-			LOG_DEBUG("keep_alive() was not invoked in the "
-				"1000ms timelimit (%" PRId64 "). This may cause "
-				"trouble with GDB connections.",
-				current_time-last_time);
+	int64_t delta_time = current_time - last_time;
+
+	if (delta_time > KEEP_ALIVE_TIMEOUT_MS) {
+		last_time = current_time;
+
+		gdb_timeout_warning(delta_time);
 	}
-	if (current_time-last_time > 500) {
+
+	if (delta_time > KEEP_ALIVE_KICK_TIME_MS) {
+		last_time = current_time;
+
 		/* this will keep the GDB connection alive */
 		LOG_USER_N("%s", "");
 
@@ -430,8 +448,6 @@ void keep_alive(void)
 		 *
 		 * These functions should be invoked at a well defined spot in server.c
 		 */
-
-		last_time = current_time;
 	}
 }
 
@@ -439,7 +455,13 @@ void keep_alive(void)
 void kept_alive(void)
 {
 	current_time = timeval_ms();
+
+	int64_t delta_time = current_time - last_time;
+
 	last_time = current_time;
+
+	if (delta_time > KEEP_ALIVE_TIMEOUT_MS)
+		gdb_timeout_warning(delta_time);
 }
 
 /* if we sleep for extended periods of time, we must invoke keep_alive() intermittantly */
