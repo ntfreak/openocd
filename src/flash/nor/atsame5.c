@@ -338,7 +338,8 @@ static int same5_probe(struct flash_bank *bank)
 static int same5_wait_and_check_error(struct target *target)
 {
 	int ret, ret2;
-	int rep_cnt = 100;
+	/* Table 54-40 says the maximum erase block time is 200 ms */
+	int rep_cnt = 1000;
 	uint16_t intflag;
 
 	do {
@@ -346,11 +347,17 @@ static int same5_wait_and_check_error(struct target *target)
 			SAMD_NVMCTRL + SAME5_NVMCTRL_INTFLAG, &intflag);
 		if (ret == ERROR_OK && intflag & SAME5_NVMCTRL_INTFLAG_DONE)
 			break;
+		jtag_sleep(1000);
 	} while (--rep_cnt);
 
 	if (ret != ERROR_OK) {
 		LOG_ERROR("Can't read NVM INTFLAG");
 		return ret;
+	}
+
+	if (!(intflag & SAME5_NVMCTRL_INTFLAG_DONE)) {
+		LOG_ERROR("SAM: NVM programming timed out");
+		ret = ERROR_FLASH_OPERATION_FAILED;
 	}
 #if 0
 	if (intflag & SAME5_NVMCTRL_INTFLAG_ECCSE)
