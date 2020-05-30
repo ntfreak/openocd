@@ -2,27 +2,179 @@ This file includes highlights of the changes made in the OpenOCD
 source archive release.
 
 JTAG Layer:
+	* add debug level 4 for verbose I/O debug
+	* bitbang, add read buffer to improve performance
+	* Cypress KitProg adapter driver
+	* DAP direct adapter driver
+	* FTDI FT232R sync bitbang adapter driver
+	* libusb rework
+	* Mellanox rshim USB or PCIe adapter driver
+	* NXP IMX GPIO mmap based adapter driver
+	* split jtag and swd
+	* ST-Link consolidate all versions in single config
+	* ST-Link rework handling versions
+	* ST-Link read properly old USB serial numbers
+	* STLink/V3 support
+	* STM8 SWIM transport
+	* TI XDS110 adapter driver
+	* Xilinx XVC/PCIe adapter driver
 
 Boundary Scan:
 
 Target Layer:
+	* 64 bit address support
+	* ARCv2 support
+	* ARM AARCH64 semihosting support
+	* ARM Cortex-A hypervisor mode support
+	* ARM Cortex-M profiling support
+	* ARM CTI generic support
+	* ARM DAP restructure
+	* ARMv7-A MMU tools
+	* ARMv8 AARCH64 support
+	* ARMv8-M support
+	* EnSilica eSi-RISC support
+	* EnSilica eSi-Trace support
+	* mem-ap generic support
+	* MIPS64 support
+	* Motorola SREC S6 record image file support
+	* RISC-V target support
+	* ST STM8 target support
+	* Various mips32 improvements
 
 Flash Layer:
+	* add ATM32 loaders Makefile and generated .inc
+	* Atheros (ath79) SPI interface support
+	* Atmel atmega128rfa1 support
+	* Atmel SAM D21, D51, DA1, E51, E53, E54, G55, R30 support
+	* Atmel SAMC2?N* support
+	* Cypress PSoC5LP, PSoC6 support
+	* EnSilica eSi-RISC support
+	* Foshan Synwit Tech SWM050 support
+	* Maxim Integrated MAX32XXX support
+	* Nordic Semiconductor nRF51822, nRF52810, nRF52832 support
+	* NXP Kinetis K27, K28, KE1x, KEAx, KL28, KL8x, KV5x, KWx support
+	* Renesas RPC HF support
+	* SH QSPI support
+	* SiFive Freedom E support
+	* Silicon Labs EFR-family support
+	* Silicon Labs EZR32HG, EFR32ZG13P, EFR32ZG14P support
+	* ST BlueNRG support
+	* ST STM32F722, F723, F413 and F423 support
+	* ST STM32G0xx, STM32G4xx, STM32L4x, STM32WB, STM32WL support
+	* TI CC13xx, CC26xx, CC32xx support
+	* TI MSP432 support
+	* Winner Micro w600 support
+	* Xilinx XCF platform support
+	* Various discrete SPI NOR flashes support
 
 Board, Target, and Interface Configuration Scripts:
+	* 8devices LIMA board config
+	* Achilles Instant-Development Kit Arria 10 board config
+	* Amazon Kindle 2 and DX board config
+	* Analog Devices ADSP-SC58x, ADSP-SC584-EZBRD board config
+	* ARM Musca A board config
+	* Arty Spartan 7 FPGA board config
+	* Atmel SAMD10 Xplained mini board config
+	* Atmel SAMD11 Xplained Pro board config
+	* Atmel SAM G55 Xplained Pro board config
+	* AVNET UltraZED EG StarterKit board config
+	* Blue Pill STM32F103C8 board config
+	* DPTechnics DPT-Board-v1 board config
+	* Emcraft imx8 SOM BSB board config
+	* Globalscale ESPRESSObin board config
+	* Kasli board config
+	* Kintex Ultrascale XCKU040 board config
+	* Knovative KC-100 board config
+	* LeMaker HiKey board config
+	* Microchip (Atmel) SAML11 Xplained Pro board config
+	* Numato Lab Mimas A7 board config
+	* NXP Freedom FRDM-LS1012A board config
+	* NXP IMX7SABRE board config
+	* NXP IMX8MP-EVK board config
+	* NXP MC-IMX8M-EVK board config
+	* TI BeagleBone family boards config
+	* TP-Link WDR4300 board config
+	* Renesas R-Car E2, H2, M2 board config
+	* Renesas R-Car Salvator-X(S) board config
+	* Renesas RZ/A1H GR-Peach board config
+	* Rigado BMD-300 board config
+	* Sayma AMC board config
+	* Sifive e31arty, e51arty, hifive1 board config
+	* Synopsys DesignWare ARC EM board config
+	* ST STM32F7 Nucleo board config
+	* ST STM32H743zi Nucleo board config
+	* ST STM32H7x3i Eval boards config
+	* ST STM32L073 Nucleo board config
+	* ST STM32WB Nucleo board config
+	* ST STM8L152R8 Nucleo board config
+	* TI CC13xx, CC26xx, CC32xx LaunchPad board config
+	* TI MSP432 LaunchPad board config
+	* Tocoding Poplar board config
+	* Allwinner V3s target config
+	* ARM corelink SSE-200 target config
+	* Atheros_ar9344 target config
+	* Cypress PSoC5LP, PSoC6 target config
+	* EnSilica eSi-RISC target config
+	* Foshan Synwit Tech SWM050 target config
+	* Hisilicon Hi3798 target config
+	* Hisilicon Hi6220 target config
+	* Infineon TLE987x target config
+	* Marvell Armada 3700 target config
+	* Maxim Integrated MAX32XXX target config
+	* Mellanox BlueField target config
+	* Microchip (Atmel) SAML1x target config
+	* NXP IMX6SX, IMX6UL, IMX7, IMX7ULP, IMX8 target config
+	* NXP LPC84x, LPC8Nxx, LS1012A, NHS31xx target config
+	* Qualcomm QCA4531 target config
+	* Renesas R-Car E2, H2, M2 target config
+	* Renesas R-Car Gen3 target config
+	* Renesas RZ/A1H target config
+	* ST BlueNRG target config
+	* ST STM32H7 target config
+	* ST STM32WLEx target config
+	* ST STM8L152, S003, S103, S105 target config
+	* Synopsys DesignWare ARC EM target config
+	* TI CC13xx, CC26xx, CC32xx target config
+	* TI TNETC4401 target config
+	* Xilinx UltraScale+ target config
+	* Altera 5M570Z (MAXV family) CPLD config
+	* Xilinx Ultrascale, XCF CPLD config
+	* Intel (Altera) Arria10 FPGA config
+	* Cypress KitProg interface config
+	* Digilent SMT2 NC interface config
+	* FTDI C232HM interface config
+	* In-Circuit's ICprog interface config
+	* isodebug isolated JTAG/SWD+UART interface config
+	* Mellanox rshim USB or PCIe interface config
+	* NXP IMX GPIO mmap based interface config
+	* TI XDS110 interface config
 
 Server Layer:
+	* 64 bit address support
+	* default bind to IPv4 localhost
+	* gdb: architecture element support
+	* gdb: vCont, vRun support
+	* telnet: handle Ctrl+A and Ctrl+E
 
 Documentation:
+	* Improve STM32 flash driver
+	* Various typo fix and improvements
 
 Build and Release:
+	* Chromium-EC rtos support
+	* Clang warning fixes
+	* Handle Tcl return values consistently
+	* hwthread pseudo rtos support
+	* NuttX rtos support
+	* Update libjaylink to latest version
+	* Update jimtcl to 0.79
 
 
 This release also contains a number of other important functional and
 cosmetic bugfixes. For more details about what has changed since the
 last release, see the git repository history:
 
-http://sourceforge.net/p/openocd/code/ci/v0.x.0/log/?path=
+http://sourceforge.net/p/openocd/code/ci/v0.11.0/log/?path=
 
 
 For older NEWS, see the NEWS files associated with each release
