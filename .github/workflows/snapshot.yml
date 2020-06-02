@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Copyright (C) 2020 by Tarek BOUCHKATI <tarek.bouchkati@gmail.com>
+
+on: push
+
+name: OpenOCD Snapshot
+
+jobs:
+  package:
+    runs-on: [ubuntu-18.04]
+    env:
+      DL_DIR: ../downloads
+      BUILD_DIR: ../build
+    steps:
+      - name: Install needed packages
+        run: sudo apt-get install autotools-dev autoconf automake libtool pkg-config cmake texinfo texlive g++-mingw-w64-i686
+      - uses: actions/checkout@v1
+      - run: ./bootstrap
+      - name: Prepare libusb1
+        env:
+          LIBUSB1_VER: 1.0.23
+        run: |
+          mkdir -p $DL_DIR && cd $DL_DIR
+          wget "https://github.com/libusb/libusb/releases/download/v${LIBUSB1_VER}/libusb-${LIBUSB1_VER}.tar.bz2"
+          tar -xjf libusb-${LIBUSB1_VER}.tar.bz2
+          echo "::set-env name=LIBUSB1_SRC::$PWD/libusb-${LIBUSB1_VER}"
+      - name: Prepare hidapi
+        env:
+          HIDAPI_VER: 0.9.0
+        run: |
+          mkdir -p $DL_DIR && cd $DL_DIR
+          wget "https://github.com/libusb/hidapi/archive/hidapi-${HIDAPI_VER}.tar.gz"
+          tar -xzf hidapi-${HIDAPI_VER}.tar.gz
+          cd hidapi-hidapi-${HIDAPI_VER}
+          ./bootstrap
+          echo "::set-env name=HIDAPI_SRC::$PWD"
+      - name: Prepare libftdi
+        env:
+          LIBFTDI_VER: 1.4
+        run: |
+          mkdir -p $DL_DIR && cd $DL_DIR
+          wget "http://www.intra2net.com/en/developer/libftdi/download/libftdi1-${LIBFTDI_VER}.tar.bz2"
+          tar -xjf libftdi1-${LIBFTDI_VER}.tar.bz2
+          echo "::set-env name=LIBFTDI_SRC::$PWD/libftdi1-${LIBFTDI_VER}"
+      - name: Package OpenOCD for windows
+        env:
+          MAKE_JOBS: 2
+          HOST: i686-w64-mingw32
+          LIBUSB1_CONFIG: --enable-shared --enable-static
+          HIDAPI_CONFIG: --enable-shared --disable-static --disable-testgui
+          LIBFTDI_CONFIG: "-DCMAKE_TOOLCHAIN_FILE='${{ env.LIBFTDI_SRC }}/cmake/Toolchain-i686-w64-mingw32.cmake' -DBUILD_TESTS:BOOL=off -DFTDIPP:BOOL=off -DPYTHON_BINDINGS:BOOL=off -DEXAMPLES:BOOL=off -DDOCUMENTATION:BOOL=off -DFTDI_EEPROM:BOOL=off"
+        run: |
+          # set snapshot tag
+          OPENOCD_TAG="`git tag --points-at HEAD`"
+          [ -z $OPENOCD_TAG ] && OPENOCD_TAG="`git rev-parse --short HEAD`"
+          # set env and call cross-build.sh
+          export OPENOCD_TAG=$OPENOCD_TAG
+          export OPENOCD_SRC=$PWD
+          export OPENOCD_CONFIG=""
+          mkdir -p $BUILD_DIR &&  cd $BUILD_DIR
+          bash $OPENOCD_SRC/contrib/cross-build.sh $HOST
+          # add missing dlls
+          cd $HOST-root/usr
+          cp `$HOST-gcc --print-file-name=libwinpthread-1.dll` ./bin/
+          cp `$HOST-gcc --print-file-name=libgcc_s_sjlj-1.dll` ./bin/
+          # prepare the artifact
+          ARTIFACT="openocd-${OPENOCD_TAG}-${HOST}.tar.gz"
+          tar -czf $ARTIFACT *
+          echo "::set-env name=ARTIFACT_NAME::$ARTIFACT"
+          echo "::set-env name=ARTIFACT_PATH::$PWD/$ARTIFACT"
+      - name: Publish OpenOCD packaged for windows
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: ${{ env.ARTIFACT_PATH }}
+      - name: Get the upload URL for a release
+        id: get_release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: bruceadams/get-release@v1.2.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Release OpenOCD packaged for windows
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ${{ env.ARTIFACT_PATH }}
+          asset_name: ${{ env.ARTIFACT_NAME }}
+          asset_content_type: application/gzip
