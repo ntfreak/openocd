@@ -284,6 +284,10 @@ libraries that OpenOCD depends on. Alternatively, you can specify
 *_CFLAGS and *_LIBS environment variables directly, see "./configure
 --help" for the details.
 
+For a more or less complete script that does all this for you, see
+
+  contrib/cross-build.sh
+
 Parallel Port Dongles
 ---------------------
 
