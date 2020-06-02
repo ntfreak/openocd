@@ -15,8 +15,8 @@
 #
 # This script is probably more useful as a reference than as a complete build
 # tool but for some configurations it may be usable as-is. It only cross-
-# builds libusb-1.0 from source, but the script can be extended to build other
-# prerequisites in a similar manner.
+# builds libusb-1.0, hidapi and libftdi from source, but the script can be
+# extended to build other prerequisites in a similar manner.
 #
 # Usage:
 # export LIBUSB1_SRC=/path/to/libusb-1.0
@@ -36,17 +36,20 @@ WORK_DIR=$PWD
 
 ## Source code paths, customize as necessary
 : ${OPENOCD_SRC:="`dirname "$0"`/.."}
-: ${LIBUSB1_SRC:=/path/to/libusb}
+: ${LIBUSB1_SRC:=/path/to/libusb1}
 : ${HIDAPI_SRC:=/path/to/hidapi}
+: ${LIBFTDI_SRC:=/path/to/libftdi}
 
 OPENOCD_SRC=`readlink -m $OPENOCD_SRC`
 LIBUSB1_SRC=`readlink -m $LIBUSB1_SRC`
 HIDAPI_SRC=`readlink -m $HIDAPI_SRC`
+LIBFTDI_SRC=`readlink -m $LIBFTDI_SRC`
 
 HOST_TRIPLET=$1
 BUILD_DIR=$WORK_DIR/$HOST_TRIPLET-build
 LIBUSB1_BUILD_DIR=$BUILD_DIR/libusb1
 HIDAPI_BUILD_DIR=$BUILD_DIR/hidapi
+LIBFTDI_BUILD_DIR=$BUILD_DIR/libftdi
 OPENOCD_BUILD_DIR=$BUILD_DIR/openocd
 
 ## Root of host file tree
@@ -55,8 +58,12 @@ SYSROOT=$WORK_DIR/$HOST_TRIPLET-root
 ## Install location within host file tree
 : ${PREFIX=/usr}
 
+## Make parallel jobs
+: ${MAKE_JOBS:=1}
+
 ## OpenOCD-only install dir for packaging
-PACKAGE_DIR=$WORK_DIR/openocd_`git --git-dir=$OPENOCD_SRC/.git describe`_$HOST_TRIPLET
+: ${OPENOCD_TAG:=`git --git-dir=$OPENOCD_SRC/.git describe --tags`}
+PACKAGE_DIR=$WORK_DIR/openocd_${OPENOCD_TAG}_${HOST_TRIPLET}
 
 #######
 
@@ -86,13 +93,15 @@ rm -rf $SYSROOT $BUILD_DIR
 mkdir -p $SYSROOT
 
 # libusb-1.0 build & install into sysroot
-mkdir -p $LIBUSB1_BUILD_DIR
-cd $LIBUSB1_BUILD_DIR
-$LIBUSB1_SRC/configure --build=`$LIBUSB1_SRC/config.guess` --host=$HOST_TRIPLET \
---with-sysroot=$SYSROOT --prefix=$PREFIX \
-$LIBUSB1_CONFIG
-make
-make install DESTDIR=$SYSROOT
+if [ -d $LIBUSB1_SRC ] ; then
+  mkdir -p $LIBUSB1_BUILD_DIR
+  cd $LIBUSB1_BUILD_DIR
+  $LIBUSB1_SRC/configure --build=`$LIBUSB1_SRC/config.guess` --host=$HOST_TRIPLET \
+  --with-sysroot=$SYSROOT --prefix=$PREFIX \
+  $LIBUSB1_CONFIG
+  make -j $MAKE_JOBS
+  make install DESTDIR=$SYSROOT
+fi
 
 # hidapi build & install into sysroot
 if [ -d $HIDAPI_SRC ] ; then
@@ -101,7 +110,22 @@ if [ -d $HIDAPI_SRC ] ; then
   $HIDAPI_SRC/configure --build=`$HIDAPI_SRC/config.guess` --host=$HOST_TRIPLET \
     --with-sysroot=$SYSROOT --prefix=$PREFIX \
     $HIDAPI_CONFIG
-  make
+  make -j $MAKE_JOBS
+  make install DESTDIR=$SYSROOT
+fi
+
+# libftdi build & install into sysroot
+if [ -d $LIBFTDI_SRC ] ; then
+  mkdir -p $LIBFTDI_BUILD_DIR
+  cd $LIBFTDI_BUILD_DIR
+  # libftdi requires libusb1 static libraries, granted by:
+  # export LIBUSB1_CONFIG="--enable-static ..."
+  cmake $LIBFTDI_CONFIG \
+    -DLIBUSB_INCLUDE_DIR=${SYSROOT}${PREFIX}/include/libusb-1.0 \
+    -DLIBUSB_LIBRARIES=${SYSROOT}${PREFIX}/lib/libusb-1.0.a \
+    -DCMAKE_INSTALL_PREFIX=${PREFIX} \
+    -DPKG_CONFIG_EXECUTABLE=`which pkg-config` \
+    $LIBFTDI_SRC
   make install DESTDIR=$SYSROOT
 fi
 
@@ -111,9 +135,10 @@ cd $OPENOCD_BUILD_DIR
 $OPENOCD_SRC/configure --build=`$OPENOCD_SRC/config.guess` --host=$HOST_TRIPLET \
 --with-sysroot=$SYSROOT --prefix=$PREFIX \
 $OPENOCD_CONFIG
-make
-make install DESTDIR=$SYSROOT
+make -j $MAKE_JOBS
+make install-strip DESTDIR=$SYSROOT
 
 # Separate OpenOCD install w/o dependencies. OpenOCD will have to be linked
 # statically or have dependencies packaged/installed separately.
-make install DESTDIR=$PACKAGE_DIR
+make install-strip DESTDIR=$PACKAGE_DIR
+
