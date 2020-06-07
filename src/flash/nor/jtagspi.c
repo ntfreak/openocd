@@ -216,7 +216,7 @@ static int jtagspi_probe(struct flash_bank *bank)
 		return ERROR_FAIL;
 	}
 
-	for (int sector = 0; sector < bank->num_sectors; sector++) {
+	for (unsigned int sector = 0; sector < bank->num_sectors; sector++) {
 		sectors[sector].offset = sector * sectorsize;
 		sectors[sector].size = sectorsize;
 		sectors[sector].is_erased = -1;
@@ -303,15 +303,15 @@ static int jtagspi_sector_erase(struct flash_bank *bank, int sector)
 	return retval;
 }
 
-static int jtagspi_erase(struct flash_bank *bank, int first, int last)
+static int jtagspi_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
-	int sector;
 	struct jtagspi_flash_bank *info = bank->driver_priv;
 	int retval = ERROR_OK;
 
 	LOG_DEBUG("erase from sector %d to sector %d", first, last);
 
-	if ((first < 0) || (last < first) || (last >= bank->num_sectors)) {
+	if ((last < first) || (last >= bank->num_sectors)) {
 		LOG_ERROR("Flash sector invalid");
 		return ERROR_FLASH_SECTOR_INVALID;
 	}
@@ -321,7 +321,7 @@ static int jtagspi_erase(struct flash_bank *bank, int first, int last)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 	}
 
-	for (sector = first; sector <= last; sector++) {
+	for (unsigned int sector = first; sector <= last; sector++) {
 		if (bank->sectors[sector].is_protected) {
 			LOG_ERROR("Flash sector %d protected", sector);
 			return ERROR_FAIL;
@@ -341,7 +341,7 @@ static int jtagspi_erase(struct flash_bank *bank, int first, int last)
 	if (info->dev->erase_cmd == 0x00)
 		return ERROR_FLASH_OPER_UNSUPPORTED;
 
-	for (sector = first; sector <= last; sector++) {
+	for (unsigned int sector = first; sector <= last; sector++) {
 		retval = jtagspi_sector_erase(bank, sector);
 		if (retval != ERROR_OK) {
 			LOG_ERROR("Sector erase failed.");
@@ -352,11 +352,10 @@ static int jtagspi_erase(struct flash_bank *bank, int first, int last)
 	return retval;
 }
 
-static int jtagspi_protect(struct flash_bank *bank, int set, int first, int last)
+static int jtagspi_protect(struct flash_bank *bank, int set, unsigned int first,
+		unsigned int last)
 {
-	int sector;
-
-	for (sector = first; sector <= last; sector++)
+	for (unsigned int sector = first; sector <= last; sector++)
 		bank->sectors[sector].is_protected = set;
 	return ERROR_OK;
 }

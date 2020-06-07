@@ -277,9 +277,10 @@ static int sim3x_erase_page(struct flash_bank *bank, uint32_t addr)
 	return ERROR_FAIL;
 }
 
-static int sim3x_flash_erase(struct flash_bank *bank, int first, int last)
+static int sim3x_flash_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
-	int ret, i;
+	int ret;
 	uint32_t temp;
 	struct sim3x_info *sim3x_info;
 	struct target *target;
@@ -302,7 +303,7 @@ static int sim3x_flash_erase(struct flash_bank *bank, int first, int last)
 	}
 
 	/* erase pages */
-	for (i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		ret = sim3x_erase_page(bank, bank->sectors[i].offset);
 		if (ret != ERROR_OK)
 			return ret;
@@ -311,7 +312,7 @@ static int sim3x_flash_erase(struct flash_bank *bank, int first, int last)
 	target = bank->target;
 
 	/* Wait until busy */
-	for (i = 0; i < FLASH_BUSY_TIMEOUT; i++) {
+	for (unsigned int i = 0; i < FLASH_BUSY_TIMEOUT; i++) {
 		ret = target_read_u32(target, FLASHCTRL0_CONFIG_ALL, &temp);
 		if (ret != ERROR_OK)
 			return ret;
@@ -547,7 +548,7 @@ static int sim3x_flash_lock_check(struct flash_bank *bank)
 
 static int sim3x_flash_protect_check(struct flash_bank *bank)
 {
-	int ret, i;
+	int ret;
 	struct sim3x_info *sim3x_info;
 
 	/* Check if target is halted */
@@ -562,13 +563,14 @@ static int sim3x_flash_protect_check(struct flash_bank *bank)
 
 	sim3x_info = bank->driver_priv;
 
-	for (i = 0; i < bank->num_sectors; i++)
+	for (unsigned int i = 0; i < bank->num_sectors; i++)
 		bank->sectors[i].is_protected = sim3x_info->flash_locked;
 
 	return ERROR_OK;
 }
 
-static int sim3x_flash_protect(struct flash_bank *bank, int set, int first, int last)
+static int sim3x_flash_protect(struct flash_bank *bank, int set,
+		unsigned int first, unsigned int last)
 {
 	int ret;
 	uint8_t lock_word[4];

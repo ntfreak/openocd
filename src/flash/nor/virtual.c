@@ -75,7 +75,8 @@ FLASH_BANK_COMMAND_HANDLER(virtual_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int virtual_protect(struct flash_bank *bank, int set, int first, int last)
+static int virtual_protect(struct flash_bank *bank, int set, unsigned int first,
+		unsigned int last)
 {
 	struct flash_bank *master_bank = virtual_get_master_bank(bank);
 	int retval;
@@ -107,7 +108,8 @@ static int virtual_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int virtual_erase(struct flash_bank *bank, int first, int last)
+static int virtual_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct flash_bank *master_bank = virtual_get_master_bank(bank);
 	int retval;

@@ -3172,7 +3172,6 @@ static int sam3_GetDetails(struct sam3_bank_private *pPrivate)
 
 static int _sam3_probe(struct flash_bank *bank, int noise)
 {
-	unsigned x;
 	int r;
 	struct sam3_bank_private *pPrivate;
 
@@ -3202,7 +3201,7 @@ static int _sam3_probe(struct flash_bank *bank, int noise)
 		return r;
 
 	/* update the flash bank size */
-	for (x = 0; x < SAM3_MAX_FLASH_BANKS; x++) {
+	for (unsigned int x = 0; x < SAM3_MAX_FLASH_BANKS; x++) {
 		if (bank->base == pPrivate->pChip->details.bank[x].base_address) {
 			bank->size = pPrivate->pChip->details.bank[x].size_bytes;
 			break;
@@ -3217,7 +3216,7 @@ static int _sam3_probe(struct flash_bank *bank, int noise)
 		}
 		bank->num_sectors = pPrivate->nsectors;
 
-		for (x = 0; ((int)(x)) < bank->num_sectors; x++) {
+		for (unsigned int x = 0; x < bank->num_sectors; x++) {
 			bank->sectors[x].size = pPrivate->sector_size;
 			bank->sectors[x].offset = x * (pPrivate->sector_size);
 			/* mark as unknown */
@@ -3253,7 +3252,8 @@ static int sam3_auto_probe(struct flash_bank *bank)
 	return _sam3_probe(bank, 0);
 }
 
-static int sam3_erase(struct flash_bank *bank, int first, int last)
+static int sam3_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct sam3_bank_private *pPrivate;
 	int r;
@@ -3274,7 +3274,7 @@ static int sam3_erase(struct flash_bank *bank, int first, int last)
 	if (!(pPrivate->probed))
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
-	if ((first == 0) && ((last + 1) == ((int)(pPrivate->nsectors)))) {
+	if ((first == 0) && ((last + 1) == pPrivate->nsectors)) {
 		/* whole chip */
 		LOG_DEBUG("Here");
 		return FLASHD_EraseEntireBank(pPrivate);
@@ -3283,7 +3283,8 @@ static int sam3_erase(struct flash_bank *bank, int first, int last)
 	return ERROR_OK;
 }
 
-static int sam3_protect(struct flash_bank *bank, int set, int first, int last)
+static int sam3_protect(struct flash_bank *bank, int set, unsigned int first,
+		unsigned int last)
 {
 	struct sam3_bank_private *pPrivate;
 	int r;

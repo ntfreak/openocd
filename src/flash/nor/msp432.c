@@ -590,7 +590,8 @@ FLASH_BANK_COMMAND_HANDLER(msp432_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int msp432_erase(struct flash_bank *bank, int first, int last)
+static int msp432_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
 	struct msp432_bank *msp432_bank = bank->driver_priv;
@@ -628,7 +629,7 @@ static int msp432_erase(struct flash_bank *bank, int first, int last)
 	}
 
 	/* Erase requested sectors one by one */
-	for (int i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 
 		/* Skip TVL (read-only) sector of the info bank */
 		if (is_info && 1 == i)
@@ -809,7 +810,7 @@ static int msp432_probe(struct flash_bank *bank)
 
 	uint32_t sector_length;
 	uint32_t size;
-	int num_sectors;
+	unsigned int num_sectors;
 
 	bool is_main = FLASH_BASE == bank->base;
 	bool is_info = P4_FLASH_INFO_BASE == bank->base;
@@ -918,7 +919,7 @@ static int msp432_probe(struct flash_bank *bank)
 	bank->num_sectors = num_sectors;
 	msp432_bank->sector_length = sector_length;
 
-	for (int i = 0; i < num_sectors; i++) {
+	for (unsigned int i = 0; i < num_sectors; i++) {
 		bank->sectors[i].offset = i * sector_length;
 		bank->sectors[i].size = sector_length;
 		bank->sectors[i].is_erased = -1;

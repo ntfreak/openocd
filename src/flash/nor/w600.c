@@ -204,7 +204,8 @@ static int w600_start(struct flash_bank *bank, uint32_t cmd, uint32_t addr,
 	return retval;
 }
 
-static int w600_erase(struct flash_bank *bank, int first, int last)
+static int w600_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	int retval = ERROR_OK;
 
@@ -217,7 +218,7 @@ static int w600_erase(struct flash_bank *bank, int first, int last)
 		return ERROR_FAIL;
 	}
 
-	for (int i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		retval = w600_start(bank, QFLASH_CMD_SE,
 			QFLASH_ADDR(bank->sectors[i].offset), 0);
 		if (retval != ERROR_OK)

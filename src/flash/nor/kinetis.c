@@ -1341,10 +1341,9 @@ static int kinetis_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	return retval;
 }
 
-static int kinetis_protect(struct flash_bank *bank, int set, int first, int last)
+static int kinetis_protect(struct flash_bank *bank, int set, unsigned int first,
+		unsigned int last)
 {
-	int i;
-
 	if (allow_fcf_writes) {
 		LOG_ERROR("Protection setting is possible with 'kinetis fcf_source protection' only!");
 		return ERROR_FAIL;
@@ -1355,7 +1354,7 @@ static int kinetis_protect(struct flash_bank *bank, int set, int first, int last
 		return ERROR_FLASH_BANK_INVALID;
 	}
 
-	for (i = first; i < bank->num_prot_blocks && i <= last; i++)
+	for (unsigned int i = first; i < bank->num_prot_blocks && i <= last; i++)
 		bank->prot_blocks[i].is_protected = set;
 
 	LOG_INFO("Protection bits will be written at the next FCF sector erase or write.");
@@ -1369,7 +1368,7 @@ static int kinetis_protect_check(struct flash_bank *bank)
 {
 	struct kinetis_flash_bank *k_bank = bank->driver_priv;
 	int result;
-	int i, b;
+	int b;
 	uint32_t fprot;
 
 	if (k_bank->flash_class == FC_PFLASH) {
@@ -1397,7 +1396,7 @@ static int kinetis_protect_check(struct flash_bank *bank)
 	}
 
 	b = k_bank->protection_block;
-	for (i = 0; i < bank->num_prot_blocks; i++) {
+	for (unsigned int i = 0; i < bank->num_prot_blocks; i++) {
 		if ((fprot >> b) & 1)
 			bank->prot_blocks[i].is_protected = 0;
 		else
@@ -1415,7 +1414,6 @@ static int kinetis_fill_fcf(struct flash_bank *bank, uint8_t *fcf)
 	uint32_t fprot = 0xffffffff;
 	uint8_t fsec = 0xfe;		 /* set MCU unsecure */
 	uint8_t fdprot = 0xff;
-	int i;
 	unsigned bank_idx;
 	unsigned num_blocks;
 	uint32_t pflash_bit;
@@ -1446,7 +1444,7 @@ static int kinetis_fill_fcf(struct flash_bank *bank, uint8_t *fcf)
 		assert(bank_iter->prot_blocks);
 
 		if (k_bank->flash_class == FC_PFLASH) {
-			for (i = 0; i < bank_iter->num_prot_blocks; i++) {
+			for (unsigned int i = 0; i < bank_iter->num_prot_blocks; i++) {
 				if (bank_iter->prot_blocks[i].is_protected == 1)
 					fprot &= ~pflash_bit;
 
@@ -1454,7 +1452,7 @@ static int kinetis_fill_fcf(struct flash_bank *bank, uint8_t *fcf)
 			}
 
 		} else if (k_bank->flash_class == FC_FLEX_NVM) {
-			for (i = 0; i < bank_iter->num_prot_blocks; i++) {
+			for (unsigned int i = 0; i < bank_iter->num_prot_blocks; i++) {
 				if (bank_iter->prot_blocks[i].is_protected == 1)
 					fdprot &= ~dflash_bit;
 
@@ -1623,9 +1621,10 @@ static void kinetis_invalidate_flash_cache(struct kinetis_chip *k_chip)
 }
 
 
-static int kinetis_erase(struct flash_bank *bank, int first, int last)
+static int kinetis_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
-	int result, i;
+	int result;
 	struct kinetis_flash_bank *k_bank = bank->driver_priv;
 	struct kinetis_chip *k_chip = k_bank->k_chip;
 
@@ -1646,7 +1645,7 @@ static int kinetis_erase(struct flash_bank *bank, int first, int last)
 	 * requested erase is PFlash or NVM and encompasses the entire
 	 * block.  Should be quicker.
 	 */
-	for (i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		/* set command and sector address */
 		result = kinetis_ftfx_command(bank->target, FTFx_CMD_SECTERASE, k_bank->prog_base + bank->sectors[i].offset,
 				0, 0, 0, 0,  0, 0, 0, 0,  NULL);
@@ -2829,8 +2828,7 @@ static int kinetis_blank_check(struct flash_bank *bank)
 
 		if (block_dirty) {
 			/* the whole bank is not erased, check sector-by-sector */
-			int i;
-			for (i = 0; i < bank->num_sectors; i++) {
+			for (unsigned int i = 0; i < bank->num_sectors; i++) {
 				/* normal margin */
 				result = kinetis_ftfx_command(bank->target, FTFx_CMD_SECTSTAT,
 						k_bank->prog_base + bank->sectors[i].offset,
@@ -2846,8 +2844,7 @@ static int kinetis_blank_check(struct flash_bank *bank)
 			}
 		} else {
 			/* the whole bank is erased, update all sectors */
-			int i;
-			for (i = 0; i < bank->num_sectors; i++)
+			for (unsigned int i = 0; i < bank->num_sectors; i++)
 				bank->sectors[i].is_erased = 1;
 		}
 	} else {

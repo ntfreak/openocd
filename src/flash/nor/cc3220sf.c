@@ -106,7 +106,8 @@ FLASH_BANK_COMMAND_HANDLER(cc3220sf_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int cc3220sf_erase(struct flash_bank *bank, int first, int last)
+static int cc3220sf_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
 	bool done;
@@ -129,7 +130,7 @@ static int cc3220sf_erase(struct flash_bank *bank, int first, int last)
 	}
 
 	/* Erase requested sectors one by one */
-	for (int i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 
 		/* Determine address of sector to erase */
 		address = FLASH_BASE_ADDR + i * FLASH_SECTOR_SIZE;
@@ -429,7 +430,7 @@ static int cc3220sf_probe(struct flash_bank *bank)
 
 	uint32_t base;
 	uint32_t size;
-	int num_sectors;
+	unsigned int num_sectors;
 
 	base = FLASH_BASE_ADDR;
 	size = FLASH_NUM_SECTORS * FLASH_SECTOR_SIZE;
@@ -450,7 +451,7 @@ static int cc3220sf_probe(struct flash_bank *bank)
 	bank->write_end_alignment = 0;
 	bank->num_sectors = num_sectors;
 
-	for (int i = 0; i < num_sectors; i++) {
+	for (unsigned int i = 0; i < num_sectors; i++) {
 		bank->sectors[i].offset = i * FLASH_SECTOR_SIZE;
 		bank->sectors[i].size = FLASH_SECTOR_SIZE;
 		bank->sectors[i].is_erased = -1;

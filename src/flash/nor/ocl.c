@@ -51,7 +51,8 @@ FLASH_BANK_COMMAND_HANDLER(ocl_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int ocl_erase(struct flash_bank *bank, int first, int last)
+static int ocl_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct ocl_priv *ocl = bank->driver_priv;
 	int retval;
@@ -207,7 +208,6 @@ static int ocl_probe(struct flash_bank *bank)
 	int retval;
 	uint32_t dcc_buffer[1];
 	int sectsize;
-	int i;
 
 	/* purge pending data in DCC */
 	embeddedice_receive(ocl->jtag_info, dcc_buffer, 1);
@@ -276,7 +276,7 @@ static int ocl_probe(struct flash_bank *bank)
 		return ERROR_FLASH_BANK_INVALID;
 	}
 	sectsize = bank->size / bank->num_sectors;
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		bank->sectors[i].offset = i * sectsize;
 		bank->sectors[i].size = sectsize;
 		bank->sectors[i].is_erased = -1;

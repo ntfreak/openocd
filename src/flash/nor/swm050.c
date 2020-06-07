@@ -38,11 +38,11 @@
 #define SWM050_SYSCTL_CFG_0	0x400F0000
 #define SWM050_SYSCTL_DBLF	0x400F0008
 
-static int swm050_erase(struct flash_bank *bank, int first, int last)
+static int swm050_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
-	int retval, curr_page;
-	uint32_t curr_addr;
+	int retval;
 
 	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -54,8 +54,8 @@ static int swm050_erase(struct flash_bank *bank, int first, int last)
 	if (retval != ERROR_OK)
 		return retval;
 
-	for (curr_page = first; curr_page <= last; curr_page++) {
-		curr_addr = bank->base + (SWM050_FLASH_PAGE_SIZE * curr_page);
+	for (unsigned int curr_page = first; curr_page <= last; curr_page++) {
+		uint32_t curr_addr = bank->base + (SWM050_FLASH_PAGE_SIZE * curr_page);
 		/* Perform write */
 		retval = target_write_u32(target, curr_addr, SWM050_FLASH_KEY);
 		if (retval != ERROR_OK)
@@ -169,7 +169,7 @@ FLASH_BANK_COMMAND_HANDLER(swm050_flash_bank_command)
 	if (!bank->sectors)
 		return ERROR_FAIL;
 
-	for (int i = 0; i < bank->num_sectors; i++)
+	for (unsigned int i = 0; i < bank->num_sectors; i++)
 		bank->sectors[i].is_protected = 0;
 
 	return ERROR_OK;
