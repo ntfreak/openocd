@@ -328,7 +328,7 @@ static int samv_protect_check(struct flash_bank *bank)
 	if (r != ERROR_OK)
 		return r;
 
-	for (int x = 0; x < bank->num_sectors; x++)
+	for (unsigned int x = 0; x < bank->num_sectors; x++)
 		bank->sectors[x].is_protected = (!!(v[x >> 5] & (1 << (x % 32))));
 	return ERROR_OK;
 }
@@ -384,7 +384,7 @@ static int samv_probe(struct flash_bank *bank)
 	bank->base = SAMV_FLASH_BASE;
 	bank->num_sectors = bank->size / SAMV_SECTOR_SIZE;
 	bank->sectors = calloc(bank->num_sectors, sizeof(struct flash_sector));
-	for (int s = 0; s < (int)bank->num_sectors; s++) {
+	for (unsigned int s = 0; s < bank->num_sectors; s++) {
 		bank->sectors[s].size = SAMV_SECTOR_SIZE;
 		bank->sectors[s].offset = s * SAMV_SECTOR_SIZE;
 		bank->sectors[s].is_erased = -1;
@@ -406,7 +406,8 @@ static int samv_auto_probe(struct flash_bank *bank)
 	return samv_probe(bank);
 }
 
-static int samv_erase(struct flash_bank *bank, int first, int last)
+static int samv_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	const int page_count = 32; /* 32 pages equals 16 KB lock region */
 
@@ -420,31 +421,31 @@ static int samv_erase(struct flash_bank *bank, int first, int last)
 		return r;
 
 	/* easy case: we've been requested to erase the entire flash */
-	if ((first == 0) && ((last + 1) == (int)(bank->num_sectors)))
+	if ((first == 0) && ((last + 1) == bank->num_sectors))
 		return samv_efc_perform_command(bank->target, SAMV_EFC_FCMD_EA, 0, NULL);
 
-	LOG_INFO("erasing lock regions %d-%d...", first, last);
+	LOG_INFO("erasing lock regions %u-%u...", first, last);
 
-	for (int i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		uint32_t status;
 		r = samv_erase_pages(bank->target, (i * page_count), page_count, &status);
-		LOG_INFO("erasing lock region %d", i);
+		LOG_INFO("erasing lock region %u", i);
 		if (r != ERROR_OK)
-			LOG_ERROR("error performing erase page @ lock region number %d",
-					(unsigned int)(i));
+			LOG_ERROR("error performing erase page @ lock region number %u", i);
 		if (status & (1 << 2)) {
-			LOG_ERROR("lock region %d is locked", (unsigned int)(i));
+			LOG_ERROR("lock region %u is locked", i);
 			return ERROR_FAIL;
 		}
 		if (status & (1 << 1)) {
-			LOG_ERROR("flash command error @lock region %d", (unsigned int)(i));
+			LOG_ERROR("flash command error @lock region %u", i);
 			return ERROR_FAIL;
 		}
 	}
 	return ERROR_OK;
 }
 
-static int samv_protect(struct flash_bank *bank, int set, int first, int last)
+static int samv_protect(struct flash_bank *bank, int set, unsigned int first,
+		unsigned int last)
 {
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -453,9 +454,9 @@ static int samv_protect(struct flash_bank *bank, int set, int first, int last)
 
 	int r;
 	if (set)
-		r = samv_flash_lock(bank->target, (unsigned)(first), (unsigned)(last));
+		r = samv_flash_lock(bank->target, first, last);
 	else
-		r = samv_flash_unlock(bank->target, (unsigned)(first), (unsigned)(last));
+		r = samv_flash_unlock(bank->target, first, last);
 
 	return r;
 }

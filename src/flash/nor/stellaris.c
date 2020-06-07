@@ -803,12 +803,11 @@ static int stellaris_protect_check(struct flash_bank *bank)
 		stellaris->num_pages;
 	uint32_t fmppe_addr;
 	int status = ERROR_OK;
-	unsigned i;
 
 	if (stellaris->did1 == 0)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
-	for (i = 0; i < (unsigned) bank->num_sectors; i++)
+	for (unsigned int i = 0; i < bank->num_sectors; i++)
 		bank->sectors[i].is_protected = -1;
 
 	/* Read each Flash Memory Protection Program Enable (FMPPE) register
@@ -828,7 +827,7 @@ static int stellaris_protect_check(struct flash_bank *bank)
 		uint32_t fmppe;
 
 		target_read_u32(target, fmppe_addr, &fmppe);
-		for (i = 0; i < 32 && lockbitnum + i < lockbitcnt; i++) {
+		for (unsigned int i = 0; i < 32 && lockbitnum + i < lockbitcnt; i++) {
 			bool protect = !(fmppe & (1 << i));
 			if (bits_per_page) {
 				bank->sectors[page++].is_protected = protect;
@@ -844,9 +843,9 @@ static int stellaris_protect_check(struct flash_bank *bank)
 	return status;
 }
 
-static int stellaris_erase(struct flash_bank *bank, int first, int last)
+static int stellaris_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
-	int banknr;
 	uint32_t flash_fmc, flash_cris;
 	struct stellaris_flash_bank *stellaris_info = bank->driver_priv;
 	struct target *target = bank->target;
@@ -859,10 +858,10 @@ static int stellaris_erase(struct flash_bank *bank, int first, int last)
 	if (stellaris_info->did1 == 0)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
-	if ((first < 0) || (last < first) || (last >= (int)stellaris_info->num_pages))
+	if ((last < first) || (last >= stellaris_info->num_pages))
 		return ERROR_FLASH_SECTOR_INVALID;
 
-	if ((first == 0) && (last == ((int)stellaris_info->num_pages-1)))
+	if ((first == 0) && (last == (stellaris_info->num_pages - 1)))
 		return stellaris_mass_erase(bank);
 
 	/* Refresh flash controller timing */
@@ -877,7 +876,7 @@ static int stellaris_erase(struct flash_bank *bank, int first, int last)
 	 * it might want to process those IRQs.
 	 */
 
-	for (banknr = first; banknr <= last; banknr++) {
+	for (unsigned int banknr = first; banknr <= last; banknr++) {
 		/* Address is first word in page */
 		target_write_u32(target, FLASH_FMA, banknr * stellaris_info->pagesize);
 		/* Write erase command */
@@ -902,7 +901,8 @@ static int stellaris_erase(struct flash_bank *bank, int first, int last)
 	return ERROR_OK;
 }
 
-static int stellaris_protect(struct flash_bank *bank, int set, int first, int last)
+static int stellaris_protect(struct flash_bank *bank, int set,
+		unsigned int first, unsigned int last)
 {
 	struct stellaris_flash_bank *stellaris = bank->driver_priv;
 	struct target *target = bank->target;
@@ -952,7 +952,7 @@ static int stellaris_protect(struct flash_bank *bank, int set, int first, int la
 	else
 		fmppe_addr = SCB_BASE | FMPPE;
 
-	int page = 0;
+	unsigned int page = 0;
 	unsigned int lockbitnum, lockbitcnt = flash_sizek / 2;
 	/* Every lock bit always corresponds to a 2k region */
 	for (lockbitnum = 0; lockbitnum < lockbitcnt; lockbitnum += 32) {
@@ -1259,7 +1259,7 @@ static int stellaris_probe(struct flash_bank *bank)
 	bank->size = stellaris_info->num_pages * stellaris_info->pagesize;
 	bank->num_sectors = stellaris_info->num_pages;
 	bank->sectors = calloc(bank->num_sectors, sizeof(struct flash_sector));
-	for (int i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		bank->sectors[i].offset = i * stellaris_info->pagesize;
 		bank->sectors[i].size = stellaris_info->pagesize;
 		bank->sectors[i].is_erased = -1;
@@ -1321,8 +1321,6 @@ static int stellaris_mass_erase(struct flash_bank *bank)
 
 COMMAND_HANDLER(stellaris_handle_mass_erase_command)
 {
-	int i;
-
 	if (CMD_ARGC < 1)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
@@ -1333,7 +1331,7 @@ COMMAND_HANDLER(stellaris_handle_mass_erase_command)
 
 	if (stellaris_mass_erase(bank) == ERROR_OK) {
 		/* set all sectors as erased */
-		for (i = 0; i < bank->num_sectors; i++)
+		for (unsigned int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_erased = 1;
 
 		command_print(CMD, "stellaris mass erase complete");

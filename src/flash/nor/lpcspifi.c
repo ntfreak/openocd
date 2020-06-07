@@ -414,7 +414,8 @@ static int lpcspifi_bulk_erase(struct flash_bank *bank)
 	return retval;
 }
 
-static int lpcspifi_erase(struct flash_bank *bank, int first, int last)
+static int lpcspifi_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
 	struct lpcspifi_flash_bank *lpcspifi_info = bank->driver_priv;
@@ -422,16 +423,15 @@ static int lpcspifi_erase(struct flash_bank *bank, int first, int last)
 	struct armv7m_algorithm armv7m_info;
 	struct working_area *erase_algorithm;
 	int retval = ERROR_OK;
-	int sector;
 
-	LOG_DEBUG("erase from sector %d to sector %d", first, last);
+	LOG_DEBUG("erase from sector %u to sector %u", first, last);
 
 	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if ((first < 0) || (last < first) || (last >= bank->num_sectors)) {
+	if ((last < first) || (last >= bank->num_sectors)) {
 		LOG_ERROR("Flash sector invalid");
 		return ERROR_FLASH_SECTOR_INVALID;
 	}
@@ -441,9 +441,9 @@ static int lpcspifi_erase(struct flash_bank *bank, int first, int last)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 	}
 
-	for (sector = first; sector <= last; sector++) {
+	for (unsigned int sector = first; sector <= last; sector++) {
 		if (bank->sectors[sector].is_protected) {
-			LOG_ERROR("Flash sector %d protected", sector);
+			LOG_ERROR("Flash sector %u protected", sector);
 			return ERROR_FAIL;
 		}
 	}
@@ -571,11 +571,9 @@ static int lpcspifi_erase(struct flash_bank *bank, int first, int last)
 }
 
 static int lpcspifi_protect(struct flash_bank *bank, int set,
-	int first, int last)
+	unsigned int first, unsigned int last)
 {
-	int sector;
-
-	for (sector = first; sector <= last; sector++)
+	for (unsigned int sector = first; sector <= last; sector++)
 		bank->sectors[sector].is_protected = set;
 	return ERROR_OK;
 }
@@ -590,7 +588,6 @@ static int lpcspifi_write(struct flash_bank *bank, const uint8_t *buffer,
 	struct reg_param reg_params[5];
 	struct armv7m_algorithm armv7m_info;
 	struct working_area *write_algorithm;
-	int sector;
 	int retval = ERROR_OK;
 
 	LOG_DEBUG("offset=0x%08" PRIx32 " count=0x%08" PRIx32,
@@ -607,14 +604,14 @@ static int lpcspifi_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	/* Check sector protection */
-	for (sector = 0; sector < bank->num_sectors; sector++) {
+	for (unsigned int sector = 0; sector < bank->num_sectors; sector++) {
 		/* Start offset in or before this sector? */
 		/* End offset in or behind this sector? */
 		if ((offset <
 				(bank->sectors[sector].offset + bank->sectors[sector].size))
 			&& ((offset + count - 1) >= bank->sectors[sector].offset)
 			&& bank->sectors[sector].is_protected) {
-			LOG_ERROR("Flash sector %d protected", sector);
+			LOG_ERROR("Flash sector %u protected", sector);
 			return ERROR_FAIL;
 		}
 	}
@@ -902,7 +899,7 @@ static int lpcspifi_probe(struct flash_bank *bank)
 		return ERROR_FAIL;
 	}
 
-	for (int sector = 0; sector < bank->num_sectors; sector++) {
+	for (unsigned int sector = 0; sector < bank->num_sectors; sector++) {
 		sectors[sector].offset = sector * sectorsize;
 		sectors[sector].size = sectorsize;
 		sectors[sector].is_erased = -1;

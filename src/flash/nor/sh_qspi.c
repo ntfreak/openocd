@@ -437,21 +437,21 @@ static int sh_qspi_erase_sector(struct flash_bank *bank, int sector)
 	return wait_till_ready(bank, 3000);
 }
 
-static int sh_qspi_erase(struct flash_bank *bank, int first, int last)
+static int sh_qspi_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
 	struct sh_qspi_flash_bank *info = bank->driver_priv;
 	int retval = ERROR_OK;
-	int sector;
 
-	LOG_DEBUG("%s: from sector %d to sector %d", __func__, first, last);
+	LOG_DEBUG("%s: from sector %u to sector %u", __func__, first, last);
 
 	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if ((first < 0) || (last < first) || (last >= bank->num_sectors)) {
+	if ((last < first) || (last >= bank->num_sectors)) {
 		LOG_ERROR("Flash sector invalid");
 		return ERROR_FLASH_SECTOR_INVALID;
 	}
@@ -464,14 +464,14 @@ static int sh_qspi_erase(struct flash_bank *bank, int first, int last)
 	if (info->dev->erase_cmd == 0x00)
 		return ERROR_FLASH_OPER_UNSUPPORTED;
 
-	for (sector = first; sector <= last; sector++) {
+	for (unsigned int sector = first; sector <= last; sector++) {
 		if (bank->sectors[sector].is_protected) {
-			LOG_ERROR("Flash sector %d protected", sector);
+			LOG_ERROR("Flash sector %u protected", sector);
 			return ERROR_FAIL;
 		}
 	}
 
-	for (sector = first; sector <= last; sector++) {
+	for (unsigned int sector = first; sector <= last; sector++) {
 		retval = sh_qspi_erase_sector(bank, sector);
 		if (retval != ERROR_OK)
 			break;
@@ -493,7 +493,6 @@ static int sh_qspi_write(struct flash_bank *bank, const uint8_t *buffer,
 	uint32_t chunk;
 	bool addr4b = !!(info->dev->size_in_bytes > (1UL << 24));
 	int ret = ERROR_OK;
-	int sector;
 
 	LOG_DEBUG("%s: offset=0x%08" PRIx32 " count=0x%08" PRIx32,
 		  __func__, offset, count);
@@ -515,7 +514,7 @@ static int sh_qspi_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	/* Check sector protection */
-	for (sector = 0; sector < bank->num_sectors; sector++) {
+	for (unsigned int sector = 0; sector < bank->num_sectors; sector++) {
 		/* Start offset in or before this sector? */
 		/* End offset in or behind this sector? */
 		struct flash_sector *bs = &bank->sectors[sector];
@@ -523,7 +522,7 @@ static int sh_qspi_write(struct flash_bank *bank, const uint8_t *buffer,
 		if ((offset < (bs->offset + bs->size)) &&
 		    ((offset + count - 1) >= bs->offset) &&
 		    bs->is_protected) {
-			LOG_ERROR("Flash sector %d protected", sector);
+			LOG_ERROR("Flash sector %u protected", sector);
 			return ERROR_FAIL;
 		}
 	}
@@ -685,11 +684,9 @@ static int read_flash_id(struct flash_bank *bank, uint32_t *id)
 }
 
 static int sh_qspi_protect(struct flash_bank *bank, int set,
-			 int first, int last)
+			 unsigned int first, unsigned int last)
 {
-	int sector;
-
-	for (sector = first; sector <= last; sector++)
+	for (unsigned int sector = first; sector <= last; sector++)
 		bank->sectors[sector].is_protected = set;
 
 	return ERROR_OK;
@@ -820,7 +817,7 @@ static int sh_qspi_probe(struct flash_bank *bank)
 		return ERROR_FAIL;
 	}
 
-	for (int sector = 0; sector < bank->num_sectors; sector++) {
+	for (unsigned int sector = 0; sector < bank->num_sectors; sector++) {
 		sectors[sector].offset = sector * sectorsize;
 		sectors[sector].size = sectorsize;
 		sectors[sector].is_erased = 0;

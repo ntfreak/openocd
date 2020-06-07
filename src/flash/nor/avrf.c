@@ -218,7 +218,8 @@ FLASH_BANK_COMMAND_HANDLER(avrf_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int avrf_erase(struct flash_bank *bank, int first, int last)
+static int avrf_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
 	struct avr_common *avr = target->arch_info;
@@ -442,7 +443,7 @@ COMMAND_HANDLER(avrf_handle_mass_erase_command)
 
 	if (avrf_mass_erase(bank) == ERROR_OK) {
 		/* set all sectors as erased */
-		for (int i = 0; i < bank->num_sectors; i++)
+		for (unsigned int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_erased = 1;
 
 		command_print(CMD, "avr mass erase complete");

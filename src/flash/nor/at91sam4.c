@@ -2608,12 +2608,11 @@ static int sam4_info(struct flash_bank *bank, char *buf, int buf_size)
 
 static int sam4_probe(struct flash_bank *bank)
 {
-	unsigned x;
 	int r;
 	struct sam4_bank_private *pPrivate;
 
 
-	LOG_DEBUG("Begin: Bank: %d", bank->bank_number);
+	LOG_DEBUG("Begin: Bank: %u", bank->bank_number);
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -2638,7 +2637,7 @@ static int sam4_probe(struct flash_bank *bank)
 		return r;
 
 	/* update the flash bank size */
-	for (x = 0; x < SAM4_MAX_FLASH_BANKS; x++) {
+	for (unsigned int x = 0; x < SAM4_MAX_FLASH_BANKS; x++) {
 		if (bank->base == pPrivate->pChip->details.bank[x].base_address) {
 			bank->size = pPrivate->pChip->details.bank[x].size_bytes;
 			LOG_DEBUG("SAM4 Set flash bank to " TARGET_ADDR_FMT " - "
@@ -2656,7 +2655,7 @@ static int sam4_probe(struct flash_bank *bank)
 		}
 		bank->num_sectors = pPrivate->nsectors;
 
-		for (x = 0; ((int)(x)) < bank->num_sectors; x++) {
+		for (unsigned int x = 0; x < bank->num_sectors; x++) {
 			bank->sectors[x].size = pPrivate->sector_size;
 			bank->sectors[x].offset = x * (pPrivate->sector_size);
 			/* mark as unknown */
@@ -2693,11 +2692,11 @@ static int sam4_auto_probe(struct flash_bank *bank)
 	return sam4_probe(bank);
 }
 
-static int sam4_erase(struct flash_bank *bank, int first, int last)
+static int sam4_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct sam4_bank_private *pPrivate;
 	int r;
-	int i;
 	int pageCount;
 	/*16 pages equals 8KB - Same size as a lock region*/
 	pageCount = 16;
@@ -2719,26 +2718,26 @@ static int sam4_erase(struct flash_bank *bank, int first, int last)
 	if (!(pPrivate->probed))
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
-	if ((first == 0) && ((last + 1) == ((int)(pPrivate->nsectors)))) {
+	if ((first == 0) && ((last + 1) == pPrivate->nsectors)) {
 		/* whole chip */
 		LOG_DEBUG("Here");
 		return FLASHD_EraseEntireBank(pPrivate);
 	}
 	LOG_INFO("sam4 does not auto-erase while programming (Erasing relevant sectors)");
-	LOG_INFO("sam4 First: 0x%08x Last: 0x%08x", (unsigned int)(first), (unsigned int)(last));
-	for (i = first; i <= last; i++) {
+	LOG_INFO("sam4 First: 0x%08x Last: 0x%08x", first, last);
+	for (unsigned int i = first; i <= last; i++) {
 		/*16 pages equals 8KB - Same size as a lock region*/
 		r = FLASHD_ErasePages(pPrivate, (i * pageCount), pageCount, &status);
-		LOG_INFO("Erasing sector: 0x%08x", (unsigned int)(i));
+		LOG_INFO("Erasing sector: 0x%08x", i);
 		if (r != ERROR_OK)
-			LOG_ERROR("SAM4: Error performing Erase page @ lock region number %d",
-				(unsigned int)(i));
+			LOG_ERROR("SAM4: Error performing Erase page @ lock region number %u",
+				i);
 		if (status & (1 << 2)) {
-			LOG_ERROR("SAM4: Lock Region %d is locked", (unsigned int)(i));
+			LOG_ERROR("SAM4: Lock Region %u is locked", i);
 			return ERROR_FAIL;
 		}
 		if (status & (1 << 1)) {
-			LOG_ERROR("SAM4: Flash Command error @lock region %d", (unsigned int)(i));
+			LOG_ERROR("SAM4: Flash Command error @lock region %u", i);
 			return ERROR_FAIL;
 		}
 	}
@@ -2746,7 +2745,8 @@ static int sam4_erase(struct flash_bank *bank, int first, int last)
 	return ERROR_OK;
 }
 
-static int sam4_protect(struct flash_bank *bank, int set, int first, int last)
+static int sam4_protect(struct flash_bank *bank, int set, unsigned int first,
+		unsigned int last)
 {
 	struct sam4_bank_private *pPrivate;
 	int r;
@@ -2762,9 +2762,9 @@ static int sam4_protect(struct flash_bank *bank, int set, int first, int last)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	if (set)
-		r = FLASHD_Lock(pPrivate, (unsigned)(first), (unsigned)(last));
+		r = FLASHD_Lock(pPrivate, first, last);
 	else
-		r = FLASHD_Unlock(pPrivate, (unsigned)(first), (unsigned)(last));
+		r = FLASHD_Unlock(pPrivate, first, last);
 	LOG_DEBUG("End: r=%d", r);
 
 	return r;

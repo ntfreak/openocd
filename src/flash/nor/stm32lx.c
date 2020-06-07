@@ -319,7 +319,7 @@ COMMAND_HANDLER(stm32lx_handle_mass_erase_command)
 	retval = stm32lx_mass_erase(bank);
 	if (retval == ERROR_OK) {
 		/* set all sectors as erased */
-		for (int i = 0; i < bank->num_sectors; i++)
+		for (unsigned int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_erased = 1;
 
 		command_print(CMD, "stm32lx mass erase complete");
@@ -387,7 +387,7 @@ static int stm32lx_protect_check(struct flash_bank *bank)
 	if (retval != ERROR_OK)
 		return retval;
 
-	for (int i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		if (wrpr & (1 << i))
 			bank->sectors[i].is_protected = 1;
 		else
@@ -396,7 +396,8 @@ static int stm32lx_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int stm32lx_erase(struct flash_bank *bank, int first, int last)
+static int stm32lx_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	int retval;
 
@@ -413,7 +414,7 @@ static int stm32lx_erase(struct flash_bank *bank, int first, int last)
 	/*
 	 * Loop over the selected sectors and erase them
 	 */
-	for (int i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		retval = stm32lx_erase_sector(bank, i);
 		if (retval != ERROR_OK)
 			return retval;
@@ -819,7 +820,7 @@ static int stm32lx_probe(struct flash_bank *bank)
 						bank->base, base_address, second_bank_base);
 			return ERROR_FAIL;
 		}
-		LOG_INFO("STM32L flash has dual banks. Bank (%d) size is %dkb, base address is 0x%" PRIx32,
+		LOG_INFO("STM32L flash has dual banks. Bank (%u) size is %dkb, base address is 0x%" PRIx32,
 				bank->bank_number, flash_size_in_kb, base_address);
 	} else {
 		LOG_INFO("STM32L flash size is %dkb, base address is 0x%" PRIx32, flash_size_in_kb, base_address);
@@ -833,7 +834,7 @@ static int stm32lx_probe(struct flash_bank *bank)
 	}
 
 	/* calculate numbers of sectors (4kB per sector) */
-	int num_sectors = (flash_size_in_kb * 1024) / FLASH_SECTOR_SIZE;
+	unsigned int num_sectors = (flash_size_in_kb * 1024) / FLASH_SECTOR_SIZE;
 
 	if (bank->sectors) {
 		free(bank->sectors);
@@ -849,7 +850,7 @@ static int stm32lx_probe(struct flash_bank *bank)
 		return ERROR_FAIL;
 	}
 
-	for (int i = 0; i < num_sectors; i++) {
+	for (unsigned int i = 0; i < num_sectors; i++) {
 		bank->sectors[i].offset = i * FLASH_SECTOR_SIZE;
 		bank->sectors[i].size = FLASH_SECTOR_SIZE;
 		bank->sectors[i].is_erased = -1;

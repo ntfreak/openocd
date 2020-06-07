@@ -441,13 +441,14 @@ static int stm32x_protect_check(struct flash_bank *bank)
 		return retval;
 	}
 
-	for (int i = 0; i < bank->num_prot_blocks; i++)
+	for (unsigned int i = 0; i < bank->num_prot_blocks; i++)
 		bank->prot_blocks[i].is_protected = protection & (1 << i) ? 0 : 1;
 
 	return ERROR_OK;
 }
 
-static int stm32x_erase(struct flash_bank *bank, int first, int last)
+static int stm32x_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct stm32h7x_flash_bank *stm32x_info = bank->driver_priv;
 	int retval, retval2;
@@ -472,24 +473,24 @@ static int stm32x_erase(struct flash_bank *bank, int first, int last)
 	3. Set the STRT bit in the FLASH_CR register
 	4. Wait for flash operations completion
 	 */
-	for (int i = first; i <= last; i++) {
-		LOG_DEBUG("erase sector %d", i);
+	for (unsigned int i = first; i <= last; i++) {
+		LOG_DEBUG("erase sector %u", i);
 		retval = stm32x_write_flash_reg(bank, FLASH_CR,
 				stm32x_info->part_info->compute_flash_cr(FLASH_SER | FLASH_PSIZE_64, i));
 		if (retval != ERROR_OK) {
-			LOG_ERROR("Error erase sector %d", i);
+			LOG_ERROR("Error erase sector %u", i);
 			goto flash_lock;
 		}
 		retval = stm32x_write_flash_reg(bank, FLASH_CR,
 				stm32x_info->part_info->compute_flash_cr(FLASH_SER | FLASH_PSIZE_64 | FLASH_START, i));
 		if (retval != ERROR_OK) {
-			LOG_ERROR("Error erase sector %d", i);
+			LOG_ERROR("Error erase sector %u", i);
 			goto flash_lock;
 		}
 		retval = stm32x_wait_flash_op_queue(bank, FLASH_ERASE_TIMEOUT);
 
 		if (retval != ERROR_OK) {
-			LOG_ERROR("erase time-out or operation error sector %d", i);
+			LOG_ERROR("erase time-out or operation error sector %u", i);
 			goto flash_lock;
 		}
 		bank->sectors[i].is_erased = 1;
@@ -503,7 +504,8 @@ flash_lock:
 	return (retval == ERROR_OK) ? retval2 : retval;
 }
 
-static int stm32x_protect(struct flash_bank *bank, int set, int first, int last)
+static int stm32x_protect(struct flash_bank *bank, int set, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
 	uint32_t protection;
@@ -520,7 +522,7 @@ static int stm32x_protect(struct flash_bank *bank, int set, int first, int last)
 		return retval;
 	}
 
-	for (int i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		if (set)
 			protection &= ~(1 << i);
 		else
@@ -766,7 +768,7 @@ static int stm32x_probe(struct flash_bank *bank)
 	else if (bank->base == FLASH_BANK1_ADDRESS)
 		stm32x_info->flash_regs_base = FLASH_REG_BASE_B1;
 	else {
-		LOG_WARNING("Flash register base not defined for bank %d", bank->bank_number);
+		LOG_WARNING("Flash register base not defined for bank %u", bank->bank_number);
 		return ERROR_FAIL;
 	}
 	LOG_DEBUG("flash_regs_base: 0x%" PRIx32, stm32x_info->flash_regs_base);
@@ -828,7 +830,7 @@ static int stm32x_probe(struct flash_bank *bank)
 		}
 	}
 
-	LOG_INFO("Bank (%d) size is %d kb, base address is 0x%" PRIx32,
+	LOG_INFO("Bank (%u) size is %d kb, base address is 0x%" PRIx32,
 		bank->bank_number, flash_size_in_kb, (uint32_t) bank->base);
 
 	/* if the user sets the size manually then ignore the probed value
@@ -1068,7 +1070,7 @@ COMMAND_HANDLER(stm32x_handle_mass_erase_command)
 	retval = stm32x_mass_erase(bank);
 	if (retval == ERROR_OK) {
 		/* set all sectors as erased */
-		for (int i = 0; i < bank->num_sectors; i++)
+		for (unsigned int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_erased = 1;
 
 		command_print(CMD, "stm32h7x mass erase complete");

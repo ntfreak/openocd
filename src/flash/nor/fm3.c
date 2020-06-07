@@ -201,13 +201,14 @@ static int fm3_busy_wait(struct target *target, uint32_t offset, int timeout_ms)
 	return retval;
 }
 
-static int fm3_erase(struct flash_bank *bank, int first, int last)
+static int fm3_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct fm3_flash_bank *fm3_info = bank->driver_priv;
 	struct target *target = bank->target;
 	int retval = ERROR_OK;
 	uint32_t u32DummyRead;
-	int sector, odd;
+	int odd;
 	uint32_t u32FlashType;
 	uint32_t u32FlashSeqAddress1;
 	uint32_t u32FlashSeqAddress2;
@@ -260,7 +261,7 @@ static int fm3_erase(struct flash_bank *bank, int first, int last)
 		0x00, 0xBE,		/*        BKPT  #0                     */
 	};
 
-	LOG_INFO("Fujitsu MB9[A/B]FXXX: Sector Erase ... (%d to %d)", first, last);
+	LOG_INFO("Fujitsu MB9[A/B]FXXX: Sector Erase ... (%u to %u)", first, last);
 
 	/* disable HW watchdog */
 	retval = target_write_u32(target, 0x40011C00, 0x1ACCE551);
@@ -304,7 +305,7 @@ static int fm3_erase(struct flash_bank *bank, int first, int last)
 	init_reg_param(&reg_params[2], "r2", 32, PARAM_OUT); /* offset				*/
 
 	/* write code buffer and use Flash sector erase code within fm3				*/
-	for (sector = first ; sector <= last ; sector++) {
+	for (unsigned int sector = first ; sector <= last ; sector++) {
 		uint32_t offset = bank->sectors[sector].offset;
 
 		for (odd = 0; odd < 2 ; odd++) {
@@ -943,8 +944,6 @@ static int fm3_chip_erase(struct flash_bank *bank)
 
 COMMAND_HANDLER(fm3_handle_chip_erase_command)
 {
-	int i;
-
 	if (CMD_ARGC < 1)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
@@ -955,7 +954,7 @@ COMMAND_HANDLER(fm3_handle_chip_erase_command)
 
 	if (fm3_chip_erase(bank) == ERROR_OK) {
 		/* set all sectors as erased */
-		for (i = 0; i < bank->num_sectors; i++)
+		for (unsigned int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_erased = 1;
 
 		command_print(CMD, "fm3 chip erase complete");

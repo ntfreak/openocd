@@ -764,7 +764,8 @@ static int kinetis_ke_write_words(struct flash_bank *bank, const uint8_t *buffer
 	return retval;
 }
 
-static int kinetis_ke_protect(struct flash_bank *bank, int set, int first, int last)
+static int kinetis_ke_protect(struct flash_bank *bank, int set,
+		unsigned int first, unsigned int last)
 {
 	LOG_WARNING("kinetis_ke_protect not supported yet");
 	/* FIXME: TODO */
@@ -809,7 +810,7 @@ static int kinetis_ke_protect_check(struct flash_bank *bank)
 	if (fpopen && fpldis && fphdis) {
 		LOG_WARNING("No flash protection found.");
 
-		for (uint32_t i = 0; i < (uint32_t) bank->num_sectors; i++)
+		for (unsigned int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_protected = 0;
 
 		kinfo->protection_size = 0;
@@ -840,7 +841,7 @@ static int kinetis_ke_protect_check(struct flash_bank *bank)
 		/* hprot_from indicates from where the upper region is protected */
 		hprot_from = (0x8000 - hprot_size) / kinfo->sector_size;
 
-		for (uint32_t i = 0; i < (uint32_t) bank->num_sectors; i++) {
+		for (unsigned int i = 0; i < bank->num_sectors; i++) {
 
 			/* Check if the sector is in the lower region */
 			if (bank->sectors[i].offset < 0x4000) {
@@ -964,9 +965,10 @@ COMMAND_HANDLER(kinetis_ke_securing_test)
 	return kinetis_ke_ftmrx_command(bank, 2, FCCOBIX, FCCOBHI, FCCOBLO, &fstat);
 }
 
-static int kinetis_ke_erase(struct flash_bank *bank, int first, int last)
+static int kinetis_ke_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
-	int result, i;
+	int result;
 	uint8_t FCCOBIX[2], FCCOBHI[2], FCCOBLO[2], fstat;
 	bool fcf_erased = false;
 
@@ -982,7 +984,7 @@ static int kinetis_ke_erase(struct flash_bank *bank, int first, int last)
 	if (result != ERROR_OK)
 		return result;
 
-	for (i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		FCCOBIX[0] = 0;
 		FCCOBHI[0] = FTMRX_CMD_ERASESECTOR;
 		FCCOBLO[0] = (bank->base + bank->sectors[i].offset) >> 16;
@@ -994,7 +996,7 @@ static int kinetis_ke_erase(struct flash_bank *bank, int first, int last)
 		result = kinetis_ke_ftmrx_command(bank, 2, FCCOBIX, FCCOBHI, FCCOBLO, &fstat);
 
 		if (result != ERROR_OK)	{
-			LOG_WARNING("erase sector %d failed", i);
+			LOG_WARNING("erase sector %u failed", i);
 			return ERROR_FLASH_OPERATION_FAILED;
 		}
 
@@ -1066,7 +1068,7 @@ static int kinetis_ke_write(struct flash_bank *bank, const uint8_t *buffer,
 
 static int kinetis_ke_probe(struct flash_bank *bank)
 {
-	int result, i;
+	int result;
 	uint32_t offset = 0;
 	struct target *target = bank->target;
 	struct kinetis_ke_flash_bank *kinfo = bank->driver_priv;
@@ -1151,7 +1153,7 @@ static int kinetis_ke_probe(struct flash_bank *bank)
 	assert(bank->num_sectors > 0);
 	bank->sectors = malloc(sizeof(struct flash_sector) * bank->num_sectors);
 
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		bank->sectors[i].offset = offset;
 		bank->sectors[i].size = kinfo->sector_size;
 		offset += kinfo->sector_size;
@@ -1207,9 +1209,7 @@ static int kinetis_ke_blank_check(struct flash_bank *bank)
 
 	if (fstat & (FTMRX_FSTAT_MGSTAT0_MASK | FTMRX_FSTAT_MGSTAT1_MASK)) {
 		/* the whole bank is not erased, check sector-by-sector */
-		int i;
-
-		for (i = 0; i < bank->num_sectors; i++) {
+		for (unsigned int i = 0; i < bank->num_sectors; i++) {
 			FCCOBIX[0] = 0;
 			FCCOBHI[0] = FTMRX_CMD_SECTIONERASED;
 			FCCOBLO[0] = (bank->base + bank->sectors[i].offset) >> 16;
@@ -1235,8 +1235,7 @@ static int kinetis_ke_blank_check(struct flash_bank *bank)
 		}
 	} else {
 		/* the whole bank is erased, update all sectors */
-		int i;
-		for (i = 0; i < bank->num_sectors; i++)
+		for (unsigned int i = 0; i < bank->num_sectors; i++)
 			bank->sectors[i].is_erased = 1;
 	}
 
