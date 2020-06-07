@@ -124,11 +124,12 @@ static int mdr_mass_erase(struct flash_bank *bank)
 	return retval;
 }
 
-static int mdr_erase(struct flash_bank *bank, int first, int last)
+static int mdr_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
 	struct mdr_flash_bank *mdr_info = bank->driver_priv;
-	int i, retval, retval2;
+	int retval, retval2;
 	unsigned int j;
 	uint32_t flash_cmd, cur_per_clock;
 
@@ -173,7 +174,7 @@ static int mdr_erase(struct flash_bank *bank, int first, int last)
 	}
 
 	unsigned int page_size = bank->size / mdr_info->page_count;
-	for (i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		for (j = 0; j < mdr_info->sec_count; j++) {
 			retval = target_write_u32(target, FLASH_ADR, (i * page_size) | (j << 2));
 			if (retval != ERROR_OK)

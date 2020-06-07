@@ -996,8 +996,7 @@ static int gdb_new_connection(struct connection *connection)
 		 * This will cause an auto_probe to be invoked, which is either
 		 * a no-op or it will fail when the target isn't ready(e.g. not halted).
 		 */
-		int i;
-		for (i = 0; i < flash_get_bank_count(); i++) {
+		for (unsigned int i = 0; i < flash_get_bank_count(); i++) {
 			struct flash_bank *p;
 			p = get_flash_bank_by_num_noprobe(i);
 			if (p->target != target)
@@ -1831,8 +1830,7 @@ static int gdb_memory_map(struct connection *connection,
 	int length;
 	char *separator;
 	target_addr_t ram_start = 0;
-	int i;
-	int target_flash_banks = 0;
+	unsigned int target_flash_banks = 0;
 
 	/* skip command character */
 	packet += 23;
@@ -1848,7 +1846,7 @@ static int gdb_memory_map(struct connection *connection,
 	 */
 	banks = malloc(sizeof(struct flash_bank *)*flash_get_bank_count());
 
-	for (i = 0; i < flash_get_bank_count(); i++) {
+	for (unsigned int i = 0; i < flash_get_bank_count(); i++) {
 		p = get_flash_bank_by_num_noprobe(i);
 		if (p->target != target)
 			continue;
@@ -1864,8 +1862,7 @@ static int gdb_memory_map(struct connection *connection,
 	qsort(banks, target_flash_banks, sizeof(struct flash_bank *),
 		compare_bank);
 
-	for (i = 0; i < target_flash_banks; i++) {
-		int j;
+	for (unsigned int i = 0; i < target_flash_banks; i++) {
 		unsigned sector_size = 0;
 		unsigned group_len = 0;
 
@@ -1883,7 +1880,7 @@ static int gdb_memory_map(struct connection *connection,
 		 * smaller ones at the end (maybe 32KB).  STR7 will have
 		 * regions with 8KB, 32KB, and 64KB sectors; etc.
 		 */
-		for (j = 0; j < p->num_sectors; j++) {
+		for (unsigned int j = 0; j < p->num_sectors; j++) {
 
 			/* Maybe start a new group of sectors. */
 			if (sector_size == 0) {
@@ -3117,7 +3114,7 @@ static int gdb_v_packet(struct connection *connection,
 		target_call_event_callbacks(target,
 				TARGET_EVENT_GDB_FLASH_WRITE_START);
 		result = flash_write(target, gdb_connection->vflash_image,
-			&written, 0);
+			&written, false);
 		target_call_event_callbacks(target,
 			TARGET_EVENT_GDB_FLASH_WRITE_END);
 		if (result != ERROR_OK) {

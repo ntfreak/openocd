@@ -1433,7 +1433,7 @@ static int numicro_protect_check(struct flash_bank *bank)
 {
 	struct target *target = bank->target;
 	uint32_t set, config[2];
-	int i, retval = ERROR_OK;
+	int retval = ERROR_OK;
 
 	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -1467,18 +1467,19 @@ static int numicro_protect_check(struct flash_bank *bank)
 	    set = 0;
 	}
 
-	for (i = 0; i < bank->num_sectors; i++)
+	for (unsigned int i = 0; i < bank->num_sectors; i++)
 		bank->sectors[i].is_protected = set;
 
 	return ERROR_OK;
 }
 
 
-static int numicro_erase(struct flash_bank *bank, int first, int last)
+static int numicro_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
 	uint32_t timeout, status;
-	int i, retval = ERROR_OK;
+	int retval = ERROR_OK;
 
 	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -1495,7 +1496,7 @@ static int numicro_erase(struct flash_bank *bank, int first, int last)
 	if (retval != ERROR_OK)
 		return retval;
 
-	for (i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		LOG_DEBUG("erasing sector %d at address " TARGET_ADDR_FMT, i,
 				bank->base + bank->sectors[i].offset);
 		retval = target_write_u32(target, NUMICRO_FLASH_ISPADR, bank->base + bank->sectors[i].offset);

@@ -85,13 +85,12 @@ FLASH_BANK_COMMAND_HANDLER(aducm360_flash_bank_command)
 /* ----------------------------------------------------------------------- */
 static int aducm360_build_sector_list(struct flash_bank *bank)
 {
-	int i = 0;
 	uint32_t offset = 0;
 
 	/* sector size is 512 */
 	bank->num_sectors = bank->size / FLASH_SECTOR_SIZE;
 	bank->sectors = malloc(sizeof(struct flash_sector) * bank->num_sectors);
-	for (i = 0; i < bank->num_sectors; ++i) {
+	for (unsigned i = 0; i < bank->num_sectors; ++i) {
 		bank->sectors[i].offset = offset;
 		bank->sectors[i].size = FLASH_SECTOR_SIZE;
 		offset += bank->sectors[i].size;
@@ -164,7 +163,8 @@ static int aducm360_page_erase(struct target *target, uint32_t padd)
 }
 
 /* ----------------------------------------------------------------------- */
-static int aducm360_erase(struct flash_bank *bank, int first, int last)
+static int aducm360_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	int             res = ERROR_OK;
 	int             i;

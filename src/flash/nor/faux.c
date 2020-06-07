@@ -56,11 +56,10 @@ FLASH_BANK_COMMAND_HANDLER(faux_flash_bank_command)
 	bank->driver_priv = info;
 
 	/* Use 0x10000 as a fixed sector size. */
-	int i = 0;
 	uint32_t offset = 0;
 	bank->num_sectors = bank->size/sectorSize;
 	bank->sectors = malloc(sizeof(struct flash_sector) * bank->num_sectors);
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		bank->sectors[i].offset = offset;
 		bank->sectors[i].size = sectorSize;
 		offset += bank->sectors[i].size;
@@ -78,7 +77,8 @@ FLASH_BANK_COMMAND_HANDLER(faux_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int faux_erase(struct flash_bank *bank, int first, int last)
+static int faux_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct faux_flash_bank *info = bank->driver_priv;
 	memset(info->memory + first*sectorSize, 0xff, sectorSize*(last-first + 1));

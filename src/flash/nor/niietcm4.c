@@ -330,7 +330,8 @@ static int niietcm4_uflash_page_erase(struct flash_bank *bank, int page_num, int
 /**
  * Enable or disable protection of userflash pages
  */
-static int niietcm4_uflash_protect(struct flash_bank *bank, int mem_type, int set, int first, int last)
+static int niietcm4_uflash_protect(struct flash_bank *bank, int mem_type,
+		int set, unsigned int first, unsigned int last)
 {
 	int retval;
 	if (mem_type == INFO_MEM_TYPE) {
@@ -359,7 +360,7 @@ static int niietcm4_uflash_protect(struct flash_bank *bank, int mem_type, int se
 		if (retval != ERROR_OK)
 			return retval;
 		/* modify dump */
-		for (int i = first; i <= last; i++)	{
+		for (unsigned int i = first; i <= last; i++) {
 			uint32_t reg_num = i/8;
 			uint32_t bit_num = i%8;
 			if (set)
@@ -1111,7 +1112,7 @@ static int niietcm4_protect_check(struct flash_bank *bank)
 	} else {
 		uflash_addr = BF_LOCK_ADDR;
 		uflash_cmd = UFMC_MAGIC_KEY | UFMC_READ_IFB;
-		for (int i = 0; i < bank->num_sectors/8; i++) {
+		for (unsigned int i = 0; i < bank->num_sectors/8; i++) {
 			retval = target_write_u32(target, UFMA, uflash_addr);
 			if (retval != ERROR_OK)
 				return retval;
@@ -1163,7 +1164,8 @@ static int niietcm4_mass_erase(struct flash_bank *bank)
 	return retval;
 }
 
-static int niietcm4_erase(struct flash_bank *bank, int first, int last)
+static int niietcm4_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
 	struct niietcm4_flash_bank *niietcm4_info = bank->driver_priv;
@@ -1188,7 +1190,7 @@ static int niietcm4_erase(struct flash_bank *bank, int first, int last)
 
 	/* erasing pages */
 	unsigned int page_size = bank->size / bank->num_sectors;
-	for (int i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		/* current page addr */
 		flash_addr = i*page_size;
 		retval = target_write_u32(target, FMA, flash_addr);
@@ -1211,7 +1213,8 @@ static int niietcm4_erase(struct flash_bank *bank, int first, int last)
 	return retval;
 }
 
-static int niietcm4_protect(struct flash_bank *bank, int set, int first, int last)
+static int niietcm4_protect(struct flash_bank *bank, int set,
+		unsigned int first, unsigned int last)
 {
 	struct target *target = bank->target;
 	struct niietcm4_flash_bank *niietcm4_info = bank->driver_priv;
@@ -1251,7 +1254,7 @@ static int niietcm4_protect(struct flash_bank *bank, int set, int first, int las
 		if (retval != ERROR_OK)
 			return retval;
 		/* modify dump */
-		for (int i = first; i <= last; i++)	{
+		for (unsigned int i = first; i <= last; i++)	{
 			uint32_t reg_num = i/8;
 			uint32_t bit_num = i%8;
 			if (set)

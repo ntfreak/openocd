@@ -68,7 +68,7 @@ static int str9x_build_block_list(struct flash_bank *bank)
 	struct str9x_flash_bank *str9x_info = bank->driver_priv;
 
 	int i;
-	int num_sectors;
+	unsigned int num_sectors;
 	int b0_sectors = 0, b1_sectors = 0;
 	uint32_t offset = 0;
 
@@ -164,7 +164,6 @@ static int str9x_protect_check(struct flash_bank *bank)
 	struct str9x_flash_bank *str9x_info = bank->driver_priv;
 	struct target *target = bank->target;
 
-	int i;
 	uint32_t adr;
 	uint32_t status = 0;
 	uint16_t hstatus = 0;
@@ -211,7 +210,7 @@ static int str9x_protect_check(struct flash_bank *bank)
 	if (retval != ERROR_OK)
 		return retval;
 
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		if (status & str9x_info->sector_bits[i])
 			bank->sectors[i].is_protected = 1;
 		else
@@ -221,10 +220,10 @@ static int str9x_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int str9x_erase(struct flash_bank *bank, int first, int last)
+static int str9x_erase(struct flash_bank *bank, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
-	int i;
 	uint32_t adr;
 	uint8_t status;
 	uint8_t erase_cmd;
@@ -250,7 +249,7 @@ static int str9x_erase(struct flash_bank *bank, int first, int last)
 	/* this is so the compiler can *know* */
 	assert(total_timeout > 0);
 
-	for (i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		int retval;
 		adr = bank->base + bank->sectors[i].offset;
 
@@ -301,17 +300,16 @@ static int str9x_erase(struct flash_bank *bank, int first, int last)
 			break;
 	}
 
-	for (i = first; i <= last; i++)
+	for (unsigned int i = first; i <= last; i++)
 		bank->sectors[i].is_erased = 1;
 
 	return ERROR_OK;
 }
 
-static int str9x_protect(struct flash_bank *bank,
-		int set, int first, int last)
+static int str9x_protect(struct flash_bank *bank, int set, unsigned int first,
+		unsigned int last)
 {
 	struct target *target = bank->target;
-	int i;
 	uint32_t adr;
 	uint8_t status;
 
@@ -320,7 +318,7 @@ static int str9x_protect(struct flash_bank *bank,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	for (i = first; i <= last; i++) {
+	for (unsigned int i = first; i <= last; i++) {
 		/* Level One Protection */
 
 		adr = bank->base + bank->sectors[i].offset;
@@ -468,7 +466,6 @@ static int str9x_write(struct flash_bank *bank,
 	int retval;
 	uint32_t check_address = offset;
 	uint32_t bank_adr;
-	int i;
 
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -480,7 +477,7 @@ static int str9x_write(struct flash_bank *bank,
 		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
 	}
 
-	for (i = 0; i < bank->num_sectors; i++) {
+	for (unsigned int i = 0; i < bank->num_sectors; i++) {
 		uint32_t sec_start = bank->sectors[i].offset;
 		uint32_t sec_end = sec_start + bank->sectors[i].size;
 
