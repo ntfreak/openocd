@@ -458,7 +458,7 @@ AT91SAM764 internally.
 @item @b{SEGGER J-Link}
 @* Link: @url{http://www.segger.com/jlink.html}
 @item @b{Atmel SAM-ICE} (Only works with Atmel chips!)
-@* Link: @url{http://www.atmel.com/tools/atmelsam-ice.aspx}
+@* Link: @url{https://www.microchip.com/Developmenttools/ProductDetails/AT91SAM-ICE}
 @item @b{IAR J-Link}
 @end itemize
 
@@ -909,7 +909,7 @@ in the current directory named @file{openocd.cfg}
 
 Here is an example @file{openocd.cfg} file for a setup
 using a Signalyzer FT2232-based JTAG adapter to talk to
-a board with an Atmel AT91SAM7X256 microcontroller:
+a board with an Microchip (formerly Atmel) AT91SAM7X256 microcontroller:
 
 @example
 source [find interface/ftdi/signalyzer.cfg]
@@ -1706,7 +1706,7 @@ for taps.
 
 In the simplest case the chip has only one TAP,
 probably for a CPU or FPGA.
-The config file for the Atmel AT91SAM7X256
+The config file for the Microchip (formerly Atmel) AT91SAM7X256
 looks (in part) like this:
 
 @example
@@ -2408,7 +2408,7 @@ Logs some status
 
 @deffn {Interface Driver} {at91rm9200}
 Supports bitbanged JTAG from the local system,
-presuming that system is an Atmel AT91rm9200
+presuming that system is a Microchip (formerly Atmel) AT91rm9200
 and a specific set of GPIOs is used.
 @c command:	at91rm9200_device NAME
 @c chooses among list of bit configs ... only one option
@@ -5602,14 +5602,24 @@ the flash.
 @deffn {Flash Driver} at91samd
 @cindex at91samd
 All members of the ATSAM D2x, D1x, D0x, ATSAMR, ATSAML and ATSAMC microcontroller
-families from Atmel include internal flash and use ARM's Cortex-M0+ core.
+families from Microchip (formerly Atmel) include internal flash and use ARM's
+Cortex-M0+ core.
 
 Do not use for ATSAM D51 and E5x: use @xref{atsame5}.
 
-The devices have one flash bank:
+All of these devices have a main flash bank:
 
 @example
-flash bank $_FLASHNAME at91samd 0x00000000 0 1 1 $_TARGETNAME
+flash bank $_FLASHNAME.main at91samd 0x00000000 0 1 1 $_TARGETNAME
+@end example
+
+Some of these devices have a second flash bank which can be separately programmed
+and erased by code running from the main flash bank. This is called the "RWWEE" or
+"RWW" bank. This bank is not always present and if present is much smaller than the
+main bank.
+
+@example
+flash bank $_FLASHNAME.rwwee at91samd 0x00400000 0 1 1 $_TARGETNAME
 @end example
 
 @deffn Command {at91samd chip-erase}
@@ -5689,8 +5699,8 @@ NVMUSERROW: 0xFFFFFC5DD8E0C788
 @anchor{at91sam3}
 @deffn {Flash Driver} at91sam3
 @cindex at91sam3
-All members of the AT91SAM3 microcontroller family from
-Atmel include internal flash and use ARM's Cortex-M3 core. The driver
+All members of the AT91SAM3 microcontroller family from Microchip (formerly
+Atmel) include internal flash and use ARM's Cortex-M3 core. The driver
 currently (6/22/09) recognizes the AT91SAM3U[1/2/4][C/E] chips. Note
 that the driver was orginaly developed and tested using the
 AT91SAM3U4E, using a SAM3U-EK eval board. Support for other chips in
@@ -5753,15 +5763,15 @@ This command shows/sets the slow clock frequency used in the
 
 @deffn {Flash Driver} at91sam4
 @cindex at91sam4
-All members of the AT91SAM4 microcontroller family from
-Atmel include internal flash and use ARM's Cortex-M4 core.
+All members of the AT91SAM4 microcontroller family from Microchip (formerly
+Atmel) include internal flash and use ARM's Cortex-M4 core.
 This driver uses the same command names/syntax as @xref{at91sam3}.
 @end deffn
 
 @deffn {Flash Driver} at91sam4l
 @cindex at91sam4l
-All members of the AT91SAM4L microcontroller family from
-Atmel include internal flash and use ARM's Cortex-M4 core.
+All members of the AT91SAM4L microcontroller family from Microchip (formerly
+Atmel) include internal flash and use ARM's Cortex-M4 core.
 This driver uses the same command names/syntax as @xref{at91sam3}.
 
 The AT91SAM4L driver adds some additional commands:
@@ -5776,7 +5786,7 @@ Command is used internally in event event reset-deassert-post.
 @deffn {Flash Driver} atsame5
 @cindex atsame5
 All members of the SAM E54, E53, E51 and D51 microcontroller
-families from Microchip (former Atmel) include internal flash
+families from Microchip (formerly Atmel) include internal flash
 and use ARM's Cortex-M4 core.
 
 The devices have two ECC flash banks with a swapping feature.
@@ -5837,14 +5847,14 @@ USER PAGE: 0xAEECFF80FE9A9239
 
 @deffn {Flash Driver} atsamv
 @cindex atsamv
-All members of the ATSAMV7x, ATSAMS70, and ATSAME70 families from
-Atmel include internal flash and use ARM's Cortex-M7 core.
+All members of the ATSAMV7x, ATSAMS70, and ATSAME70 families from Microchip
+(formerly Atmel) include internal flash and use ARM's Cortex-M7 core.
 This driver uses the same command names/syntax as @xref{at91sam3}.
 @end deffn
 
 @deffn {Flash Driver} at91sam7
-All members of the AT91SAM7 microcontroller family from Atmel include
-internal flash and use ARM7TDMI cores. The driver automatically
+All members of the AT91SAM7 microcontroller family from Microchip (formerly Atmel)
+include internal flash and use ARM7TDMI cores. The driver automatically
 recognizes a number of these chips using the chip identification
 register, and autoconfigures itself.
 
@@ -5890,7 +5900,7 @@ the appropriate at91sam7 target.
 @end deffn
 
 @deffn {Flash Driver} avr
-The AVR 8-bit microcontrollers from Atmel integrate flash memory.
+The AVR 8-bit microcontrollers from Microchip (formerly Atmel) integrate flash memory.
 @emph{The current implementation is incomplete.}
 @comment - defines mass_erase ... pointless given flash_erase_address
 @end deffn
@@ -7553,8 +7563,8 @@ Some controllers also activate controller-specific commands.
 
 @deffn {NAND Driver} at91sam9
 This driver handles the NAND controllers found on AT91SAM9 family chips from
-Atmel. It takes two extra parameters: address of the NAND chip;
-address of the ECC controller.
+Microchip (formerly Atmel). It takes two extra parameters: address of the NAND
+chip; address of the ECC controller.
 @example
 nand device $NANDFLASH at91sam9 $CHIPNAME 0x40000000 0xfffffe800
 @end example
@@ -9815,7 +9825,7 @@ startbit endbit}.
 
 @deffn {Command} {arc get-reg-field} reg-name field-name
 Returns value of bit-field in a register. Register must be ``struct'' register
-type, @xref{add-reg-type-struct} command definition.
+type command definition. @xref{add-reg-type-struct}.
 @end deffn
 
 @deffn {Command} {arc set-reg-exists} reg-names...
@@ -10861,10 +10871,10 @@ Startup sequences are often problematic though, as are other
 situations where the CPU clock rate changes (perhaps to save
 power).
 
-For example, Atmel AT91SAM chips start operation from reset with
-a 32kHz system clock. Boot firmware may activate the main oscillator
-and PLL before switching to a faster clock (perhaps that 500 MHz
-ARM926 scenario).
+For example, Microchip (formerly Atmel) AT91SAM chips start operation
+from reset with a 32kHz system clock. Boot firmware may activate the
+main oscillator and PLL before switching to a faster clock (perhaps
+the above 500 MHz ARM926 scenario).
 If you're using JTAG to debug that startup sequence, you must slow
 the JTAG clock to sometimes 1 to 4kHz. After startup completes,
 JTAG can use a faster clock.
