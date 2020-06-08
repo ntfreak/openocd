@@ -28,7 +28,8 @@
 #define SAMD_NUM_PROT_BLOCKS	16
 #define SAMD_PAGE_SIZE_MAX	1024
 
-#define SAMD_FLASH			((uint32_t)0x00000000)	/* physical Flash memory */
+#define SAMD_MAIN_FLASH		((uint32_t)0x00000000)	/* physical MAIN Flash memory */
+#define SAMD_RWWEE			((uint32_t)0x00400000)	/* physical RWWEE Flash memory */
 #define SAMD_USER_ROW		((uint32_t)0x00804000)	/* User Row of Flash */
 #define SAMD_PAC1			0x41000000	/* Peripheral Access Control 1 */
 #define SAMD_DSU			0x41002000	/* Device Service Unit */
@@ -50,17 +51,19 @@
 #define SAMD_NVM_CMD(n)		((SAMD_CMDEX_KEY << 8) | (n & 0x7F))
 
 /* NVMCTRL commands.  See Table 20-4 in 42129F–SAM–10/2013 */
-#define SAMD_NVM_CMD_ER		0x02		/* Erase Row */
-#define SAMD_NVM_CMD_WP		0x04		/* Write Page */
-#define SAMD_NVM_CMD_EAR	0x05		/* Erase Auxilary Row */
-#define SAMD_NVM_CMD_WAP	0x06		/* Write Auxilary Page */
-#define SAMD_NVM_CMD_LR		0x40		/* Lock Region */
-#define SAMD_NVM_CMD_UR		0x41		/* Unlock Region */
-#define SAMD_NVM_CMD_SPRM	0x42		/* Set Power Reduction Mode */
-#define SAMD_NVM_CMD_CPRM	0x43		/* Clear Power Reduction Mode */
-#define SAMD_NVM_CMD_PBC	0x44		/* Page Buffer Clear */
-#define SAMD_NVM_CMD_SSB	0x45		/* Set Security Bit */
-#define SAMD_NVM_CMD_INVALL	0x46		/* Invalidate all caches */
+#define SAMD_NVM_CMD_ER			0x02		/* Erase Row */
+#define SAMD_NVM_CMD_WP			0x04		/* Write Page */
+#define SAMD_NVM_CMD_EAR		0x05		/* Erase Auxilary (User) Row */
+#define SAMD_NVM_CMD_WAP		0x06		/* Write Auxilary (User) Page */
+#define SAMD_NVM_CMD_RWWEEER	0x1A		/* Erase RWWEE Row -- only in some parts */
+#define SAMD_NVM_CMD_RWWEEWP	0x1C		/* Write RWEEE Page -- only in some parts */
+#define SAMD_NVM_CMD_LR			0x40		/* Lock Region */
+#define SAMD_NVM_CMD_UR			0x41		/* Unlock Region */
+#define SAMD_NVM_CMD_SPRM		0x42		/* Set Power Reduction Mode */
+#define SAMD_NVM_CMD_CPRM		0x43		/* Clear Power Reduction Mode */
+#define SAMD_NVM_CMD_PBC		0x44		/* Page Buffer Clear */
+#define SAMD_NVM_CMD_SSB		0x45		/* Set Security Bit */
+#define SAMD_NVM_CMD_INVALL		0x46		/* Invalidate all caches */
 
 /* NVMCTRL bits */
 #define SAMD_NVM_CTRLB_MANW 0x80
@@ -86,219 +89,245 @@
 /* Bits to mask out lockbits in user row */
 #define NVMUSERROW_LOCKBIT_MASK ((uint64_t)0x0000FFFFFFFFFFFF)
 
+/* This indicates the region of flash which this bank corresponds to
+ * Banks are not the same as regions although the numbers may line
+ * up. */
+enum {
+	kFlashStorageAreaNVM = 0,
+	kFlashStorageAreaRWWEE = 1,			/* not present on all parts */
+	kFlashStorageAreaUserRow = 2		/* not presented as a bank */
+};
+
+static const uint16_t region_write_page_commands[3] = {
+	SAMD_NVM_CMD_WP,
+	SAMD_NVM_CMD_RWWEEWP,
+	SAMD_NVM_CMD_WAP
+};
+
+static const uint16_t region_erase_row_commands[3] = {
+	SAMD_NVM_CMD_ER,
+	SAMD_NVM_CMD_RWWEEER,
+	SAMD_NVM_CMD_EAR
+};
+
 struct samd_part {
 	uint8_t id;
 	const char *name;
-	uint32_t flash_kb;
+	uint32_t main_flash_kb;
+	uint32_t rwwee_b;
 	uint32_t ram_kb;
 };
+
+/* It is not clear why the sizes of memories in the devices must be stored
+ * in this table since the flash sizes can be determined from the PARAM
+ * register */
 
 /* Known SAMD09 parts. DID reset values missing in RM, see
  * https://github.com/avrxml/asf/blob/master/sam0/utils/cmsis/samd09/include/ */
 static const struct samd_part samd09_parts[] = {
-	{ 0x0, "SAMD09D14A", 16, 4 },
-	{ 0x7, "SAMD09C13A", 8, 4 },
+	{ 0x0, "SAMD09D14A", 16, 0, 4 },
+	{ 0x7, "SAMD09C13A", 8, 0, 4 },
 };
 
 /* Known SAMD10 parts */
 static const struct samd_part samd10_parts[] = {
-	{ 0x0, "SAMD10D14AMU", 16, 4 },
-	{ 0x1, "SAMD10D13AMU", 8, 4 },
-	{ 0x2, "SAMD10D12AMU", 4, 4 },
-	{ 0x3, "SAMD10D14ASU", 16, 4 },
-	{ 0x4, "SAMD10D13ASU", 8, 4 },
-	{ 0x5, "SAMD10D12ASU", 4, 4 },
-	{ 0x6, "SAMD10C14A", 16, 4 },
-	{ 0x7, "SAMD10C13A", 8, 4 },
-	{ 0x8, "SAMD10C12A", 4, 4 },
+	{ 0x0, "SAMD10D14AMU", 16, 0, 4 },
+	{ 0x1, "SAMD10D13AMU", 8, 0, 4 },
+	{ 0x2, "SAMD10D12AMU", 4, 0, 4 },
+	{ 0x3, "SAMD10D14ASU", 16, 0, 4 },
+	{ 0x4, "SAMD10D13ASU", 8, 0, 4 },
+	{ 0x5, "SAMD10D12ASU", 4, 0, 4 },
+	{ 0x6, "SAMD10C14A", 16, 0, 4 },
+	{ 0x7, "SAMD10C13A", 8, 0, 4 },
+	{ 0x8, "SAMD10C12A", 4, 0, 4 },
 };
 
 /* Known SAMD11 parts */
 static const struct samd_part samd11_parts[] = {
-	{ 0x0, "SAMD11D14AM", 16, 4 },
-	{ 0x1, "SAMD11D13AMU", 8, 4 },
-	{ 0x2, "SAMD11D12AMU", 4, 4 },
-	{ 0x3, "SAMD11D14ASS", 16, 4 },
-	{ 0x4, "SAMD11D13ASU", 8, 4 },
-	{ 0x5, "SAMD11D12ASU", 4, 4 },
-	{ 0x6, "SAMD11C14A", 16, 4 },
-	{ 0x7, "SAMD11C13A", 8, 4 },
-	{ 0x8, "SAMD11C12A", 4, 4 },
-	{ 0x9, "SAMD11D14AU", 16, 4 },
+	{ 0x0, "SAMD11D14AM", 16, 0, 4 },
+	{ 0x1, "SAMD11D13AMU", 8, 0, 4 },
+	{ 0x2, "SAMD11D12AMU", 4, 0, 4 },
+	{ 0x3, "SAMD11D14ASS", 16, 0, 4 },
+	{ 0x4, "SAMD11D13ASU", 8, 0, 4 },
+	{ 0x5, "SAMD11D12ASU", 4, 0, 4 },
+	{ 0x6, "SAMD11C14A", 16, 0, 4 },
+	{ 0x7, "SAMD11C13A", 8, 0, 4 },
+	{ 0x8, "SAMD11C12A", 4, 0, 4 },
+	{ 0x9, "SAMD11D14AU", 16, 0, 4 },
 };
 
 /* Known SAMD20 parts. See Table 12-8 in 42129F–SAM–10/2013 */
 static const struct samd_part samd20_parts[] = {
-	{ 0x0, "SAMD20J18A", 256, 32 },
-	{ 0x1, "SAMD20J17A", 128, 16 },
-	{ 0x2, "SAMD20J16A", 64, 8 },
-	{ 0x3, "SAMD20J15A", 32, 4 },
-	{ 0x4, "SAMD20J14A", 16, 2 },
-	{ 0x5, "SAMD20G18A", 256, 32 },
-	{ 0x6, "SAMD20G17A", 128, 16 },
-	{ 0x7, "SAMD20G16A", 64, 8 },
-	{ 0x8, "SAMD20G15A", 32, 4 },
-	{ 0x9, "SAMD20G14A", 16, 2 },
-	{ 0xA, "SAMD20E18A", 256, 32 },
-	{ 0xB, "SAMD20E17A", 128, 16 },
-	{ 0xC, "SAMD20E16A", 64, 8 },
-	{ 0xD, "SAMD20E15A", 32, 4 },
-	{ 0xE, "SAMD20E14A", 16, 2 },
+	{ 0x0, "SAMD20J18A", 256, 0, 32 },
+	{ 0x1, "SAMD20J17A", 128, 0, 16 },
+	{ 0x2, "SAMD20J16A", 64, 0, 8 },
+	{ 0x3, "SAMD20J15A", 32, 0, 4 },
+	{ 0x4, "SAMD20J14A", 16, 0, 2 },
+	{ 0x5, "SAMD20G18A", 256, 0, 32 },
+	{ 0x6, "SAMD20G17A", 128, 0, 16 },
+	{ 0x7, "SAMD20G16A", 64, 0, 8 },
+	{ 0x8, "SAMD20G15A", 32, 0, 4 },
+	{ 0x9, "SAMD20G14A", 16, 0, 2 },
+	{ 0xA, "SAMD20E18A", 256, 0, 32 },
+	{ 0xB, "SAMD20E17A", 128, 0, 16 },
+	{ 0xC, "SAMD20E16A", 64, 0, 8 },
+	{ 0xD, "SAMD20E15A", 32, 0, 4 },
+	{ 0xE, "SAMD20E14A", 16, 0, 2 },
 };
 
 /* Known SAMD21 parts. */
 static const struct samd_part samd21_parts[] = {
-	{ 0x0, "SAMD21J18A", 256, 32 },
-	{ 0x1, "SAMD21J17A", 128, 16 },
-	{ 0x2, "SAMD21J16A", 64, 8 },
-	{ 0x3, "SAMD21J15A", 32, 4 },
-	{ 0x4, "SAMD21J14A", 16, 2 },
-	{ 0x5, "SAMD21G18A", 256, 32 },
-	{ 0x6, "SAMD21G17A", 128, 16 },
-	{ 0x7, "SAMD21G16A", 64, 8 },
-	{ 0x8, "SAMD21G15A", 32, 4 },
-	{ 0x9, "SAMD21G14A", 16, 2 },
-	{ 0xA, "SAMD21E18A", 256, 32 },
-	{ 0xB, "SAMD21E17A", 128, 16 },
-	{ 0xC, "SAMD21E16A", 64, 8 },
-	{ 0xD, "SAMD21E15A", 32, 4 },
-	{ 0xE, "SAMD21E14A", 16, 2 },
+	{ 0x0, "SAMD21J18A", 256, 0, 32 },
+	{ 0x1, "SAMD21J17A", 128, 0, 16 },
+	{ 0x2, "SAMD21J16A", 64, 0, 8 },
+	{ 0x3, "SAMD21J15A", 32, 0, 4 },
+	{ 0x4, "SAMD21J14A", 16, 0, 2 },
+	{ 0x5, "SAMD21G18A", 256, 0, 32 },
+	{ 0x6, "SAMD21G17A", 128, 0, 16 },
+	{ 0x7, "SAMD21G16A", 64, 0, 8 },
+	{ 0x8, "SAMD21G15A", 32, 0, 4 },
+	{ 0x9, "SAMD21G14A", 16, 0, 2 },
+	{ 0xA, "SAMD21E18A", 256, 0, 32 },
+	{ 0xB, "SAMD21E17A", 128, 0, 16 },
+	{ 0xC, "SAMD21E16A", 64, 0, 8 },
+	{ 0xD, "SAMD21E15A", 32, 0, 4 },
+	{ 0xE, "SAMD21E14A", 16, 0, 2 },
 
     /* SAMR21 parts have integrated SAMD21 with a radio */
-	{ 0x18, "SAMR21G19A", 256, 32 }, /* with 512k of serial flash */
-	{ 0x19, "SAMR21G18A", 256, 32 },
-	{ 0x1A, "SAMR21G17A", 128, 32 },
-	{ 0x1B, "SAMR21G16A",  64, 16 },
-	{ 0x1C, "SAMR21E18A", 256, 32 },
-	{ 0x1D, "SAMR21E17A", 128, 32 },
-	{ 0x1E, "SAMR21E16A",  64, 16 },
+	{ 0x18, "SAMR21G19A", 256, 0, 32 }, /* with 512k of serial flash */
+	{ 0x19, "SAMR21G18A", 256, 0, 32 },
+	{ 0x1A, "SAMR21G17A", 128, 0, 32 },
+	{ 0x1B, "SAMR21G16A",  64, 0, 16 },
+	{ 0x1C, "SAMR21E18A", 256, 0, 32 },
+	{ 0x1D, "SAMR21E17A", 128, 0, 32 },
+	{ 0x1E, "SAMR21E16A",  64, 0, 16 },
 
     /* SAMD21 B Variants (Table 3-7 from rev I of datasheet) */
-	{ 0x20, "SAMD21J16B", 64, 8 },
-	{ 0x21, "SAMD21J15B", 32, 4 },
-	{ 0x23, "SAMD21G16B", 64, 8 },
-	{ 0x24, "SAMD21G15B", 32, 4 },
-	{ 0x26, "SAMD21E16B", 64, 8 },
-	{ 0x27, "SAMD21E15B", 32, 4 },
+	{ 0x20, "SAMD21J16B", 64, 1024, 8 },
+	{ 0x21, "SAMD21J15B", 32, 1024, 4 },
+	{ 0x23, "SAMD21G16B", 64, 1024, 8 },
+	{ 0x24, "SAMD21G15B", 32, 1024, 4 },
+	{ 0x26, "SAMD21E16B", 64, 1024, 8 },
+	{ 0x27, "SAMD21E15B", 32, 1024, 4 },
 
 	/* SAMD21 D and L Variants (from Errata)
 	   http://ww1.microchip.com/downloads/en/DeviceDoc/
 	   SAM-D21-Family-Silicon-Errata-and-DataSheet-Clarification-DS80000760D.pdf */
-	{ 0x55, "SAMD21E16BU", 64, 8 },
-	{ 0x56, "SAMD21E15BU", 32, 4 },
-	{ 0x57, "SAMD21G16L", 64, 8 },
-	{ 0x3E, "SAMD21E16L", 64, 8 },
-	{ 0x3F, "SAMD21E15L", 32, 4 },
-	{ 0x62, "SAMD21E16CU", 64, 8 },
-	{ 0x63, "SAMD21E15CU", 32, 4 },
-	{ 0x92, "SAMD21J17D", 128, 16 },
-	{ 0x93, "SAMD21G17D", 128, 16 },
-	{ 0x94, "SAMD21E17D", 128, 16 },
-	{ 0x95, "SAMD21E17DU", 128, 16 },
-	{ 0x96, "SAMD21G17L", 128, 16 },
-	{ 0x97, "SAMD21E17L", 128, 16 },
+	{ 0x55, "SAMD21E16BU", 64, 1024, 8 },
+	{ 0x56, "SAMD21E15BU", 32, 1024, 4 },
+	{ 0x57, "SAMD21G16L", 64, 1024, 8 },
+	{ 0x3E, "SAMD21E16L", 64, 1024, 8 },
+	{ 0x3F, "SAMD21E15L", 32, 1024, 4 },
+	{ 0x62, "SAMD21E16CU", 64, 1024, 8 },
+	{ 0x63, "SAMD21E15CU", 32, 1024, 4 },
+	{ 0x92, "SAMD21J17D", 128, 1024, 16 },
+	{ 0x93, "SAMD21G17D", 128, 1024, 16 },
+	{ 0x94, "SAMD21E17D", 128, 1024, 16 },
+	{ 0x95, "SAMD21E17DU", 128, 1024, 16 },
+	{ 0x96, "SAMD21G17L", 128, 1024, 16 },
+	{ 0x97, "SAMD21E17L", 128, 1024, 16 },
 
 	/* Known SAMDA1 parts.
 	   SAMD-A1 series uses the same series identifier like the SAMD21
 	   taken from http://ww1.microchip.com/downloads/en/DeviceDoc/40001895A.pdf (pages 14-17) */
-	{ 0x29, "SAMDA1J16A", 64, 8 },
-	{ 0x2A, "SAMDA1J15A", 32, 4 },
-	{ 0x2B, "SAMDA1J14A", 16, 4 },
-	{ 0x2C, "SAMDA1G16A", 64, 8 },
-	{ 0x2D, "SAMDA1G15A", 32, 4 },
-	{ 0x2E, "SAMDA1G14A", 16, 4 },
-	{ 0x2F, "SAMDA1E16A", 64, 8 },
-	{ 0x30, "SAMDA1E15A", 32, 4 },
-	{ 0x31, "SAMDA1E14A", 16, 4 },
-	{ 0x64, "SAMDA1J16B", 64, 8 },
-	{ 0x65, "SAMDA1J15B", 32, 4 },
-	{ 0x66, "SAMDA1J14B", 16, 4 },
-	{ 0x67, "SAMDA1G16B", 64, 8 },
-	{ 0x68, "SAMDA1G15B", 32, 4 },
-	{ 0x69, "SAMDA1G14B", 16, 4 },
-	{ 0x6A, "SAMDA1E16B", 64, 8 },
-	{ 0x6B, "SAMDA1E15B", 32, 4 },
-	{ 0x6C, "SAMDA1E14B", 16, 4 },
+	{ 0x29, "SAMDA1J16A", 64, 2048, 8 },
+	{ 0x2A, "SAMDA1J15A", 32, 1024, 4 },
+	{ 0x2B, "SAMDA1J14A", 16, 512, 4 },
+	{ 0x2C, "SAMDA1G16A", 64, 2048, 8 },
+	{ 0x2D, "SAMDA1G15A", 32, 1024, 4 },
+	{ 0x2E, "SAMDA1G14A", 16, 512, 4 },
+	{ 0x2F, "SAMDA1E16A", 64, 2048, 8 },
+	{ 0x30, "SAMDA1E15A", 32, 1024, 4 },
+	{ 0x31, "SAMDA1E14A", 16, 512, 4 },
+	{ 0x64, "SAMDA1J16B", 64, 2048, 8 },
+	{ 0x65, "SAMDA1J15B", 32, 1024, 4 },
+	{ 0x66, "SAMDA1J14B", 16, 512, 4 },
+	{ 0x67, "SAMDA1G16B", 64, 2048, 8 },
+	{ 0x68, "SAMDA1G15B", 32, 1024, 4 },
+	{ 0x69, "SAMDA1G14B", 16, 512, 4 },
+	{ 0x6A, "SAMDA1E16B", 64, 2048, 8 },
+	{ 0x6B, "SAMDA1E15B", 32, 1024, 4 },
+	{ 0x6C, "SAMDA1E14B", 16, 512, 4 },
 };
 
 /* Known SAML21 parts. */
 static const struct samd_part saml21_parts[] = {
-	{ 0x00, "SAML21J18A", 256, 32 },
-	{ 0x01, "SAML21J17A", 128, 16 },
-	{ 0x02, "SAML21J16A", 64, 8 },
-	{ 0x05, "SAML21G18A", 256, 32 },
-	{ 0x06, "SAML21G17A", 128, 16 },
-	{ 0x07, "SAML21G16A", 64, 8 },
-	{ 0x0A, "SAML21E18A", 256, 32 },
-	{ 0x0B, "SAML21E17A", 128, 16 },
-	{ 0x0C, "SAML21E16A", 64, 8 },
-	{ 0x0D, "SAML21E15A", 32, 4 },
-	{ 0x0F, "SAML21J18B", 256, 32 },
-	{ 0x10, "SAML21J17B", 128, 16 },
-	{ 0x11, "SAML21J16B", 64, 8 },
-	{ 0x14, "SAML21G18B", 256, 32 },
-	{ 0x15, "SAML21G17B", 128, 16 },
-	{ 0x16, "SAML21G16B", 64, 8 },
-	{ 0x19, "SAML21E18B", 256, 32 },
-	{ 0x1A, "SAML21E17B", 128, 16 },
-	{ 0x1B, "SAML21E16B", 64, 8 },
-	{ 0x1C, "SAML21E15B", 32, 4 },
+	{ 0x00, "SAML21J18A", 256, 0, 32 },
+	{ 0x01, "SAML21J17A", 128, 0, 16 },
+	{ 0x02, "SAML21J16A", 64, 0, 8 },
+	{ 0x05, "SAML21G18A", 256, 0, 32 },
+	{ 0x06, "SAML21G17A", 128, 0, 16 },
+	{ 0x07, "SAML21G16A", 64, 0, 8 },
+	{ 0x0A, "SAML21E18A", 256, 0, 32 },
+	{ 0x0B, "SAML21E17A", 128, 0, 16 },
+	{ 0x0C, "SAML21E16A", 64, 0, 8 },
+	{ 0x0D, "SAML21E15A", 32, 0, 4 },
+	{ 0x0F, "SAML21J18B", 256, 8192, 32 },
+	{ 0x10, "SAML21J17B", 128, 4096, 16 },
+	{ 0x11, "SAML21J16B", 64, 2048, 8 },
+	{ 0x14, "SAML21G18B", 256, 8192, 32 },
+	{ 0x15, "SAML21G17B", 128, 4096, 16 },
+	{ 0x16, "SAML21G16B", 64, 2048, 8 },
+	{ 0x19, "SAML21E18B", 256, 8192, 32 },
+	{ 0x1A, "SAML21E17B", 128, 4096, 16 },
+	{ 0x1B, "SAML21E16B", 64, 2048, 8 },
+	{ 0x1C, "SAML21E15B", 32, 1024, 4 },
 
     /* SAMR30 parts have integrated SAML21 with a radio */
-	{ 0x1E, "SAMR30G18A", 256, 32 },
-	{ 0x1F, "SAMR30E18A", 256, 32 },
+	{ 0x1E, "SAMR30G18A", 256, 8192, 32 },
+	{ 0x1F, "SAMR30E18A", 256, 8192, 32 },
 
     /* SAMR34/R35 parts have integrated SAML21 with a lora radio */
-	{ 0x28, "SAMR34J18", 256, 32 },
+	{ 0x28, "SAMR34J18", 256, 8192, 32 },
 };
 
 /* Known SAML22 parts. */
 static const struct samd_part saml22_parts[] = {
-	{ 0x00, "SAML22N18A", 256, 32 },
-	{ 0x01, "SAML22N17A", 128, 16 },
-	{ 0x02, "SAML22N16A", 64, 8 },
-	{ 0x05, "SAML22J18A", 256, 32 },
-	{ 0x06, "SAML22J17A", 128, 16 },
-	{ 0x07, "SAML22J16A", 64, 8 },
-	{ 0x0A, "SAML22G18A", 256, 32 },
-	{ 0x0B, "SAML22G17A", 128, 16 },
-	{ 0x0C, "SAML22G16A", 64, 8 },
+	{ 0x00, "SAML22N18A", 256, 8192, 32 },
+	{ 0x01, "SAML22N17A", 128, 4096, 16 },
+	{ 0x02, "SAML22N16A", 64, 2048, 8 },
+	{ 0x05, "SAML22J18A", 256, 8192, 32 },
+	{ 0x06, "SAML22J17A", 128, 4096, 16 },
+	{ 0x07, "SAML22J16A", 64, 2048, 8 },
+	{ 0x0A, "SAML22G18A", 256, 8192, 32 },
+	{ 0x0B, "SAML22G17A", 128, 4096, 16 },
+	{ 0x0C, "SAML22G16A", 64, 2048, 8 },
 };
 
 /* Known SAMC20 parts. */
 static const struct samd_part samc20_parts[] = {
-	{ 0x00, "SAMC20J18A", 256, 32 },
-	{ 0x01, "SAMC20J17A", 128, 16 },
-	{ 0x02, "SAMC20J16A", 64, 8 },
-	{ 0x03, "SAMC20J15A", 32, 4 },
-	{ 0x05, "SAMC20G18A", 256, 32 },
-	{ 0x06, "SAMC20G17A", 128, 16 },
-	{ 0x07, "SAMC20G16A", 64, 8 },
-	{ 0x08, "SAMC20G15A", 32, 4 },
-	{ 0x0A, "SAMC20E18A", 256, 32 },
-	{ 0x0B, "SAMC20E17A", 128, 16 },
-	{ 0x0C, "SAMC20E16A", 64, 8 },
-	{ 0x0D, "SAMC20E15A", 32, 4 },
-	{ 0x20, "SAMC20N18A", 256, 32 },
-	{ 0x21, "SAMC20N17A", 128, 16 },
+	{ 0x00, "SAMC20J18A", 256, 8192, 32 },
+	{ 0x01, "SAMC20J17A", 128, 4096, 16 },
+	{ 0x02, "SAMC20J16A", 64, 2048, 8 },
+	{ 0x03, "SAMC20J15A", 32, 1024, 4 },
+	{ 0x05, "SAMC20G18A", 256, 8192, 32 },
+	{ 0x06, "SAMC20G17A", 128, 4096, 16 },
+	{ 0x07, "SAMC20G16A", 64, 2048, 8 },
+	{ 0x08, "SAMC20G15A", 32, 1024, 4 },
+	{ 0x0A, "SAMC20E18A", 256, 8192, 32 },
+	{ 0x0B, "SAMC20E17A", 128, 4096, 16 },
+	{ 0x0C, "SAMC20E16A", 64, 2048, 8 },
+	{ 0x0D, "SAMC20E15A", 32, 1024, 4 },
+	{ 0x20, "SAMC20N18A", 256, 8192, 32 },
+	{ 0x21, "SAMC20N17A", 128, 4096, 16 },
 };
 
 /* Known SAMC21 parts. */
 static const struct samd_part samc21_parts[] = {
-	{ 0x00, "SAMC21J18A", 256, 32 },
-	{ 0x01, "SAMC21J17A", 128, 16 },
-	{ 0x02, "SAMC21J16A", 64, 8 },
-	{ 0x03, "SAMC21J15A", 32, 4 },
-	{ 0x05, "SAMC21G18A", 256, 32 },
-	{ 0x06, "SAMC21G17A", 128, 16 },
-	{ 0x07, "SAMC21G16A", 64, 8 },
-	{ 0x08, "SAMC21G15A", 32, 4 },
-	{ 0x0A, "SAMC21E18A", 256, 32 },
-	{ 0x0B, "SAMC21E17A", 128, 16 },
-	{ 0x0C, "SAMC21E16A", 64, 8 },
-	{ 0x0D, "SAMC21E15A", 32, 4 },
-	{ 0x20, "SAMC21N18A", 256, 32 },
-	{ 0x21, "SAMC21N17A", 128, 16 },
+	{ 0x00, "SAMC21J18A", 256, 8192, 32 },
+	{ 0x01, "SAMC21J17A", 128, 4096, 16 },
+	{ 0x02, "SAMC21J16A", 64, 2048, 8 },
+	{ 0x03, "SAMC21J15A", 32, 1024, 4 },
+	{ 0x05, "SAMC21G18A", 256, 8192, 32 },
+	{ 0x06, "SAMC21G17A", 128, 4096, 16 },
+	{ 0x07, "SAMC21G16A", 64, 2048, 8 },
+	{ 0x08, "SAMC21G15A", 32, 1024, 4 },
+	{ 0x0A, "SAMC21E18A", 256, 8192, 32 },
+	{ 0x0B, "SAMC21E17A", 128, 4096, 16 },
+	{ 0x0C, "SAMC21E16A", 64, 2048, 8 },
+	{ 0x0D, "SAMC21E15A", 32, 1024, 4 },
+	{ 0x20, "SAMC21N18A", 256, 8192, 32 },
+	{ 0x21, "SAMC21N17A", 128, 4096, 16 },
 };
 
 /* Each family of parts contains a parts table in the DEVSEL field of DID.  The
@@ -344,11 +373,18 @@ static const struct samd_family samd_families[] = {
 		(uint64_t)0xFFFF03FFFC01FF77 },
 };
 
+/* This is information about the region of flash memory associated with a bank.
+ * Each bank has its own version of this structure. The target structure of
+ * this is pointed to a shared target for all banks so the bank should not
+ * assume the target stores any state specific to this bank. This structure
+ * is often used by the name "chip". */
 struct samd_info {
 	uint32_t page_size;
 	int num_pages;
 	int sector_size;
 	int prot_block_size;
+	uint16_t write_command;
+	uint16_t erase_command;
 
 	bool probed;
 	struct target *target;
@@ -401,20 +437,39 @@ static int samd_protect_check(struct flash_bank *bank)
 	int res, prot_block;
 	uint16_t lock;
 
-	res = target_read_u16(bank->target,
-			SAMD_NVMCTRL + SAMD_NVMCTRL_LOCK, &lock);
-	if (res != ERROR_OK)
-		return res;
+	/* Avoid reading lock register if this bank doesn't support locking. */
+	if (bank->num_prot_blocks != 0) {
+		res = target_read_u16(bank->target,
+				SAMD_NVMCTRL + SAMD_NVMCTRL_LOCK, &lock);
+		if (res != ERROR_OK)
+			return res;
 
-	/* Lock bits are active-low */
-	for (prot_block = 0; prot_block < bank->num_prot_blocks; prot_block++)
-		bank->prot_blocks[prot_block].is_protected = !(lock & (1u<<prot_block));
+		/* Lock bits are active-low */
+		for (prot_block = 0; prot_block < bank->num_prot_blocks; prot_block++)
+			bank->prot_blocks[prot_block].is_protected = !(lock & (1u<<prot_block));
+	}
 
 	return ERROR_OK;
 }
 
+/* For the address presented, determine which flash region it falls into.
+ * Regions are not guaranteed to be the same as bank numbers. This code
+ * will identify data as falling into the user row, but the driver does
+ * not present the user row as a bank. */
+static int samd_determine_flash_region(uint32_t address)
+{
+	int flashregion = kFlashStorageAreaNVM;
+
+	if (address == SAMD_USER_ROW)
+		flashregion = kFlashStorageAreaUserRow;
+	else if (address >= SAMD_RWWEE)
+		flashregion = kFlashStorageAreaRWWEE;
+
+	return flashregion;
+}
+
 static int samd_get_flash_page_info(struct target *target,
-		uint32_t *sizep, int *nump)
+		uint32_t *sizep, int *mainnump, int *rwweenump)
 {
 	int res;
 	uint32_t param;
@@ -425,9 +480,13 @@ static int samd_get_flash_page_info(struct target *target,
 		 * so 0 is 8KB and 7 is 1024KB. */
 		if (sizep)
 			*sizep = (8 << ((param >> 16) & 0x7));
-		/* The NVMP field (bits 15:0) indicates the total number of pages */
-		if (nump)
-			*nump = param & 0xFFFF;
+		/* The NVMP field (bits 15:0) indicates the total number of main NVM pages */
+		if (mainnump)
+			*mainnump = param & 0xFFFF;
+		/* On some devices the RWWEEP field (bits 31:20) indicate the total */
+		/* of RWWEE pages */
+		if (rwweenump)
+			*rwweenump = (param >> 20) & 0xFFF;
 	} else {
 		LOG_ERROR("Couldn't read NVM Parameters register");
 	}
@@ -445,6 +504,15 @@ static int samd_probe(struct flash_bank *bank)
 	if (chip->probed)
 		return ERROR_OK;
 
+	/* At this point the chip has not been probed so the chip structure
+	 * has been calloced but not filled in. This function should fill it
+	 * in. The chip structure is only used by this bank in this driver,
+	 * it is private data to this bank. */
+
+	/* Bank is filled in from a 'flash bank' declaration in a config file.
+	 * This function should match the bank declaration to the chip
+	 * parameters. Some parameters are auto determined. */
+
 	res = target_read_u32(bank->target, SAMD_DSU + SAMD_DSU_DID, &id);
 	if (res != ERROR_OK) {
 		LOG_ERROR("Couldn't read Device ID register");
@@ -457,21 +525,77 @@ static int samd_probe(struct flash_bank *bank)
 		return ERROR_FAIL;
 	}
 
-	bank->size = part->flash_kb * 1024;
+	int num_main_pages;
+	int num_rwwee_pages = 0;
+
+	/* Read size of RWWEE area if the area exists on this part.
+	 * If this part doesn't support it the values in these bits are
+	 * reserved and thus cannot be trusted. Listed size of RWWEE
+	 * area is not used. The size is determined from the number of
+	 * pages in the PARAM register and the page size. */
+	int *rwweepagesptr = 0;
+	if (part->rwwee_b != 0) {
+		/* Decode number of rwwee pages (otherwise not decoded) */
+		rwweepagesptr = &num_rwwee_pages;
+	}
 
 	res = samd_get_flash_page_info(bank->target, &chip->page_size,
-			&chip->num_pages);
+			&num_main_pages, rwweepagesptr);
 	if (res != ERROR_OK) {
 		LOG_ERROR("Couldn't determine Flash page size");
 		return res;
 	}
 
+	const int regionnumber = samd_determine_flash_region(bank->base);
+	const char *bankname;
+
 	/* Sanity check: the total flash size in the DSU should match the page size
 	 * multiplied by the number of pages. */
+
+	chip->write_command = region_write_page_commands[regionnumber];
+	chip->erase_command = region_erase_row_commands[regionnumber];
+	switch (regionnumber) {
+		case kFlashStorageAreaNVM: {
+			chip->num_pages = num_main_pages;
+			bank->size = part->main_flash_kb * 1024;
+			bankname = "MAIN";
+			bank->num_prot_blocks = SAMD_NUM_PROT_BLOCKS; /* 16 protection blocks */
+		}
+		break;
+		case kFlashStorageAreaRWWEE: {
+			chip->num_pages = num_rwwee_pages;
+			bank->size = chip->num_pages * chip->page_size;
+			bankname = "RWWEE";
+			bank->num_prot_blocks = 0;	/* RWWEE has no protection blocks */
+		}
+		break;
+		default: {
+			chip->num_pages = 0;
+			bank->size = 0;
+			bankname = "<INVALID>";
+		}
+		break;
+	}
+
+	char sizeinkbstr[12];
+
+	if (sizeof(sizeinkbstr) == 1) {
+		sizeinkbstr[0] = '\0';
+	} else if (bank->size >= 1024) {
+		snprintf(sizeinkbstr, sizeof(sizeinkbstr), "%u" , (unsigned int) (bank->size / 1024));
+	} else if (bank->size == 512) {
+		sizeinkbstr[sizeof(sizeinkbstr)-1] = '\0';
+		strncpy(sizeinkbstr, "0.5", sizeof(sizeinkbstr)-1);
+	} else if (sizeof(sizeinkbstr) > 1) {
+		sizeinkbstr[0] = '0';
+		sizeinkbstr[1] = '\0';
+	}
+
+	/* Sanity check bank size */
 	if (bank->size != chip->num_pages * chip->page_size) {
-		LOG_WARNING("SAMD: bank size doesn't match NVM parameters. "
-				"Identified %" PRIu32 "KB Flash but NVMCTRL reports %u %" PRIu32 "B pages",
-				part->flash_kb, chip->num_pages, chip->page_size);
+		LOG_WARNING("SAMD: bank size doesn't match %s parameters. "
+				"Identified %sKB Flash but NVMCTRL reports %u %" PRIu32 "B pages",
+				bankname, sizeinkbstr, chip->num_pages, chip->page_size);
 	}
 
 	/* Erase granularity = 1 row = 4 pages */
@@ -483,22 +607,24 @@ static int samd_probe(struct flash_bank *bank)
 	if (!bank->sectors)
 		return ERROR_FAIL;
 
-	/* 16 protection blocks per device */
-	chip->prot_block_size = bank->size / SAMD_NUM_PROT_BLOCKS;
-
 	/* Allocate the table of protection blocks */
-	bank->num_prot_blocks = SAMD_NUM_PROT_BLOCKS;
-	bank->prot_blocks = alloc_block_array(0, chip->prot_block_size, bank->num_prot_blocks);
-	if (!bank->prot_blocks)
-		return ERROR_FAIL;
+	if (bank->num_prot_blocks != 0) {
+		/* Calculate protection block size for this bank. */
+		chip->prot_block_size = bank->size / SAMD_NUM_PROT_BLOCKS;
+		bank->prot_blocks = alloc_block_array(0, chip->prot_block_size, bank->num_prot_blocks);
+		if (!bank->prot_blocks)
+			return ERROR_FAIL;
+	} else {
+		bank->prot_blocks = NULL;
+	}
 
 	samd_protect_check(bank);
 
 	/* Done */
 	chip->probed = true;
 
-	LOG_INFO("SAMD MCU: %s (%" PRIu32 "KB Flash, %" PRIu32 "KB RAM)", part->name,
-			part->flash_kb, part->ram_kb);
+	LOG_INFO("SAMD MCU: %s (%sKB %s Flash, %" PRIu32 "KB RAM)", part->name, sizeinkbstr,
+			bankname, part->ram_kb);
 
 	return ERROR_OK;
 }
@@ -567,9 +693,40 @@ static int samd_issue_nvmctrl_command(struct target *target, uint16_t cmd)
  * @param address The address of the row.
  * @return On success ERROR_OK, on failure an errorcode.
  */
-static int samd_erase_row(struct target *target, uint32_t address)
+static int samd_erase_row(const struct flash_bank *bank, uint32_t address)
+{
+	if (bank == NULL || bank->target == NULL || bank->driver_priv == NULL)
+		return ERROR_FAIL;
+
+	struct target *target = bank->target;
+	const struct samd_info *chip = (const struct samd_info *)bank->driver_priv;
+	const uint32_t offset = address - bank->base;
+
+	/* Set an address contained in the row to be erased */
+	int res = target_write_u32(target,
+			SAMD_NVMCTRL + SAMD_NVMCTRL_ADDR, offset >> 1);
+
+	/* Issue the appropriate erase row command to erase that row. */
+	if (res == ERROR_OK)
+		res = samd_issue_nvmctrl_command(target, chip->erase_command);
+
+	if (res != ERROR_OK)  {
+		LOG_ERROR("Failed to erase row containing %08" PRIx32, address);
+		return ERROR_FAIL;
+	}
+
+	return ERROR_OK;
+}
+
+/**
+ * Erases the user row
+ * @param target Pointer to the target structure.
+ * @return On success ERROR_OK, on failure an errorcode.
+ */
+static int samd_erase_userrow(struct target *target)
 {
 	int res;
+	uint32_t address = SAMD_USER_ROW;
 
 	/* Set an address contained in the row to be erased */
 	res = target_write_u32(target,
@@ -577,8 +734,7 @@ static int samd_erase_row(struct target *target, uint32_t address)
 
 	/* Issue the Erase Row command to erase that row. */
 	if (res == ERROR_OK)
-		res = samd_issue_nvmctrl_command(target,
-				address == SAMD_USER_ROW ? SAMD_NVM_CMD_EAR : SAMD_NVM_CMD_ER);
+		res = samd_issue_nvmctrl_command(target, SAMD_NVM_CMD_EAR);
 
 	if (res != ERROR_OK)  {
 		LOG_ERROR("Failed to erase row containing %08" PRIx32, address);
@@ -647,7 +803,7 @@ static int samd_modify_user_row_masked(struct target *target,
 	/* Retrieve the MCU's page size, in bytes. This is also the size of the
 	 * entire User Row. */
 	uint32_t page_size;
-	res = samd_get_flash_page_info(target, &page_size, NULL);
+	res = samd_get_flash_page_info(target, &page_size, NULL, NULL);
 	if (res != ERROR_OK) {
 		LOG_ERROR("Couldn't determine Flash page size");
 		return res;
@@ -673,7 +829,7 @@ static int samd_modify_user_row_masked(struct target *target,
 	 * position for which the current value had a '0'.  Otherwise we can avoid
 	 * erasing. */
 	if ((~value_device) & value_new) {
-		res = samd_erase_row(target, SAMD_USER_ROW);
+		res = samd_erase_userrow(target);
 		if (res != ERROR_OK) {
 			LOG_ERROR("Couldn't erase user row");
 			return res;
@@ -738,34 +894,39 @@ static int samd_protect(struct flash_bank *bank, int set, int first_prot_bl, int
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	for (prot_block = first_prot_bl; prot_block <= last_prot_bl; prot_block++) {
-		if (set != bank->prot_blocks[prot_block].is_protected) {
-			/* Load an address that is within this protection block (we use offset 0) */
-			res = target_write_u32(bank->target,
-							SAMD_NVMCTRL + SAMD_NVMCTRL_ADDR,
-							bank->prot_blocks[prot_block].offset >> 1);
-			if (res != ERROR_OK)
-				goto exit;
+	if (bank->prot_blocks) {
+		for (prot_block = first_prot_bl; prot_block <= last_prot_bl; prot_block++) {
+			if (set != bank->prot_blocks[prot_block].is_protected) {
+				/* Load an address that is within this protection block (we use offset 0) */
+				res = target_write_u32(bank->target,
+								SAMD_NVMCTRL + SAMD_NVMCTRL_ADDR,
+								bank->prot_blocks[prot_block].offset >> 1);
+				if (res != ERROR_OK)
+					goto exit;
 
-			/* Tell the controller to lock that block */
-			res = samd_issue_nvmctrl_command(bank->target,
-					set ? SAMD_NVM_CMD_LR : SAMD_NVM_CMD_UR);
+				/* Tell the controller to lock that block */
+				res = samd_issue_nvmctrl_command(bank->target,
+						set ? SAMD_NVM_CMD_LR : SAMD_NVM_CMD_UR);
+				if (res != ERROR_OK)
+					goto exit;
+			}
+
+			/* We've now applied our changes, however they will be undone by the next
+			 * reset unless we also apply them to the LOCK bits in the User Page.  The
+			 * LOCK bits start at bit 48, corresponding to Sector 0 and end with bit 63,
+			 * corresponding to Sector 15.  A '1' means unlocked and a '0' means
+			 * locked.  See Table 9-3 in the SAMD20 datasheet for more details. */
+
+			res = samd_modify_user_row(bank->target,
+					set ? (uint64_t)0 : (uint64_t)UINT64_MAX,
+					48 + first_prot_bl, 48 + last_prot_bl);
 			if (res != ERROR_OK)
-				goto exit;
+				LOG_WARNING("SAMD: protect settings were not made persistent!");
 		}
+	} else {
+		res = ERROR_FLASH_OPER_UNSUPPORTED;
+		goto exit;
 	}
-
-	/* We've now applied our changes, however they will be undone by the next
-	 * reset unless we also apply them to the LOCK bits in the User Page.  The
-	 * LOCK bits start at bit 48, corresponding to Sector 0 and end with bit 63,
-	 * corresponding to Sector 15.  A '1' means unlocked and a '0' means
-	 * locked.  See Table 9-3 in the SAMD20 datasheet for more details. */
-
-	res = samd_modify_user_row(bank->target,
-			set ? (uint64_t)0 : (uint64_t)UINT64_MAX,
-			48 + first_prot_bl, 48 + last_prot_bl);
-	if (res != ERROR_OK)
-		LOG_WARNING("SAMD: protect settings were not made persistent!");
 
 	res = ERROR_OK;
 
@@ -793,9 +954,11 @@ static int samd_erase(struct flash_bank *bank, int first_sect, int last_sect)
 
 	/* For each sector to be erased */
 	for (s = first_sect; s <= last_sect; s++) {
-		res = samd_erase_row(bank->target, bank->sectors[s].offset);
+		uint32_t eraseaddress = bank->base + bank->sectors[s].offset;
+
+		res = samd_erase_row(bank, eraseaddress);
 		if (res != ERROR_OK) {
-			LOG_ERROR("SAMD: failed to erase sector %d at 0x%08" PRIx32, s, bank->sectors[s].offset);
+			LOG_ERROR("SAMD: failed to erase sector %d at 0x%08" PRIx32, s, eraseaddress);
 			return res;
 		}
 	}
@@ -890,11 +1053,11 @@ static int samd_write(struct flash_bank *bank, const uint8_t *buffer,
 		}
 
 		/* Devices with errata 13134 have automatic page write enabled by default
-		 * For other devices issue a write page CMD to the NVM
+		 * For other devices issue a write page CMD to the NVMCTRL
 		 * If the page has not been written up to the last word
-		 * then issue CMD_WP always */
+		 * then issue write page command always */
 		if (manual_wp || pg_offset + 4 * nw < chip->page_size) {
-			res = samd_issue_nvmctrl_command(bank->target, SAMD_NVM_CMD_WP);
+			res = samd_issue_nvmctrl_command(bank->target, chip->write_command);
 		} else {
 			/* Access through AHB is stalled while flash is being programmed */
 			usleep(200);
@@ -922,11 +1085,12 @@ free_pb:
 
 FLASH_BANK_COMMAND_HANDLER(samd_flash_bank_command)
 {
-	if (bank->base != SAMD_FLASH) {
+	if (bank->base != SAMD_MAIN_FLASH &&
+	    bank->base != SAMD_RWWEE) {
 		LOG_ERROR("Address " TARGET_ADDR_FMT
 				" invalid bank address (try 0x%08" PRIx32
 				"[at91samd series] )",
-				bank->base, SAMD_FLASH);
+				bank->base, SAMD_MAIN_FLASH);
 		return ERROR_FAIL;
 	}
 
@@ -1142,7 +1306,7 @@ COMMAND_HANDLER(samd_handle_bootloader_command)
 
 		/* Retrieve the MCU's page size, in bytes. */
 		uint32_t page_size;
-		res = samd_get_flash_page_info(target, &page_size, NULL);
+		res = samd_get_flash_page_info(target, &page_size, NULL, NULL);
 		if (res != ERROR_OK) {
 			LOG_ERROR("Couldn't determine Flash page size");
 			return res;
