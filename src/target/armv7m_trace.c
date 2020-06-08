@@ -40,13 +40,43 @@ static int armv7m_poll_trace(void *target)
 
 	target_call_trace_callbacks(target, size, buf);
 
-	if (armv7m->trace_config.trace_file != NULL) {
-		if (fwrite(buf, 1, size, armv7m->trace_config.trace_file) == size)
-			fflush(armv7m->trace_config.trace_file);
-		else {
-			LOG_ERROR("Error writing to the trace destination file");
-			return ERROR_FAIL;
+	switch (armv7m->trace_config.internal_channel) {
+	case TRACE_INTERNAL_CHANNEL_FILE:
+		if (armv7m->trace_config.trace_file != NULL) {
+			if (fwrite(buf, 1, size, armv7m->trace_config.trace_file) == size)
+				fflush(armv7m->trace_config.trace_file);
+			else {
+				LOG_ERROR("Error writing to the trace destination file");
+				return ERROR_FAIL;
+			}
 		}
+		break;
+	case TRACE_INTERNAL_CHANNEL_TCP:
+		if (armv7m->trace_config.trace_service != NULL) {
+			/* broadcast to all service connections */
+			struct connection *connection = armv7m->trace_config.trace_service->connections;
+			retval = ERROR_OK;
+			while (connection) {
+				if (connection_write(connection, buf, size) != (int) size)
+					retval = ERROR_FAIL;
+
+				connection = connection->next;
+			}
+
+			if (retval != ERROR_OK) {
+				LOG_ERROR("Error streaming the trace to TCP/IP port");
+				return ERROR_FAIL;
+			}
+		}
+		break;
+	case TRACE_INTERNAL_CHANNEL_TCL_ONLY:
+		/* nothing to do :
+		 * the trace data is sent to TCL by calling the target_call_trace_callbacks
+		 **/
+		break;
+	default:
+		LOG_ERROR("unsupported trace internal channel");
+		return ERROR_FAIL;
 	}
 
 	return ERROR_OK;
@@ -136,11 +166,56 @@ int armv7m_trace_itm_config(struct target *target)
 	return ERROR_OK;
 }
 
-static void close_trace_file(struct armv7m_common *armv7m)
+static void close_trace_channel(struct armv7m_common *armv7m)
 {
-	if (armv7m->trace_config.trace_file)
-		fclose(armv7m->trace_config.trace_file);
-	armv7m->trace_config.trace_file = NULL;
+	switch (armv7m->trace_config.internal_channel) {
+	case TRACE_INTERNAL_CHANNEL_FILE:
+		if (armv7m->trace_config.trace_file)
+			fclose(armv7m->trace_config.trace_file);
+		armv7m->trace_config.trace_file = NULL;
+		break;
+	case TRACE_INTERNAL_CHANNEL_TCP:
+		if (armv7m->trace_config.trace_service)
+			remove_service(armv7m->trace_config.trace_service->name, armv7m->trace_config.trace_service->port);
+		armv7m->trace_config.trace_service = NULL;
+		break;
+	case TRACE_INTERNAL_CHANNEL_TCL_ONLY:
+		/* nothing to do:
+		 * the trace polling is disabled in the beginning of armv7m_trace_tpiu_config
+		 **/
+		break;
+	default:
+		LOG_ERROR("unsupported trace internal channel");
+	}
+}
+
+static int trace_new_connection(struct connection *connection)
+{
+	/* nothing to do */
+	return ERROR_OK;
+}
+
+static int trace_input(struct connection *connection)
+{
+	/* create a dummy buffer to check if the connection is still active */
+	const int buf_len = 100;
+	unsigned char buf[buf_len];
+	int bytes_read = connection_read(connection, buf, buf_len);
+
+	if (bytes_read == 0)
+		return ERROR_SERVER_REMOTE_CLOSED;
+	else if (bytes_read == -1) {
+		LOG_ERROR("error during read: %s", strerror(errno));
+		return ERROR_SERVER_REMOTE_CLOSED;
+	}
+
+	return ERROR_OK;
+}
+
+static int trace_connection_closed(struct connection *connection)
+{
+	/* nothing to do, no connection->priv to free */
+	return ERROR_OK;
 }
 
 COMMAND_HANDLER(handle_tpiu_config_command)
@@ -154,7 +229,7 @@ COMMAND_HANDLER(handle_tpiu_config_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	if (!strcmp(CMD_ARGV[cmd_idx], "disable")) {
 		if (CMD_ARGC == cmd_idx + 1) {
-			close_trace_file(armv7m);
+			close_trace_channel(armv7m);
 
 			armv7m->trace_config.config_type = TRACE_CONFIG_TYPE_DISABLED;
 			if (CMD_CTX->mode == COMMAND_EXEC)
@@ -164,7 +239,7 @@ COMMAND_HANDLER(handle_tpiu_config_command)
 		}
 	} else if (!strcmp(CMD_ARGV[cmd_idx], "external") ||
 		   !strcmp(CMD_ARGV[cmd_idx], "internal")) {
-		close_trace_file(armv7m);
+		close_trace_channel(armv7m);
 
 		armv7m->trace_config.config_type = TRACE_CONFIG_TYPE_EXTERNAL;
 		if (!strcmp(CMD_ARGV[cmd_idx], "internal")) {
@@ -173,12 +248,26 @@ COMMAND_HANDLER(handle_tpiu_config_command)
 				return ERROR_COMMAND_SYNTAX_ERROR;
 
 			armv7m->trace_config.config_type = TRACE_CONFIG_TYPE_INTERNAL;
+			armv7m->trace_config.internal_channel = TRACE_INTERNAL_CHANNEL_TCL_ONLY;
 
 			if (strcmp(CMD_ARGV[cmd_idx], "-") != 0) {
-				armv7m->trace_config.trace_file = fopen(CMD_ARGV[cmd_idx], "ab");
-				if (!armv7m->trace_config.trace_file) {
-					LOG_ERROR("Can't open trace destination file");
-					return ERROR_FAIL;
+				if (CMD_ARGV[cmd_idx][0] == ':') {
+					armv7m->trace_config.internal_channel = TRACE_INTERNAL_CHANNEL_TCP;
+
+					int ret = add_service("armv7m_trace", &(CMD_ARGV[cmd_idx][1]),
+							CONNECTION_LIMIT_UNLIMITED, trace_new_connection, trace_input,
+							trace_connection_closed, NULL, &armv7m->trace_config.trace_service);
+					if (ret != ERROR_OK) {
+						LOG_ERROR("Can't configure trace TCP port");
+						return ERROR_FAIL;
+					}
+				} else {
+					armv7m->trace_config.internal_channel = TRACE_INTERNAL_CHANNEL_FILE;
+					armv7m->trace_config.trace_file = fopen(CMD_ARGV[cmd_idx], "ab");
+					if (!armv7m->trace_config.trace_file) {
+						LOG_ERROR("Can't open trace destination file");
+						return ERROR_FAIL;
+					}
 				}
 			}
 		}
@@ -290,7 +379,7 @@ static const struct command_registration tpiu_command_handlers[] = {
 		.mode = COMMAND_ANY,
 		.help = "Configure TPIU features",
 		.usage = "(disable | "
-		"((external | internal <filename>) "
+		"((external | internal (<filename> | <:port> | -)) "
 		"(sync <port width> | ((manchester | uart) <formatter enable>)) "
 		"<TRACECLKIN freq> [<trace freq>]))",
 	},
