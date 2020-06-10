@@ -683,10 +683,13 @@ AS_IF([test "x$build_openjtag" = "xyes"], [
 
 AS_IF([test "x$enable_stlink" != "xno" -o "x$enable_ti_icdi" != "xno"], [
 	AC_DEFINE([BUILD_HLADAPTER], [1], [1 if you want the High Level JTAG driver.])
+	AM_CONDITIONAL([HLADAPTER], [true])
 ], [
 	AC_DEFINE([BUILD_HLADAPTER], [0], [0 if you want the High Level JTAG driver.])
+	AM_CONDITIONAL([HLADAPTER], [false])
 ])
-AM_CONDITIONAL([HLADAPTER], [test "x$enable_stlink" != "xno" -o "x$enable_ti_icdi" != "xno"])
+AM_CONDITIONAL([HLADAPTER_STLINK], [test "x$enable_stlink" != "xno"])
+AM_CONDITIONAL([HLADAPTER_ICDI], [test "x$enable_ti_icdi" != "xno"])
 
 AS_IF([test "x$enable_jlink" != "xno"], [
   AS_IF([test "x$use_internal_libjaylink" = "xyes"], [

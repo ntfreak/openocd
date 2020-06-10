@@ -138,7 +138,7 @@ extern struct adapter_driver imx_gpio_adapter_driver;
 #if BUILD_XDS110 == 1
 extern struct adapter_driver xds110_adapter_driver;
 #endif
-#if BUILD_HLADAPTER == 1
+#if BUILD_HLADAPTER_STLINK == 1
 extern struct adapter_driver stlink_dap_adapter_driver;
 #endif
 #if BUILD_RSHIM == 1
@@ -252,7 +252,7 @@ struct adapter_driver *adapter_drivers[] = {
 #if BUILD_XDS110 == 1
 		&xds110_adapter_driver,
 #endif
-#if BUILD_HLADAPTER == 1
+#if BUILD_HLADAPTER_STLINK == 1
 		&stlink_dap_adapter_driver,
 #endif
 #if BUILD_RSHIM == 1

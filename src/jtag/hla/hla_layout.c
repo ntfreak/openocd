@@ -57,18 +57,22 @@ static int hl_layout_close(struct hl_interface_s *adapter)
 }
 
 static const struct hl_layout hl_layouts[] = {
+#if BUILD_HLADAPTER_STLINK
 	{
 	 .name = "stlink",
 	 .open = hl_layout_open,
 	 .close = hl_layout_close,
 	 .api = &stlink_usb_layout_api,
 	 },
+#endif
+#if BUILD_HLADAPTER_ICDI
 	{
 	 .name = "ti-icdi",
 	 .open = hl_layout_open,
 	 .close = hl_layout_close,
 	 .api = &icdi_usb_layout_api,
 	},
+#endif
 	{.name = NULL, /* END OF TABLE */ },
 };
 
