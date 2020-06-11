@@ -509,7 +509,7 @@ evaluation boards. This is the adapter fitted to the Stellaris LaunchPad.
 Nuvoton has an adapter called @b{Nu-Link}.
 It is available either as stand-alone dongle and embedded on development boards.
 It supports SWD, serial port bridge and mass storage for firmware update.
-Only Nu-Link v1 is currently supported.
+Both Nu-Link v1 and v2 are supported.
 
 @section USB CMSIS-DAP based
 ARM has released a interface standard called CMSIS-DAP that simplifies connecting
