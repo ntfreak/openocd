@@ -35,17 +35,27 @@
 #define NULINK_READ_TIMEOUT  1000
 
 #define NULINK_HID_MAX_SIZE   (64)
+#define NULINK2_HID_MAX_SIZE   (1024)
 #define V6M_MAX_COMMAND_LENGTH (NULINK_HID_MAX_SIZE - 2)
+#define V7M_MAX_COMMAND_LENGTH (NULINK_HID_MAX_SIZE - 3)
+
+#define NULINK2_USB_PID1  (0x5200)
+#define NULINK2_USB_PID2  (0x5201)
 
 struct nulink_usb_handle_s {
 	hid_device *dev_handle;
+	uint16_t max_packet_size;
 	uint8_t usbcmdidx;
 	uint8_t cmdidx;
-	uint8_t cmdbuf[NULINK_HID_MAX_SIZE + 1];
-	uint8_t tempbuf[NULINK_HID_MAX_SIZE];
-	uint8_t databuf[NULINK_HID_MAX_SIZE];
+	uint8_t cmdsize;
+	uint8_t cmdbuf[NULINK2_HID_MAX_SIZE + 1];
+	uint8_t tempbuf[NULINK2_HID_MAX_SIZE];
+	uint8_t databuf[NULINK2_HID_MAX_SIZE];
 	uint32_t max_mem_packet;
 	uint16_t hardwareconfig; /* bit 0: 1:Nu-Link-Pro, 0:Nu-Link */
+
+	int (*xfer)(void *handle, uint8_t *buf, int size);
+	void (*init_buffer)(void *handle, uint32_t size);
 };
 
 /* ICE Command */
@@ -64,6 +74,7 @@ struct nulink_usb_handle_s {
 #define ARM_SRAM_BASE				0x20000000UL
 
 #define HARDWARECONFIG_NULINKPRO    1
+#define HARDWARECONFIG_NULINK2      2
 
 enum reset_e {
 	RESET_AUTO = 0,
@@ -82,20 +93,20 @@ enum connect_e {
 	CONNECT_ICP_MODE = 5     /* Support NUC505 ICP mode*/
 };
 
-static int nulink_usb_xfer_rw(void *handle, int cmdsize, uint8_t *buf)
+static int nulink_usb_xfer_rw(void *handle, int size, uint8_t *buf)
 {
 	struct nulink_usb_handle_s *h = handle;
 	int ret;
 
 	assert(handle);
 
-	ret = hid_write(h->dev_handle, h->cmdbuf, cmdsize + 1);
+	ret = hid_write(h->dev_handle, h->cmdbuf, h->max_packet_size + 1);
 	if (ret < 0) {
 		LOG_ERROR("hid_write");
 		return ERROR_FAIL;
 	}
 
-	ret = hid_read_timeout(h->dev_handle, buf, cmdsize, NULINK_READ_TIMEOUT);
+	ret = hid_read_timeout(h->dev_handle, buf, h->max_packet_size, NULINK_READ_TIMEOUT);
 	if (ret < 0) {
 		LOG_ERROR("hid_read_timeout");
 		return ERROR_FAIL;
@@ -103,35 +114,82 @@ static int nulink_usb_xfer_rw(void *handle, int cmdsize, uint8_t *buf)
 	return ERROR_OK;
 }
 
-static int nulink_usb_xfer(void *handle, uint8_t *buf, int size)
+static int nulink1_usb_xfer(void *handle, uint8_t *buf, int size)
 {
-	int err, cmdsize;
+	int err;
 	struct nulink_usb_handle_s *h = handle;
 
 	assert(handle);
 
-	cmdsize = NULINK_HID_MAX_SIZE;
-	err = nulink_usb_xfer_rw(h, cmdsize, h->tempbuf);
+	err = nulink_usb_xfer_rw(h, size, h->tempbuf);
 
-	memcpy(buf, h->tempbuf + 2, NULINK_HID_MAX_SIZE - 2);
+	memcpy(buf, h->tempbuf + 2, V6M_MAX_COMMAND_LENGTH);
 
 	return err;
 }
 
-static void nulink_usb_init_buffer(void *handle, uint32_t size)
+static int nulink2_usb_xfer(void *handle, uint8_t *buf, int size)
+{
+	int err;
+	struct nulink_usb_handle_s *h = handle;
+
+	assert(handle);
+
+	err = nulink_usb_xfer_rw(h, size, h->tempbuf);
+
+	memcpy(buf, h->tempbuf + 3, V7M_MAX_COMMAND_LENGTH);
+
+	return err;
+}
+
+static void nulink1_usb_init_buffer(void *handle, uint32_t size)
 {
 	struct nulink_usb_handle_s *h = handle;
 
 	h->cmdidx = 0;
 
-	memset(h->cmdbuf, 0, NULINK_HID_MAX_SIZE + 1);
-	memset(h->tempbuf, 0, NULINK_HID_MAX_SIZE);
-	memset(h->databuf, 0, NULINK_HID_MAX_SIZE);
+	memset(h->cmdbuf, 0, h->max_packet_size + 1);
+	memset(h->tempbuf, 0, h->max_packet_size);
+	memset(h->databuf, 0, h->max_packet_size);
 
 	h->cmdbuf[0] = 0; /* report number */
 	h->cmdbuf[1] = ++h->usbcmdidx & 0x7F;
 	h->cmdbuf[2] = size;
 	h->cmdidx += 3;
+}
+
+static void nulink2_usb_init_buffer(void *handle, uint32_t size)
+{
+	struct nulink_usb_handle_s *h = handle;
+
+	h->cmdidx = 0;
+
+	memset(h->cmdbuf, 0, h->max_packet_size + 1);
+	memset(h->tempbuf, 0, h->max_packet_size);
+	memset(h->databuf, 0, h->max_packet_size);
+
+	h->cmdbuf[0] = 0; /* report number */
+	h->cmdbuf[1] = ++h->usbcmdidx & 0x7F;
+	h_u16_to_le(h->cmdbuf + 2, size);
+	h->cmdidx += 4;
+}
+
+static inline int nulink_usb_xfer(void *handle, uint8_t *buf, int size)
+{
+	struct nulink_usb_handle_s *h = handle;
+
+	assert(handle);
+
+	return h->xfer(handle, buf, size);
+}
+
+static inline void nulink_usb_init_buffer(void *handle, uint32_t size)
+{
+	struct nulink_usb_handle_s *h = handle;
+
+	assert(handle);
+
+	h->init_buffer(handle, size);
 }
 
 static int nulink_usb_version(void *handle)
@@ -149,7 +207,7 @@ static int nulink_usb_version(void *handle)
 	h->cmdbuf[h->cmdidx + 4] = 0xA1; /* host_rev_num: 6561 */;
 	h->cmdbuf[h->cmdidx + 5] = 0x19;
 
-	res = nulink_usb_xfer(handle, h->databuf, 4 * 5);
+	res = nulink_usb_xfer(handle, h->databuf, h->cmdsize);
 	if (res != ERROR_OK)
 		return res;
 
@@ -1070,12 +1128,33 @@ static int nulink_usb_open(struct hl_interface_param_s *param, void **fd)
 
 	h->dev_handle = dev;
 	h->usbcmdidx = 0;
-	h->hardwareconfig = 0;
+
+	switch (target_pid) {
+	case NULINK2_USB_PID1:
+	case NULINK2_USB_PID2:
+		h->hardwareconfig = HARDWARECONFIG_NULINK2;
+		h->max_packet_size = NULINK2_HID_MAX_SIZE;
+		h->init_buffer = nulink2_usb_init_buffer;
+		h->xfer = nulink2_usb_xfer;
+		break;
+	default:
+		h->hardwareconfig = 0;
+		h->max_packet_size = NULINK_HID_MAX_SIZE;
+		h->init_buffer = nulink1_usb_init_buffer;
+		h->xfer = nulink1_usb_xfer;
+		break;
+	}
 
 	/* get the device version */
+	h->cmdsize = 4 * 5;
 	err = nulink_usb_version(h);
-	if (err != ERROR_OK)
-		goto error_open;
+	if (err != ERROR_OK) {
+		LOG_DEBUG("nulink_usb_version failed with cmdSize(4 * 5)");
+		h->cmdsize = 4 * 6;
+		err = nulink_usb_version(h);
+		if (err != ERROR_OK)
+			LOG_DEBUG("nulink_usb_version failed with cmdSize(4 * 6)");
+	}
 
 	/* SWD clock rate : 1MHz */
 	nulink_speed(h, 1000, false);
