@@ -2682,6 +2682,15 @@ int arm7_9_examine(struct target *target)
 	return retval;
 }
 
+void arm7_9_deinit(struct target *target)
+{
+	struct arm7_9_common *arm7_9 = target_to_arm7_9(target);
+
+	if (target_was_examined(target))
+		embeddedice_free_reg_cache(arm7_9->eice_cache);
+
+	arm_jtag_close_connection(&arm7_9->jtag_info);
+}
 
 int arm7_9_check_reset(struct target *target)
 {

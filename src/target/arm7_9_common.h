@@ -186,6 +186,7 @@ int arm7_9_execute_sys_speed(struct target *target);
 
 int arm7_9_init_arch_info(struct target *target, struct arm7_9_common *arm7_9);
 int arm7_9_examine(struct target *target);
+void arm7_9_deinit(struct target *target);
 int arm7_9_check_reset(struct target *target);
 
 int arm7_9_endianness_callback(jtag_callback_data_t pu8_in,

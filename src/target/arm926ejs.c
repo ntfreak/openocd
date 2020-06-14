@@ -723,6 +723,16 @@ static int arm926ejs_target_create(struct target *target, Jim_Interp *interp)
 	return arm926ejs_init_arch_info(target, arm926ejs, target->tap);
 }
 
+void arm926ejs_deinit_target(struct target *target)
+{
+	struct arm *arm = target_to_arm(target);
+	struct arm926ejs_common *arm926ejs = target_to_arm926(target);
+
+	arm7_9_deinit(target);
+	arm_free_reg_cache(arm);
+	free(arm926ejs);
+}
+
 COMMAND_HANDLER(arm926ejs_handle_cache_info_command)
 {
 	int retval;
@@ -823,6 +833,7 @@ struct target_type arm926ejs_target = {
 	.commands = arm926ejs_command_handlers,
 	.target_create = arm926ejs_target_create,
 	.init_target = arm9tdmi_init_target,
+	.deinit_target = arm926ejs_deinit_target,
 	.examine = arm7_9_examine,
 	.check_reset = arm7_9_check_reset,
 	.virt2phys = arm926ejs_virt2phys,

@@ -61,6 +61,7 @@ static inline int arm_jtag_scann(struct arm_jtag *jtag_info, uint32_t new_scan_c
 }
 
 int arm_jtag_setup_connection(struct arm_jtag *jtag_info);
+int arm_jtag_close_connection(struct arm_jtag *jtag_info);
 
 /* use this as a static so we can inline it in -O3 and refer to it via a pointer  */
 static inline void arm7flip32(jtag_callback_data_t arg)

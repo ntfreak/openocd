@@ -88,6 +88,7 @@ struct embeddedice_reg {
 
 struct reg_cache *embeddedice_build_reg_cache(struct target *target,
 		struct arm7_9_common *arm7_9);
+void embeddedice_free_reg_cache(struct reg_cache *reg_cache);
 
 int embeddedice_setup(struct target *target);
 

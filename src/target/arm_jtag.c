@@ -92,3 +92,8 @@ int arm_jtag_setup_connection(struct arm_jtag *jtag_info)
 
 	return jtag_register_event_callback(arm_jtag_reset_callback, jtag_info);
 }
+
+int arm_jtag_close_connection(struct arm_jtag *jtag_info)
+{
+	return jtag_unregister_event_callback(arm_jtag_reset_callback, jtag_info);
+}
