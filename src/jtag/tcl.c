@@ -690,7 +690,6 @@ static int jim_jtag_arp_init(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 	if (e != ERROR_OK) {
 		Jim_Obj *eObj = Jim_NewIntObj(goi.interp, e);
 		Jim_SetResultFormatted(goi.interp, "error: %#s", eObj);
-		Jim_FreeNewObj(goi.interp, eObj);
 		return JIM_ERR;
 	}
 	return JIM_OK;
@@ -714,7 +713,6 @@ static int jim_jtag_arp_init_reset(Jim_Interp *interp, int argc, Jim_Obj *const 
 	if (e != ERROR_OK) {
 		Jim_Obj *eObj = Jim_NewIntObj(goi.interp, e);
 		Jim_SetResultFormatted(goi.interp, "error: %#s", eObj);
-		Jim_FreeNewObj(goi.interp, eObj);
 		return JIM_ERR;
 	}
 	return JIM_OK;
