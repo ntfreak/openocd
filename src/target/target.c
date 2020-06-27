@@ -1224,8 +1224,17 @@ int target_get_gdb_reg_list(struct target *target,
 		struct reg **reg_list[], int *reg_list_size,
 		enum target_register_class reg_class)
 {
-	int result = target->type->get_gdb_reg_list(target, reg_list,
+	int result = ERROR_FAIL;
+
+	if (!target_was_examined(target)) {
+		LOG_ERROR("Target not examined yet");
+		goto done;
+	}
+
+	result = target->type->get_gdb_reg_list(target, reg_list,
 			reg_list_size, reg_class);
+
+done:
 	if (result != ERROR_OK) {
 		*reg_list = NULL;
 		*reg_list_size = 0;
