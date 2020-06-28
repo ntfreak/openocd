@@ -472,7 +472,7 @@ static int bcm2835gpio_init(void)
 		dev_mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
 	}
 	if (dev_mem_fd < 0) {
-		perror("open");
+		LOG_ERROR("open: %s", strerror(errno));
 		return ERROR_JTAG_INIT_FAILED;
 	}
 
@@ -480,7 +480,7 @@ static int bcm2835gpio_init(void)
 				MAP_SHARED, dev_mem_fd, BCM2835_GPIO_BASE);
 
 	if (pio_base == MAP_FAILED) {
-		perror("mmap");
+		LOG_ERROR("mmap: %s", strerror(errno));
 		close(dev_mem_fd);
 		return ERROR_JTAG_INIT_FAILED;
 	}
@@ -490,7 +490,7 @@ static int bcm2835gpio_init(void)
 				MAP_SHARED, dev_mem_fd, BCM2835_PADS_GPIO_0_27);
 
 	if (pads_base == MAP_FAILED) {
-		perror("mmap");
+		LOG_ERROR("mmap: %s", strerror(errno));
 		close(dev_mem_fd);
 		return ERROR_JTAG_INIT_FAILED;
 	}

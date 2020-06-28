@@ -126,7 +126,7 @@ static int setup_sysfs_gpio(int gpio, int is_output, int init_high)
 			LOG_WARNING("gpio %d is already exported", gpio);
 		} else {
 			LOG_ERROR("Couldn't export gpio %d", gpio);
-			perror("sysfsgpio: ");
+			LOG_ERROR("sysfsgpio: %s", strerror(errno));
 			return ERROR_FAIL;
 		}
 	}
@@ -146,7 +146,7 @@ static int setup_sysfs_gpio(int gpio, int is_output, int init_high)
 	}
 	if (ret < 0) {
 		LOG_ERROR("Couldn't set direction for gpio %d", gpio);
-		perror("sysfsgpio: ");
+		LOG_ERROR("sysfsgpio: %s", strerror(errno));
 		unexport_sysfs_gpio(gpio);
 		return ERROR_FAIL;
 	}
@@ -163,7 +163,7 @@ static int setup_sysfs_gpio(int gpio, int is_output, int init_high)
 	}
 	if (ret < 0) {
 		LOG_ERROR("Couldn't open value for gpio %d", gpio);
-		perror("sysfsgpio: ");
+		LOG_ERROR("sysfsgpio: %s", strerror(errno));
 		unexport_sysfs_gpio(gpio);
 	}
 
@@ -207,7 +207,7 @@ static void sysfsgpio_swdio_drive(bool is_output)
 	ret = open_write_close(buf, is_output ? "high" : "in");
 	if (ret < 0) {
 		LOG_ERROR("Couldn't set direction for gpio %d", swdio_gpio);
-		perror("sysfsgpio: ");
+		LOG_ERROR("sysfsgpio: %s", strerror(errno));
 	}
 
 	last_stored = false;

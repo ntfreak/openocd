@@ -231,14 +231,14 @@ static int at91rm9200_init(void)
 
 	dev_mem_fd = open("/dev/mem", O_RDWR | O_SYNC);
 	if (dev_mem_fd < 0) {
-		perror("open");
+		LOG_ERROR("open: %s", strerror(errno));
 		return ERROR_JTAG_INIT_FAILED;
 	}
 
 	sys_controller = mmap(NULL, 4096, PROT_READ | PROT_WRITE,
 				MAP_SHARED, dev_mem_fd, AT91C_BASE_SYS);
 	if (sys_controller == MAP_FAILED) {
-		perror("mmap");
+		LOG_ERROR("mmap: %s", strerror(errno));
 		close(dev_mem_fd);
 		return ERROR_JTAG_INIT_FAILED;
 	}
