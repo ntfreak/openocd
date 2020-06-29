@@ -270,6 +270,10 @@ static int cmsis_dap_usb_open(void)
 				found = true;
 		}
 
+		/* LPC-LINK2 has cmsis-dap on interface 0 and other HID functions on other interfaces */
+		if (cur_dev->vendor_id == 0x1fc9 && cur_dev->product_id == 0x0090 && cur_dev->interface_number != 0)
+			found = false;
+
 		if (found) {
 			/* we have found an adapter, so exit further checks */
 			/* check serial number matches if given */
