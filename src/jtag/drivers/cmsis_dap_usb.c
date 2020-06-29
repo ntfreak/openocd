@@ -229,13 +229,15 @@ static int cmsis_dap_usb_open(void)
 	int i;
 	struct hid_device_info *devs, *cur_dev;
 	unsigned short target_vid, target_pid;
-	wchar_t *target_serial = NULL;
-
 	bool found = false;
-	bool serial_found = false;
 
 	target_vid = 0;
 	target_pid = 0;
+
+	if (hid_init() != 0) {
+		LOG_ERROR("unable to open HIDAPI");
+		return ERROR_FAIL;
+	}
 
 	/*
 	 * The CMSIS-DAP specification stipulates:
@@ -273,7 +275,6 @@ static int cmsis_dap_usb_open(void)
 			/* check serial number matches if given */
 			if (cmsis_dap_serial != NULL) {
 				if ((cur_dev->serial_number != NULL) && wcscmp(cmsis_dap_serial, cur_dev->serial_number) == 0) {
-					serial_found = true;
 					break;
 				}
 			} else
@@ -288,23 +289,16 @@ static int cmsis_dap_usb_open(void)
 	if (NULL != cur_dev) {
 		target_vid = cur_dev->vendor_id;
 		target_pid = cur_dev->product_id;
-		if (serial_found)
-			target_serial = cmsis_dap_serial;
 	}
-
-	hid_free_enumeration(devs);
 
 	if (target_vid == 0 && target_pid == 0) {
 		LOG_ERROR("unable to find CMSIS-DAP device");
+		hid_free_enumeration(devs);
 		return ERROR_FAIL;
 	}
 
-	if (hid_init() != 0) {
-		LOG_ERROR("unable to open HIDAPI");
-		return ERROR_FAIL;
-	}
-
-	dev = hid_open(target_vid, target_pid, target_serial);
+	dev = hid_open_path(cur_dev->path);
+	hid_free_enumeration(devs);
 
 	if (dev == NULL) {
 		LOG_ERROR("unable to open CMSIS-DAP device 0x%x:0x%x", target_vid, target_pid);
