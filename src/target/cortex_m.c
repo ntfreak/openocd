@@ -1187,11 +1187,13 @@ static int cortex_m_assert_reset(struct target *target)
 		if (retval3 != ERROR_OK)
 			LOG_DEBUG("Ignoring AP write error right after reset");
 
-		retval3 = dap_dp_init(armv7m->debug_ap->dap);
-		if (retval3 != ERROR_OK)
+		retval3 = dap_dp_init_or_reconnect(armv7m->debug_ap->dap);
+		if (retval3 != ERROR_OK) {
 			LOG_ERROR("DP initialisation failed");
-
-		else {
+			/* The error return value must not be propagated in this case.
+			 * SYSRESETREQ or VECTRESET have been possibly triggered
+			 * so reset processing should continue */
+		} else {
 			/* I do not know why this is necessary, but it
 			 * fixes strange effects (step/resume cause NMI
 			 * after reset) on LM3S6918 -- Michael Schwingen
@@ -1234,7 +1236,8 @@ static int cortex_m_deassert_reset(struct target *target)
 	if ((jtag_reset_config & RESET_HAS_SRST) &&
 	    !(jtag_reset_config & RESET_SRST_NO_GATING) &&
 		target_was_examined(target)) {
-		int retval = dap_dp_init(armv7m->debug_ap->dap);
+
+		int retval = dap_dp_init_or_reconnect(armv7m->debug_ap->dap);
 		if (retval != ERROR_OK) {
 			LOG_ERROR("DP initialisation failed");
 			return retval;
