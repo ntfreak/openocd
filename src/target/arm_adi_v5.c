@@ -652,6 +652,7 @@ int dap_dp_init(struct adiv5_dap *dap)
 
 	LOG_DEBUG("%s", adiv5_dap_name(dap));
 
+	dap->do_reconnect = false;
 	dap_invalidate_cache(dap);
 
 	/*
@@ -662,14 +663,6 @@ int dap_dp_init(struct adiv5_dap *dap)
 	 * the sticky error bit.
 	 */
 	dap->dp_ctrl_stat = CDBGPWRUPREQ | CSYSPWRUPREQ;
-
-	for (size_t i = 0; i < 30; i++) {
-		/* DP initialization */
-
-		retval = dap_dp_read_atomic(dap, DP_CTRL_STAT, NULL);
-		if (retval == ERROR_OK)
-			break;
-	}
 
 	/*
 	 * This write operation clears the sticky error bit in jtag mode only and
@@ -729,6 +722,35 @@ int dap_dp_init(struct adiv5_dap *dap)
 		return retval;
 
 	return retval;
+}
+
+/**
+ * Initialize a DAP or do reconnect if DAP is not accessible.
+ *
+ * @param dap The DAP being initialized.
+ */
+int dap_dp_init_or_reconnect(struct adiv5_dap *dap)
+{
+	LOG_DEBUG("%s", adiv5_dap_name(dap));
+
+	/*
+	 * Early initialize dap->dp_ctrl_stat.
+	 * In jtag mode only, if the following atomic reads fail and set the
+	 * sticky error, it will trigger the clearing of the sticky. Without this
+	 * initialization system and debug power would be disabled while clearing
+	 * the sticky error bit.
+	 */
+	dap->dp_ctrl_stat = CDBGPWRUPREQ | CSYSPWRUPREQ;
+
+	dap->do_reconnect = false;
+
+	dap_dp_read_atomic(dap, DP_CTRL_STAT, NULL);
+	if (dap->do_reconnect) {
+		/* dap connect calls dap_dp_init() after transport dependent initialization */
+		return dap->ops->connect(dap);
+	} else {
+		return dap_dp_init(dap);
+	}
 }
 
 /**
