@@ -669,6 +669,12 @@ int dap_dp_init(struct adiv5_dap *dap)
 		retval = dap_dp_read_atomic(dap, DP_CTRL_STAT, NULL);
 		if (retval == ERROR_OK)
 			break;
+
+		/* As we currently in the process of connecting SWD, reconnect
+		 * does not make sense at this point. Moreover if dap_queue_xx
+		 * operation is entered with do_reconnect set, at least on SWD we
+		 * fall into possibly endless recursion */
+		dap->do_reconnect = false;
 	}
 
 	/*
