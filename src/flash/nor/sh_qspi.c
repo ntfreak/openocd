@@ -77,7 +77,7 @@
 struct sh_qspi_flash_bank {
 	const struct flash_device *dev;
 	uint32_t		io_base;
-	int			probed;
+	bool			probed;
 	struct working_area	*io_algorithm;
 	struct working_area	*source;
 	unsigned int		buffer_size;
@@ -758,7 +758,7 @@ static int sh_qspi_probe(struct flash_bank *bank)
 	if (info->probed)
 		free(bank->sectors);
 
-	info->probed = 0;
+	info->probed = false;
 
 	for (target_device = target_devices; target_device->name;
 		++target_device)
@@ -828,7 +828,7 @@ static int sh_qspi_probe(struct flash_bank *bank)
 	}
 
 	bank->sectors = sectors;
-	info->probed = 1;
+	info->probed = true;
 	return ERROR_OK;
 }
 
