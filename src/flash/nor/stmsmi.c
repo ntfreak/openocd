@@ -115,7 +115,7 @@
 #define SMI_MAX_TIMEOUT  (3000)
 
 struct stmsmi_flash_bank {
-	int probed;
+	bool probed;
 	uint32_t io_base;
 	uint32_t bank_num;
 	const struct flash_device *dev;
@@ -151,7 +151,7 @@ FLASH_BANK_COMMAND_HANDLER(stmsmi_flash_bank_command)
 	}
 
 	bank->driver_priv = stmsmi_info;
-	stmsmi_info->probed = 0;
+	stmsmi_info->probed = false;
 
 	return ERROR_OK;
 }
@@ -534,7 +534,7 @@ static int stmsmi_probe(struct flash_bank *bank)
 
 	if (stmsmi_info->probed)
 		free(bank->sectors);
-	stmsmi_info->probed = 0;
+	stmsmi_info->probed = false;
 
 	for (target_device = target_devices ; target_device->name ; ++target_device)
 		if (target_device->tap_idcode == target->tap->idcode)
@@ -617,7 +617,7 @@ static int stmsmi_probe(struct flash_bank *bank)
 	}
 
 	bank->sectors = sectors;
-	stmsmi_info->probed = 1;
+	stmsmi_info->probed = true;
 	return ERROR_OK;
 }
 
