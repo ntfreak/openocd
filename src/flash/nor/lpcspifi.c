@@ -47,7 +47,7 @@
 #define SPIFI_INIT_STACK_SIZE  512
 
 struct lpcspifi_flash_bank {
-	int probed;
+	bool probed;
 	uint32_t ssp_base;
 	uint32_t io_base;
 	uint32_t ioconfig_base;
@@ -72,7 +72,7 @@ FLASH_BANK_COMMAND_HANDLER(lpcspifi_flash_bank_command)
 	}
 
 	bank->driver_priv = lpcspifi_info;
-	lpcspifi_info->probed = 0;
+	lpcspifi_info->probed = false;
 
 	return ERROR_OK;
 }
@@ -852,7 +852,7 @@ static int lpcspifi_probe(struct flash_bank *bank)
 	/* If we've already probed, we should be fine to skip this time. */
 	if (lpcspifi_info->probed)
 		return ERROR_OK;
-	lpcspifi_info->probed = 0;
+	lpcspifi_info->probed = false;
 
 	lpcspifi_info->ssp_base = 0x40083000;
 	lpcspifi_info->io_base = 0x400F4000;
@@ -911,7 +911,7 @@ static int lpcspifi_probe(struct flash_bank *bank)
 
 	bank->sectors = sectors;
 
-	lpcspifi_info->probed = 1;
+	lpcspifi_info->probed = true;
 	return ERROR_OK;
 }
 
