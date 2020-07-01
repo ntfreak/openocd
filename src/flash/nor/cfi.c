@@ -814,7 +814,7 @@ static int cfi_intel_info(struct flash_bank *bank, char *buf, int buf_size)
 int cfi_flash_bank_cmd(struct flash_bank *bank, unsigned int argc, const char **argv)
 {
 	struct cfi_flash_bank *cfi_info;
-	int bus_swap = 0;
+	bool bus_swap = false;
 
 	if (argc < 6)
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -841,20 +841,20 @@ int cfi_flash_bank_cmd(struct flash_bank *bank, unsigned int argc, const char **
 	cfi_info->pri_ext = NULL;
 	bank->driver_priv = cfi_info;
 
-	cfi_info->x16_as_x8 = 0;
-	cfi_info->jedec_probe = 0;
-	cfi_info->not_cfi = 0;
-	cfi_info->data_swap = 0;
+	cfi_info->x16_as_x8 = false;
+	cfi_info->jedec_probe = false;
+	cfi_info->not_cfi = false;
+	cfi_info->data_swap = false;
 
 	for (unsigned i = 6; i < argc; i++) {
 		if (strcmp(argv[i], "x16_as_x8") == 0)
-			cfi_info->x16_as_x8 = 1;
+			cfi_info->x16_as_x8 = true;
 		else if (strcmp(argv[i], "data_swap") == 0)
-			cfi_info->data_swap = 1;
+			cfi_info->data_swap = true;
 		else if (strcmp(argv[i], "bus_swap") == 0)
-			bus_swap = 1;
+			bus_swap = true;
 		else if (strcmp(argv[i], "jedec_probe") == 0)
-			cfi_info->jedec_probe = 1;
+			cfi_info->jedec_probe = true;
 	}
 
 	if (bus_swap)
@@ -2658,7 +2658,7 @@ int cfi_probe(struct flash_bank *bank)
 	/* query only if this is a CFI compatible flash,
 	 * otherwise the relevant info has already been filled in
 	 */
-	if (cfi_info->not_cfi == 0) {
+	if (!cfi_info->not_cfi) {
 		/* enter CFI query mode
 		 * according to JEDEC Standard No. 68.01,
 		 * a single bus sequence with address = 0x55, data = 0x98 should put
@@ -3008,7 +3008,7 @@ int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size)
 		return ERROR_OK;
 	}
 
-	if (cfi_info->not_cfi == 0)
+	if (!cfi_info->not_cfi)
 		printed = snprintf(buf, buf_size, "\nCFI flash: ");
 	else
 		printed = snprintf(buf, buf_size, "\nnon-CFI flash: ");

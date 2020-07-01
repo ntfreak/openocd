@@ -487,7 +487,7 @@ void cfi_fixup_non_cfi(struct flash_bank *bank)
 	if (!non_cfi->mfr)
 		return;
 
-	cfi_info->not_cfi = 1;
+	cfi_info->not_cfi = true;
 
 	/* fill in defaults for non-critical data */
 	cfi_info->vcc_min = 0x0;
