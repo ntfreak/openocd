@@ -61,7 +61,7 @@ enum fm3_flash_type {
 struct fm3_flash_bank {
 	enum fm3_variant variant;
 	enum fm3_flash_type flashtype;
-	int probed;
+	bool probed;
 };
 
 FLASH_BANK_COMMAND_HANDLER(fm3_flash_bank_command)
@@ -132,7 +132,7 @@ FLASH_BANK_COMMAND_HANDLER(fm3_flash_bank_command)
 		return ERROR_FLASH_BANK_INVALID;
 	}
 
-	fm3_info->probed = 0;
+	fm3_info->probed = false;
 
 	return ERROR_OK;
 }
@@ -656,7 +656,7 @@ static int fm3_probe(struct flash_bank *bank)
  */
 
 	num_pages = 10;				/* max number of Flash pages for malloc */
-	fm3_info->probed = 0;
+	fm3_info->probed = false;
 
 	bank->sectors = malloc(sizeof(struct flash_sector) * num_pages);
 	bank->base = 0x00000000;
@@ -796,7 +796,7 @@ static int fm3_probe(struct flash_bank *bank)
 		bank->sectors[9].is_protected = -1;
 	}
 
-	fm3_info->probed = 1;
+	fm3_info->probed = true;
 
 	return ERROR_OK;
 }
