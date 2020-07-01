@@ -87,7 +87,7 @@ static const struct w600_flash_param w600_param[] = {
 };
 
 struct w600_flash_bank {
-	int probed;
+	bool probed;
 
 	uint32_t id;
 	const struct w600_flash_param *param;
@@ -107,7 +107,7 @@ FLASH_BANK_COMMAND_HANDLER(w600_flash_bank_command)
 	w600_info = malloc(sizeof(struct w600_flash_bank));
 
 	bank->driver_priv = w600_info;
-	w600_info->probed = 0;
+	w600_info->probed = false;
 	w600_info->register_base = QFLASH_REGBASE;
 	w600_info->user_bank_size = bank->size;
 
@@ -286,7 +286,7 @@ static int w600_probe(struct flash_bank *bank)
 	uint32_t flash_id;
 	size_t i;
 
-	w600_info->probed = 0;
+	w600_info->probed = false;
 
 	/* read stm32 device id register */
 	int retval = w600_get_flash_id(bank, &flash_id);
@@ -350,7 +350,7 @@ static int w600_probe(struct flash_bank *bank)
 		bank->sectors[i].is_protected = (i < W600_FLASH_PROTECT_SIZE / W600_FLASH_SECSIZE);
 	}
 
-	w600_info->probed = 1;
+	w600_info->probed = true;
 
 	return ERROR_OK;
 }
