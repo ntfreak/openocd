@@ -880,7 +880,7 @@ static int stm32x_probe(struct flash_bank *bank)
 		return ERROR_FAIL;
 	}
 
-	stm32x_info->probed = 1;
+	stm32x_info->probed = true;
 	return ERROR_OK;
 }
 
