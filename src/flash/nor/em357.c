@@ -87,7 +87,7 @@ struct em357_options {
 struct em357_flash_bank {
 	struct em357_options option_bytes;
 	int ppage_size;
-	int probed;
+	bool probed;
 };
 
 static int em357_mass_erase(struct flash_bank *bank);
@@ -104,7 +104,7 @@ FLASH_BANK_COMMAND_HANDLER(em357_flash_bank_command)
 	em357_info = malloc(sizeof(struct em357_flash_bank));
 	bank->driver_priv = em357_info;
 
-	em357_info->probed = 0;
+	em357_info->probed = false;
 
 	return ERROR_OK;
 }
@@ -679,7 +679,7 @@ static int em357_probe(struct flash_bank *bank)
 	int page_size;
 	uint32_t base_address = 0x08000000;
 
-	em357_info->probed = 0;
+	em357_info->probed = false;
 
 	switch (bank->size) {
 		case 0x10000:
@@ -740,7 +740,7 @@ static int em357_probe(struct flash_bank *bank)
 		bank->sectors[i].is_protected = 1;
 	}
 
-	em357_info->probed = 1;
+	em357_info->probed = true;
 
 	return ERROR_OK;
 }
