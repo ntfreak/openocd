@@ -23,13 +23,13 @@
 #define CFI_STATUS_POLL_MASK_DQ6_DQ7     0xC0 /* DQ6..DQ7 */
 
 struct cfi_flash_bank {
-	int x16_as_x8;
-	int jedec_probe;
-	int not_cfi;
-	int probed;
+	bool x16_as_x8;
+	bool jedec_probe;
+	bool not_cfi;
+	bool probed;
 
 	enum target_endianness endianness;
-	int data_swap;
+	bool data_swap;
 
 	uint16_t manufacturer;
 	uint16_t device_id;
