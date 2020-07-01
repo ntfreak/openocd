@@ -26,7 +26,7 @@ struct cfi_flash_bank {
 	int x16_as_x8;
 	int jedec_probe;
 	int not_cfi;
-	int probed;
+	bool probed;
 
 	enum target_endianness endianness;
 	int data_swap;
