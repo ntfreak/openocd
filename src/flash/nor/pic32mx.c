@@ -95,7 +95,7 @@
 #define MX_17x_27x			2	/* PIC32mx17x/27x */
 
 struct pic32mx_flash_bank {
-	int probed;
+	bool probed;
 	int dev_type;		/* Default 0. 1 for Pic32MX1XX/2XX variant */
 };
 
@@ -211,7 +211,7 @@ FLASH_BANK_COMMAND_HANDLER(pic32mx_flash_bank_command)
 	pic32mx_info = malloc(sizeof(struct pic32mx_flash_bank));
 	bank->driver_priv = pic32mx_info;
 
-	pic32mx_info->probed = 0;
+	pic32mx_info->probed = false;
 	pic32mx_info->dev_type = 0;
 
 	return ERROR_OK;
@@ -700,7 +700,7 @@ static int pic32mx_probe(struct flash_bank *bank)
 	uint32_t device_id;
 	int page_size;
 
-	pic32mx_info->probed = 0;
+	pic32mx_info->probed = false;
 
 	device_id = ejtag_info->idcode;
 	LOG_INFO("device id = 0x%08" PRIx32 " (manuf 0x%03x dev 0x%04x, ver 0x%02x)",
@@ -792,7 +792,7 @@ static int pic32mx_probe(struct flash_bank *bank)
 		bank->sectors[i].is_protected = 1;
 	}
 
-	pic32mx_info->probed = 1;
+	pic32mx_info->probed = true;
 
 	return ERROR_OK;
 }
