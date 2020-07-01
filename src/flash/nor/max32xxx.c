@@ -70,7 +70,7 @@
 static int max32xxx_mass_erase(struct flash_bank *bank);
 
 struct max32xxx_flash_bank {
-	int probed;
+	bool probed;
 	int max326xx;
 	unsigned int flash_size;
 	unsigned int flc_base;
@@ -118,7 +118,7 @@ static int get_info(struct flash_bank *bank, char *buf, int buf_size)
 	int printed;
 	struct max32xxx_flash_bank *info = bank->driver_priv;
 
-	if (info->probed == 0)
+	if (!info->probed)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	printed = snprintf(buf, buf_size, "\nMaxim Integrated max32xxx flash driver\n");
@@ -212,7 +212,7 @@ static int max32xxx_protect_check(struct flash_bank *bank)
 	int i;
 	uint32_t temp_reg;
 
-	if (info->probed == 0)
+	if (!info->probed)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	if (!info->max326xx) {
@@ -249,7 +249,7 @@ static int max32xxx_erase(struct flash_bank *bank, int first, int last)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (info->probed == 0)
+	if (!info->probed)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	if ((first < 0) || (last < first) || (last >= bank->num_sectors))
@@ -334,7 +334,7 @@ static int max32xxx_protect(struct flash_bank *bank, int set, int first, int las
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (info->probed == 0)
+	if (!info->probed)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	if (!info->max326xx)
@@ -460,7 +460,7 @@ static int max32xxx_write(struct flash_bank *bank, const uint8_t *buffer,
 	LOG_DEBUG("bank=%p buffer=%p offset=%08" PRIx32 " count=%08" PRIx32 "",
 		bank, buffer, offset, count);
 
-	if (info->probed == 0)
+	if (!info->probed)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	if (offset & 0x3) {
@@ -690,7 +690,7 @@ static int max32xxx_probe(struct flash_bank *bank)
 	if (max32xxx_protect_check(bank) == ERROR_FLASH_OPER_UNSUPPORTED)
 		LOG_WARNING("Flash protection not supported on this device");
 
-	info->probed = 1;
+	info->probed = true;
 	return ERROR_OK;
 }
 
@@ -709,7 +709,7 @@ static int max32xxx_mass_erase(struct flash_bank *bank)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (info->probed == 0)
+	if (!info->probed)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	int not_protected = 0;
