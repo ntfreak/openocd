@@ -97,7 +97,7 @@
 extern const struct flash_driver atsamv_flash;
 
 struct samv_flash_bank {
-	int      probed;
+	bool      probed;
 	unsigned size_bytes;
 	unsigned gpnvm[SAMV_NUM_GPNVM_BITS];
 };
@@ -379,7 +379,7 @@ static int samv_probe(struct flash_bank *bank)
 
 	struct samv_flash_bank *samv_info = bank->driver_priv;
 	samv_info->size_bytes = bank->size;
-	samv_info->probed = 1;
+	samv_info->probed = true;
 
 	bank->base = SAMV_FLASH_BASE;
 	bank->num_sectors = bank->size / SAMV_SECTOR_SIZE;
