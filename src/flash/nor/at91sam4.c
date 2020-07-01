@@ -166,7 +166,7 @@ struct sam4_cfg {
 };
 
 struct sam4_bank_private {
-	int probed;
+	bool probed;
 	/* DANGER: THERE ARE DRAGONS HERE.. */
 	/* NOTE: If you add more 'ghost' pointers */
 	/* be aware that you must *manually* update */
@@ -212,7 +212,7 @@ struct sam4_chip_details {
 
 struct sam4_chip {
 	struct sam4_chip *next;
-	int probed;
+	bool probed;
 
 	/* this is "initialized" from the global const structure */
 	struct sam4_chip_details details;
@@ -275,14 +275,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK0_BASE_C32,
 				.controller_address = 0x400e0a00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  1024 * 1024,
 				.nsectors   =  128,
 				.sector_size = 8192,
@@ -290,14 +290,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 			},
 /*		.bank[1] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 1,
 				.base_address = FLASH_BANK1_BASE_C32,
 				.controller_address = 0x400e0c00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  1024 * 1024,
 				.nsectors   =  128,
 				.sector_size = 8192,
@@ -316,14 +316,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK0_BASE_C32,
 				.controller_address = 0x400e0a00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  1024 * 1024,
 				.nsectors   =  128,
 				.sector_size = 8192,
@@ -331,14 +331,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 			},
 /*		.bank[1] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 1,
 				.base_address = FLASH_BANK1_BASE_C32,
 				.controller_address = 0x400e0c00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  1024 * 1024,
 				.nsectors   =  128,
 				.sector_size = 8192,
@@ -357,14 +357,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_C,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  1024 * 1024,
 			.nsectors   =  128,
 			.sector_size = 8192,
@@ -372,8 +372,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -390,14 +390,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_C,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  512 * 1024,
 			.nsectors   =  64,
 			.sector_size = 8192,
@@ -405,8 +405,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -423,14 +423,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_C,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  256 * 1024,
 			.nsectors   =  32,
 			.sector_size = 8192,
@@ -438,8 +438,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -458,14 +458,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  1024 * 1024,
 			.nsectors   =  128,
 			.sector_size = 8192,
@@ -473,8 +473,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -493,14 +493,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  512 * 1024,
 			.nsectors   =  64,
 			.sector_size = 8192,
@@ -508,8 +508,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -526,14 +526,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  512 * 1024,
 			.nsectors   =  64,
 			.sector_size = 8192,
@@ -541,8 +541,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -559,14 +559,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  512 * 1024,
 			.nsectors   =  64,
 			.sector_size = 8192,
@@ -574,8 +574,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -592,14 +592,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  1024 * 1024,
 			.nsectors   =  128,
 			.sector_size = 8192,
@@ -607,8 +607,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -625,14 +625,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  1024 * 1024,
 			.nsectors   =  128,
 			.sector_size = 8192,
@@ -640,8 +640,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -660,14 +660,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  1024 * 1024,
 			.nsectors   =  128,
 			.sector_size = 8192,
@@ -675,8 +675,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -694,14 +694,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = { */
 		{
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  1024 * 1024,
 			.nsectors   =  128,
 			.sector_size = 8192,
@@ -709,8 +709,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -727,14 +727,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  1024 * 1024,
 			.nsectors   =  128,
 			.sector_size = 8192,
@@ -742,8 +742,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -760,14 +760,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  1024 * 1024,
 			.nsectors   =  128,
 			.sector_size = 8192,
@@ -775,8 +775,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -793,14 +793,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  1024 * 1024,
 			.nsectors   =  128,
 			.sector_size = 8192,
@@ -808,8 +808,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -826,14 +826,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  512 * 1024,
 			.nsectors   =  64,
 			.sector_size = 8192,
@@ -841,8 +841,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -859,14 +859,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  512 * 1024,
 			.nsectors   =  64,
 			.sector_size = 8192,
@@ -874,8 +874,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -892,14 +892,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  512 * 1024,
 			.nsectors   =  64,
 			.sector_size = 8192,
@@ -907,8 +907,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -926,14 +926,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  256 * 1024,
 			.nsectors   =  32,
 			.sector_size = 8192,
@@ -941,8 +941,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -960,14 +960,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  256 * 1024,
 			.nsectors   =  32,
 			.sector_size = 8192,
@@ -975,8 +975,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -994,14 +994,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  256 * 1024,
 			.nsectors   =  32,
 			.sector_size = 8192,
@@ -1009,8 +1009,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -1028,14 +1028,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  128 * 1024,
 			.nsectors   =  16,
 			.sector_size = 8192,
@@ -1043,8 +1043,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -1062,14 +1062,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  128 * 1024,
 			.nsectors   =  16,
 			.sector_size = 8192,
@@ -1077,8 +1077,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -1096,14 +1096,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*		.bank[0] = {*/
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
 			.flash_wait_states = 5,
-			.present = 1,
+			.present = true,
 			.size_bytes =  128 * 1024,
 			.nsectors   =  16,
 			.sector_size = 8192,
@@ -1111,8 +1111,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		  },
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -1131,14 +1131,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK0_BASE_SD,
 				.controller_address = 0x400e0a00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  1024 * 1024,
 				.nsectors   =  128,
 				.sector_size = 8192,
@@ -1147,14 +1147,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 
 /*		.bank[1] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 1,
 				.base_address = FLASH_BANK1_BASE_2048K_SD,
 				.controller_address = 0x400e0c00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  1024 * 1024,
 				.nsectors   =  128,
 				.sector_size = 8192,
@@ -1175,14 +1175,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK0_BASE_SD,
 				.controller_address = 0x400e0a00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  1024 * 1024,
 				.nsectors   =  128,
 				.sector_size = 8192,
@@ -1191,14 +1191,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 
 /*		.bank[1] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 1,
 				.base_address = FLASH_BANK1_BASE_2048K_SD,
 				.controller_address = 0x400e0c00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  1024 * 1024,
 				.nsectors   =  128,
 				.sector_size = 8192,
@@ -1219,14 +1219,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK0_BASE_SD,
 				.controller_address = 0x400e0a00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  512 * 1024,
 				.nsectors   =  64,
 				.sector_size = 8192,
@@ -1235,14 +1235,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 
 /*		.bank[1] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 1,
 				.base_address = FLASH_BANK1_BASE_1024K_SD,
 				.controller_address = 0x400e0c00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  512 * 1024,
 				.nsectors   =  64,
 				.sector_size = 8192,
@@ -1263,14 +1263,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK0_BASE_SD,
 				.controller_address = 0x400e0a00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  512 * 1024,
 				.nsectors   =  64,
 				.sector_size = 8192,
@@ -1279,14 +1279,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 
 /*		.bank[1] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 1,
 				.base_address = FLASH_BANK1_BASE_1024K_SD,
 				.controller_address = 0x400e0c00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  512 * 1024,
 				.nsectors   =  64,
 				.sector_size = 8192,
@@ -1307,14 +1307,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK_BASE_S,
 				.controller_address = 0x400e0a00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  512 * 1024,
 				.nsectors   =  64,
 				.sector_size = 8192,
@@ -1322,8 +1322,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 			},
 /*		.bank[1] = {*/
 		  {
-			.present = 0,
-			.probed = 0,
+			.present = false,
+			.probed = false,
 			.bank_number = 1,
 
 		  },
@@ -1342,14 +1342,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*			.bank[0] = */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK_BASE_S,
 				.controller_address = 0x400e0a00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  512 * 1024,
 				.nsectors   =  64,
 				.sector_size = 8192,
@@ -1357,8 +1357,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 			},
 /*			.bank[1] = */
 			{
-				.present = 0,
-				.probed = 0,
+				.present = false,
+				.probed = false,
 				.bank_number = 1,
 			},
 		}
@@ -1376,14 +1376,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 /*			.bank[0] = */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK_BASE_S,
 				.controller_address = 0x400e0a00,
 				.flash_wait_states = 5,
-				.present = 1,
+				.present = true,
 				.size_bytes =  512 * 1024,
 				.nsectors   =  64,
 				.sector_size = 8192,
@@ -1391,8 +1391,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 			},
 /*			.bank[1] = */
 			{
-				.present = 0,
-				.probed = 0,
+				.present = false,
+				.probed = false,
 				.bank_number = 1,
 			},
 		}
@@ -2472,7 +2472,7 @@ FLASH_BANK_COMMAND_HANDLER(sam4_flash_bank_command)
 		pChip->target = bank->target;
 		/* assumption is this runs at 32khz */
 		pChip->cfg.slow_freq = 32768;
-		pChip->probed = 0;
+		pChip->probed = false;
 	}
 
 	switch (bank->base) {
@@ -2665,7 +2665,7 @@ static int sam4_probe(struct flash_bank *bank)
 		}
 	}
 
-	pPrivate->probed = 1;
+	pPrivate->probed = true;
 
 	r = sam4_protect_check(bank);
 	if (r != ERROR_OK)
