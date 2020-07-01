@@ -62,7 +62,7 @@
 #define KEY		0x8AAA5551
 
 struct mdr_flash_bank {
-	int probed;
+	bool probed;
 	unsigned int mem_type;
 	unsigned int page_count;
 	unsigned int sec_count;
@@ -79,7 +79,7 @@ FLASH_BANK_COMMAND_HANDLER(mdr_flash_bank_command)
 	mdr_info = malloc(sizeof(struct mdr_flash_bank));
 
 	bank->driver_priv = mdr_info;
-	mdr_info->probed = 0;
+	mdr_info->probed = false;
 	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[6], mdr_info->mem_type);
 	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[7], mdr_info->page_count);
 	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[8], mdr_info->sec_count);
@@ -587,7 +587,7 @@ static int mdr_probe(struct flash_bank *bank)
 		bank->sectors[i].is_protected = 0;
 	}
 
-	mdr_info->probed = 1;
+	mdr_info->probed = true;
 
 	return ERROR_OK;
 }
