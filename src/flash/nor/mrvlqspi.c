@@ -73,7 +73,7 @@
 #define DINCNT 0x20
 
 struct mrvlqspi_flash_bank {
-	int probed;
+	bool probed;
 	uint32_t reg_base;
 	uint32_t bank_num;
 	const struct flash_device *dev;
@@ -845,7 +845,7 @@ static int mrvlqspi_probe(struct flash_bank *bank)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	mrvlqspi_info->probed = 0;
+	mrvlqspi_info->probed = false;
 	mrvlqspi_info->bank_num = bank->bank_number;
 
 	/* Read flash JEDEC ID */
@@ -896,7 +896,7 @@ static int mrvlqspi_probe(struct flash_bank *bank)
 	}
 
 	bank->sectors = sectors;
-	mrvlqspi_info->probed = 1;
+	mrvlqspi_info->probed = true;
 
 	return ERROR_OK;
 }
@@ -948,7 +948,7 @@ FLASH_BANK_COMMAND_HANDLER(mrvlqspi_flash_bank_command)
 	/* Get QSPI controller register map base address */
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[6], mrvlqspi_info->reg_base);
 	bank->driver_priv = mrvlqspi_info;
-	mrvlqspi_info->probed = 0;
+	mrvlqspi_info->probed = false;
 
 	return ERROR_OK;
 }
