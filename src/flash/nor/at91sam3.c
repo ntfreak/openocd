@@ -187,7 +187,7 @@ struct sam3_cfg {
  */
 
 struct sam3_bank_private {
-	int probed;
+	bool probed;
 	/* DANGER: THERE ARE DRAGONS HERE.. */
 	/* NOTE: If you add more 'ghost' pointers */
 	/* be aware that you must *manually* update */
@@ -233,7 +233,7 @@ struct sam3_chip_details {
 
 struct sam3_chip {
 	struct sam3_chip *next;
-	int probed;
+	bool probed;
 
 	/* this is "initialized" from the global const structure */
 	struct sam3_chip_details details;
@@ -306,7 +306,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -322,7 +322,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 
 /*		.bank[1] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 1,
@@ -357,7 +357,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -373,7 +373,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		  .bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -399,7 +399,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -416,7 +416,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -448,7 +448,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 			{
 /*		.bank[0] = { */
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -463,7 +463,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 			},
 /*		.bank[1] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 1,
@@ -498,7 +498,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -514,7 +514,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -540,7 +540,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -556,7 +556,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -578,7 +578,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -594,7 +594,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -611,7 +611,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -627,7 +627,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -643,7 +643,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -659,7 +659,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -675,7 +675,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -691,7 +691,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -707,7 +707,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -723,7 +723,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -739,7 +739,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*			.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -754,7 +754,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 			  },
 /*			.bank[1] = { */
 			  {
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 1,
@@ -779,7 +779,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*			.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -794,7 +794,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 			  },
 /*			.bank[1] = { */
 			  {
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 1,
@@ -819,7 +819,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*			.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -834,7 +834,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 			  },
 /*			.bank[1] = { */
 			  {
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 1,
@@ -859,7 +859,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -875,7 +875,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -891,7 +891,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -907,7 +907,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -923,7 +923,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -939,7 +939,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -955,7 +955,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -971,7 +971,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -987,7 +987,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1003,7 +1003,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -1019,7 +1019,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1035,7 +1035,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -1051,7 +1051,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1067,7 +1067,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 
 			},
@@ -1101,7 +1101,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1118,7 +1118,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1150,7 +1150,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1167,7 +1167,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1199,7 +1199,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1216,7 +1216,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1248,7 +1248,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1265,7 +1265,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1297,7 +1297,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1314,7 +1314,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1346,7 +1346,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1363,7 +1363,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1395,7 +1395,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1412,7 +1412,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1444,7 +1444,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1461,7 +1461,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1493,7 +1493,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1510,7 +1510,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1527,7 +1527,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1544,7 +1544,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1561,7 +1561,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1578,7 +1578,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1595,7 +1595,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1612,7 +1612,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1629,7 +1629,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[0] = { */
 		{
 			{
-				.probed = 0,
+				.probed = false,
 				.pChip  = NULL,
 				.pBank  = NULL,
 				.bank_number = 0,
@@ -1646,7 +1646,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 /*		.bank[1] = { */
 			{
 				.present = 0,
-				.probed = 0,
+				.probed = false,
 				.bank_number = 1,
 			},
 		},
@@ -1680,7 +1680,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
@@ -1695,7 +1695,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		  },
 /*		.bank[1] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 1,
@@ -1721,7 +1721,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
@@ -1736,7 +1736,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		  },
 /*		.bank[1] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 1,
@@ -1780,7 +1780,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
@@ -1795,7 +1795,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		  },
 /*		.bank[1] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 1,
@@ -1822,7 +1822,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
@@ -1837,7 +1837,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		  },
 /*		.bank[1] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 1,
@@ -1863,7 +1863,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
@@ -1878,7 +1878,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		  },
 /*		.bank[1] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 1,
@@ -1904,7 +1904,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
@@ -1919,7 +1919,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		  },
 /*		.bank[1] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 1,
@@ -1945,7 +1945,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
@@ -1960,7 +1960,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		  },
 /*		.bank[1] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 1,
@@ -1986,7 +1986,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		{
 /*		.bank[0] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 0,
@@ -2001,7 +2001,7 @@ static const struct sam3_chip_details all_sam3_details[] = {
 		  },
 /*		.bank[1] = { */
 		  {
-			.probed = 0,
+			.probed = false,
 			.pChip  = NULL,
 			.pBank  = NULL,
 			.bank_number = 1,
@@ -3051,7 +3051,7 @@ FLASH_BANK_COMMAND_HANDLER(sam3_flash_bank_command)
 		pChip->target = bank->target;
 		/* assumption is this runs at 32khz */
 		pChip->cfg.slow_freq = 32768;
-		pChip->probed = 0;
+		pChip->probed = false;
 	}
 
 	switch (bank->base) {
@@ -3225,7 +3225,7 @@ static int _sam3_probe(struct flash_bank *bank, int noise)
 		}
 	}
 
-	pPrivate->probed = 1;
+	pPrivate->probed = true;
 
 	r = sam3_protect_check(bank);
 	if (r != ERROR_OK)
