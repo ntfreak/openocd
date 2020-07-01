@@ -122,7 +122,7 @@
 
 
 struct fespi_flash_bank {
-	int probed;
+	bool probed;
 	target_addr_t ctrl_base;
 	const struct flash_device *dev;
 };
@@ -157,7 +157,7 @@ FLASH_BANK_COMMAND_HANDLER(fespi_flash_bank_command)
 	}
 
 	bank->driver_priv = fespi_info;
-	fespi_info->probed = 0;
+	fespi_info->probed = false;
 	fespi_info->ctrl_base = 0;
 	if (CMD_ARGC >= 7) {
 		COMMAND_PARSE_ADDRESS(CMD_ARGV[6], fespi_info->ctrl_base);
@@ -919,7 +919,7 @@ static int fespi_probe(struct flash_bank *bank)
 
 	if (fespi_info->probed)
 		free(bank->sectors);
-	fespi_info->probed = 0;
+	fespi_info->probed = false;
 
 	if (fespi_info->ctrl_base == 0) {
 		for (target_device = target_devices ; target_device->name ; ++target_device)
@@ -1002,7 +1002,7 @@ static int fespi_probe(struct flash_bank *bank)
 	}
 
 	bank->sectors = sectors;
-	fespi_info->probed = 1;
+	fespi_info->probed = true;
 	return ERROR_OK;
 }
 
