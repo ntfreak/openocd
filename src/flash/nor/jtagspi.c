@@ -30,7 +30,7 @@
 struct jtagspi_flash_bank {
 	struct jtag_tap *tap;
 	const struct flash_device *dev;
-	int probed;
+	bool probed;
 	uint32_t ir;
 };
 
@@ -49,7 +49,7 @@ FLASH_BANK_COMMAND_HANDLER(jtagspi_flash_bank_command)
 	bank->driver_priv = info;
 
 	info->tap = NULL;
-	info->probed = 0;
+	info->probed = false;
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[6], info->ir);
 
 	return ERROR_OK;
@@ -170,7 +170,7 @@ static int jtagspi_probe(struct flash_bank *bank)
 
 	if (info->probed)
 		free(bank->sectors);
-	info->probed = 0;
+	info->probed = false;
 
 	if (bank->target->tap == NULL) {
 		LOG_ERROR("Target has no JTAG tap");
@@ -224,7 +224,7 @@ static int jtagspi_probe(struct flash_bank *bank)
 	}
 
 	bank->sectors = sectors;
-	info->probed = 1;
+	info->probed = true;
 	return ERROR_OK;
 }
 
