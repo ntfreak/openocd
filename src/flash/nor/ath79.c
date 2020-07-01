@@ -89,7 +89,7 @@ struct ath79_spi_ctx {
 };
 
 struct ath79_flash_bank {
-	int probed;
+	bool probed;
 	int chipselect;
 	uint32_t io_base;
 	const struct flash_device *dev;
@@ -780,7 +780,7 @@ static int ath79_probe(struct flash_bank *bank)
 		free(bank->sectors);
 		free(ath79_info->spi.page_buf);
 	}
-	ath79_info->probed = 0;
+	ath79_info->probed = false;
 
 	for (target_device = target_devices; target_device->name;
 		++target_device)
@@ -853,7 +853,7 @@ static int ath79_probe(struct flash_bank *bank)
 	}
 
 	bank->sectors = sectors;
-	ath79_info->probed = 1;
+	ath79_info->probed = true;
 	return ERROR_OK;
 }
 
