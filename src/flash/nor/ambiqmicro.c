@@ -92,7 +92,7 @@ static const uint32_t apollo_sram_size[] = {
 struct ambiqmicro_flash_bank {
 	/* chip id register */
 
-	uint32_t probed;
+	bool probed;
 
 	const char *target_name;
 	uint8_t target_class;
@@ -156,7 +156,7 @@ FLASH_BANK_COMMAND_HANDLER(ambiqmicro_flash_bank_command)
 	ambiqmicro_info->target_name = "Unknown target";
 
 	/* part wasn't probed yet */
-	ambiqmicro_info->probed = 0;
+	ambiqmicro_info->probed = false;
 
 	return ERROR_OK;
 }
@@ -167,7 +167,7 @@ static int get_ambiqmicro_info(struct flash_bank *bank, char *buf, int buf_size)
 	int printed;
 	char *classname;
 
-	if (ambiqmicro_info->probed == 0) {
+	if (!ambiqmicro_info->probed) {
 		LOG_ERROR("Target not probed");
 		return ERROR_FLASH_BANK_NOT_PROBED;
 	}
@@ -280,7 +280,7 @@ static int ambiqmicro_protect_check(struct flash_bank *bank)
 	uint32_t i;
 
 
-	if (ambiqmicro->probed == 0) {
+	if (!ambiqmicro->probed) {
 		LOG_ERROR("Target not probed");
 		return ERROR_FLASH_BANK_NOT_PROBED;
 	}
@@ -371,7 +371,7 @@ static int ambiqmicro_mass_erase(struct flash_bank *bank)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (ambiqmicro_info->probed == 0) {
+	if (!ambiqmicro_info->probed) {
 		LOG_ERROR("Target not probed");
 		return ERROR_FLASH_BANK_NOT_PROBED;
 	}
@@ -438,7 +438,7 @@ static int ambiqmicro_erase(struct flash_bank *bank, int first, int last)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (ambiqmicro_info->probed == 0) {
+	if (!ambiqmicro_info->probed) {
 		LOG_ERROR("Target not probed");
 		return ERROR_FLASH_BANK_NOT_PROBED;
 	}
@@ -657,7 +657,7 @@ static int ambiqmicro_probe(struct flash_bank *bank)
 	/* If this is a ambiqmicro chip, it has flash; probe() is just
 	 * to figure out how much is present.  Only do it once.
 	 */
-	if (ambiqmicro_info->probed == 1) {
+	if (ambiqmicro_info->probed) {
 		LOG_INFO("Target already probed");
 		return ERROR_OK;
 	}
@@ -689,7 +689,7 @@ static int ambiqmicro_probe(struct flash_bank *bank)
 	/*
 	 * Part has been probed.
 	 */
-	ambiqmicro_info->probed = 1;
+	ambiqmicro_info->probed = true;
 
 	return retval;
 }
@@ -709,7 +709,7 @@ static int ambiqmicro_otp_program(struct flash_bank *bank,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (ambiqmicro_info->probed == 0) {
+	if (!ambiqmicro_info->probed) {
 		LOG_ERROR("Target not probed");
 		return ERROR_FLASH_BANK_NOT_PROBED;
 	}
