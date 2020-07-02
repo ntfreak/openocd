@@ -1250,7 +1250,7 @@ static int kinetis_write_block(struct flash_bank *bank, const uint8_t *buffer,
 		uint32_t offset, uint32_t wcount)
 {
 	struct target *target = bank->target;
-	uint32_t buffer_size = 2048;		/* Default minimum value */
+	uint32_t buffer_size;
 	struct working_area *write_algorithm;
 	struct working_area *source;
 	struct kinetis_flash_bank *k_bank = bank->driver_priv;
@@ -1260,10 +1260,6 @@ static int kinetis_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	struct armv7m_algorithm armv7m_info;
 	int retval;
 	uint8_t fstat;
-
-	/* Increase buffer_size if needed */
-	if (buffer_size < (target->working_area_size/2))
-		buffer_size = (target->working_area_size/2);
 
 	/* allocate working area with flash programming code */
 	if (target_alloc_working_area(target, sizeof(kinetis_flash_write_code),
@@ -1277,16 +1273,19 @@ static int kinetis_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	if (retval != ERROR_OK)
 		return retval;
 
-	/* memory buffer */
-	while (target_alloc_working_area(target, buffer_size, &source) != ERROR_OK) {
-		buffer_size /= 4;
-		if (buffer_size <= 256) {
-			/* free working area, write algorithm already allocated */
-			target_free_working_area(target, write_algorithm);
+	/* memory buffer, size *must* be multiple of word */
+	buffer_size = target_get_working_area_avail(target) & ~(sizeof(uint32_t) - 1);
+	if (buffer_size < 256) {
+		LOG_WARNING("large enough working area not available, can't do block memory writes");
+		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
+	} else if (buffer_size > 16384) {
+		/* probably won't benefit from more than 16k ... */
+		buffer_size = 16384;
+	}
 
-			LOG_WARNING("No large enough working area available, can't do block memory writes");
-			return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
-		}
+	if (target_alloc_working_area(target, buffer_size, &source) != ERROR_OK) {
+		LOG_ERROR("allocating working area failed");
+		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 	}
 
 	armv7m_info.common_magic = ARMV7M_COMMON_MAGIC;
