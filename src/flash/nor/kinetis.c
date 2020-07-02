@@ -389,7 +389,6 @@ static const struct kinetis_type kinetis_types_old[] = {
 
 static bool allow_fcf_writes;
 static uint8_t fcf_fopt = 0xff;
-static bool fcf_fopt_configured;
 static bool create_banks;
 
 
@@ -1648,8 +1647,6 @@ static int kinetis_erase(struct flash_bank *bank, int first, int last)
 			return ERROR_FLASH_OPERATION_FAILED;
 		}
 
-		bank->sectors[i].is_erased = 1;
-
 		if (k_bank->prog_base == 0
 			&& bank->sectors[i].offset <= FCF_ADDRESS
 			&& bank->sectors[i].offset + bank->sectors[i].size > FCF_ADDRESS + FCF_SIZE) {
@@ -1663,7 +1660,8 @@ static int kinetis_erase(struct flash_bank *bank, int first, int last)
 				result = kinetis_write_inner(bank, fcf_buffer, FCF_ADDRESS, FCF_SIZE);
 				if (result != ERROR_OK)
 					LOG_WARNING("Flash Configuration Field write failed");
-				bank->sectors[i].is_erased = 0;
+				else
+					LOG_DEBUG("Generated FCF written");
 			}
 		}
 	}
@@ -1907,6 +1905,7 @@ static int kinetis_write(struct flash_bank *bank, const uint8_t *buffer,
 	int result;
 	bool set_fcf = false;
 	bool fcf_in_data_valid = false;
+	bool fcf_differs = false;
 	int sect = 0;
 	struct kinetis_flash_bank *k_bank = bank->driver_priv;
 	struct kinetis_chip *k_chip = k_bank->k_chip;
@@ -1939,31 +1938,45 @@ static int kinetis_write(struct flash_bank *bank, const uint8_t *buffer,
 					 && offset + count >= FCF_ADDRESS + FCF_SIZE;
 		if (fcf_in_data_valid) {
 			memcpy(fcf_in_data, buffer + FCF_ADDRESS - offset, FCF_SIZE);
-			if (memcmp(fcf_in_data + FCF_FPROT, fcf_buffer, 4)) {
-				fcf_in_data_valid = false;
-				LOG_INFO("Flash protection requested in programmed file differs from current setting.");
+			if (memcmp(fcf_in_data, fcf_buffer, 8)) {
+				fcf_differs = true;
+				LOG_INFO("Setting of backdoor key is not supported in mode 'kinetis fcf_source protection'.");
+			}
+			if (memcmp(fcf_in_data + FCF_FPROT, fcf_buffer + FCF_FPROT, 4)) {
+				fcf_differs = true;
+				LOG_INFO("Flash protection requested in the programmed file differs from current setting.");
 			}
 			if (fcf_in_data[FCF_FDPROT] != fcf_buffer[FCF_FDPROT]) {
-				fcf_in_data_valid = false;
-				LOG_INFO("Data flash protection requested in programmed file differs from current setting.");
+				fcf_differs = true;
+				LOG_INFO("Data flash protection requested in the programmed file differs from current setting.");
 			}
 			if ((fcf_in_data[FCF_FSEC] & 3) != 2) {
 				fcf_in_data_valid = false;
-				LOG_INFO("Device security requested in programmed file!");
-			} else if (k_chip->flash_support & FS_ECC
-			    && fcf_in_data[FCF_FSEC] != fcf_buffer[FCF_FSEC]) {
-				fcf_in_data_valid = false;
+				LOG_INFO("Device security requested in the programmed file! Write denied.");
+			} else if (fcf_in_data[FCF_FSEC] != fcf_buffer[FCF_FSEC]) {
+				fcf_differs = true;
 				LOG_INFO("Strange unsecure mode 0x%02" PRIx8
-					 "requested in programmed file!",
-					 fcf_in_data[FCF_FSEC]);
+					" requested in the programmed file, set FSEC = 0x%02" PRIx8
+					" in the startup code!",
+					fcf_in_data[FCF_FSEC], fcf_buffer[FCF_FSEC]);
 			}
-			if ((k_chip->flash_support & FS_ECC || fcf_fopt_configured)
-			    && fcf_in_data[FCF_FOPT] != fcf_fopt) {
-				fcf_in_data_valid = false;
-				LOG_INFO("FOPT requested in programmed file differs from current setting.");
+			if (fcf_in_data[FCF_FOPT] != fcf_buffer[FCF_FOPT]) {
+				fcf_differs = true;
+				LOG_INFO("FOPT requested in the programmed file differs from current setting, set 'kinetis fopt 0x%02"
+					PRIx8 "'.", fcf_in_data[FCF_FOPT]);
 			}
-			if (!fcf_in_data_valid)
-				LOG_INFO("Expect verify errors at FCF (0x408-0x40f).");
+
+			/* If the device has ECC flash, then we cannot re-program FCF */
+			if (fcf_differs) {
+				if (k_chip->flash_support & FS_ECC) {
+					fcf_in_data_valid = false;
+					LOG_INFO("Cannot re-program FCF. Expect verify errors at FCF (0x400-0x40f).");
+				} else {
+					LOG_INFO("Trying to re-program FCF.");
+					if (!(k_chip->flash_support & FS_PROGRAM_LONGWORD))
+						LOG_INFO("Flash re-programming may fail on this device!");
+				}
+			}
 		}
 	}
 
@@ -3033,7 +3046,6 @@ COMMAND_HANDLER(kinetis_fopt_handler)
 
 	if (CMD_ARGC == 1) {
 		fcf_fopt = (uint8_t)strtoul(CMD_ARGV[0], NULL, 0);
-		fcf_fopt_configured = true;
 	} else {
 		command_print(CMD, "FCF_FOPT 0x%02" PRIx8, fcf_fopt);
 	}
