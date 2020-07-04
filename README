@@ -288,7 +288,7 @@ Parallel Port Dongles
 ---------------------
 
 If you want to access the parallel port using the PPDEV interface you
-have to specify both --enable-parport AND --enable-parport-ppdev, since the
+have to specify both --enable-parport AND --enable-parport-ppdev, since
 the later option is an option to the parport driver.
 
 The same is true for the --enable-parport-giveio option, you have to

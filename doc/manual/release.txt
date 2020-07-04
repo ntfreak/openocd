@@ -82,7 +82,7 @@ number will be zero (<code>z = 0</code>).  For a <i>major releases</i>,
 the minor version will @a also be zero (<code>y = 0, z = 0</code>).
 
 After these required numeric components, release version strings
-may contain tags such as as <em>-rc1</em> or <em>-rc2</em>.
+may contain tags such as <em>-rc1</em> or <em>-rc2</em>.
 These 'rc' tags indicate "release candidate" versions of the package.
 Like major/minor/micro numbers, these are updated
 as part of the release process.

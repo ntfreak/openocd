@@ -52,7 +52,7 @@ OpenOCD project.
   -# remove it entirely (git can retrieve the old version), or
   -# use an @c \#if/\#endif block.
 
-Finally, try to avoid lines of code that are longer than than 72-80 columns:
+Finally, try to avoid lines of code that are longer than 72-80 columns:
 
 - long lines frequently indicate other style problems:
   - insufficient use of static functions, macros, or temporary variables

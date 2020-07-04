@@ -23,7 +23,7 @@ In early 2008, Oyvind Harboe and Duane Ellis had talked about how to
 create a reasonable GUI for OpenOCD - something that is non-invasive,
 simple to use and maintain, and does not tie OpenOCD to many other
 packages.  It would be wrong to "spider web" requirements into other
-external external packages.  That makes it difficult for developers to
+external packages.  That makes it difficult for developers to
 write new code and creates a support nightmare.
 
 In many ways, people had talked about the need for some type of
@@ -67,7 +67,7 @@ write scripts internally to help things, or we can write "C" code  that
 interfaces well with TCL.
 
 From there, the developers wanted to create an external front-end that
-would be @a very usable and that that @a any language could utilize,
+would be @a very usable and that @a any language could utilize,
 allowing simple front-ends to be (a) cross-platform (b) language
 agnostic, and (c) easy to develop and use.
 

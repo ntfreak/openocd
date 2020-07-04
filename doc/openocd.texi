@@ -1020,7 +1020,7 @@ will help support users of any board using that chip.
 @end quotation
 
 @item
-You may may need to write some C code.
+You may need to write some C code.
 It may be as simple as supporting a new FT2232 or parport
 based adapter; a bit more involved, like a NAND or NOR flash
 controller driver; or a big piece of work like supporting
@@ -5661,7 +5661,7 @@ at91samd bootloader 16384
 @deffn Command {at91samd dsu_reset_deassert}
 This command releases internal reset held by DSU
 and prepares reset vector catch in case of reset halt.
-Command is used internally in event event reset-deassert-post.
+Command is used internally in event reset-deassert-post.
 @end deffn
 
 @deffn Command {at91samd nvmuserrow}
@@ -5768,7 +5768,7 @@ The AT91SAM4L driver adds some additional commands:
 @deffn Command {at91sam4l smap_reset_deassert}
 This command releases internal reset held by SMAP
 and prepares reset vector catch in case of reset halt.
-Command is used internally in event event reset-deassert-post.
+Command is used internally in event reset-deassert-post.
 @end deffn
 @end deffn
 
@@ -5809,7 +5809,7 @@ processor to be halted.
 @deffn Command {atsame5 dsu_reset_deassert}
 This command releases internal reset held by DSU
 and prepares reset vector catch in case of reset halt.
-Command is used internally in event event reset-deassert-post.
+Command is used internally in event reset-deassert-post.
 @end deffn
 
 @deffn Command {atsame5 userpage}
@@ -8392,7 +8392,7 @@ and any buffered trace data is invalidated.
 
 @itemize
 @item @var{type} ... describing how data accesses are traced,
-when they pass any ViewData filtering that that was set up.
+when they pass any ViewData filtering that was set up.
 The value is one of
 @option{none} (save nothing),
 @option{data} (save data),
@@ -8740,7 +8740,7 @@ and any other core-specific commands that may be available.
 
 @deffn Command {arm7_9 dbgrq} [@option{enable}|@option{disable}]
 Displays the value of the flag controlling use of the
-the EmbeddedIce DBGRQ signal to force entry into debug mode,
+EmbeddedIce DBGRQ signal to force entry into debug mode,
 instead of breakpoints.
 If a boolean parameter is provided, first assigns that flag.
 
