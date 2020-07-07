@@ -1,0 +1,8 @@
+Verified+1: jenkins
+Code-Review+1: Tomas Vanek <vanekt@fbl.cz>
+Code-Review+2: Antonio Borneo <borneo.antonio@gmail.com>
+Submitted-by: Tomas Vanek <vanekt@fbl.cz>
+Submitted-at: Tue, 07 Jul 2020 05:23:54 +0100
+Reviewed-on: http://openocd.zylin.com/4929
+Project: openocd
+Branch: refs/heads/master
