@@ -929,6 +929,50 @@ COMMAND_HANDLER(arc_l2_cache_disable_auto_cmd)
 		&arc->has_l2cache, "target has l2 cache enabled");
 }
 
+static int jim_handle_actionpoints_num(Jim_Interp *interp, int argc,
+	Jim_Obj * const *argv)
+{
+	Jim_GetOptInfo goi;
+	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+
+	LOG_DEBUG("-");
+
+	if (goi.argc >= 2) {
+		Jim_WrongNumArgs(interp, goi.argc, goi.argv, "[<unsigned integer>]");
+		return JIM_ERR;
+	}
+
+	struct command_context *context = current_command_context(interp);
+	assert(context);
+
+	struct target *target = get_current_target(context);
+
+	if (!target) {
+		Jim_SetResultFormatted(goi.interp, "No current target");
+		return JIM_ERR;
+	}
+
+	struct arc_common *arc = target_to_arc(target);
+	/* It is not possible to pass &arc->actionpoints_num directly to
+	 * handle_command_parse_uint, because this value should be valid during
+	 * "actionpoint reset, initiated by arc_set_actionpoints_num.  */
+	uint32_t ap_num = arc->actionpoints_num;
+
+	if (goi.argc == 1) {
+		JIM_CHECK_RETVAL(arc_cmd_jim_get_uint32(&goi, &ap_num));
+		int e = arc_set_actionpoints_num(target, ap_num);
+		if (e != ERROR_OK) {
+			Jim_SetResultFormatted(goi.interp,
+				"Failed to set number of actionpoints");
+			return JIM_ERR;
+		}
+	}
+
+	Jim_SetResultInt(interp, ap_num);
+
+	return JIM_OK;
+}
+
 /* ----- Exported target commands ------------------------------------------ */
 
 const struct command_registration arc_l2_cache_group_handlers[] = {
@@ -1023,6 +1067,13 @@ static const struct command_registration arc_core_command_handlers[] = {
 		.help = "cache command group",
 		.usage = "",
 		.chain = arc_cache_group_handlers,
+	},
+	{
+		.name = "num-actionpoints",
+		.jim_handler = jim_handle_actionpoints_num,
+		.mode = COMMAND_ANY,
+		.usage = "[<unsigned integer>]",
+		.help = "Prints or sets amount of actionpoints in the processor.",
 	},
 	COMMAND_REGISTRATION_DONE
 };
