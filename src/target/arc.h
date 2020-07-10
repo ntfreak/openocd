@@ -78,6 +78,16 @@
 #define SLC_AUX_CACHE_INV		0x905
 #define L2_INV_IV			BIT(0)
 
+ /* Action Point */
+#define AP_AC_AT_INST_ADDR		0x0
+#define AP_AC_AT_MEMORY_ADDR	0x2
+#define AP_AC_AT_AUXREG_ADDR	0x4
+
+#define AP_AC_TT_DISABLE		0x00
+#define AP_AC_TT_WRITE			0x10
+#define AP_AC_TT_READ			0x20
+#define AP_AC_TT_READWRITE		0x30
+
 struct arc_reg_bitfield {
 	struct reg_data_type_bitfield bitfield;
 	char name[REG_TYPE_MAX_NAME_LENGTH];
@@ -95,8 +105,6 @@ struct arc_reg_data_type {
 		struct reg_data_type_flags_field *reg_type_flags_field;
 	};
 };
-
-
 
 /* Standard GDB register types */
 static const struct reg_data_type standard_gdb_types[] = {
@@ -118,6 +126,18 @@ static const struct reg_data_type standard_gdb_types[] = {
 	{ .type = REG_TYPE_IEEE_DOUBLE, .id = "ieee_double" },
 };
 
+enum arc_actionpointype {
+	ARC_AP_BREAKPOINT,
+	ARC_AP_WATCHPOINT,
+};
+
+/* Actionpoint related fields  */
+struct arc_actionpoint {
+	int used;
+	uint32_t bp_value;
+	uint32_t reg_address;
+	enum arc_actionpointype type;
+};
 
 struct arc_common {
 	uint32_t common_magic;
@@ -172,6 +192,11 @@ struct arc_common {
 	unsigned long pc_index_in_cache;
 	/* DEBUG register location in register cache. */
 	unsigned long debug_index_in_cache;
+
+	/* Actionpoints */
+	unsigned int actionpoints_num;
+	unsigned int actionpoints_num_avail;
+	struct arc_actionpoint *actionpoints_list;
 };
 
 /* Borrowed from nds32.h */
@@ -283,5 +308,10 @@ int arc_reg_get_field(struct target *target, const char *reg_name,
 
 int arc_cache_flush(struct target *target);
 int arc_cache_invalidate(struct target *target);
+
+int arc_add_auxreg_actionpoint(struct target *target,
+	uint32_t auxreg_addr, uint32_t transaction);
+int arc_remove_auxreg_actionpoint(struct target *target, uint32_t auxreg_addr);
+void arc_set_actionpoints_num(struct target *target, unsigned ap_num);
 
 #endif /* OPENOCD_TARGET_ARC_H */
