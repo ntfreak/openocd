@@ -306,7 +306,7 @@ static int chromium_ec_update_threads(struct rtos *rtos)
 			LOG_ERROR("Failed to get task %d's runtime", t);
 		runtime =  target_buffer_get_u64(rtos->target, runtime_buf);
 
-		/* Priority is simply the positon in the array */
+		/* Priority is simply the position in the array */
 		if (thread_ptr == current_task)
 			snprintf(thread_str_buf, sizeof(thread_str_buf),
 				 "State: Running, Priority: %u, Events: %" PRIx32 ", Runtime: %" PRIu64 "\n",

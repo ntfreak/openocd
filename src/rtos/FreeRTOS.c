@@ -245,7 +245,7 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 		return ERROR_FAIL;
 	}
 	uint64_t top_used_priority = 0;
-	/* FIXME: endianess error on almost all target_read_buffer(), see also
+	/* FIXME: endianness error on almost all target_read_buffer(), see also
 	 * other rtoses */
 	retval = target_read_buffer(rtos->target,
 			rtos->symbols[FreeRTOS_VAL_uxTopUsedPriority].address,

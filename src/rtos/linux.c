@@ -188,7 +188,7 @@ static int linux_os_thread_reg_list(struct rtos *rtos,
 		return ERROR_FAIL;
 	}
 
-	/*  search target to perfom the access  */
+	/*  search target to perform the access  */
 	struct reg **gdb_reg_list;
 	struct target_list *head;
 	head = target->head;
