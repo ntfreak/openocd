@@ -25,7 +25,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-/* Some of the the lower level code was based on code supplied by
+/* Some of the lower level code was based on code supplied by
  * ATMEL under this copyright. */
 
 /* BEGIN ATMEL COPYRIGHT */

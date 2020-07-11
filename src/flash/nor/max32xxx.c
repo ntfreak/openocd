@@ -80,7 +80,7 @@ struct max32xxx_flash_bank {
 	unsigned int burst_size_bits;
 };
 
-/* see contib/loaders/flash/max32xxx/max32xxx.s for src */
+/* see contrib/loaders/flash/max32xxx/max32xxx.s for src */
 static const uint8_t write_code[] = {
 #include "../../contrib/loaders/flash/max32xxx/max32xxx.inc"
 };

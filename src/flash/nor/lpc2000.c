@@ -1170,7 +1170,7 @@ static int lpc2000_write(struct flash_bank *bank, const uint8_t *buffer, uint32_
 				break;
 		}
 
-		/* Exit if error occured */
+		/* Exit if error occurred */
 		if (retval != ERROR_OK)
 			break;
 
@@ -1212,7 +1212,7 @@ static int lpc2000_write(struct flash_bank *bank, const uint8_t *buffer, uint32_
 				break;
 		}
 
-		/* Exit if error occured */
+		/* Exit if error occurred */
 		if (retval != ERROR_OK)
 			break;
 

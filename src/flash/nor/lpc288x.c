@@ -398,10 +398,10 @@ static int lpc288x_protect(struct flash_bank *bank, int set, unsigned int first,
 
 	for (unsigned int lockregion = first; lockregion <= last; lockregion++) {
 		if (set) {
-			/* write an odd value to base addy to protect... */
+			/* write an odd value to base address to protect... */
 			value = 0x01;
 		} else {
-			/* write an even value to base addy to unprotect... */
+			/* write an even value to base address to unprotect... */
 			value = 0x00;
 		}
 		target_write_u32(target, bank->sectors[lockregion].offset, value);

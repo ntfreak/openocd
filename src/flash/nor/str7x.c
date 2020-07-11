@@ -452,7 +452,7 @@ static int str7x_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	struct arm_algorithm arm_algo;
 	int retval = ERROR_OK;
 
-	/* see contib/loaders/flash/str7x.s for src */
+	/* see contrib/loaders/flash/str7x.s for src */
 
 	static const uint32_t str7x_flash_write_code[] = {
 					/* write:				*/

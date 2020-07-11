@@ -466,7 +466,7 @@ static int em357_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	struct armv7m_algorithm armv7m_info;
 	int retval = ERROR_OK;
 
-	/* see contib/loaders/flash/stm32x.s for src, the same is used here except for
+	/* see contrib/loaders/flash/stm32x.s for src, the same is used here except for
 	 * a modified *_FLASH_BASE */
 
 	static const uint8_t em357_flash_write_code[] = {

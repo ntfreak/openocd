@@ -47,7 +47,7 @@
 #define PANTHER_DEVICE_ID       0x4008001C
 
 /* NVL is not actually mapped to the Cortex-M address space
- * As we need a base addess different from other banks in the device
+ * As we need a base address different from other banks in the device
  * we use the address of NVL programming data in Cypress images */
 #define NVL_META_BASE			0x90000000
 

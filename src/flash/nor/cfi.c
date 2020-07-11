@@ -1178,7 +1178,7 @@ static int cfi_intel_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	 * r6: error test pattern
 	 */
 
-	/* see contib/loaders/flash/armv4_5_cfi_intel_32.s for src */
+	/* see contrib/loaders/flash/armv4_5_cfi_intel_32.s for src */
 	static const uint32_t word_32_code[] = {
 		0xe4904004,	/* loop: ldr r4, [r0], #4 */
 		0xe5813000,	/*       str r3, [r1] */
@@ -1196,7 +1196,7 @@ static int cfi_intel_write_block(struct flash_bank *bank, const uint8_t *buffer,
 		0xeafffffe	/* done: b -2 */
 	};
 
-	/* see contib/loaders/flash/armv4_5_cfi_intel_16.s for src */
+	/* see contrib/loaders/flash/armv4_5_cfi_intel_16.s for src */
 	static const uint32_t word_16_code[] = {
 		0xe0d040b2,	/* loop: ldrh r4, [r0], #2 */
 		0xe1c130b0,	/*       strh r3, [r1] */
@@ -1214,7 +1214,7 @@ static int cfi_intel_write_block(struct flash_bank *bank, const uint8_t *buffer,
 		0xeafffffe	/* done:	b -2 */
 	};
 
-	/* see contib/loaders/flash/armv4_5_cfi_intel_8.s for src */
+	/* see contrib/loaders/flash/armv4_5_cfi_intel_8.s for src */
 	static const uint32_t word_8_code[] = {
 		0xe4d04001,	/* loop: ldrb r4, [r0], #1 */
 		0xe5c13000,	/*       strb r3, [r1] */
@@ -1249,7 +1249,7 @@ static int cfi_intel_write_block(struct flash_bank *bank, const uint8_t *buffer,
 
 	cfi_intel_clear_status_register(bank);
 
-	/* If we are setting up the write_algorith, we need target_code_src
+	/* If we are setting up the write_algorithm, we need target_code_src
 	 * if not we only need target_code_size. */
 
 	/* However, we don't want to create multiple code paths, so we
@@ -1364,7 +1364,7 @@ static int cfi_intel_write_block(struct flash_bank *bank, const uint8_t *buffer,
 		if (retval != ERROR_OK) {
 			cfi_intel_clear_status_register(bank);
 			LOG_ERROR(
-				"Execution of flash algorythm failed. Can't fall back. Please report.");
+				"Execution of flash algorithm failed. Can't fall back. Please report.");
 			retval = ERROR_FLASH_OPERATION_FAILED;
 			/* retval = ERROR_TARGET_RESOURCE_NOT_AVAILABLE; */
 			/* FIXME To allow fall back or recovery, we must save the actual status
@@ -1653,7 +1653,7 @@ static int cfi_spansion_write_block(struct flash_bank *bank, const uint8_t *buff
 	 *  R10 = unlock2_addr
 	 *  R11 = unlock2_cmd */
 
-	/* see contib/loaders/flash/armv4_5_cfi_span_32.s for src */
+	/* see contrib/loaders/flash/armv4_5_cfi_span_32.s for src */
 	static const uint32_t armv4_5_word_32_code[] = {
 		/* 00008100 <sp_32_code>:		*/
 		0xe4905004,		/* ldr	r5, [r0], #4			*/
@@ -1685,7 +1685,7 @@ static int cfi_spansion_write_block(struct flash_bank *bank, const uint8_t *buff
 		0xeafffffe		/* b	8154 <sp_32_done>		*/
 	};
 
-	/* see contib/loaders/flash/armv4_5_cfi_span_16.s for src */
+	/* see contrib/loaders/flash/armv4_5_cfi_span_16.s for src */
 	static const uint32_t armv4_5_word_16_code[] = {
 		/* 00008158 <sp_16_code>:		*/
 		0xe0d050b2,		/* ldrh	r5, [r0], #2			*/
@@ -2406,7 +2406,7 @@ static int cfi_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t of
 			break;
 	}
 	if (retval == ERROR_OK) {
-		/* Increment pointers and decrease count on succesful block write */
+		/* Increment pointers and decrease count on successful block write */
 		buffer += blk_count;
 		write_p += blk_count;
 		count -= blk_count;
@@ -2795,7 +2795,7 @@ int cfi_probe(struct flash_bank *bank)
 												 *for
 												 *all
 												 *CFI
-												 *flashs
+												 *flashes
 												 **/
 				cfi_read_0002_pri_ext(bank);
 				break;

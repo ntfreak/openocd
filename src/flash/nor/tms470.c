@@ -722,7 +722,7 @@ static int tms470_erase_sector(struct flash_bank *bank, int sector)
 	bank->sectors[sector].is_protected = 0;
 
 	/*
-	 * clear status regiser, sent erase command, kickoff erase
+	 * clear status register, sent erase command, kickoff erase
 	 */
 	target_write_u16(target, flashAddr, 0x0040);
 	LOG_DEBUG("write *(uint16_t *)0x%08" PRIx32 "=0x0040", flashAddr);
@@ -865,7 +865,7 @@ static int tms470_protect(struct flash_bank *bank, int set, unsigned int first,
 	target_read_u32(target, 0xFFE8BC04, &fmmac2);
 	target_write_u32(target, 0xFFE8BC04, (fmmac2 & ~7) | tms470_info->ordinal);
 
-	/* get the original sector proection flags for this bank */
+	/* get the original sector protection flags for this bank */
 	target_read_u32(target, 0xFFE88008, &fmbsea);
 	target_read_u32(target, 0xFFE8800C, &fmbseb);
 

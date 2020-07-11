@@ -250,7 +250,7 @@ static int sim3x_erase_page(struct flash_bank *bank, uint32_t addr)
 			if (ret != ERROR_OK)
 				return ret;
 
-			/* Write the inital unlock value to KEY */
+			/* Write the initial unlock value to KEY */
 			ret = target_write_u32(target, FLASHCTRL0_KEY,
 			FLASHCTRL0_KEY_INITIAL_UNLOCK);
 			if (ret != ERROR_OK)
@@ -490,7 +490,7 @@ static int sim3x_flash_write(struct flash_bank *bank, const uint8_t *buffer, uin
 	sim3x_info = bank->driver_priv;
 
 	if (sim3x_info->flash_locked) {
-		LOG_ERROR("Falsh is locked");
+		LOG_ERROR("Flash is locked");
 		return ERROR_FAIL;
 	}
 
@@ -1032,7 +1032,7 @@ COMMAND_HANDLER(sim3x_lock)
 		ret = target_read_u32(target, CPUID, &val);
 		/* if correct value is read, then it will continue */
 		if (ret != ERROR_OK || (val & CPUID_CHECK_VALUE_MASK) != CPUID_CHECK_VALUE) {
-			/* if correct value is'n read, then it will check SIM3X_AP_INIT_STAT register */
+			/* if correct value isn't read, then it will check SIM3X_AP_INIT_STAT register */
 			ret = ap_read_register(dap, SIM3X_AP_INIT_STAT, &val);
 			if (ret != ERROR_OK)
 				return ret;

@@ -89,7 +89,7 @@ enum nrf5_ficr_registers {
 
 enum nrf5_uicr_registers {
 	NRF5_UICR_BASE = 0x10001000, /* User Information
-				       * Configuration Regsters */
+				       * Configuration Registers */
 
 #define NRF5_UICR_REG(offset) (NRF5_UICR_BASE + offset)
 
@@ -256,7 +256,7 @@ static const struct nrf5_device_spec nrf5_known_devices_table[] = {
 	NRF51_DEVICE_DEF(0x007A, "51422", "CEAA", "C0",    256),
 	NRF51_DEVICE_DEF(0x0088, "51422", "CFAC", "A0",    256),
 
-	/* The driver fully autodects nRF52 series devices by FICR INFO,
+	/* The driver fully autodetects nRF52 series devices by FICR INFO,
 	 * no need for nRF52xxx HWIDs in this table */
 #if 0
 	/* nRF52810 Devices */
@@ -533,7 +533,7 @@ static int nrf5_protect(struct flash_bank *bank, int set, unsigned int first,
 	}
 
 	if (first != 0) {
-		LOG_ERROR("Code region 0 must start at the begining of the bank");
+		LOG_ERROR("Code region 0 must start at the beginning of the bank");
 		return ERROR_FAIL;
 	}
 
@@ -1363,7 +1363,7 @@ const struct flash_driver nrf5_flash = {
 };
 
 /* We need to retain the flash-driver name as well as the commands
- * for backwards compatability */
+ * for backwards compatibility */
 const struct flash_driver nrf51_flash = {
 	.name			= "nrf51",
 	.commands		= nrf5_command_handlers,

@@ -55,7 +55,7 @@
  * can be very different.
  *
  * To reduce testing complexity and dangers of regressions,
- * a seperate file is used for stm32fx2x.
+ * a separate file is used for stm32fx2x.
  *
  * Sector sizes in kiBytes:
  * 1 MiByte part with 4 x 16, 1 x 64, 7 x 128.
@@ -419,7 +419,7 @@ static int stm32x_read_options(struct flash_bank *bank)
 		if (retval != ERROR_OK)
 			return retval;
 
-		/* FLASH_OPTCR1 has quite diffent meanings ... */
+		/* FLASH_OPTCR1 has quite different meanings ... */
 		if (stm32x_info->has_boot_addr) {
 			/* for F7xx it contains boot0 and boot1 */
 			stm32x_info->option_bytes.boot_addr = optiondata;
@@ -1026,7 +1026,7 @@ static int stm32x_probe(struct flash_bank *bank)
 		bank->prot_blocks = NULL;
 	}
 
-	/* if explicitely called out as OTP bank, short circuit probe */
+	/* if explicitly called out as OTP bank, short circuit probe */
 	if (stm32x_is_otp(bank)) {
 		if (stm32x_otp_is_f7(bank)) {
 			otp_size_in_b = STM32F7_OTP_SIZE;

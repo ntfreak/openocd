@@ -372,7 +372,7 @@ static int pic32mx_protect(struct flash_bank *bank, int set, unsigned int first,
 	return ERROR_OK;
 }
 
-/* see contib/loaders/flash/pic32mx.s for src */
+/* see contrib/loaders/flash/pic32mx.s for src */
 
 static uint32_t pic32mx_flash_write_code[] = {
 					/* write: */

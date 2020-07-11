@@ -79,7 +79,7 @@
  *
  */
 
-/* Addressess */
+/* Addresses */
 #define FCF_ADDRESS	0x00000400
 #define FCF_FPROT	0x8
 #define FCF_FSEC	0xc
@@ -507,7 +507,7 @@ COMMAND_HANDLER(kinetis_mdm_halt)
 		}
 	}
 
-	LOG_DEBUG("MDM: halt succeded after %d attempts.", tries);
+	LOG_DEBUG("MDM: halt succeeded after %d attempts.", tries);
 
 	target_poll(target);
 	/* enable polling in case kinetis_check_flash_security_status disabled it */
@@ -1431,7 +1431,7 @@ static int kinetis_fill_fcf(struct flash_bank *bank, uint8_t *fcf)
 		bank_iter = k_bank->bank;
 
 		if (bank_iter == NULL) {
-			LOG_WARNING("Missing bank %u configuration, FCF protection flags may be incomplette", bank_idx);
+			LOG_WARNING("Missing bank %u configuration, FCF protection flags may be incomplete", bank_idx);
 			continue;
 		}
 
@@ -2838,7 +2838,7 @@ static int kinetis_blank_check(struct flash_bank *bank)
 				if (result == ERROR_OK) {
 					bank->sectors[i].is_erased = !(ftfx_fstat & 0x01);
 				} else {
-					LOG_DEBUG("Ignoring errored PFlash sector blank-check");
+					LOG_DEBUG("Ignoring error on PFlash sector blank-check");
 					kinetis_ftfx_clear_error(bank->target);
 					bank->sectors[i].is_erased = -1;
 				}

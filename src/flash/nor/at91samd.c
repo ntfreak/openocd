@@ -41,7 +41,7 @@
 #define SAMD_NVMCTRL_CTRLA		0x00	/* NVM control A register */
 #define SAMD_NVMCTRL_CTRLB		0x04	/* NVM control B register */
 #define SAMD_NVMCTRL_PARAM		0x08	/* NVM parameters register */
-#define SAMD_NVMCTRL_INTFLAG	0x18	/* NVM Interupt Flag Status & Clear */
+#define SAMD_NVMCTRL_INTFLAG	0x18	/* NVM Interrupt Flag Status & Clear */
 #define SAMD_NVMCTRL_STATUS		0x18	/* NVM status register */
 #define SAMD_NVMCTRL_ADDR		0x1C	/* NVM address register */
 #define SAMD_NVMCTRL_LOCK		0x20	/* NVM Lock section register */
@@ -52,8 +52,8 @@
 /* NVMCTRL commands.  See Table 20-4 in 42129F–SAM–10/2013 */
 #define SAMD_NVM_CMD_ER		0x02		/* Erase Row */
 #define SAMD_NVM_CMD_WP		0x04		/* Write Page */
-#define SAMD_NVM_CMD_EAR	0x05		/* Erase Auxilary Row */
-#define SAMD_NVM_CMD_WAP	0x06		/* Write Auxilary Page */
+#define SAMD_NVM_CMD_EAR	0x05		/* Erase Auxiliary Row */
+#define SAMD_NVM_CMD_WAP	0x06		/* Write Auxiliary Page */
 #define SAMD_NVM_CMD_LR		0x40		/* Lock Region */
 #define SAMD_NVM_CMD_UR		0x41		/* Unlock Region */
 #define SAMD_NVM_CMD_SPRM	0x42		/* Set Power Reduction Mode */

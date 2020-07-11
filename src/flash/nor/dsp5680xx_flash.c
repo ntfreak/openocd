@@ -107,7 +107,7 @@ static int dsp5680xx_flash_protect_check(struct flash_bank *bank)
 }
 
 /**
- * Protection funcionality is not implemented.
+ * Protection functionality is not implemented.
  * The current implementation applies/removes security on the chip.
  * The chip is effectively secured/unsecured after the first reset
  * following the execution of this function.

@@ -347,7 +347,7 @@ static int w600_probe(struct flash_bank *bank)
 		bank->sectors[i].offset = i * W600_FLASH_SECSIZE;
 		bank->sectors[i].size = W600_FLASH_SECSIZE;
 		bank->sectors[i].is_erased = -1;
-		/* offset 0 to W600_FLASH_PROTECT_SIZE shoule be protected */
+		/* offset 0 to W600_FLASH_PROTECT_SIZE should be protected */
 		bank->sectors[i].is_protected = (i < W600_FLASH_PROTECT_SIZE / W600_FLASH_SECSIZE);
 	}
 

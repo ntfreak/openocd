@@ -487,7 +487,7 @@ static int get_stellaris_info(struct flash_bank *bank, char *buf, int buf_size)
 	if (stellaris_info->did1 == 0)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
-	/* Read main and master clock freqency register */
+	/* Read main and master clock frequency register */
 	stellaris_read_clock_info(bank);
 
 	printed = snprintf(buf,
@@ -533,7 +533,7 @@ static int get_stellaris_info(struct flash_bank *bank, char *buf, int buf_size)
 *	chip identification and status                                         *
 ***************************************************************************/
 
-/* Set the flash timimg register to match current clocking */
+/* Set the flash timing register to match current clocking */
 static void stellaris_set_flash_timing(struct flash_bank *bank)
 {
 	struct stellaris_flash_bank *stellaris_info = bank->driver_priv;
@@ -886,7 +886,7 @@ static int stellaris_erase(struct flash_bank *bank, unsigned int first,
 			target_read_u32(target, FLASH_FMC, &flash_fmc);
 		} while (flash_fmc & FMC_ERASE);
 
-		/* Check acess violations */
+		/* Check access violations */
 		target_read_u32(target, FLASH_CRIS, &flash_cris);
 		if (flash_cris & (AMASK)) {
 			LOG_WARNING("Error erasing flash page %i,  flash_cris 0x%" PRIx32 "",
@@ -998,7 +998,7 @@ static int stellaris_protect(struct flash_bank *bank, int set,
 	return ERROR_OK;
 }
 
-/* see contib/loaders/flash/stellaris.s for src */
+/* see contrib/loaders/flash/stellaris.s for src */
 
 static const uint8_t stellaris_write_code[] = {
 								/* write: */
@@ -1170,7 +1170,7 @@ static int stellaris_write(struct flash_bank *bank, const uint8_t *buffer,
 			if (retval == ERROR_TARGET_RESOURCE_NOT_AVAILABLE) {
 				LOG_DEBUG("writing flash word-at-a-time");
 			} else if (retval == ERROR_FLASH_OPERATION_FAILED) {
-				/* if an error occured, we examine the reason, and quit */
+				/* if an error occurred, we examine the reason, and quit */
 				target_read_u32(target, FLASH_CRIS, &flash_cris);
 
 				LOG_ERROR("flash writing failed with CRIS: 0x%" PRIx32 "", flash_cris);

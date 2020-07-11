@@ -232,7 +232,7 @@ static int lpc3180_init(struct nand_device *nand)
 		/* FLASHCLK_CTRL = 0x05 (enable clock for SLC flash controller) */
 		target_write_u32(target, 0x400040c8, 0x05);
 
-		/* after reset set other registers of SLC so reset calling is here at the begining*/
+		/* after reset set other registers of SLC so reset calling is here at the beginning */
 		lpc3180_reset(nand);
 
 		/* SLC_CFG = 0x (Force nCE assert, DMA ECC enabled, ECC enabled, DMA burst enabled,

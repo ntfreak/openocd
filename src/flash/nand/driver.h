@@ -94,7 +94,7 @@ typedef int (*nand_driver_walker_t)(struct nand_flash_controller *c, void *);
  * Walk the list of drivers, encapsulating the data structure type.
  * Application state/context can be passed through the @c x pointer.
  * @param f The callback function to invoke for each function.
- * @param x For use as private data storate, passed directly to @c f.
+ * @param x For use as private data storage, passed directly to @c f.
  * @returns ERROR_OK if successful, or the non-zero return value of @c f.
  * This allows a walker to terminate the loop early.
  */

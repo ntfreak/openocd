@@ -483,7 +483,7 @@ void cfi_fixup_non_cfi(struct flash_bank *bank)
 			break;
 	}
 
-	/* only fixup jedec flashs found in table */
+	/* only fixup jedec flashes found in table */
 	if (!non_cfi->mfr)
 		return;
 

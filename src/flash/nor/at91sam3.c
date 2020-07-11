@@ -21,7 +21,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 ****************************************************************************/
 
-/* Some of the the lower level code was based on code supplied by
+/* Some of the lower level code was based on code supplied by
  * ATMEL under this copyright. */
 
 /* BEGIN ATMEL COPYRIGHT */
@@ -3095,7 +3095,7 @@ FLASH_BANK_COMMAND_HANDLER(sam3_flash_bank_command)
 }
 
 /**
- * Remove all chips from the internal list without distingushing which one
+ * Remove all chips from the internal list without distinguishing which one
  * is owned by this bank. This simplification works only for one shot
  * deallocation like current flash_free_all_banks()
  */
@@ -3398,7 +3398,7 @@ static int sam3_write(struct flash_bank *bank,
 	struct sam3_bank_private *pPrivate;
 	uint8_t *pagebuffer;
 
-	/* incase we bail further below, set this to null */
+	/* in case we bail further below, set this to null */
 	pagebuffer = NULL;
 
 	/* ignore dumb requests */

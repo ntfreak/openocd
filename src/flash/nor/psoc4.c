@@ -35,7 +35,7 @@
 #include <target/algorithm.h>
 #include <target/armv7m.h>
 
-/* device documets:
+/* device documents:
 
  PSoC(R) 4: PSoC 4200 Family Datasheet
 	Document Number: 001-87197 Rev. *B  Revised August 29, 2013
@@ -392,7 +392,7 @@ static int psoc4_get_silicon_id(struct flash_bank *bank, uint32_t *silicon_id, u
 	/* build ID as Cypress sw does:
 	 * bit 31..16 silicon ID
 	 * bit 15..8  revision ID (so far 0x11 for all devices)
-	 * bit 7..0   family ID (lowes 8 bits)
+	 * bit 7..0   family ID (lowest 8 bits)
 	 */
 	if (silicon_id)
 			*silicon_id = ((part0 & 0x0000ffff) << 16)

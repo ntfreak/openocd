@@ -136,7 +136,7 @@ NAND_DEVICE_COMMAND_HANDLER(mxc_nand_device_command)
 		(nand->target->endianness == TARGET_LITTLE_ENDIAN);
 
 	/*
-	 * should factory bad block indicator be swaped
+	 * should factory bad block indicator be swapped
 	 * as a workaround for how the nfc handles pages.
 	 */
 	if (CMD_ARGC > 4 && strcmp(CMD_ARGV[4], "biswap") == 0) {
@@ -181,7 +181,7 @@ static const struct command_registration mxc_sub_command_handlers[] = {
 		.name = "biswap",
 		.mode = COMMAND_EXEC,
 		.handler = handle_mxc_biswap_command,
-		.help = "Turns on/off bad block information swaping from main area, "
+		.help = "Turns on/off bad block information swapping from main area, "
 			"without parameter query status.",
 		.usage = "bank_id ['enable'|'disable']",
 	},
@@ -400,7 +400,7 @@ static int mxc_command(struct nand_device *nand, uint8_t command)
 			mxc_nf_info->optype = MXC_NF_DATAOUT_PAGE;
 			break;
 		default:
-			/* Ohter command use the default 'One page data out' FDO */
+			/* Other command use the default 'One page data out' FDO */
 			mxc_nf_info->optype = MXC_NF_DATAOUT_PAGE;
 			break;
 	}
@@ -502,10 +502,10 @@ static int mxc_write_page(struct nand_device *nand, uint32_t page,
 	if (oob) {
 		if (mxc_nf_info->flags.hw_ecc_enabled) {
 			/*
-			 * part of spare block will be overrided by hardware
+			 * part of spare block will be overridden by hardware
 			 * ECC generator
 			 */
-			LOG_DEBUG("part of spare block will be overrided "
+			LOG_DEBUG("part of spare block will be overridden "
 				"by hardware ECC generator");
 		}
 		if (nfc_is_v1())
@@ -710,7 +710,7 @@ static int initialize_nf_controller(struct nand_device *nand)
 	uint16_t work_mode = 0;
 	uint16_t temp;
 	/*
-	 * resets NAND flash controller in zero time ? I dont know.
+	 * resets NAND flash controller in zero time ? I don't know.
 	 */
 	target_write_u16(target, MXC_NF_CFG1, MXC_NF_BIT_RESET_EN);
 	if (mxc_nf_info->mxc_version == MXC_VERSION_MX27)

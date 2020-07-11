@@ -31,10 +31,10 @@
 #include <target/cortex_m.h>
 
 /* A note to prefixing.
- * Definitions and functions ingerited from at91samd.c without
- * any change retained the original prefix samd_ so they eventualy
+ * Definitions and functions inherited from at91samd.c without
+ * any change retained the original prefix samd_ so they eventually
  * may go to samd_common.h and .c
- * As currently there are olny 3 short functions identical with
+ * As currently there are only 3 short functions identical with
  * the original source, no common file was created. */
 
 #define SAME5_PAGES_PER_BLOCK	16

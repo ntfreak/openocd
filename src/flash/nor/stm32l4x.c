@@ -534,7 +534,7 @@ static int stm32l4_protect_check(struct flash_bank *bank)
 		stm32l4_read_flash_reg(bank, STM32_FLASH_WRP2AR, &wrp2ar);
 		stm32l4_read_flash_reg(bank, STM32_FLASH_WRP2BR, &wrp2br);
 	} else {
-		/* prevent unintialized errors */
+		/* prevent uninitialized errors */
 		wrp2ar = 0;
 		wrp2br = 0;
 	}

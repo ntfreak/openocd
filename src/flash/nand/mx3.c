@@ -149,7 +149,7 @@ static int imx31_init(struct nand_device *nand)
 		uint32_t gpr_register_content;
 		target_read_u32(target, MX3_GPR, &gpr_register_content);
 		if (gpr_register_content & 0x00000060) {
-			LOG_ERROR("pins mode overrided by GPR");
+			LOG_ERROR("pins mode overridden by GPR");
 			return ERROR_FAIL;
 		}
 	}
@@ -414,10 +414,10 @@ static int imx31_write_page(struct nand_device *nand, uint32_t page,
 		if (oob) {
 			if (mx3_nf_info->flags.hw_ecc_enabled) {
 				/*
-				 * part of spare block will be overrided by hardware
+				 * part of spare block will be overridden by hardware
 				 * ECC generator
 				 */
-				LOG_DEBUG("part of spare block will be overrided by hardware ECC generator");
+				LOG_DEBUG("part of spare block will be overridden by hardware ECC generator");
 			}
 			target_write_buffer(target, MX3_NF_SPARE_BUFFER0, oob_size, oob);
 		}
@@ -530,7 +530,7 @@ static int initialize_nf_controller(struct nand_device *nand)
 	struct mx3_nf_controller *mx3_nf_info = nand->controller_priv;
 	struct target *target = nand->target;
 	/*
-	* resets NAND flash controller in zero time ? I dont know.
+	* resets NAND flash controller in zero time ? I don't know.
 	*/
 	target_write_u16(target, MX3_NF_CFG1, MX3_NF_BIT_RESET_EN);
 	{
@@ -680,18 +680,18 @@ static int do_data_output(struct nand_device *nand)
 				target_read_u16 (target, MX3_NF_ECCSTATUS, &ecc_status);
 				switch (ecc_status & 0x000c) {
 				case 1 << 2:
-					LOG_DEBUG("main area readed with 1 (correctable) error");
+					LOG_DEBUG("main area read with 1 (correctable) error");
 					break;
 				case 2 << 2:
-					LOG_DEBUG("main area readed with more than 1 (incorrectable) error");
+					LOG_DEBUG("main area read with more than 1 (incorrectable) error");
 					return ERROR_NAND_OPERATION_FAILED;
 				}
 				switch (ecc_status & 0x0003) {
 				case 1:
-					LOG_DEBUG("spare area readed with 1 (correctable) error");
+					LOG_DEBUG("spare area read with 1 (correctable) error");
 					break;
 				case 2:
-					LOG_DEBUG("main area readed with more than 1 (incorrectable) error");
+					LOG_DEBUG("main area read with more than 1 (incorrectable) error");
 					return ERROR_NAND_OPERATION_FAILED;
 				}
 			}

@@ -1197,7 +1197,7 @@ static int xmc4xxx_protect_check(struct flash_bank *bank)
 
 	unsigned int sectors = bank->num_sectors;
 
-	/* On devices with 12 sectors, sectors 10 & 11 are ptected
+	/* On devices with 12 sectors, sectors 10 & 11 are protected
 	 * together instead of individually */
 	if (sectors == 12)
 		sectors--;
@@ -1237,7 +1237,7 @@ static int xmc4xxx_protect_check(struct flash_bank *bank)
 		}
 	}
 
-	/* XMC4xxx also supports read proptection, make a note
+	/* XMC4xxx also supports read protection, make a note
 	 * in the private driver structure */
 	if (protection[0] & PROCON_RPRO_MASK)
 		fb->read_protected = true;

@@ -254,7 +254,7 @@ static void at91sam7_read_clock_info(struct flash_bank *bank)
 		at91sam7_info->mck_freq = tmp;
 }
 
-/* Setup the timimg registers for nvbits or normal flash */
+/* Setup the timing registers for nvbits or normal flash */
 static void at91sam7_set_flash_mode(struct flash_bank *bank, int mode)
 {
 	uint32_t fmr, fmcn = 0, fws = 0;
@@ -377,7 +377,7 @@ static int at91sam7_read_part_info(struct flash_bank *bank)
 			/* re-calculate master clock frequency */
 			at91sam7_read_clock_info(t_bank);
 
-			/* no timming */
+			/* no timing */
 			at91sam7_set_flash_mode(t_bank, FMR_TIMING_NONE);
 
 			/* check protect state */
@@ -415,7 +415,7 @@ static int at91sam7_read_part_info(struct flash_bank *bank)
 			/* calculate master clock frequency */
 			at91sam7_read_clock_info(t_bank);
 
-			/* no timming */
+			/* no timing */
 			at91sam7_set_flash_mode(t_bank, FMR_TIMING_NONE);
 
 			/* check protect state */
@@ -623,7 +623,7 @@ static int at91sam7_read_part_info(struct flash_bank *bank)
 		/* calculate master clock frequency */
 		at91sam7_read_clock_info(t_bank);
 
-		/* no timming */
+		/* no timing */
 		at91sam7_set_flash_mode(t_bank, FMR_TIMING_NONE);
 
 		/* check protect state */

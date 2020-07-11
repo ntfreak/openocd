@@ -276,7 +276,7 @@ static int fm3_erase(struct flash_bank *bank, unsigned int first,
 	if (retval != ERROR_OK)
 		return retval;
 
-	/* FASZR = 0x01, Enables CPU Programming Mode (16-bit Flash acccess) */
+	/* FASZR = 0x01, Enables CPU Programming Mode (16-bit Flash access) */
 	retval = target_write_u32(target, 0x40000000, 0x0001);
 	if (retval != ERROR_OK)
 		return retval;
@@ -336,7 +336,7 @@ static int fm3_erase(struct flash_bank *bank, unsigned int first,
 	destroy_reg_param(&reg_params[1]);
 	destroy_reg_param(&reg_params[2]);
 
-	/* FASZR = 0x02, Enables CPU Run Mode (32-bit Flash acccess) */
+	/* FASZR = 0x02, Enables CPU Run Mode (32-bit Flash access) */
 	retval = target_write_u32(target, 0x40000000, 0x0002);
 	if (retval != ERROR_OK)
 		return retval;

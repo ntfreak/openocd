@@ -49,8 +49,8 @@
 #define FTCTR           0x2020000C	/* Flash test control */
 #define FBWST           0x20200010	/* Flash bridge wait-state */
 #define FCRA            0x2020001C	/* Flash clock divider */
-#define FMSSTART        0x20200020	/* Flash Built-In Selft Test start address */
-#define FMSSTOP         0x20200024	/* Flash Built-In Selft Test stop address */
+#define FMSSTART        0x20200020	/* Flash Built-In Self Test start address */
+#define FMSSTOP         0x20200024	/* Flash Built-In Self Test stop address */
 #define FMS16           0x20200028	/* Flash 16-bit signature */
 #define FMSW0           0x2020002C	/* Flash 128-bit signature Word 0 */
 #define FMSW1           0x20200030	/* Flash 128-bit signature Word 1 */
@@ -160,7 +160,7 @@ struct lpc2900_flash_bank {
 
 	/**
 	 * Maximum contiguous block of internal SRAM (bytes).
-	 * Autodetected by the driver. Not the total amount of SRAM, only the
+	 * Autodetected by the driver. Not the total amount of SRAM, only
 	 * the largest \em contiguous block!
 	 */
 	uint32_t max_ram_block;
@@ -1535,7 +1535,7 @@ static int lpc2900_erase_check(struct flash_bank *bank)
 		return status;
 	}
 
-	/* Use the BIST (Built-In Selft Test) to generate a signature of each flash
+	/* Use the BIST (Built-In Self Test) to generate a signature of each flash
 	 * sector. Compare against the expected signature of an empty sector.
 	 */
 	for (unsigned int sector = 0; sector < bank->num_sectors; sector++) {

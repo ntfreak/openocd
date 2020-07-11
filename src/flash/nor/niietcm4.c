@@ -65,8 +65,8 @@
 #define FCIS_OP_ERROR				(1<<1)				/* Flag operation error */
 
 /*---- FCIC: CLear status register */
-#define FCIC_CLR_OPCMLT				(1<<0)				/* Cleare completion flag in register FCIS */
-#define FCIC_CLR_OPERROR			(1<<1)				/* Cleare error flag in register FCIS */
+#define FCIC_CLR_OPCMLT				(1<<0)				/* Clear completion flag in register FCIS */
+#define FCIC_CLR_OPERROR			(1<<1)				/* Clear error flag in register FCIS */
 
 /*-- USERFLASH ---------------------------------------------------------------*/
 #define USERFLASH_PAGE_SIZE			256
@@ -95,8 +95,8 @@
 #define UFCIS_OP_ERROR				(1<<1)				/* Flag operation error */
 
 /*---- UFCIC: CLear status register */
-#define UFCIC_CLR_OPCMLT			(1<<0)				/* Cleared completion flag in register FCIS */
-#define UFCIC_CLR_OPERROR			(1<<1)				/* Cleared error flag in register FCIS */
+#define UFCIC_CLR_OPCMLT			(1<<0)				/* Clear completion flag in register FCIS */
+#define UFCIC_CLR_OPERROR			(1<<1)				/* Clear error flag in register FCIS */
 
 /*---- In info userflash address space */
 #define INFOWORD0_ADDR				0x00
@@ -1226,7 +1226,7 @@ static int niietcm4_protect(struct flash_bank *bank, int set,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	LOG_INFO("Plese wait ..."); /* it`s quite a long process */
+	LOG_INFO("Please wait ..."); /* it`s quite a long process */
 	/* chose between main bootflash and info bootflash */
 	if (niietcm4_info->bflash_info_remap) {
 		/* dump */
@@ -1416,7 +1416,7 @@ static int niietcm4_write(struct flash_bank *bank, const uint8_t *buffer,
 		/* if block write failed (no sufficient working area),
 		 * we use normal (slow) single halfword accesses */
 		LOG_WARNING("Can't use block writes, falling back to single memory accesses");
-		LOG_INFO("Plese wait ..."); /* it`s quite a long process */
+		LOG_INFO("Please wait ..."); /* it`s quite a long process */
 
 		/* chose between main bootflash and info bootflash */
 		if (niietcm4_info->bflash_info_remap)
@@ -1588,10 +1588,10 @@ static int niietcm4_probe_k1921vk01t(struct flash_bank *bank)
 		char info_bootflash_addr_str[64];
 		if (niietcm4_info->bflash_info_remap)
 			snprintf(info_bootflash_addr_str, sizeof(info_bootflash_addr_str),
-					TARGET_ADDR_FMT " base adress", bank->base);
+					TARGET_ADDR_FMT " base address", bank->base);
 		else
 			snprintf(info_bootflash_addr_str, sizeof(info_bootflash_addr_str),
-					"not mapped to global adress space");
+					"not mapped to global address space");
 
 		snprintf(niietcm4_info->chip_brief,
 				sizeof(niietcm4_info->chip_brief),
@@ -1600,7 +1600,7 @@ static int niietcm4_probe_k1921vk01t(struct flash_bank *bank)
 				"Bootflash :\n"
 				"    %d kB total\n"
 				"    %d pages %d kB each\n"
-				"    0x%08x base adress\n"
+				"    0x%08x base address\n"
 				"%s"
 				"Info bootflash :\n"
 				"    %d kB total\n"
@@ -1611,18 +1611,18 @@ static int niietcm4_probe_k1921vk01t(struct flash_bank *bank)
 				"    %d kB total\n"
 				"    %d pages %d B each\n"
 				"    %d bit cells\n"
-				"    not maped to global adress space\n"
+				"    not mapped to global address space\n"
 				"Info userflash :\n"
 				"    %d B total\n"
 				"    %d pages of %d B each\n"
 				"    %d bit cells\n"
-				"    not maped to global adress space\n"
+				"    not mapped to global address space\n"
 				"RAM :\n"
 				"    192 kB total\n"
-				"    0x20000000 base adress\n"
+				"    0x20000000 base address\n"
 				"External memory :\n"
 				"    8/16 bit address space\n"
-				"    0x%08x base adress\n"
+				"    0x%08x base address\n"
 				"\n"
 				"INFOWORD STATUS\n"
 				"Bootflash info region remap :\n"

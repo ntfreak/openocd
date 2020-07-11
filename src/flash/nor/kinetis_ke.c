@@ -1229,7 +1229,7 @@ static int kinetis_ke_blank_check(struct flash_bank *bank)
 			if (result == ERROR_OK)	{
 				bank->sectors[i].is_erased = !(fstat & (FTMRX_FSTAT_MGSTAT0_MASK | FTMRX_FSTAT_MGSTAT1_MASK));
 			} else {
-				LOG_DEBUG("Ignoring errored PFlash sector blank-check");
+				LOG_DEBUG("Ignoring error on PFlash sector blank-check");
 				bank->sectors[i].is_erased = -1;
 			}
 		}

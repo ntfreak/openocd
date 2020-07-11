@@ -629,7 +629,7 @@ static int stm32lx_write(struct flash_bank *bank, const uint8_t *buffer,
 	if (retval != ERROR_OK)
 		return retval;
 
-	/* first we need to write any unaligned head bytes upto
+	/* first we need to write any unaligned head bytes up to
 	 * the next 128 byte page */
 
 	if (offset % hp_nb)
