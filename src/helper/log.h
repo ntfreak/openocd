@@ -40,7 +40,7 @@
  * LOG_LVL_SILENT - turn off all output. In lieu of try + catch this can be used as a
  *                  feeble ersatz.
  * LOG_LVL_USER - user messages. Could be anything from information
- *                to progress messags. These messages do not represent
+ *                to progress messages. These messages do not represent
  *                incorrect or unexpected behaviour, just normal execution.
  * LOG_LVL_ERROR - fatal errors, that are likely to cause program abort
  * LOG_LVL_WARNING - non-fatal errors, that may be resolved later

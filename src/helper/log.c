@@ -464,7 +464,7 @@ void kept_alive(void)
 		gdb_timeout_warning(delta_time);
 }
 
-/* if we sleep for extended periods of time, we must invoke keep_alive() intermittantly */
+/* if we sleep for extended periods of time, we must invoke keep_alive() intermittently */
 void alive_sleep(uint64_t ms)
 {
 	uint64_t napTime = 10;
@@ -488,7 +488,7 @@ void busy_sleep(uint64_t ms)
 	}
 }
 
-/* Maximum size of socket error message retreived from operation system */
+/* Maximum size of socket error message retrieved from operation system */
 #define MAX_SOCKET_ERR_MSG_LENGTH 256
 
 /* Provide log message for the last socket error.

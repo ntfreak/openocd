@@ -168,7 +168,7 @@ struct command_invocation {
  *
  * This is *especially* important for commands such as writing
  * to flash or verifying memory. The reason is that those commands
- * can be used by programs to determine if the operation succeded
+ * can be used by programs to determine if the operation succeeded
  * or not. If the operation failed, then a program can try
  * an alternative approach.
  *
@@ -199,7 +199,7 @@ struct command {
  * Commands should be registered by filling in one or more of these
  * structures and passing them to [un]register_commands().
  *
- * A conventioal format should be used for help strings, to provide both
+ * A conventional format should be used for help strings, to provide both
  * usage and basic information:
  * @code
  * "@<options@> ... - some explanation text"
@@ -252,7 +252,7 @@ int register_commands(struct command_context *cmd_ctx, struct command *parent,
 		const struct command_registration *cmds);
 
 /**
- * Unregisters all commands from the specfied context.
+ * Unregisters all commands from the specified context.
  * @param cmd_ctx The context that will be cleared of registered commands.
  * @param parent If given, only clear commands from under this one command.
  * @returns ERROR_OK on success, or an error code.
@@ -265,7 +265,7 @@ struct command *command_find_in_context(struct command_context *cmd_ctx,
 
 /**
  * Update the private command data field for a command and all descendents.
- * This is used when creating a new heirarchy of commands that depends
+ * This is used when creating a new hierarchy of commands that depends
  * on obtaining a dynamically created context.  The value will be available
  * in command handlers by using the CMD_DATA macro.
  * @param c The command (group) whose data pointer(s) will be updated.
@@ -362,7 +362,7 @@ DECLARE_PARSE_WRAPPER(_target_addr, target_addr_t);
  *
  * This function may cause the calling function to return immediately,
  * so it should be used carefully to avoid leaking resources.  In most
- * situations, parsing should be completed in full before proceding
+ * situations, parsing should be completed in full before proceeding
  * to allocate resources, and this strategy will most prevents leaks.
  */
 #define COMMAND_PARSE_NUMBER(type, in, out) \

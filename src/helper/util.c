@@ -47,7 +47,7 @@ static const struct command_registration util_command_handlers[] = {
 		.mode = COMMAND_ANY,
 		.jim_handler = util_Jim_Command_ms,
 		.help =
-			"Returns ever increasing milliseconds. Used to calculuate differences in time.",
+			"Returns ever increasing milliseconds. Used to calculate differences in time.",
 		.usage = "",
 	},
 	COMMAND_REGISTRATION_DONE

@@ -127,7 +127,7 @@ void Jim_SetResult_NvpUnknown(Jim_Interp *interp,
 
 /** Debug: convert argc/argv into a printable string for printf() debug
  *
- * \param interp - the interpeter
+ * \param interp - the interpreter
  * \param argc   - arg count
  * \param argv   - the objects
  *
@@ -150,7 +150,7 @@ const char *Jim_Debug_ArgvString(Jim_Interp *interp, int argc, Jim_Obj *const *a
  * Some TCL objects have various "configuration" values.
  * For example - in Tcl/Tk the "buttons" have many options.
  *
- * Usefull when dealing with command options.
+ * Useful when dealing with command options.
  * that may come in any order...
  *
  * Does not support "-foo = 123" type options.
