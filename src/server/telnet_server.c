@@ -422,7 +422,7 @@ static int telnet_input(struct connection *connection)
 						} else if ((*buf_p == 0xd) || (*buf_p == 0xa)) {	/* CR/LF */
 							int retval;
 
-							/* skip over combinations with CR/LF and NUL characters */
+							/* skip over combinations with CR/LF and NULL characters */
 							if ((bytes_read > 1) && ((*(buf_p + 1) == 0xa) ||
 									(*(buf_p + 1) == 0xd))) {
 								buf_p++;
