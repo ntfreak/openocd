@@ -122,9 +122,9 @@ int allow_transports(struct command_context *ctx, const char * const *vector)
 }
 
 /**
- * Used to verify corrrect adapter driver initialization.
+ * Used to verify correct adapter driver initialization.
  *
- * @returns true iff the adapter declared one or more transports.
+ * @returns true if the adapter declares one or more transports.
  */
 bool transports_are_declared(void)
 {
@@ -139,7 +139,7 @@ bool transports_are_declared(void)
  * Code implementing a transport needs to register it before it can
  * be selected and then activated.  This is a dynamic process, so
  * that chips (and families) can define transports as needed (without
- * nneeding error-prone static tables).
+ * needing error-prone static tables).
  *
  * @param new_transport the transport being registered.  On a
  * successful return, this memory is owned by the transport framework.
