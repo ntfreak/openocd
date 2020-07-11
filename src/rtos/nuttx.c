@@ -174,7 +174,7 @@ static int rcmd_offset(const char *cmd, const char *name)
 static int nuttx_thread_packet(struct connection *connection,
 	char const *packet, int packet_size)
 {
-	char cmd[GDB_BUFFER_SIZE / 2 + 1] = ""; /* Extra byte for nul-termination */
+	char cmd[GDB_BUFFER_SIZE / 2 + 1] = ""; /* Extra byte for null-termination */
 
 	if (!strncmp(packet, "qRcmd", 5)) {
 		size_t len = unhexify((uint8_t *)cmd, packet + 6, sizeof(cmd));

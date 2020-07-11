@@ -228,7 +228,7 @@ int rtos_qsymbol(struct connection *connection, char const *packet, int packet_s
 	int rtos_detected = 0;
 	uint64_t addr = 0;
 	size_t reply_len;
-	char reply[GDB_BUFFER_SIZE + 1], cur_sym[GDB_BUFFER_SIZE / 2 + 1] = ""; /* Extra byte for nul-termination */
+	char reply[GDB_BUFFER_SIZE + 1], cur_sym[GDB_BUFFER_SIZE / 2 + 1] = ""; /* Extra byte for null-termination */
 	symbol_table_elem_t *next_sym = NULL;
 	struct target *target = get_target_from_connection(connection);
 	struct rtos *os = target->rtos;
@@ -447,7 +447,7 @@ int rtos_thread_packet(struct connection *connection, char const *packet, int pa
 static int rtos_put_gdb_reg_list(struct connection *connection,
 		struct rtos_reg *reg_list, int num_regs)
 {
-	size_t num_bytes = 1; /* NUL */
+	size_t num_bytes = 1; /* NULL */
 	for (int i = 0; i < num_regs; ++i)
 		num_bytes += DIV_ROUND_UP(reg_list[i].size, 8) * 2;
 
