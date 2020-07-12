@@ -328,7 +328,7 @@ static int mrvlqspi_flash_busy_status(struct flash_bank *bank, int timeout)
 	uint8_t val;
 	int retval;
 
-	/* Flush read/write fifo's */
+	/* Flush read/write fifos */
 	retval = mrvlqspi_fifo_flush(bank, FIFO_FLUSH_TIMEOUT);
 	if (retval != ERROR_OK)
 		return retval;
@@ -379,7 +379,7 @@ static int mrvlqspi_set_write_status(struct flash_bank *bank, bool mode)
 	int retval;
 	uint32_t instr;
 
-	/* Flush read/write fifo's */
+	/* Flush read/write fifos */
 	retval = mrvlqspi_fifo_flush(bank, FIFO_FLUSH_TIMEOUT);
 	if (retval != ERROR_OK)
 		return retval;
@@ -417,7 +417,7 @@ static int mrvlqspi_read_id(struct flash_bank *bank, uint32_t *id)
 
 	LOG_DEBUG("Getting ID");
 
-	/* Flush read/write fifo's */
+	/* Flush read/write fifos */
 	retval = mrvlqspi_fifo_flush(bank, FIFO_FLUSH_TIMEOUT);
 	if (retval != ERROR_OK)
 		return retval;
@@ -779,7 +779,7 @@ int mrvlqspi_flash_read(struct flash_bank *bank, uint8_t *buffer,
 		return ERROR_FLASH_BANK_NOT_PROBED;
 	}
 
-	/* Flush read/write fifo's */
+	/* Flush read/write fifos */
 	retval = mrvlqspi_fifo_flush(bank, FIFO_FLUSH_TIMEOUT);
 	if (retval != ERROR_OK)
 		return retval;
