@@ -62,7 +62,7 @@ Clearly some of that data would be valuable for interactive debugging.
 +In any case, OpenOCD is not currently GUI-oriented.  Accordingly, we now
 +expect any such graphics to come from postprocessing.
 
- measurments for RTOS event timings should also be easy to collect.
+ measurements for RTOS event timings should also be easy to collect.
 +Examples include context and message switch times, as well as times
 for application interactions.
 +

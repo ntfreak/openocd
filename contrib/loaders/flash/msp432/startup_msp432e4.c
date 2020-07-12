@@ -71,9 +71,9 @@ void (* const intr_vectors[])(void) __attribute__((section(".intvecs"))) = {
 };
 
 /*
- * The following are constructs created by the linker, indicating where the
- * the "data" and "bss" segments reside in memory.  The initializers for the
- * for the "data" segment resides immediately following the "text" segment.
+ * The following are constructs created by the linker, indicating where
+ * the "data" and "bss" segments reside in memory.  The initializers for
+ * the "data" segment resides immediately following the "text" segment.
  */
 extern uint32_t __bss_start__;
 extern uint32_t __bss_end__;

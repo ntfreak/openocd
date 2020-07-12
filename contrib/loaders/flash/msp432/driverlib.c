@@ -367,7 +367,7 @@ bool pcm_shutdown_device(uint32_t shutdown_mode)
 	uint32_t shutdown_mode_bits = (shutdown_mode == PCM_LPM45) ?
 		PCM_CTL0_LPMR_12 : PCM_CTL0_LPMR_10;
 
-	/* If a power transition is occuring, return false */
+	/* If a power transition is occurring, return false */
 	if (BITBAND_PERI(PCM->CTL1, PCM_CTL1_PMR_BUSY_OFS))
 		return false;
 

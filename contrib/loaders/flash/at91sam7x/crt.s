@@ -46,7 +46,7 @@
    ARM_MODE_SVC   = 0x13      /* Supervisor Interrupts Mode                   */
    ARM_MODE_ABORT = 0x17      /* Abort Processing memory Faults Mode          */
    ARM_MODE_UNDEF = 0x1B      /* Undefined Instructions Mode                  */
-   ARM_MODE_SYS   = 0x1F      /* System Running in Priviledged Operating Mode */
+   ARM_MODE_SYS   = 0x1F      /* System Running in Privileged Operating Mode  */
    ARM_MODE_MASK  = 0x1F
 
    I_BIT          = 0x80      /* disable IRQ when I bit is set */

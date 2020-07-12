@@ -125,7 +125,7 @@ if __name__ == "__main__":
         show(ocd.send("capture { echo \"echo says hi!\" }")[:-1])
         show(ocd.send("capture \"halt\"")[:-1])
 
-        # Read the first few words at the RAM region (put starting adress of RAM
+        # Read the first few words at the RAM region (put starting address of RAM
         # region into 'addr')
         addr = 0x10000000
 

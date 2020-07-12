@@ -51,7 +51,7 @@ busy:
 	tsteq	r4, #0x100			/* write protection set */
 	bne		exit
 	add		r1, r1, #0x8			/* next 8 bytes */
-	subs	r3, r3, #1				/* decremment dword count */
+	subs	r3, r3, #1				/* decrement dword count */
 	bne		write
 exit:
 	b		exit

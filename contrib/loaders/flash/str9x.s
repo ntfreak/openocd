@@ -48,7 +48,7 @@ busy:
 	strh	r5, [r4, #0]
 	tst		r3, #0x12
 	bne		exit
-	subs 	r2, r2, #1			/* decremment word count */
+	subs 	r2, r2, #1			/* decrement word count */
 	bne 	write
 exit:
 	bkpt	#0

@@ -81,7 +81,7 @@ find_next_page_boundary:
 	/* If we have not reached the next page boundary after the target address, keep going */
 	bls 	find_next_page_boundary
 write_enable:
-	/* Flush read/write fifo's */
+	/* Flush read/write fifos */
 	bl 	flush_fifo
 
 	/* Instruction byte 1 */
@@ -134,7 +134,7 @@ write_wait:
 	bl 	stop_tx		/* Otherwise, end the command and keep going w/ the next page */
 	add 	r10, r4 	/* Move up the end-of-page address by the page size*/
 check_flash_busy:		/* Wait for the flash to finish the previous page write */
-	/* Flush read/write fifo's */
+	/* Flush read/write fifos */
 	bl 	flush_fifo
 	/* Instruction byte 1 */
 	movs 	r8, #0x1
