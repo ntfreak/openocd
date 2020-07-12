@@ -115,7 +115,7 @@ proc jtag_ntrst_assert_width args {
 
 # BEGIN MIGRATION AIDS ...  these adapter operations originally had
 # JTAG-specific names despite the fact that the operations were not
-# specific to JTAG, or otherewise had troublesome/misleading names.
+# specific to JTAG, or otherwise had troublesome/misleading names.
 #
 # FIXME phase these aids out after about April 2011
 #

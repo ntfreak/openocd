@@ -366,10 +366,10 @@ static void ublast_idle_clock(void)
  * Output a TDI bit and assert clock to push it into the JTAG device :
  *  - writing out TCK=0, TMS=<old_state>=0, TDI=<tdi>
  * - writing out TCK=1, TMS=<new_state>, TDI=<tdi> which triggers the JTAG
- *    device aquiring the data.
+ *    device acquiring the data.
  *
  * If a TDO is to be read back, the required read is requested (bitbang mode),
- * and the USB Blaster will send back a byte with bit0 reprensenting the TDO.
+ * and the USB Blaster will send back a byte with bit0 representing the TDO.
  */
 static void ublast_clock_tdi(int tdi, enum scan_type type)
 {
@@ -391,7 +391,7 @@ static void ublast_clock_tdi(int tdi, enum scan_type type)
  * @type: scan type (ie. does a readback of TDO is required)
  *
  * This function is the same as ublast_clock_tdi(), but it changes also the TMS
- * while outputing the TDI. This should be the last TDI output of a TDI
+ * while output the TDI. This should be the last TDI output of a TDI
  * sequence, which will change state from :
  *   - IRSHIFT -> IREXIT1
  *   - or DRSHIFT -> DREXIT1
@@ -447,7 +447,7 @@ static void ublast_queue_bytes(uint8_t *bytes, int nb_bytes)
  * @nb_bits: number of TMS bits (between 1 and 8)
  * @skip: number of TMS bits to skip at the beginning of the series
  *
- * Write a serie of TMS transitions, where each transition consists in :
+ * Write a series of TMS transitions, where each transition consists in :
  *  - writing out TCK=0, TMS=<new_state>, TDI=<???>
  *  - writing out TCK=1, TMS=<new_state>, TDI=<???> which triggers the transition
  * The function ensures that at the end of the sequence, the clock (TCK) is put
@@ -477,7 +477,7 @@ static void ublast_tms(struct tms_command *cmd)
  * ublast_path_move - write a TMS sequence transition to JTAG
  * @cmd: path transition
  *
- * Write a serie of TMS transitions, where each transition consists in :
+ * Write a series of TMS transitions, where each transition consists in :
  *  - writing out TCK=0, TMS=<new_state>, TDI=<???>
  *  - writing out TCK=1, TMS=<new_state>, TDI=<???> which triggers the transition
  * The function ensures that at the end of the sequence, the clock (TCK) is put
@@ -534,7 +534,7 @@ static void ublast_state_move(tap_state_t state, int skip)
  * bit0), second bit in (byte0, bit1), ...), which is what we want to return,
  * simply read bytes from USB interface and store them.
  *
- * Returns ERROR_OK if OK, ERROR_xxx if a read error occured
+ * Returns ERROR_OK if OK, ERROR_xxx if a read error occurred
  */
 static int ublast_read_byteshifted_tdos(uint8_t *buf, int nb_bytes)
 {
@@ -564,7 +564,7 @@ static int ublast_read_byteshifted_tdos(uint8_t *buf, int nb_bytes)
  *  - ninth bit is sotred in byte1, bit 0
  *  - etc ...
  *
- * Returns ERROR_OK if OK, ERROR_xxx if a read error occured
+ * Returns ERROR_OK if OK, ERROR_xxx if a read error occurred
  */
 static int ublast_read_bitbang_tdos(uint8_t *buf, int nb_bits)
 {
@@ -596,7 +596,7 @@ static int ublast_read_bitbang_tdos(uint8_t *buf, int nb_bits)
  * @nb_bits: number of bits
  * @scan: scan type (ie. if TDO read back is required or not)
  *
- * Outputs a serie of TDI bits on TDI.
+ * Outputs a series of TDI bits on TDI.
  * As a side effect, the last TDI bit is sent along a TMS=1, and triggers a JTAG
  * TAP state shift if input bits were non NULL.
  *
@@ -707,7 +707,7 @@ static void ublast_stableclocks(int cycles)
  *
  * Launch a JTAG IR-scan or DR-scan
  *
- * Returns ERROR_OK if OK, ERROR_xxx if a read/write error occured.
+ * Returns ERROR_OK if OK, ERROR_xxx if a read/write error occurred.
  */
 static int ublast_scan(struct scan_command *cmd)
 {

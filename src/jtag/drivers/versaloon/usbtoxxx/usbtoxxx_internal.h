@@ -76,7 +76,7 @@
 #define USB_TO_POLL_CHECKFAIL                   0x03
 #define USB_TO_POLL_VERIFYBUFF                  0x04
 
-/* USB_TO_XXX Replys */
+/* USB_TO_XXX Replies */
 #define USB_TO_XXX_OK                           0x00
 #define USB_TO_XXX_FAILED                       0x01
 #define USB_TO_XXX_TIME_OUT                     0x02

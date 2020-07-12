@@ -227,7 +227,7 @@ static int jtag_vpi_reset(int trst, int srst)
  * @bits: TMS bits to be written (bit0, bit1 .. bitN)
  * @nb_bits: number of TMS bits (between 1 and 8)
  *
- * Write a serie of TMS transitions, where each transition consists in :
+ * Write a series of TMS transitions, where each transition consists in :
  *  - writing out TCK=0, TMS=<new_state>, TDI=<???>
  *  - writing out TCK=1, TMS=<new_state>, TDI=<???> which triggers the transition
  * The function ensures that at the end of the sequence, the clock (TCK) is put
@@ -253,7 +253,7 @@ static int jtag_vpi_tms_seq(const uint8_t *bits, int nb_bits)
  * jtag_vpi_path_move - ask a TMS sequence transition to JTAG
  * @cmd: path transition
  *
- * Write a serie of TMS transitions, where each transition consists in :
+ * Write a series of TMS transitions, where each transition consists in :
  *  - writing out TCK=0, TMS=<new_state>, TDI=<???>
  *  - writing out TCK=1, TMS=<new_state>, TDI=<???> which triggers the transition
  * The function ensures that at the end of the sequence, the clock (TCK) is put
@@ -392,7 +392,7 @@ static int jtag_vpi_clock_tms(int tms)
  *
  * Launch a JTAG IR-scan or DR-scan
  *
- * Returns ERROR_OK if OK, ERROR_xxx if a read/write error occured.
+ * Returns ERROR_OK if OK, ERROR_xxx if a read/write error occurred.
  */
 static int jtag_vpi_scan(struct scan_command *cmd)
 {
@@ -558,7 +558,7 @@ static int jtag_vpi_init(void)
 	serv_addr.sin_addr.s_addr = inet_addr(server_address);
 
 	if (serv_addr.sin_addr.s_addr == INADDR_NONE) {
-		LOG_ERROR("inet_addr error occured");
+		LOG_ERROR("inet_addr error occurred");
 		return ERROR_FAIL;
 	}
 
@@ -569,7 +569,7 @@ static int jtag_vpi_init(void)
 	}
 
 	if (serv_addr.sin_addr.s_addr == htonl(INADDR_LOOPBACK)) {
-		/* This increases performance drematically for local
+		/* This increases performance dramatically for local
 		 * connections, which is the most likely arrangement
 		 * for a VPI connection. */
 		setsockopt(sockfd, IPPROTO_TCP, TCP_NODELAY, (char *)&flag, sizeof(int));

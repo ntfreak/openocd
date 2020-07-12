@@ -1271,7 +1271,7 @@ int ulink_append_test_cmd(struct ulink *device)
  *   1. Maximum possible frequency without any artificial delay
  *   2. Variable frequency with artificial linear delay loop
  *
- * To set the ULINK to maximum frequency, it is only neccessary to use the
+ * To set the ULINK to maximum frequency, it is only necessary to use the
  * corresponding command IDs. To set the ULINK to a lower frequency, the
  * delay loop top values have to be calculated first. Then, a
  * CMD_CONFIGURE_TCK_FREQ command needs to be sent to the ULINK device.

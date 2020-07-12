@@ -1129,7 +1129,7 @@ static int xds110_swd_switch_seq(enum swd_special_seq seq)
 		xds110.is_cmapi_acquired = false;
 		/* Run sequence to put target in SWD mode */
 		success = swd_connect();
-		/* Re-iniitialize CMAPI API for DAP access */
+		/* Re-initialize CMAPI API for DAP access */
 		if (success) {
 			xds110.is_swd_mode = true;
 			success = cmapi_connect(&idcode);

@@ -274,7 +274,7 @@ static int osbdm_swap(struct osbdm *osbdm, void *tms, void *tdi,
 		return ERROR_FAIL;
 	}
 
-	/* Copy TDO responce
+	/* Copy TDO response
 	 */
 	uint8_t *buffer = osbdm->buffer + 4;
 	for (int bit_idx = 0; bit_idx < length; ) {

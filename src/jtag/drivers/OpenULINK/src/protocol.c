@@ -86,7 +86,7 @@ bool execute_command(void)
 
 	/* Most commands do not transfer IN data. To save code space, we write 0 to
 	 * usb_in_bytecount here, then modify it in the switch statement below where
-	 * neccessary */
+	 * necessary */
 	usb_in_bytecount = 0;
 
 	switch (OUT2BUF[cmd_id_index] /* Command ID */) {

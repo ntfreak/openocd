@@ -74,7 +74,7 @@ int interface_add_tms_seq(unsigned num_bits,
  * trst.
  *
  * the higher level jtag_add_reset will invoke jtag_add_tlr() if
- * approperiate
+ * appropriate
  */
 int interface_jtag_add_reset(int trst, int srst);
 int interface_jtag_add_sleep(uint32_t us);

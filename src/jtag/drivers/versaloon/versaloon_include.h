@@ -41,7 +41,7 @@
 #define ERRMSG_INVALID_USAGE				"Invalid usage of %s"
 #define ERRMSG_INVALID_TARGET				"Invalid %s"
 #define ERRMSG_INVALID_PARAMETER			"Invalid parameter of %s."
-#define ERRMSG_INVALID_INTERFACE_NUM		"invalid inteface %d"
+#define ERRMSG_INVALID_INTERFACE_NUM		"invalid interface %d"
 #define ERRMSG_INVALID_BUFFER				"Buffer %s is not valid."
 #define ERRCODE_INVALID_BUFFER				ERROR_FAIL
 #define ERRCODE_INVALID_PARAMETER			ERROR_FAIL

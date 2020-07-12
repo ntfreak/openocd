@@ -312,7 +312,7 @@ static const struct command_registration hl_interface_command_handlers[] = {
 	 .name = "hla_device_desc",
 	 .handler = &hl_interface_handle_device_desc_command,
 	 .mode = COMMAND_CONFIG,
-	 .help = "set the a device description of the adapter",
+	 .help = "set the device description of the adapter",
 	 .usage = "description_string",
 	 },
 	{

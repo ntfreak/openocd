@@ -409,7 +409,7 @@ static int rshim_connect(struct adiv5_dap *dap)
 	}
 
 	/*
-	 * Set read/write operation via the device file. Funtion pointers
+	 * Set read/write operation via the device file. Function pointers
 	 * are used here so more ways like remote accessing via socket could
 	 * be added later.
 	 */

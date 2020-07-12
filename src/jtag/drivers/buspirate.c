@@ -1049,7 +1049,7 @@ static void buspirate_jtag_reset(int fd)
 	tmp[0] = 0x00; /* exit OCD1 mode */
 	buspirate_serial_write(fd, tmp, 1);
 	usleep(10000);
-	/* We ignore the return value here purposly, nothing we can do */
+	/* We ignore the return value here on purpose, nothing we can do */
 	buspirate_serial_read(fd, tmp, 5);
 	if (strncmp((char *)tmp, "BBIO1", 5) == 0) {
 		tmp[0] = 0x0F; /*  reset BP */

@@ -74,7 +74,7 @@
 #define PIN_RXD0      PINC0
 #define PIN_TXD0      OUTC1
 #define PIN_RESET_2   PINC2
-/* PC3 Not Connecte */
+/* PC3 Not Connected */
 /* PC4 Not Connected */
 #define PIN_RTCK      PINC5
 #define PIN_WR        OUTC6

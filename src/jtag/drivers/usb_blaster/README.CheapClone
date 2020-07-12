@@ -47,11 +47,11 @@ Pinout
 
 Throughput considerations
 =========================
-Mesurements on a scope reveal that :
- - for bitbang mode, the throughtput is 56.5 kbits/s
-   (as each clock transition is mesured at 17.7us)
+Measurements on a scope reveal that :
+ - for bitbang mode, the throughput is 56.5 kbits/s
+   (as each clock transition is measured at 17.7us)
  - for byteshift mode, the throughput is 107.7 kbits/s
-   (as 63 bits TDI transmission is mesured in 585 us)
+   (as 63 bits TDI transmission is measured in 585 us)
 
 Let's suppose that to upload a 32 bits value, it is necessary to :
  - move from IDLE to DR-SHIFT : 3 bitbang (3 TMS transitions)
@@ -62,8 +62,8 @@ So for this 32 bits of data, the time would be :
  = 53.1us + 222us + 88.5us
  = 363us
 
-Throughtput in bit/s: 32 * (1 / 363E-6) = 88000 bits/s
-Throughtput in bytes/s: 11kBytes/s
+Throughput in bit/s: 32 * (1 / 363E-6) = 88000 bits/s
+Throughput in bytes/s: 11kBytes/s
 
 Conclusion
 ==========

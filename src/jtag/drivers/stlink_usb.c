@@ -218,7 +218,7 @@ struct stlink_usb_handle_s {
 	uint32_t address
 
 	STLINK_SWIM_RESET
-	send syncronization seq (16us low, response 64 clocks low)
+	send synchronization seq (16us low, response 64 clocks low)
 */
 #define STLINK_SWIM_ENTER                  0x00
 #define STLINK_SWIM_EXIT                   0x01
@@ -1465,7 +1465,7 @@ static int stlink_swim_status(void *handle)
 }
 /*
 	the purpose of this function is unknown...
-	capabilites? anyway for swim v6 it returns
+	capabilities? anyway for swim v6 it returns
 	0001020600000000
 */
 __attribute__((unused))
@@ -1559,7 +1559,7 @@ static int stlink_swim_generate_rst(void *handle)
 }
 
 /*
-	send resyncronize sequence
+	send resynchronize sequence
 	swim is pulled low for 16us
 	reply is 64 clks low
 */

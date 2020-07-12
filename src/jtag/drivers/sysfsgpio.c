@@ -29,7 +29,7 @@
  *
  * A gpio is required for tck, tms, tdi and tdo. One or both of srst and trst
  * must be also be specified. The required jtag gpios are specified via the
- * sysfsgpio_jtag_nums command or the relevant sysfsgpio_XXX_num commang.
+ * sysfsgpio_jtag_nums command or the relevant sysfsgpio_XXX_num commands.
  * The srst and trst gpios are set via the sysfsgpio_srst_num and
  * sysfsgpio_trst_num respectively. GPIO numbering follows the kernel
  * convention of starting from 0.

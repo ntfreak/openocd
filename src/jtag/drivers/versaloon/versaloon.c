@@ -248,7 +248,7 @@ RESULT versaloon_init(void)
 
 	/* connect to versaloon */
 	timeout_tmp = versaloon_usb_to;
-	/* not output error message when connectting */
+	/* not output error message when connecting */
 	/* 100ms delay when connect */
 	versaloon_usb_to = 100;
 	for (retry = 0; retry < VERSALOON_RETRY_CNT; retry++) {

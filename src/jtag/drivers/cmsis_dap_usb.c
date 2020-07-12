@@ -1003,7 +1003,7 @@ static int cmsis_dap_init(void)
 		LOG_INFO("CMSIS-DAP: Interface Initialised (JTAG)");
 	}
 
-	/* Be conservative and supress submiting multiple HID requests
+	/* Be conservative and suppress submitting multiple HID requests
 	 * until we get packet count info from the adaptor */
 	cmsis_dap_handle->packet_count = 1;
 	pending_queue_len = 12;

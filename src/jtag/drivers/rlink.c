@@ -564,7 +564,7 @@ static struct {
 } dtc_queue;
 
 /*
- * The tap state queue is for accumulating TAP state changes wiithout needlessly
+ * The tap state queue is for accumulating TAP state changes without needlessly
  * flushing the dtc_queue.  When it fills or is run, it adds the accumulated bytes to
  * the dtc_queue.
  */
@@ -1358,7 +1358,7 @@ static int rlink_execute_queue(void)
 		retval = tmp_retval;
 
 #ifndef AUTOMATIC_BUSY_LED
-	/* turn LED onff */
+	/* turn LED off */
 	ep1_generic_commandl(pHDev, 2,
 		EP1_CMD_SET_PORTD_LEDS,
 		~0

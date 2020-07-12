@@ -38,7 +38,7 @@ volatile bool EP2_in;
 volatile __xdata __at 0x7FE8 struct setup_data setup_data;
 
 /* Define number of endpoints (except Control Endpoint 0) in a central place.
- * Be sure to include the neccessary endpoint descriptors! */
+ * Be sure to include the necessary endpoint descriptors! */
 #define NUM_ENDPOINTS 2
 
 __code struct usb_device_descriptor device_descriptor = {

@@ -1807,7 +1807,7 @@ COMMAND_HANDLER(jlink_handle_emucom_read_command)
 		return ERROR_FAIL;
 	} else if (ret == JAYLINK_ERR_DEV_NOT_AVAILABLE) {
 		LOG_ERROR("Channel is not available for the requested amount of data. "
-			"%" PRIu32 " bytes are avilable.", length);
+			"%" PRIu32 " bytes are available.", length);
 		free(buf);
 		return ERROR_FAIL;
 	} else if (ret != JAYLINK_OK) {

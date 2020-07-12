@@ -54,7 +54,7 @@ static int xlnx_pcie_xvc_read_reg(const int offset, uint32_t *val)
 	uint32_t res;
 	int err;
 
-	/* Note: This should be ok endianess-wise because by going
+	/* Note: This should be ok endianness-wise because by going
 	 * through sysfs the kernel does the conversion in the config
 	 * space accessor functions
 	 */
@@ -75,7 +75,7 @@ static int xlnx_pcie_xvc_write_reg(const int offset, const uint32_t val)
 {
 	int err;
 
-	/* Note: This should be ok endianess-wise because by going
+	/* Note: This should be ok endianness-wise because by going
 	 * through sysfs the kernel does the conversion in the config
 	 * space accessor functions
 	 */

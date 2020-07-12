@@ -403,11 +403,11 @@ static void usbprog_jtag_init(struct usbprog_jtag *usbprog_jtag)
 
 static void usbprog_jtag_write_and_read(struct usbprog_jtag *usbprog_jtag, char *buffer, int size)
 {
-	char tmp[64];	/* fastes packet size for usb controller */
+	char tmp[64];	/* fastest packet size for usb controller */
 	int send_bits, bufindex = 0, fillindex = 0, i, loops;
 
 	char swap;
-	/* 61 byte can be transfered (488 bit) */
+	/* 61 byte can be transferred (488 bit) */
 
 	while (size > 0) {
 		if (size > 488) {
@@ -449,11 +449,11 @@ static void usbprog_jtag_write_and_read(struct usbprog_jtag *usbprog_jtag, char 
 
 static void usbprog_jtag_read_tdo(struct usbprog_jtag *usbprog_jtag, char *buffer, int size)
 {
-	char tmp[64];	/* fastes packet size for usb controller */
+	char tmp[64];	/* fastest packet size for usb controller */
 	int send_bits, fillindex = 0, i, loops;
 
 	char swap;
-	/* 61 byte can be transfered (488 bit) */
+	/* 61 byte can be transferred (488 bit) */
 
 	while (size > 0) {
 		if (size > 488) {
@@ -490,10 +490,10 @@ static void usbprog_jtag_read_tdo(struct usbprog_jtag *usbprog_jtag, char *buffe
 
 static void usbprog_jtag_write_tdi(struct usbprog_jtag *usbprog_jtag, char *buffer, int size)
 {
-	char tmp[64];	/* fastes packet size for usb controller */
+	char tmp[64];	/* fastest packet size for usb controller */
 	int send_bits, bufindex = 0, i, loops;
 
-	/* 61 byte can be transfered (488 bit) */
+	/* 61 byte can be transferred (488 bit) */
 	while (size > 0) {
 		if (size > 488) {
 			send_bits = 488;
