@@ -1698,10 +1698,8 @@ static int aarch64_assert_reset(struct target *target)
 	}
 
 	/* registers are now invalid */
-	if (target_was_examined(target)) {
-		register_cache_invalidate(armv8->arm.core_cache);
-		register_cache_invalidate(armv8->arm.core_cache->next);
-	}
+	register_cache_invalidate(armv8->arm.core_cache);
+	register_cache_invalidate(armv8->arm.core_cache->next);
 
 	target->state = TARGET_RESET;
 
