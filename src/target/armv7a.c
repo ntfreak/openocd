@@ -160,7 +160,7 @@ int armv7a_read_ttbcr(struct target *target)
 	}
 
 	/*
-	 * ARM Architecture Reference Manual (ARMv7-A and ARMv7-Redition),
+	 * ARM Architecture Reference Manual (ARMv7-A and ARMv7-R edition),
 	 * document # ARM DDI 0406C
 	 */
 	armv7a->armv7a_mmu.ttbr_range[0]  = 0xffffffff >> ttbcr_n;

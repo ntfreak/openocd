@@ -45,7 +45,7 @@
 /**
  * flag to give info about cache manipulation during debug :
  * "0"	-	cache lines are invalidated "on the fly", for affected addresses.
- *			This is prefered from performance point of view.
+ *			This is preferred from performance point of view.
  * "1"	-	cache is invalidated and switched off on debug_entry, and switched back on on restore.
  *			It is kept off during debugging.
  */
@@ -251,7 +251,7 @@ uint32_t arm946e_invalidate_whole_dcache(struct target *target)
 	 */
 	int nb_idx = (csize / (4*8*NB_CACHE_WAYS));	/* gives nb of lines (indexes) in the cache */
 
-	/* Loop for all segmentde (i.e. ways) */
+	/* Loop for all segments (i.e. ways) */
 	uint32_t seg;
 	for (seg = 0; seg < NB_CACHE_WAYS; seg++) {
 		/* Loop for all indexes */

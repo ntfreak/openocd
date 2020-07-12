@@ -215,12 +215,12 @@ int riscv_current_hartid(const struct target *target);
  * without requiring multiple targets.  */
 
 /* When using the RTOS to debug, this selects the hart that is currently being
- * debugged.  This doesn't propogate to the hardware. */
+ * debugged.  This doesn't propagate to the hardware. */
 void riscv_set_all_rtos_harts(struct target *target);
 void riscv_set_rtos_hartid(struct target *target, int hartid);
 
 /* Lists the number of harts in the system, which are assumed to be
- * concecutive and start with mhartid=0. */
+ * consecutive and start with mhartid=0. */
 int riscv_count_harts(struct target *target);
 
 /* Returns TRUE if the target has the given register on the given hart.  */

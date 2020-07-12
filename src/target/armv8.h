@@ -139,7 +139,7 @@ struct armv8_l2x_cache {
 
 struct armv8_cachesize {
 	uint32_t level_num;
-	/*  cache dimensionning */
+	/*  cache dimensioning */
 	uint32_t linelen;
 	uint32_t associativity;
 	uint32_t nsets;

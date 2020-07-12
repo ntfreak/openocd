@@ -203,7 +203,7 @@ typedef enum {
 	BR_ENABLE  = 0x1, /* Trace has been enabled */
 	BR_RESTART = 0x2, /* Trace restarted after a FIFO overflow */
 	BR_NODEBUG = 0x3, /* ARM has exited for debug state */
-	BR_PERIOD  = 0x4, /* Peridioc synchronization point (ETM >= v1.2)*/
+	BR_PERIOD  = 0x4, /* Periodic synchronization point (ETM >= v1.2)*/
 	BR_RSVD5   = 0x5, /* reserved */
 	BR_RSVD6   = 0x6, /* reserved */
 	BR_RSVD7   = 0x7, /* reserved */

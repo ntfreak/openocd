@@ -723,7 +723,7 @@ int mips32_read_config_regs(struct target *target)
 				break;	/* no more config registers implemented */
 		}
 	else
-		return ERROR_OK;	/* already succesfully read */
+		return ERROR_OK;	/* already successfully read */
 
 	LOG_DEBUG("read  %"PRId32" config registers", ejtag_info->config_regs);
 

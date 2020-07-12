@@ -145,7 +145,7 @@ int semihosting_common(struct target *target)
 {
 	struct semihosting *semihosting = target->semihosting;
 	if (!semihosting) {
-		/* Silently ignore if the semhosting field was not set. */
+		/* Silently ignore if the semihosting field was not set. */
 		return ERROR_OK;
 	}
 
@@ -345,7 +345,7 @@ int semihosting_common(struct target *target)
 							"semihosting: *** application exited normally ***\n");
 					}
 				} else if (semihosting->param == ADP_STOPPED_RUN_TIME_ERROR) {
-					/* Chosen more or less arbitrarly to have a nicer message,
+					/* Chosen more or less arbitrarily to have a nicer message,
 					 * otherwise all other return the same exit code 1. */
 					if (!gdb_actual_connections)
 						exit(1);

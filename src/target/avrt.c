@@ -195,7 +195,7 @@ static int mcu_write_ir_u8(struct jtag_tap *tap, uint8_t *ir_in,
 		uint8_t ir_out, int ir_len, int rti)
 {
 	if (ir_len > 8) {
-		LOG_ERROR("ir_len overflow, maxium is 8");
+		LOG_ERROR("ir_len overflow, maximum is 8");
 		return ERROR_FAIL;
 	}
 
@@ -208,7 +208,7 @@ static int mcu_write_dr_u32(struct jtag_tap *tap, uint32_t *dr_in,
 		uint32_t dr_out, int dr_len, int rti)
 {
 	if (dr_len > 32) {
-		LOG_ERROR("dr_len overflow, maxium is 32");
+		LOG_ERROR("dr_len overflow, maximum is 32");
 		return ERROR_FAIL;
 	}
 

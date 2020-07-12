@@ -632,7 +632,7 @@ static int or1k_is_cpu_running(struct target *target, int *running)
 			LOG_WARNING("Debug IF CPU control reg read failure.");
 			/* Try once to restart the JTAG infrastructure -
 			   quite possibly the board has just been reset. */
-			LOG_WARNING("Resetting JTAG TAP state and reconnectiong to debug IF.");
+			LOG_WARNING("Resetting JTAG TAP state and reconnecting to debug IF.");
 			du_core->or1k_jtag_init(&or1k->jtag);
 
 			LOG_WARNING("...attempt %d of %d", tries, RETRIES_MAX);
@@ -742,7 +742,7 @@ static int or1k_deassert_reset(struct target *target)
 
 	int retval = du_core->or1k_cpu_reset(&or1k->jtag, CPU_NOT_RESET);
 	if (retval != ERROR_OK) {
-		LOG_ERROR("Error while desasserting RESET");
+		LOG_ERROR("Error while deasserting RESET");
 		return retval;
 	}
 

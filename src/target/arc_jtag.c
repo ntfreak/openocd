@@ -158,7 +158,7 @@ static void arc_jtag_enque_status_read(struct arc_jtag * const jtag_info,
 	assert(jtag_info->tap);
 	assert(buffer);
 
-  /* first writin code(0x8) of jtag status register in IR */
+	/* first writing code(0x8) of jtag status register in IR */
 	arc_jtag_enque_write_ir(jtag_info, ARC_JTAG_STATUS_REG);
 	/* Now reading dr performs jtag status register read */
 	arc_jtag_enque_read_dr(jtag_info, buffer, TAP_IDLE);
@@ -223,7 +223,7 @@ static void arc_jtag_enque_register_rw(struct arc_jtag *jtag_info, uint32_t *add
 		else
 			arc_jtag_enque_read_dr(jtag_info, read_buffer + i * 4, TAP_IDLE);
 	}
-	/* To prevent pollution of next regiter due to optimization it is necessary *
+	/* To prevent pollution of next register due to optimization it is necessary *
 	 * to reset transaction */
 	arc_jtag_enque_reset_transaction(jtag_info);
 }

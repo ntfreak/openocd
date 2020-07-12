@@ -795,7 +795,7 @@ static uint8_t armv8_pa_size(uint32_t ps)
 			ret = 48;
 			break;
 		default:
-			LOG_INFO("Unknow physicall address size");
+			LOG_INFO("Unknown physical address size");
 			break;
 	}
 	return ret;
@@ -822,7 +822,7 @@ static __attribute__((unused)) int armv8_read_ttbcr32(struct target *target)
 	armv8->armv8_mmu.ttbcr = ttbcr;
 
 	/*
-	 * ARM Architecture Reference Manual (ARMv7-A and ARMv7-Redition),
+	 * ARM Architecture Reference Manual (ARMv7-A and ARMv7-R edition),
 	 * document # ARM DDI 0406C
 	 */
 	armv8->armv8_mmu.ttbr_range[0]  = 0xffffffff >> ttbcr_n;
@@ -852,7 +852,7 @@ static __attribute__((unused)) int armv8_read_ttbcr(struct target *target)
 	if (retval != ERROR_OK)
 		goto done;
 
-	/* claaer ttrr1_used and ttbr0_mask */
+	/* clear ttrr1_used and ttbr0_mask */
 	memset(&armv8->armv8_mmu.ttbr1_used, 0, sizeof(armv8->armv8_mmu.ttbr1_used));
 	memset(&armv8->armv8_mmu.ttbr0_mask, 0, sizeof(armv8->armv8_mmu.ttbr0_mask));
 
@@ -902,7 +902,7 @@ static __attribute__((unused)) int armv8_read_ttbcr(struct target *target)
 			goto done;
 		break;
 	default:
-		LOG_ERROR("unknow core state");
+		LOG_ERROR("unknown core state");
 		retval = ERROR_FAIL;
 		break;
 	}

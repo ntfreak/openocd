@@ -75,8 +75,8 @@ static int arc_mem_write_block16(struct target *target, uint32_t addr,
 	/* We will read data from memory, so we need to flush the cache. */
 	CHECK_RETVAL(arc_cache_flush(target));
 
-	/* non-word writes are less common, than 4-byte writes, so I suppose we can
-	 * allowe ourselves to write this in a cycle, instead of calling arc_jtag
+	/* non-word writes are less common than 4-byte writes, so I suppose we can
+	 * allow ourselves to write this in a cycle, instead of calling arc_jtag
 	 * with count > 1. */
 	for (i = 0; i < count; i++) {
 		/* We can read only word at word-aligned address. Also *jtag_read_memory
@@ -130,8 +130,8 @@ static int arc_mem_write_block8(struct target *target, uint32_t addr,
 	/* We will read data from memory, so we need to flush the cache. */
 	CHECK_RETVAL(arc_cache_flush(target));
 
-	/* non-word writes are less common, than 4-byte writes, so I suppose we can
-	 * allowe ourselves to write this in a cycle, instead of calling arc_jtag
+	/* non-word writes are less common than 4-byte writes, so I suppose we can
+	 * allow ourselves to write this in a cycle, instead of calling arc_jtag
 	 * with count > 1. */
 	for (i = 0; i < count; i++) {
 		/* See comment in arc_mem_write_block16 for details. Since it is a byte
@@ -173,7 +173,7 @@ int arc_mem_write(struct target *target, target_addr_t address, uint32_t size,
 	if (((size == 4) && (address & 0x3u)) || ((size == 2) && (address & 0x1u)))
 		return ERROR_TARGET_UNALIGNED_ACCESS;
 
-	/* correct endianess if we have word or hword access */
+	/* correct endianness if we have word or hword access */
 	if (size > 1) {
 		/*
 		 * arc_..._write_mem with size 4/2 requires uint32_t/uint16_t

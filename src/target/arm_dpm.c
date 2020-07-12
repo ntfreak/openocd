@@ -206,7 +206,7 @@ int arm_dpm_read_reg(struct arm_dpm *dpm, struct reg *r, unsigned regnum)
 					LOG_WARNING("Jazelle PC adjustment unknown");
 					break;
 				default:
-					LOG_WARNING("unknow core state");
+					LOG_WARNING("unknown core state");
 					break;
 			}
 			break;
@@ -335,7 +335,7 @@ static int dpm_write_pc_core_state(struct arm_dpm *dpm, struct reg *r)
 }
 
 /**
- * Read basic registers of the the current context:  R0 to R15, and CPSR;
+ * Read basic registers of the current context:  R0 to R15, and CPSR;
  * sets the core mode (such as USR or IRQ) and state (such as ARM or Thumb).
  * In normal operation this is called on entry to halting debug state,
  * possibly after some other operations supporting restore of debug state

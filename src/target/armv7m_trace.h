@@ -56,7 +56,7 @@ struct armv7m_trace_config {
 	/** Synchronous output port width */
 	uint32_t port_size;
 
-	/** Bitmask of currenty enabled ITM stimuli */
+	/** Bitmask of currently enabled ITM stimuli */
 	uint32_t itm_ter[8];
 	/** Identifier for multi-source trace stream formatting */
 	unsigned int trace_bus_id;

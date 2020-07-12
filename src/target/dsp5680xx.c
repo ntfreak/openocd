@@ -93,7 +93,7 @@ static int dsp5680xx_drscan(struct target *target, uint8_t *d_in,
 	if (len > 32) {
 		retval = ERROR_FAIL;
 		err_check(retval, DSP5680XX_ERROR_JTAG_DR_LEN_OVERFLOW,
-			  "dr_len overflow, maxium is 32");
+			  "dr_len overflow, maximum is 32");
 	}
 	/* TODO what values of len are valid for jtag_add_plain_dr_scan? */
 	/* can i send as many bits as i want? */
@@ -638,7 +638,7 @@ static int switch_tap(struct target *target, struct jtag_tap *master_tap,
  * more complicated routine, which is guaranteed to work, but requires
  * a reset. This will complicate comm with the flash module, since
  * after a reset clock divisors must be set again.
- * This implementation works most of the time, and is not accesible to the
+ * This implementation works most of the time, and is not accessible to the
  * user.
  *
  * @param target
@@ -1795,7 +1795,7 @@ static int set_fm_ck_div(struct target *target)
  * Executes the FM calculate signature command. The FM will calculate over the
  * data from @address to @address + @words -1. The result is written to a
  * register, then read out by this function and returned in @signature. The
- * value @signature may be compared to the the one returned by perl_crc to
+ * value @signature may be compared to the one returned by perl_crc to
  * verify the flash was written correctly.
  *
  * @param target

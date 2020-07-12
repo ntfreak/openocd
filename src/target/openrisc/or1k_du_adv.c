@@ -995,7 +995,7 @@ int or1k_adv_jtag_jsp_xfer(struct or1k_jtag *jtag_info,
 				  int *out_len, unsigned char *out_buffer,
 				  int *in_len, unsigned char *in_buffer)
 {
-	LOG_DEBUG("JSP transfert");
+	LOG_DEBUG("JSP transfer");
 
 	int retval;
 	if (!jtag_info->or1k_jtag_inited)

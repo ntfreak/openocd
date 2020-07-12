@@ -841,7 +841,7 @@ static int cortex_a_internal_restore(struct target *target, int current,
 			LOG_ERROR("How do I resume into Jazelle state??");
 			return ERROR_FAIL;
 		case ARM_STATE_AARCH64:
-			LOG_ERROR("Shoudn't be in AARCH64 state");
+			LOG_ERROR("Shouldn't be in AARCH64 state");
 			return ERROR_FAIL;
 	}
 	LOG_DEBUG("resume pc = 0x%08" PRIx32, resume_pc);

@@ -278,7 +278,7 @@ int mips_ejtag_exit_debug(struct mips_ejtag *ejtag_info)
 	return ctx.retval;
 }
 
-/* mips_ejtag_init_mmr - asign Memory-Mapped Registers depending
+/* mips_ejtag_init_mmr - assign Memory-Mapped Registers depending
  *			on EJTAG version.
  */
 static void mips_ejtag_init_mmr(struct mips_ejtag *ejtag_info)

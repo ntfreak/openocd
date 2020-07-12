@@ -824,7 +824,7 @@ static int xscale_poll(struct target *target)
 			retval = xscale_debug_entry(target);
 		} else if (retval != ERROR_TARGET_RESOURCE_NOT_AVAILABLE) {
 			LOG_USER("error while polling TX register, reset CPU");
-			/* here we "lie" so GDB won't get stuck and a reset can be perfomed */
+			/* here we "lie" so GDB won't get stuck and a reset can be performed */
 			target->state = TARGET_HALTED;
 		}
 
@@ -955,7 +955,7 @@ static int xscale_debug_entry(struct target *target)
 			xscale->arch_debug_reason = XSCALE_DBG_REASON_GENERIC;
 			pc -= 4;
 			break;
-		case 0x5:	/* Vector trap occured */
+		case 0x5:	/* Vector trap occurred */
 			target->debug_reason = DBG_REASON_BREAKPOINT;
 			xscale->arch_debug_reason = XSCALE_DBG_REASON_GENERIC;
 			pc -= 4;
@@ -2412,7 +2412,7 @@ static int xscale_get_reg(struct reg *reg)
 	} else if (strcmp(reg->name, "XSCALE_TXRXCTRL") == 0) {
 		/* can't (explicitly) read from TXRXCTRL register */
 		return ERROR_OK;
-	} else {/* Other DBG registers have to be transfered by the debug handler
+	} else {/* Other DBG registers have to be transferred by the debug handler
 		 * send CP read request (command 0x40) */
 		xscale_send_u32(target, 0x40);
 
@@ -2450,7 +2450,7 @@ static int xscale_set_reg(struct reg *reg, uint8_t *buf)
 	} else if (strcmp(reg->name, "XSCALE_TXRXCTRL") == 0) {
 		/* can't (explicitly) write to TXRXCTRL register */
 		return ERROR_OK;
-	} else {/* Other DBG registers have to be transfered by the debug handler
+	} else {/* Other DBG registers have to be transferred by the debug handler
 		 * send CP write request (command 0x41) */
 		xscale_send_u32(target, 0x41);
 
@@ -2809,7 +2809,7 @@ static int xscale_analyze_trace(struct target *target, struct command_invocation
 						current_pc = chkpt_reg;
 					else if (current_pc != chkpt_reg)	/* sanity check */
 						LOG_WARNING("trace is suspect: checkpoint register "
-							"inconsistent with adddress from image");
+							"inconsistent with address from image");
 				}
 
 				if (current_pc == 0)
@@ -2919,7 +2919,7 @@ static int xscale_init_arch_info(struct target *target,
 
 	arm = &xscale->arm;
 
-	/* store architecture specfic data */
+	/* store architecture specific data */
 	xscale->common_magic = XSCALE_COMMON_MAGIC;
 
 	/* PXA3xx with 11 bit IR shifts the JTAG instructions */

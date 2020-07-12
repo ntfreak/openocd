@@ -832,7 +832,7 @@ int image_open(struct image *image, const char *url, const char *type_string)
 		for (section = 0; section < image->num_sections; section++)
 			image->sections[section].base_address += image->base_address;
 											/* we're done relocating. The two statements below are mainly
-											* for documenation purposes: stop anyone from empirically
+											* for documentation purposes: stop anyone from empirically
 											* thinking they should use these values henceforth. */
 		image->base_address = 0;
 		image->base_address_set = 0;
