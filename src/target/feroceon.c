@@ -37,7 +37,7 @@
  * - asserting DBGRQ doesn't work if target is looping on the undef vector
  *
  * - the EICE version signature in the COMMS_CTL reg is next to the flow bits
- *   not at the top, and rather meaningless due to existing discrepencies
+ *   not at the top, and rather meaningless due to existing discrepancies
  *
  * - the DCC channel is half duplex (only one FIFO for both directions) with
  *   seemingly no proper flow control.

@@ -277,7 +277,7 @@ int mips32_pracc_exec(struct mips_ejtag *ejtag_info, struct pracc_queue_info *ct
 						return ERROR_JTAG_DEVICE_ERROR;
 					}
 				} else
-					if (code_count > 10) {		/* enough, abandone */
+					if (code_count > 10) {		/* enough, abandon */
 						LOG_DEBUG("execution abandoned, store pending: %d", store_pending);
 						return ERROR_JTAG_DEVICE_ERROR;
 					}
@@ -427,7 +427,7 @@ int mips32_pracc_queue_exec(struct mips_ejtag *ejtag_info, struct pracc_queue_in
 		fetch_addr += 4;
 		scan_count++;
 
-		/* check if previous intrucction is a store instruction at dmesg */
+		/* check if previous instruction is a store instruction at dmesg */
 		if (i > 0 && ctx->pracc_list[i - 1].addr) {
 			uint32_t store_addr = ctx->pracc_list[i - 1].addr;
 			ejtag_ctrl = buf_get_u32(scan_in[scan_count].scan_32.ctrl, 0, 32);
@@ -789,7 +789,7 @@ int mips32_pracc_write_mem(struct mips_ejtag *ejtag_info, uint32_t addr, int siz
 	 * If we are in the cacheable region and cache is activated,
 	 * we must clean D$ (if Cache Coherency Attribute is set to 3) + invalidate I$ after we did the write,
 	 * so that changes do not continue to live only in D$ (if CCA = 3), but to be
-	 * replicated in I$ also (maybe we wrote the istructions)
+	 * replicated in I$ also (maybe we wrote the instructions)
 	 */
 	uint32_t conf = 0;
 	int cached = 0;
@@ -816,7 +816,7 @@ int mips32_pracc_write_mem(struct mips_ejtag *ejtag_info, uint32_t addr, int siz
 	}
 
 	/**
-	 * Check cachablitiy bits coherency algorithm
+	 * Check cacheability bits coherency algorithm
 	 * is the region cacheable or uncached.
 	 * If cacheable we have to synchronize the cache
 	 */

@@ -33,7 +33,7 @@
  * unexisting register is safe RAZ, rather then an error.
  * Note, core registers cannot be BCR.
  *
- * In arc/cpu/ tcl files all regiters are defined as core, non-BCR aux
+ * In arc/cpu/ tcl files all registers are defined as core, non-BCR aux
  * and BCR aux, in "add-reg" command they are passed to three lists
  * respectively:  core_reg_descriptions, aux_reg_descriptions,
  * bcr_reg_descriptions.
@@ -286,7 +286,7 @@ const struct reg_arch_type arc_reg_type = {
 	.set = arc_set_register,
 };
 
-/* GDB register groups. For now we suport only general and "empty" */
+/* GDB register groups. For now we support only general and "empty" */
 static const char * const reg_group_general = "general";
 static const char * const reg_group_other = "";
 
@@ -548,7 +548,7 @@ int arc_reg_get_field(struct target *target, const char *reg_name,
 	struct reg *reg = arc_reg_get_by_name(target->reg_cache, reg_name, true);
 
 	if (!reg) {
-		LOG_ERROR("Requested register `%s' doens't exist.", reg_name);
+		LOG_ERROR("Requested register `%s' doesn't exist.", reg_name);
 		return ERROR_ARC_REGISTER_NOT_FOUND;
 	}
 
@@ -575,7 +575,7 @@ int arc_reg_get_field(struct target *target, const char *reg_name,
 	if (!reg->valid)
 		CHECK_RETVAL(reg->type->get(reg));
 
-	/* First do endiannes-safe read of register value
+	/* First do endianness-safe read of register value
 	 * then convert it to binary buffer for further
 	 * field extraction */
 
@@ -1396,7 +1396,7 @@ static int arc_target_create(struct target *target, Jim_Interp *interp)
  * Write 4-byte instruction to memory. This is like target_write_u32, however
  * in case of little endian ARC instructions are in middle endian format, not
  * little endian, so different type of conversion should be done.
- * Middle endinan: instruction "aabbccdd", stored as "bbaaddcc"
+ * Middle endian: instruction "aabbccdd", stored as "bbaaddcc"
  */
 int arc_write_instruction_u32(struct target *target, uint32_t address,
 	uint32_t instr)
@@ -1800,7 +1800,7 @@ int arc_remove_auxreg_actionpoint(struct target *target, uint32_t auxreg_addr)
 	return retval;
 }
 
-/* Helper function which swiches core to single_step mode by
+/* Helper function which switches core to single_step mode by
  * doing aux r/w operations.  */
 int arc_config_step(struct target *target, int enable_step)
 {
@@ -2081,7 +2081,7 @@ struct target_type arcv2_target = {
 
 	.arch_state = arc_arch_state,
 
-	/* TODO That seems like something similiar to metaware hostlink, so perhaps
+	/* TODO That seems like something similar to metaware hostlink, so perhaps
 	 * we can exploit this in the future. */
 	.target_request_data = NULL,
 

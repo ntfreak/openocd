@@ -164,7 +164,7 @@ enum esirisc_reg_num {
 #define CSR_CONFIG_DBG				0x0f	/* Debug Configuration */
 #define CSR_CONFIG_MID				0x10	/* Manufacturer ID */
 #define CSR_CONFIG_REV				0x11	/* Revision Number */
-#define CSR_CONFIG_MPID				0x12	/* Mulitprocessor ID */
+#define CSR_CONFIG_MPID				0x12	/* Multiprocessor ID */
 #define CSR_CONFIG_FREQn			0x13	/* Frequency [0..2] */
 #define CSR_CONFIG_TRACE			0x16	/* Trace Configuration */
 

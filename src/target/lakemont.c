@@ -330,7 +330,7 @@ static int restore_context(struct target *t)
 
 /*
  * we keep reg_cache in sync with hardware at halt/resume time, we avoid
- * writing to real hardware here bacause pm_regs reflects the hardware
+ * writing to real hardware here because pm_regs reflects the hardware
  * while we are halted then reg_cache syncs with hw on resume
  * TODO - in order for "reg eip force" to work it assume get/set reads
  * and writes from hardware, may be other reasons also because generally
@@ -363,7 +363,7 @@ static int lakemont_set_core_reg(struct reg *reg, uint8_t *buf)
 }
 
 static const struct reg_arch_type lakemont_reg_type = {
-	/* these get called if reg_cache doesnt have a "valid" value
+	/* these get called if reg_cache doesn't have a "valid" value
 	 * of an individual reg eg "reg eip" but not for "reg" block
 	 */
 	.get = lakemont_get_core_reg,
@@ -649,7 +649,7 @@ static int read_hw_reg(struct target *t, int reg, uint32_t *regval, uint8_t cach
 	struct x86_32_common *x86_32 = target_to_x86_32(t);
 	struct lakemont_core_reg *arch_info;
 	arch_info = x86_32->cache->reg_list[reg].arch_info;
-	x86_32->flush = 0; /* dont flush scans till we have a batch */
+	x86_32->flush = 0; /* don't flush scans till we have a batch */
 	if (submit_reg_pir(t, reg) != ERROR_OK)
 		return ERROR_FAIL;
 	if (submit_instruction_pir(t, SRAMACCESS) != ERROR_OK)
@@ -693,7 +693,7 @@ static int write_hw_reg(struct target *t, int reg, uint32_t regval, uint8_t cach
 			arch_info->op,
 			regval);
 
-	x86_32->flush = 0; /* dont flush scans till we have a batch */
+	x86_32->flush = 0; /* don't flush scans till we have a batch */
 	if (submit_reg_pir(t, reg) != ERROR_OK)
 		return ERROR_FAIL;
 	if (submit_instruction_pir(t, SRAMACCESS) != ERROR_OK)
@@ -943,7 +943,7 @@ int lakemont_poll(struct target *t)
 				if (bp != NULL) {
 					t->debug_reason = DBG_REASON_BREAKPOINT;
 					if (bp->type == BKPT_SOFT) {
-						/* The EIP is now pointing the the next byte after the
+						/* The EIP is now pointing the next byte after the
 						 * breakpoint instruction. This needs to be corrected.
 						 */
 						buf_set_u32(x86_32->cache->reg_list[EIP].value, 0, 32, eip-1);

@@ -967,7 +967,7 @@ static int stm8_reset_deassert(struct target *target)
 	if (target->reset_halt)
 		return ERROR_OK;
 
-	/* Instead of going thrugh saving context, polling and
+	/* Instead of going through saving context, polling and
 	   then resuming target again just clear stall and proceed. */
 	target->state = TARGET_RUNNING;
 	return stm8_exit_debug(target);

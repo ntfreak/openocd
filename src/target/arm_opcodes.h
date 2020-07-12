@@ -38,7 +38,7 @@
 /* Store multiple increment after
  * Rn: base register
  * List: for each bit in list: store register
- * S: in priviledged mode: store user-mode registers
+ * S: in privileged mode: store user-mode registers
  * W = 1: update the base register. W = 0: leave the base register untouched
  */
 #define ARMV4_5_STMIA(Rn, List, S, W) \
@@ -47,7 +47,7 @@
 /* Load multiple increment after
  * Rn: base register
  * List: for each bit in list: store register
- * S: in priviledged mode: store user-mode registers
+ * S: in privileged mode: store user-mode registers
  * W = 1: update the base register. W = 0: leave the base register untouched
  */
 #define ARMV4_5_LDMIA(Rn, List, S, W) \

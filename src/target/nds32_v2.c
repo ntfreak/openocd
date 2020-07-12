@@ -256,7 +256,7 @@ static int nds32_v2_check_interrupt_stack(struct nds32_v2_common *nds32_v2)
 		aice_write_register(aice, IR2, val_ir2);
 	}
 
-	/* get origianl DT bit and set to current state let debugger has same memory view
+	/* get original DT bit and set to current state let debugger has same memory view
 	   PSW.IT MUST be turned off.  Otherwise, DIM could not operate normally. */
 	aice_read_register(aice, IR1, &val_ir1);
 	modified_psw = val_ir0 | (val_ir1 & 0x80);

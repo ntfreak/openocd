@@ -2497,7 +2497,7 @@ static int aarch64_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 	 * Call adiv5_jim_configure() to parse the common DAP options
 	 * It will return JIM_CONTINUE if it didn't find any known
 	 * options, JIM_OK if it correctly parsed the topmost option
-	 * and JIM_ERR if an error occured during parameter evaluation.
+	 * and JIM_ERR if an error occurred during parameter evaluation.
 	 * For JIM_CONTINUE, we check our own params.
 	 */
 	e = adiv5_jim_configure(target, goi);

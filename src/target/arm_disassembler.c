@@ -92,8 +92,8 @@
  * the Cortex-M implementations).
  */
 
-/* textual represenation of the condition field
- * ALways (default) is ommitted (empty string) */
+/* textual representation of the condition field
+ * ALways (default) is omitted (empty string) */
 static const char *arm_condition_strings[] = {
 	"EQ", "NE", "CS", "CC", "MI", "PL", "VS", "VC", "HI", "LS", "GE", "LT", "GT", "LE", "", "NV"
 };
@@ -2896,7 +2896,7 @@ int thumb_evaluate_opcode(uint16_t opcode, uint32_t address, struct arm_instruct
 	instruction->instruction_size = 2;
 
 	if ((opcode & 0xe000) == 0x0000) {
-		/* add/substract register or immediate */
+		/* add/subtract register or immediate */
 		if ((opcode & 0x1800) == 0x1800)
 			return evaluate_add_sub_thumb(opcode, address, instruction);
 		/* shift by immediate */
@@ -2904,7 +2904,7 @@ int thumb_evaluate_opcode(uint16_t opcode, uint32_t address, struct arm_instruct
 			return evaluate_shift_imm_thumb(opcode, address, instruction);
 	}
 
-	/* Add/substract/compare/move immediate */
+	/* Add/subtract/compare/move immediate */
 	if ((opcode & 0xe000) == 0x2000)
 		return evaluate_data_proc_imm_thumb(opcode, address, instruction);
 

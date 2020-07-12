@@ -3732,10 +3732,10 @@ int riscv013_test_compliance(struct target *target)
 		COMPLIANCE_TEST(ERROR_OK == register_read_direct(target, &testval_read, GDB_REGNO_ZERO + i),
 				"GPR Reads should be supported.");
 		if (riscv_xlen(target) > 32) {
-			/* Dummy comment to satisfy linter, since removing the brances here doesn't actually compile. */
+			/* Dummy comment to satisfy linter, since removing the branches here doesn't actually compile. */
 			COMPLIANCE_TEST(testval == testval_read, "GPR Reads and writes should be supported.");
 		} else {
-			/* Dummy comment to satisfy linter, since removing the brances here doesn't actually compile. */
+			/* Dummy comment to satisfy linter, since removing the branches here doesn't actually compile. */
 			COMPLIANCE_TEST((testval & 0xFFFFFFFF) == testval_read, "GPR Reads and writes should be supported.");
 		}
 	}

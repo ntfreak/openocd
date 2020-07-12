@@ -332,7 +332,7 @@ static const struct command_registration arm7a_l2x_cache_commands[] = {
 		.name = "info",
 		.handler = arm7a_l2x_cache_info_command,
 		.mode = COMMAND_ANY,
-		.help = "print cache realted information",
+		.help = "print cache related information",
 		.usage = "",
 	},
 	{

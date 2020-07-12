@@ -55,8 +55,8 @@
  * shadowed registers, and support for the Thumb instruction set.
  *
  * Processor differences include things like presence or absence of MMU
- * and cache, pipeline sizes, use of a modified Harvard Architecure
- * (with separate instruction and data busses from the CPU), support
+ * and cache, pipeline sizes, use of a modified Harvard Architecture
+ * (with separate instruction and data buses from the CPU), support
  * for cpu clock gating during idle, and more.
  */
 
@@ -1009,7 +1009,7 @@ int arm7_9_deassert_reset(struct target *target)
 
 /**
  * Clears the halt condition for an ARM7/9 target.  If it isn't coming out of
- * reset and if DBGRQ is used, it is progammed to be deasserted.  If the reset
+ * reset and if DBGRQ is used, it is programmed to be deasserted.  If the reset
  * vector catch was used, it is restored.  Otherwise, the control value is
  * restored and the watchpoint unit is restored if it was in use.
  *

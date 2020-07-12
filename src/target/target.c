@@ -593,7 +593,7 @@ int target_halt(struct target *target)
  * @param address Optionally used as the program counter.
  * @param handle_breakpoints True iff breakpoints at the resumption PC
  *	should be skipped.  (For example, maybe execution was stopped by
- *	such a breakpoint, in which case it would be counterprodutive to
+ *	such a breakpoint, in which case it would be counterproductive to
  *	let it re-trigger.
  * @param debug_execution False if all working areas allocated by OpenOCD
  *	should be released and/or restored to their original contents.
@@ -709,7 +709,7 @@ static int default_check_reset(struct target *target)
 	return ERROR_OK;
 }
 
-/* Equvivalent Tcl code arp_examine_one is in src/target/startup.tcl
+/* Equivalent Tcl code arp_examine_one is in src/target/startup.tcl
  * Keep in sync */
 int target_examine_one(struct target *target)
 {
@@ -3462,7 +3462,7 @@ COMMAND_HANDLER(handle_load_image_command)
 		uint32_t offset = 0;
 		uint32_t length = buf_cnt;
 
-		/* DANGER!!! beware of unsigned comparision here!!! */
+		/* DANGER!!! beware of unsigned comparison here!!! */
 
 		if ((image.sections[i].base_address + buf_cnt >= min_address) &&
 				(image.sections[i].base_address < max_address)) {
@@ -4686,7 +4686,7 @@ static int target_configure(Jim_GetOptInfo *goi, struct target *target)
 		}
 		switch (n->value) {
 		case TCFG_TYPE:
-			/* not setable */
+			/* not settable */
 			if (goi->isconfigure) {
 				Jim_SetResultFormatted(goi->interp,
 						"not settable: %s", n->name);
@@ -5674,7 +5674,7 @@ static int jim_target_smp(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 	retval = 0;
 	LOG_DEBUG("%d", argc);
 	/* argv[1] = target to associate in smp
-	 * argv[2] = target to assoicate in smp
+	 * argv[2] = target to associate in smp
 	 * argv[3] ...
 	 */
 
@@ -5844,7 +5844,7 @@ COMMAND_HANDLER(handle_fast_load_image_command)
 		uint32_t offset = 0;
 		uint32_t length = buf_cnt;
 
-		/* DANGER!!! beware of unsigned comparision here!!! */
+		/* DANGER!!! beware of unsigned comparison here!!! */
 
 		if ((image.sections[i].base_address + buf_cnt >= min_address) &&
 				(image.sections[i].base_address < max_address)) {
