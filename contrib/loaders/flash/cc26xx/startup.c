@@ -52,7 +52,7 @@ const uint32_t stack_pntr = (uint32_t)stack + sizeof(stack);
 
 /******************************************************************************
 *
-* The following are constructs created by the linker indicating where the
+* The following are constructs created by the linker indicating where
 * the "bss" and "ebss" segments reside in memory.
 *
 ******************************************************************************/

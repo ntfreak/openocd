@@ -16,7 +16,7 @@
 # This script is probably more useful as a reference than as a complete build
 # tool but for some configurations it may be usable as-is. It only cross-
 # builds libusb-1.0 from source, but the script can be extended to build other
-# prerequisities in a similar manner.
+# prerequisites in a similar manner.
 #
 # Usage:
 # export LIBUSB1_SRC=/path/to/libusb-1.0

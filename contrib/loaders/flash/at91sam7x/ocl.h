@@ -21,7 +21,7 @@
 /* command/response mask */
 #define OCL_CMD_MASK 0xFFFF0000L
 
-/* commads */
+/* commands */
 #define OCL_FLASH_BLOCK 0x0CFB0000L
 #define OCL_ERASE_BLOCK 0x0CEB0000L
 #define OCL_ERASE_ALL 0x0CEA0000L

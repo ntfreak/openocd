@@ -101,5 +101,5 @@ int main (void)
 		}
 	}
 
-	return(0); /* we shall never get here, just to supress compiler warning */
+	return 0; /* we shall never get here, just to suppress compiler warning */
 }

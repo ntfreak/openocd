@@ -108,7 +108,7 @@ extern "C"
 
 /******************************************************************************
 *
-* Define for the clock frequencey input to the flash module in number of MHz
+* Define for the clock frequency input to the flash module in number of MHz
 *
 ******************************************************************************/
 #define FLASH_MODULE_CLK_FREQ 48
@@ -279,7 +279,7 @@ static inline uint32_t flash_check_fsm_for_ready(void)
 * This function will erase the specified flash sector. The function will
 * not return until the flash sector has been erased or an error condition
 * occurred. If flash top sector is erased the function will program the
-* the device security data bytes with default values. The device security
+* device security data bytes with default values. The device security
 * data located in the customer configuration area of the flash top sector,
 * must have valid values at all times. These values affect the configuration
 * of the device during boot.
@@ -305,7 +305,7 @@ extern uint32_t flash_sector_erase(uint32_t sector_address);
 *
 * This function will erase all unprotected flash sectors. The function will
 * not return until the flash sectors has been erased or an error condition
-* occurred. Since the flash top sector is erased the function will program the
+* occurred. Since the flash top sector is erased the function will program
 * the device security data bytes with default values. The device security
 * data located in the customer configuration area of the flash top sector,
 * must have valid values at all times. These values affect the configuration

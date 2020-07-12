@@ -39,7 +39,7 @@ int dcc_wr(uint32 data)
 
 	do {
 		asm volatile ("mrc p14, 0, %0, C0, C0" : "=r" (dcc_reg) :);
-		/* operation controled by master, cancel operation
+		/* operation controlled by master, cancel operation
 			 upon reception of data for immediate response */
 		if (dcc_reg&1) return -1;
 	} while (dcc_reg&2);

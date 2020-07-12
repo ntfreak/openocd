@@ -325,7 +325,7 @@ static void show_timestamp(FILE *f, int c)
 		delayed = true;
 		break;
 	case 0xf:
-		label = ", packet and timetamp delayed";
+		label = ", packet and timestamp delayed";
 		delayed = true;
 		break;
 	}
