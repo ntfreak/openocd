@@ -570,7 +570,7 @@ static int lpcspifi_erase(struct flash_bank *bank, unsigned int first,
 	return retval;
 }
 
-static int lpcspifi_protect(struct flash_bank *bank, int set,
+static int lpcspifi_protect(struct flash_bank *bank, bool set,
 	unsigned int first, unsigned int last)
 {
 	for (unsigned int sector = first; sector <= last; sector++)

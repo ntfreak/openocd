@@ -851,7 +851,7 @@ static int at91sam7_erase(struct flash_bank *bank, unsigned int first,
 	return ERROR_OK;
 }
 
-static int at91sam7_protect(struct flash_bank *bank, int set,
+static int at91sam7_protect(struct flash_bank *bank, bool set,
 		unsigned int first, unsigned int last)
 {
 	uint32_t cmd;

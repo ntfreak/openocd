@@ -1014,7 +1014,7 @@ err_lock:
 	return retval2;
 }
 
-static int stm32l4_protect(struct flash_bank *bank, int set, unsigned int first, unsigned int last)
+static int stm32l4_protect(struct flash_bank *bank, bool set, unsigned int first, unsigned int last)
 {
 	struct target *target = bank->target;
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;

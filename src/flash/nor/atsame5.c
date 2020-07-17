@@ -571,7 +571,7 @@ static int same5_modify_user_row(struct target *target, uint32_t value,
 			buf_val, buf_mask, 0, 8);
 }
 
-static int same5_protect(struct flash_bank *bank, int set, unsigned int first,
+static int same5_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	int res = ERROR_OK;

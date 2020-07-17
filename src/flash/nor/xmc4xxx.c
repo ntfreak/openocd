@@ -1145,7 +1145,7 @@ static int xmc4xxx_flash_protect(struct flash_bank *bank, int level, bool read_p
 	return ERROR_OK;
 }
 
-static int xmc4xxx_protect(struct flash_bank *bank, int set, unsigned int first,
+static int xmc4xxx_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	int ret;
@@ -1158,7 +1158,7 @@ static int xmc4xxx_protect(struct flash_bank *bank, int set, unsigned int first,
 	}
 
 	/* We want to clear flash protection temporarily*/
-	if (set == 0) {
+	if (!set) {
 		LOG_WARNING("Flash protection will be temporarily disabled"
 			    " for all pages (User 0 only)!");
 		ret = xmc4xxx_temp_unprotect(bank, 0);
