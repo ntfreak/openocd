@@ -119,12 +119,12 @@ struct flash_driver {
 	 * be larger than the first..last range.
 	 *
 	 * @param bank The bank to protect or unprotect.
-	 * @param set If non-zero, enable protection; if 0, disable it.
+	 * @param set If true, enable protection; if false, disable it.
 	 * @param first The first sector to (un)protect, typicaly 0.
 	 * @param last The last sector to (un)project, typically N-1.
 	 * @returns ERROR_OK if successful; otherwise, an error code.
 	 */
-	int (*protect)(struct flash_bank *bank, int set, unsigned int first,
+	int (*protect)(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last);
 
 	/**

@@ -764,7 +764,7 @@ static int kinetis_ke_write_words(struct flash_bank *bank, const uint8_t *buffer
 	return retval;
 }
 
-static int kinetis_ke_protect(struct flash_bank *bank, int set,
+static int kinetis_ke_protect(struct flash_bank *bank, bool set,
 		unsigned int first, unsigned int last)
 {
 	LOG_WARNING("kinetis_ke_protect not supported yet");

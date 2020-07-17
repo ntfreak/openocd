@@ -901,7 +901,7 @@ static int stellaris_erase(struct flash_bank *bank, unsigned int first,
 	return ERROR_OK;
 }
 
-static int stellaris_protect(struct flash_bank *bank, int set,
+static int stellaris_protect(struct flash_bank *bank, bool set,
 		unsigned int first, unsigned int last)
 {
 	struct stellaris_flash_bank *stellaris = bank->driver_priv;

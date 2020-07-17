@@ -331,7 +331,7 @@ static int niietcm4_uflash_page_erase(struct flash_bank *bank, int page_num, int
  * Enable or disable protection of userflash pages
  */
 static int niietcm4_uflash_protect(struct flash_bank *bank, int mem_type,
-		int set, unsigned int first, unsigned int last)
+		bool set, unsigned int first, unsigned int last)
 {
 	int retval;
 	if (mem_type == INFO_MEM_TYPE) {
@@ -692,15 +692,15 @@ COMMAND_HANDLER(niietcm4_handle_uflash_protect_command)
 	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[1], first);
 	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[2], last);
 
-	int set;
+	bool set;
 	if (strcmp("on", CMD_ARGV[3]) == 0) {
 		command_print(CMD, "Try to enable %s userflash sectors %u through %u protection. Please wait ... ",
 								CMD_ARGV[0], first, last);
-		set = 1;
+		set = true;
 	} else if (strcmp("off", CMD_ARGV[3]) == 0) {
 		command_print(CMD, "Try to disable %s userflash sectors %u through %u protection. Please wait ... ",
 								CMD_ARGV[0], first, last);
-		set = 0;
+		set = false;
 	} else
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
@@ -1213,7 +1213,7 @@ static int niietcm4_erase(struct flash_bank *bank, unsigned int first,
 	return retval;
 }
 
-static int niietcm4_protect(struct flash_bank *bank, int set,
+static int niietcm4_protect(struct flash_bank *bank, bool set,
 		unsigned int first, unsigned int last)
 {
 	struct target *target = bank->target;

@@ -378,7 +378,7 @@ static int lpc288x_probe(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int lpc288x_protect(struct flash_bank *bank, int set, unsigned int first,
+static int lpc288x_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	int status;

@@ -381,7 +381,7 @@ static int sam4l_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int sam4l_protect(struct flash_bank *bank, int set, unsigned int first,
+static int sam4l_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	struct sam4l_info *chip = (struct sam4l_info *)bank->driver_priv;

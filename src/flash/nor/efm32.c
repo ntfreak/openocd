@@ -599,7 +599,7 @@ static int efm32x_get_page_lock(struct flash_bank *bank, size_t page)
 	return (dw & mask) ? 0 : 1;
 }
 
-static int efm32x_set_page_lock(struct flash_bank *bank, size_t page, int set)
+static int efm32x_set_page_lock(struct flash_bank *bank, size_t page, bool set)
 {
 	struct efm32x_flash_bank *efm32x_info = bank->driver_priv;
 	uint32_t *dw = &efm32x_info->lb_page[page >> 5];
@@ -615,7 +615,7 @@ static int efm32x_set_page_lock(struct flash_bank *bank, size_t page, int set)
 	return ERROR_OK;
 }
 
-static int efm32x_protect(struct flash_bank *bank, int set, unsigned int first,
+static int efm32x_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	struct target *target = bank->target;

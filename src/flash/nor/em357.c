@@ -393,7 +393,7 @@ static int em357_erase(struct flash_bank *bank, unsigned int first,
 	return ERROR_OK;
 }
 
-static int em357_protect(struct flash_bank *bank, int set, unsigned int first,
+static int em357_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	struct em357_flash_bank *em357_info = NULL;

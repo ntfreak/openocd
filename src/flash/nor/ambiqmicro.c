@@ -528,7 +528,7 @@ static int ambiqmicro_erase(struct flash_bank *bank, unsigned int first,
 	return retval;
 }
 
-static int ambiqmicro_protect(struct flash_bank *bank, int set,
+static int ambiqmicro_protect(struct flash_bank *bank, bool set,
 		unsigned int first, unsigned int last)
 {
 	/* struct ambiqmicro_flash_bank *ambiqmicro_info = bank->driver_priv;

@@ -841,7 +841,7 @@ static int tms470_erase(struct flash_bank *bank, unsigned int first,
 
 /* ---------------------------------------------------------------------- */
 
-static int tms470_protect(struct flash_bank *bank, int set, unsigned int first,
+static int tms470_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	struct tms470_flash_bank *tms470_info = bank->driver_priv;
@@ -872,11 +872,11 @@ static int tms470_protect(struct flash_bank *bank, int set, unsigned int first,
 	for (unsigned int sector = 0; sector < bank->num_sectors; sector++) {
 		if (sector < 16) {
 			fmbsea = set ? fmbsea & ~(1 << sector) : fmbsea | (1 << sector);
-			bank->sectors[sector].is_protected = set ? 1 : 0;
+			bank->sectors[sector].is_protected = set;
 		} else {
 			fmbseb = set ? fmbseb &
 				~(1 << (sector - 16)) : fmbseb | (1 << (sector - 16));
-			bank->sectors[sector].is_protected = set ? 1 : 0;
+			bank->sectors[sector].is_protected = set;
 		}
 	}
 

@@ -512,7 +512,7 @@ static int nrf5_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int nrf5_protect(struct flash_bank *bank, int set, unsigned int first,
+static int nrf5_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	int res;

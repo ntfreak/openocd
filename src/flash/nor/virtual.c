@@ -75,7 +75,7 @@ FLASH_BANK_COMMAND_HANDLER(virtual_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int virtual_protect(struct flash_bank *bank, int set, unsigned int first,
+static int virtual_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	struct flash_bank *master_bank = virtual_get_master_bank(bank);

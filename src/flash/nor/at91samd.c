@@ -725,7 +725,7 @@ static int samd_modify_user_row(struct target *target, uint64_t value,
 	return samd_modify_user_row_masked(target, value << startb, mask);
 }
 
-static int samd_protect(struct flash_bank *bank, int set,
+static int samd_protect(struct flash_bank *bank, bool set,
 		unsigned int first, unsigned int last)
 {
 	int res = ERROR_OK;
