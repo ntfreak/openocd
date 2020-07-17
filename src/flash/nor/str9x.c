@@ -306,7 +306,7 @@ static int str9x_erase(struct flash_bank *bank, unsigned int first,
 	return ERROR_OK;
 }
 
-static int str9x_protect(struct flash_bank *bank, int set, unsigned int first,
+static int str9x_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	struct target *target = bank->target;

@@ -505,7 +505,7 @@ static int str9xpec_unlock_device(struct flash_bank *bank)
 	return status;
 }
 
-static int str9xpec_protect(struct flash_bank *bank, int set,
+static int str9xpec_protect(struct flash_bank *bank, bool set,
 		unsigned int first, unsigned int last)
 {
 	uint8_t status;

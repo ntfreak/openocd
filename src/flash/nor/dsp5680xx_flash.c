@@ -119,7 +119,7 @@ static int dsp5680xx_flash_protect_check(struct flash_bank *bank)
  *
  * @return
  */
-static int dsp5680xx_flash_protect(struct flash_bank *bank, int set,
+static int dsp5680xx_flash_protect(struct flash_bank *bank, bool set,
 		unsigned int first, unsigned int last)
 {
 /**

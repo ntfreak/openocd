@@ -1336,7 +1336,7 @@ static int kinetis_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	return retval;
 }
 
-static int kinetis_protect(struct flash_bank *bank, int set, unsigned int first,
+static int kinetis_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	if (allow_fcf_writes) {

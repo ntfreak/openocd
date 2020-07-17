@@ -683,7 +683,7 @@ static int read_flash_id(struct flash_bank *bank, uint32_t *id)
 	return ERROR_OK;
 }
 
-static int sh_qspi_protect(struct flash_bank *bank, int set,
+static int sh_qspi_protect(struct flash_bank *bank, bool set,
 			 unsigned int first, unsigned int last)
 {
 	for (unsigned int sector = first; sector <= last; sector++)

@@ -999,7 +999,7 @@ int cfi_erase(struct flash_bank *bank, unsigned int first,
 	return ERROR_OK;
 }
 
-static int cfi_intel_protect(struct flash_bank *bank, int set,
+static int cfi_intel_protect(struct flash_bank *bank, bool set,
 		unsigned int first, unsigned int last)
 {
 	int retval;
@@ -1054,7 +1054,7 @@ static int cfi_intel_protect(struct flash_bank *bank, int set,
 			if ((block_status & 0x1) != set) {
 				LOG_ERROR(
 					"couldn't change block lock status (set = %i, block_status = 0x%2.2x)",
-					set, block_status);
+					set ? 1 : 0, block_status);
 				retval = cfi_send_command(bank, 0x70, cfi_flash_address(bank, 0, 0x55));
 				if (retval != ERROR_OK)
 					return retval;
@@ -1111,7 +1111,7 @@ static int cfi_intel_protect(struct flash_bank *bank, int set,
 	return cfi_send_command(bank, 0xff, cfi_flash_address(bank, 0, 0x0));
 }
 
-int cfi_protect(struct flash_bank *bank, int set, unsigned int first,
+int cfi_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;

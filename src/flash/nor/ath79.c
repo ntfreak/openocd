@@ -542,7 +542,7 @@ static int ath79_erase(struct flash_bank *bank, unsigned int first,
 	return retval;
 }
 
-static int ath79_protect(struct flash_bank *bank, int set, unsigned int first,
+static int ath79_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	for (unsigned int sector = first; sector <= last; sector++)

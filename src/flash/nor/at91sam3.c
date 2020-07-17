@@ -3282,7 +3282,7 @@ static int sam3_erase(struct flash_bank *bank, unsigned int first,
 	return ERROR_OK;
 }
 
-static int sam3_protect(struct flash_bank *bank, int set, unsigned int first,
+static int sam3_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	struct sam3_bank_private *pPrivate;

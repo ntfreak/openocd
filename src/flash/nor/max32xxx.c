@@ -321,7 +321,7 @@ static int max32xxx_erase(struct flash_bank *bank, unsigned int first,
 	return ERROR_OK;
 }
 
-static int max32xxx_protect(struct flash_bank *bank, int set,
+static int max32xxx_protect(struct flash_bank *bank, bool set,
 		unsigned int first, unsigned int last)
 {
 	struct max32xxx_flash_bank *info = bank->driver_priv;

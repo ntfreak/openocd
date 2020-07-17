@@ -647,7 +647,7 @@ err_lock:
 	return retval2;
 }
 
-static int stm32l4_protect(struct flash_bank *bank, int set, unsigned int first,
+static int stm32l4_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	struct target *target = bank->target;
@@ -662,7 +662,7 @@ static int stm32l4_protect(struct flash_bank *bank, int set, unsigned int first,
 	/* Bank 2 */
 	uint32_t reg_value = 0xFF; /* Default to bank un-protected */
 	if (last >= stm32l4_info->bank1_sectors) {
-		if (set == 1) {
+		if (set) {
 			uint8_t begin = first > stm32l4_info->bank1_sectors ? first : 0x00;
 			reg_value = ((last & 0xFF) << 16) | begin;
 		}
@@ -672,7 +672,7 @@ static int stm32l4_protect(struct flash_bank *bank, int set, unsigned int first,
 	/* Bank 1 */
 	reg_value = 0xFF; /* Default to bank un-protected */
 	if (first < stm32l4_info->bank1_sectors) {
-		if (set == 1) {
+		if (set) {
 			uint8_t end = last >= stm32l4_info->bank1_sectors ? 0xFF : last;
 			reg_value = (end << 16) | (first & 0xFF);
 		}

@@ -569,7 +569,7 @@ static int sim3x_flash_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int sim3x_flash_protect(struct flash_bank *bank, int set,
+static int sim3x_flash_protect(struct flash_bank *bank, bool set,
 		unsigned int first, unsigned int last)
 {
 	int ret;
