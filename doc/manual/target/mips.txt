@@ -393,15 +393,15 @@ for (i = 0; i < count; i++)
 }
 @endcode
 
-Each time when OpenOCD fills data to CPU (via dongle, via dmseg), CPU takes it and proceeds in executing the handler. However, since handler is in a assembly loop,
+Each time when OpenOCD fills data to CPU (via dongle, via dmseg), CPU takes it and proceeds to execute the handler. However, since the handler is in an assembly loop,
 CPU comes to next instruction which also fetches data from FASTDATA area. So it stalls.
-Then OpenOCD fills the data again, from it's (OpenOCD's) loop. And this game continues until all the data has been filled.
+Then OpenOCD fills the data again, from its (OpenOCD's) loop. And this game continues until all the data has been filled.
 
 After the last data has been given to CPU it sees that it reached the end address, so it proceeds with next instruction. However, this instruction do not point into dmseg, so
 CPU executes bunch of handler instructions (all prologue) and in the end jumps to MIPS32_PRACC_TEXT address.
 
-On it's side, OpenOCD checks in CPU has jumped back to MIPS32_PRACC_TEXT, which is the confirmation that it correctly executed all the rest of the handler in RAM,
-and that is not stuck somewhere in the RAM, or stalling on some access in dmseg - that would be an error :
+On its side, OpenOCD checks in CPU has jumped back to MIPS32_PRACC_TEXT, which is the confirmation that it correctly executed all the rest of the handler in RAM,
+and that is not stuck somewhere in the RAM, or stalling on some access in dmesg - that would be an error:
 
 @code
 address = 0;
