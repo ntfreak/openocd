@@ -444,7 +444,7 @@ static int samv_erase(struct flash_bank *bank, unsigned int first,
 	return ERROR_OK;
 }
 
-static int samv_protect(struct flash_bank *bank, int set, unsigned int first,
+static int samv_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	if (bank->target->state != TARGET_HALTED) {

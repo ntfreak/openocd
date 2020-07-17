@@ -460,7 +460,7 @@ static int psoc6_protect_check(struct flash_bank *bank)
  * @brief Dummy function, Life Cycle transition is not currently supported
  * @return ERROR_OK always
  *************************************************************************************************/
-static int psoc6_protect(struct flash_bank *bank, int set, unsigned int first,
+static int psoc6_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	(void)bank;

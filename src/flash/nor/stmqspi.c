@@ -1041,7 +1041,7 @@ static int stmqspi_erase(struct flash_bank *bank, unsigned int first, unsigned i
 	return retval;
 }
 
-static int stmqspi_protect(struct flash_bank *bank, int set,
+static int stmqspi_protect(struct flash_bank *bank, bool set,
 	unsigned int first, unsigned int last)
 {
 	unsigned int sector;

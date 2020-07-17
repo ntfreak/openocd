@@ -382,7 +382,7 @@ static int str7x_erase(struct flash_bank *bank, unsigned int first,
 	return ERROR_OK;
 }
 
-static int str7x_protect(struct flash_bank *bank, int set, unsigned int first,
+static int str7x_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	struct str7x_flash_bank *str7x_info = bank->driver_priv;

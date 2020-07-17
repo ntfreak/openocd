@@ -49,7 +49,7 @@ int flash_driver_erase(struct flash_bank *bank, unsigned int first,
 	return retval;
 }
 
-int flash_driver_protect(struct flash_bank *bank, int set, unsigned int first,
+int flash_driver_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	int retval;
@@ -66,9 +66,6 @@ int flash_driver_protect(struct flash_bank *bank, int set, unsigned int first,
 		LOG_ERROR("illegal protection block range");
 		return ERROR_FAIL;
 	}
-
-	/* force "set" to 0/1 */
-	set = !!set;
 
 	if (bank->driver->protect == NULL) {
 		LOG_ERROR("Flash protection is not supported.");
@@ -627,7 +624,7 @@ int flash_erase_address_range(struct target *target,
 static int flash_driver_unprotect(struct flash_bank *bank, unsigned int first,
 		unsigned int last)
 {
-	return flash_driver_protect(bank, 0, first, last);
+	return flash_driver_protect(bank, false, first, last);
 }
 
 int flash_unlock_address_range(struct target *target, target_addr_t addr,

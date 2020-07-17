@@ -730,7 +730,7 @@ static int xcf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t of
 	return read_write_data(bank, buffer, NULL, true, offset, count);
 }
 
-static int xcf_protect(struct flash_bank *bank, int set, unsigned int first,
+static int xcf_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	int ret;

@@ -39,7 +39,7 @@ struct flash_bank *flash_bank_list(void);
 
 int flash_driver_erase(struct flash_bank *bank, unsigned int first,
 		unsigned int last);
-int flash_driver_protect(struct flash_bank *bank, int set, unsigned int first,
+int flash_driver_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last);
 int flash_driver_write(struct flash_bank *bank,
 		const uint8_t *buffer, uint32_t offset, uint32_t count);

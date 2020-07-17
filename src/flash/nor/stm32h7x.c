@@ -523,7 +523,7 @@ flash_lock:
 	return (retval == ERROR_OK) ? retval2 : retval;
 }
 
-static int stm32x_protect(struct flash_bank *bank, int set, unsigned int first,
+static int stm32x_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	struct target *target = bank->target;

@@ -520,7 +520,7 @@ static int nrf5_protect_check(struct flash_bank *bank)
 	return ERROR_FLASH_OPER_UNSUPPORTED;
 }
 
-static int nrf5_protect_clenr0(struct flash_bank *bank, int set, unsigned int first,
+static int nrf5_protect_clenr0(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	int res;
@@ -580,7 +580,7 @@ error:
 	return res;
 }
 
-static int nrf5_protect(struct flash_bank *bank, int set, unsigned int first,
+static int nrf5_protect(struct flash_bank *bank, bool set, unsigned int first,
 		unsigned int last)
 {
 	int res;

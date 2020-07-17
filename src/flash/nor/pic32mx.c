@@ -359,19 +359,6 @@ static int pic32mx_erase(struct flash_bank *bank, unsigned int first,
 	return ERROR_OK;
 }
 
-static int pic32mx_protect(struct flash_bank *bank, int set, unsigned int first,
-		unsigned int last)
-{
-	struct target *target = bank->target;
-
-	if (target->state != TARGET_HALTED) {
-		LOG_ERROR("Target not halted");
-		return ERROR_TARGET_NOT_HALTED;
-	}
-
-	return ERROR_OK;
-}
-
 /* see contrib/loaders/flash/pic32mx.s for src */
 
 static uint32_t pic32mx_flash_write_code[] = {
@@ -968,7 +955,6 @@ const struct flash_driver pic32mx_flash = {
 	.commands = pic32mx_command_handlers,
 	.flash_bank_command = pic32mx_flash_bank_command,
 	.erase = pic32mx_erase,
-	.protect = pic32mx_protect,
 	.write = pic32mx_write,
 	.read = default_flash_read,
 	.probe = pic32mx_probe,
