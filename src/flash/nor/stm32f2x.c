@@ -204,7 +204,7 @@ struct stm32x_flash_bank {
 	bool has_extra_options; /* F42x/43x/469/479/7xx */
 	bool has_boot_addr;     /* F7xx */
 	bool has_optcr2_pcrop;	/* F72x/73x */
-	int protection_bits;	/* F413/423 */
+	unsigned int protection_bits; /* F413/423 */
 	uint32_t user_bank_size;
 };
 
@@ -571,7 +571,7 @@ static int stm32x_protect_check(struct flash_bank *bank)
 {
 	struct stm32x_flash_bank *stm32x_info = bank->driver_priv;
 	struct flash_sector *prot_blocks;
-	int num_prot_blocks;
+	unsigned int num_prot_blocks;
 	int retval;
 
 	/* if it's the OTP bank, look at the lock bits there */
@@ -593,7 +593,7 @@ static int stm32x_protect_check(struct flash_bank *bank)
 		prot_blocks = bank->sectors;
 	}
 
-	for (int i = 0; i < num_prot_blocks; i++)
+	for (unsigned int i = 0; i < num_prot_blocks; i++)
 		prot_blocks[i].is_protected =
 			~(stm32x_info->option_bytes.protection >> i) & 1;
 
@@ -906,9 +906,8 @@ static void setup_sector(struct flash_bank *bank, unsigned int i,
 	LOG_DEBUG("sector %d: %dkBytes", i, size >> 10);
 }
 
-static uint16_t sector_size_in_kb(int i, uint16_t max_sector_size_in_kb)
+static uint16_t sector_size_in_kb(unsigned int i, uint16_t max_sector_size_in_kb)
 {
-	assert(i >= 0);
 	if (i < 4)
 		return max_sector_size_in_kb / 8;
 	if (i == 4)
@@ -916,13 +915,13 @@ static uint16_t sector_size_in_kb(int i, uint16_t max_sector_size_in_kb)
 	return max_sector_size_in_kb;
 }
 
-static int calculate_number_of_sectors(struct flash_bank *bank,
+static unsigned int calculate_number_of_sectors(struct flash_bank *bank,
 		uint16_t flash_size_in_kb,
 		uint16_t max_sector_size_in_kb)
 {
 	struct stm32x_flash_bank *stm32x_info = bank->driver_priv;
 	uint16_t remaining_flash_size_in_kb = flash_size_in_kb;
-	int nr_sectors;
+	unsigned int nr_sectors;
 
 	/* Dual Bank Flash has two identically-arranged banks of sectors. */
 	if (stm32x_info->has_large_mem)
@@ -943,11 +942,11 @@ static int calculate_number_of_sectors(struct flash_bank *bank,
 	return stm32x_info->has_large_mem ? nr_sectors*2 : nr_sectors;
 }
 
-static void setup_bank(struct flash_bank *bank, int start,
+static void setup_bank(struct flash_bank *bank, unsigned int start,
 	uint16_t flash_size_in_kb, uint16_t max_sector_size_in_kb)
 {
 	uint16_t remaining_flash_size_in_kb = flash_size_in_kb;
-	int sector_index = 0;
+	unsigned int sector_index = 0;
 	while (remaining_flash_size_in_kb > 0) {
 		uint16_t size_in_kb = sector_size_in_kb(sector_index, max_sector_size_in_kb);
 		if (size_in_kb > remaining_flash_size_in_kb) {
@@ -996,7 +995,7 @@ static int stm32x_probe(struct flash_bank *bank)
 {
 	struct target *target = bank->target;
 	struct stm32x_flash_bank *stm32x_info = bank->driver_priv;
-	int i, num_prot_blocks, num_sectors;
+	unsigned int num_prot_blocks, num_sectors;
 	uint16_t flash_size_in_kb;
 	uint16_t otp_size_in_b;
 	uint16_t otp_sector_size;
@@ -1049,7 +1048,7 @@ static int stm32x_probe(struct flash_bank *bank)
 		else
 			bank->size = STM32F2_OTP_SIZE;
 
-		for (i = 0; i < num_sectors; i++) {
+		for (unsigned int i = 0; i < num_sectors; i++) {
 			bank->sectors[i].offset = i * otp_sector_size;
 			bank->sectors[i].size = otp_sector_size;
 			bank->sectors[i].is_erased = 1;
@@ -1190,18 +1189,18 @@ static int stm32x_probe(struct flash_bank *bank)
 	}
 
 	/* calculate numbers of pages */
-	int num_pages = calculate_number_of_sectors(
+	unsigned int num_pages = calculate_number_of_sectors(
 			bank, flash_size_in_kb, max_sector_size_in_kb);
 
 	bank->base = base_address;
 	bank->num_sectors = num_pages;
 	bank->sectors = calloc(num_pages, sizeof(struct flash_sector));
-	for (i = 0; i < num_pages; i++) {
+	for (unsigned int i = 0; i < num_pages; i++) {
 		bank->sectors[i].is_erased = -1;
 		bank->sectors[i].is_protected = 0;
 	}
 	bank->size = 0;
-	LOG_DEBUG("allocated %d sectors", num_pages);
+	LOG_DEBUG("allocated %u sectors", num_pages);
 
 	/* F76x/77x in dual bank mode */
 	if ((device_id == 0x451) && stm32x_info->has_large_mem)
@@ -1209,9 +1208,9 @@ static int stm32x_probe(struct flash_bank *bank)
 
 	if (num_prot_blocks) {
 		bank->prot_blocks = malloc(sizeof(struct flash_sector) * num_prot_blocks);
-		for (i = 0; i < num_prot_blocks; i++)
+		for (unsigned int i = 0; i < num_prot_blocks; i++)
 			bank->prot_blocks[i].is_protected = 0;
-		LOG_DEBUG("allocated %d prot blocks", num_prot_blocks);
+		LOG_DEBUG("allocated %u prot blocks", num_prot_blocks);
 	}
 
 	if (stm32x_info->has_large_mem) {
@@ -1222,7 +1221,7 @@ static int stm32x_probe(struct flash_bank *bank)
 
 		/* F767x/F77x in dual mode, one protection bit refers to two adjacent sectors */
 		if (device_id == 0x451) {
-			for (i = 0; i < num_prot_blocks; i++) {
+			for (unsigned int i = 0; i < num_prot_blocks; i++) {
 				bank->prot_blocks[i].offset = bank->sectors[i << 1].offset;
 				bank->prot_blocks[i].size = bank->sectors[i << 1].size
 						+ bank->sectors[(i << 1) + 1].size;
@@ -1234,7 +1233,7 @@ static int stm32x_probe(struct flash_bank *bank)
 
 		/* F413/F423, sectors 14 and 15 share one common protection bit */
 		if (device_id == 0x463) {
-			for (i = 0; i < num_prot_blocks; i++) {
+			for (unsigned int i = 0; i < num_prot_blocks; i++) {
 				bank->prot_blocks[i].offset = bank->sectors[i].offset;
 				bank->prot_blocks[i].size = bank->sectors[i].size;
 			}
