@@ -79,33 +79,25 @@ static int virtual_protect(struct flash_bank *bank, int set, unsigned int first,
 		unsigned int last)
 {
 	struct flash_bank *master_bank = virtual_get_master_bank(bank);
-	int retval;
 
 	if (master_bank == NULL)
 		return ERROR_FLASH_OPERATION_FAILED;
 
-	/* call master handler */
-	retval = master_bank->driver->protect(master_bank, set, first, last);
-	if (retval != ERROR_OK)
-		return retval;
-
-	return ERROR_OK;
+	return flash_driver_protect(master_bank, set, first, last);
 }
 
 static int virtual_protect_check(struct flash_bank *bank)
 {
 	struct flash_bank *master_bank = virtual_get_master_bank(bank);
-	int retval;
 
 	if (master_bank == NULL)
 		return ERROR_FLASH_OPERATION_FAILED;
 
-	/* call master handler */
-	retval = master_bank->driver->protect_check(master_bank);
-	if (retval != ERROR_OK)
-		return retval;
+	if (master_bank->driver->protect_check == NULL)
+		return ERROR_FLASH_OPER_UNSUPPORTED;
 
-	return ERROR_OK;
+	/* call master handler */
+	return master_bank->driver->protect_check(master_bank);
 }
 
 static int virtual_erase(struct flash_bank *bank, unsigned int first,
