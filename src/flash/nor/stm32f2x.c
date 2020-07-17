@@ -1026,7 +1026,7 @@ static int stm32x_probe(struct flash_bank *bank)
 		bank->prot_blocks = NULL;
 	}
 
-	/* if explicitely called out as OTP bank, short circuit probe */
+	/* if explicitly called out as OTP bank, short circuit probe */
 	if (stm32x_is_otp(bank)) {
 		if (stm32x_otp_is_f7(bank)) {
 			otp_size_in_b = STM32F7_OTP_SIZE;
