@@ -81,7 +81,8 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 
 		/* Match VID/PID */
 
-		bool id_match = true; /* match if we don't enter the loop (no filter) */
+		bool id_match = false;
+		bool id_filter = vids[0] || pids[0];
 		for (int id = 0; vids[id] || pids[id]; id++) {
 			id_match = !vids[id] || dev_desc.idVendor == vids[id];
 			id_match &= !pids[id] || dev_desc.idProduct == pids[id];
@@ -90,7 +91,7 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 				break;
 		}
 
-		if (!id_match)
+		if (id_filter && !id_match)
 			continue;
 
 		/* Don't continue if we asked for a serial number and the device doesn't have one */
@@ -103,7 +104,7 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 			/* It's to be expected that most USB devices can't be opened
 			 * so only report an error if it was explicitly selected
 			 */
-			if (vids[0] || pids[0]) {
+			if (id_filter) {
 				LOG_ERROR("could not open device 0x%04x:0x%04x: %s",
 						dev_desc.idVendor, dev_desc.idProduct, libusb_strerror(err));
 			} else {
@@ -115,7 +116,7 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 
 		/* Match serial number */
 
-		bool serial_match = (serial == NULL);
+		bool serial_match = false;
 		char dev_serial[256] = {0};
 		if (dev_desc.iSerialNumber > 0) {
 			err = libusb_get_string_descriptor_ascii(
@@ -123,14 +124,19 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 					(uint8_t *)dev_serial, sizeof(dev_serial));
 
 			if (err < 0) {
-				LOG_ERROR("could not read serial number for device 0x%04x:0x%04x: %s",
-						dev_desc.idVendor, dev_desc.idProduct, libusb_strerror(err));
+				const char *msg = "could not read serial number for device 0x%04x:0x%04x: %s";
+				if (serial)
+					LOG_WARNING(msg, dev_desc.idVendor, dev_desc.idProduct,
+								libusb_strerror(err));
+				else
+					LOG_DEBUG(msg, dev_desc.idVendor, dev_desc.idProduct,
+								libusb_strerror(err));
 			} else if (serial && strncmp(dev_serial, serial, sizeof(dev_serial)) == 0) {
 				serial_match = true;
 			}
 		}
 
-		if (!serial_match) {
+		if (serial && !serial_match) {
 			libusb_close(dev_handle);
 			continue;
 		}
@@ -147,10 +153,24 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 				LOG_ERROR("could not read product string for device 0x%04x:0x%04x: %s",
 						dev_desc.idVendor, dev_desc.idProduct, libusb_strerror(err));
 			} else if (strstr(product_string, "CMSIS-DAP")) {
-				LOG_DEBUG("CMSIS-DAP found in product string");
+				LOG_DEBUG("CMSIS-DAP found in product string of 0x%04x:0x%04x",
+						  dev_desc.idVendor, dev_desc.idProduct);
 				cmsis_dap_found = true;
 			}
 		}
+
+		/* If the device has been matched by vid:pid or by serial num
+		 * then search for an interface. */
+		bool enumerate_interfaces = id_match || serial_match;
+
+		/* If the product string contains CMSIS-DAP and we don't look for
+		 * exact vid:pid or serial num then search too. */
+		if (!(id_filter || serial) && cmsis_dap_found)
+			enumerate_interfaces = true;
+
+		/* Otherwise look for another device */
+		if (!enumerate_interfaces)
+			continue;
 
 		/* Find the CMSIS-DAP interface */
 
@@ -163,6 +183,8 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 				continue;
 			}
 
+			LOG_DEBUG("enumerating interfaces of 0x%04x:0x%04x",
+					  dev_desc.idVendor, dev_desc.idProduct);
 			int config_num = config_desc->bConfigurationValue;
 
 			for (int interface = 0; interface < config_desc->bNumInterfaces; interface++) {
@@ -190,42 +212,65 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 				 *  - Endpoint 3: Bulk In (optional) – used for streaming SWO trace (if enabled with SWO_STREAM).
 				 */
 
-				if (intf_desc->bNumEndpoints < 2)
+				/* Search for "CMSIS-DAP" in the interface string */
+				bool cmsis_dap_in_interface_str = false;
+				if (intf_desc->iInterface != 0) {
+
+					char interface_str[256] = {0};
+
+					err = libusb_get_string_descriptor_ascii(
+							dev_handle, intf_desc->iInterface,
+							(uint8_t *)interface_str, sizeof(interface_str));
+					if (err < 0) {
+						LOG_DEBUG("could not read interface string %d for device 0x%04x:0x%04x: %s",
+								  intf_desc->iInterface,
+								  dev_desc.idVendor, dev_desc.idProduct,
+								  libusb_strerror(err));
+					} else if (strstr(interface_str, "CMSIS-DAP")) {
+						cmsis_dap_in_interface_str = true;
+						LOG_DEBUG("CMSIS-DAP found in interface %d string of 0x%04x:0x%04x",
+								  interface_num, dev_desc.idVendor, dev_desc.idProduct);
+					}
+				}
+				/* Bypass the following check if this interface was explicitly requested. */
+				if (cmsis_dap_usb_interface == -1) {
+					if (!cmsis_dap_in_interface_str)
+						continue;
+				}
+
+				/* check endpoints */
+				if (intf_desc->bNumEndpoints < 2) {
+					LOG_DEBUG("skipping interface %d, has only %d endpoints",
+							  interface_num, intf_desc->bNumEndpoints);
 					continue;
+				}
 
 				if ((intf_desc->endpoint[0].bmAttributes & 3) != LIBUSB_TRANSFER_TYPE_BULK ||
-						(intf_desc->endpoint[0].bEndpointAddress & 0x80) != LIBUSB_ENDPOINT_OUT)
+						(intf_desc->endpoint[0].bEndpointAddress & 0x80) != LIBUSB_ENDPOINT_OUT) {
+					LOG_DEBUG("skipping interface %d, endpoint[0] is not bulk out",
+							  interface_num);
 					continue;
+				}
 
 				if ((intf_desc->endpoint[1].bmAttributes & 3) != LIBUSB_TRANSFER_TYPE_BULK ||
-						(intf_desc->endpoint[1].bEndpointAddress & 0x80) != LIBUSB_ENDPOINT_IN)
+						(intf_desc->endpoint[1].bEndpointAddress & 0x80) != LIBUSB_ENDPOINT_IN) {
+					LOG_DEBUG("skipping interface %d, endpoint[1] is not bulk in",
+							  interface_num);
 					continue;
+				}
 
 				/* Bypass the following checks if this interface was explicitly requested. */
 				if (cmsis_dap_usb_interface == -1) {
 					if (intf_desc->bInterfaceClass != LIBUSB_CLASS_VENDOR_SPEC ||
-							intf_desc->bInterfaceSubClass != 0 || intf_desc->bInterfaceProtocol != 0)
+							intf_desc->bInterfaceSubClass != 0 || intf_desc->bInterfaceProtocol != 0) {
+						LOG_DEBUG("skipping interface %d, class %" PRId8
+								  " subclass %" PRId8 " protocol %" PRId8,
+								  interface_num,
+								  intf_desc->bInterfaceClass,
+								  intf_desc->bInterfaceSubClass,
+								  intf_desc->bInterfaceProtocol);
 						continue;
 
-					/* Search for "CMSIS-DAP" in the interface string */
-					if (cmsis_dap_usb_interface != -1 && !cmsis_dap_found) {
-						if (intf_desc->iInterface == 0)
-							continue;
-
-						char interface_str[256] = {0};
-
-						err = libusb_get_string_descriptor_ascii(
-								dev_handle, intf_desc->iInterface,
-								(uint8_t *)interface_str, sizeof(interface_str));
-						if (err < 0) {
-							LOG_ERROR("could not read interface string for device 0x%04x:0x%04x: %s",
-									dev_desc.idVendor, dev_desc.idProduct, libusb_strerror(err));
-							continue;
-						} else if (!strstr(interface_str, "CMSIS-DAP")) {
-							continue;
-						} else {
-							LOG_DEBUG("CMSIS-DAP found in interface string");
-						}
 					}
 				}
 
