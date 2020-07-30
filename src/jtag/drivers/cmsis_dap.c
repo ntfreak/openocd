@@ -43,15 +43,6 @@
 
 #include "cmsis_dap.h"
 
-#if BUILD_CMSIS_DAP_USB == 1
-const struct cmsis_dap_backend cmsis_dap_usb_backend;
-extern const struct command_registration cmsis_dap_usb_subcommand_handlers[];
-#endif
-
-#if BUILD_CMSIS_DAP_HID == 1
-const struct cmsis_dap_backend cmsis_dap_hid_backend;
-#endif
-
 static const struct cmsis_dap_backend *const cmsis_dap_backends[] = {
 #if BUILD_CMSIS_DAP_USB == 1
 	&cmsis_dap_usb_backend,

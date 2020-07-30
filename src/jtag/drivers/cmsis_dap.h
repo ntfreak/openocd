@@ -25,4 +25,8 @@ struct cmsis_dap_backend {
 	int (*write)(struct cmsis_dap *dap, int len, int timeout_ms);
 };
 
+extern const struct cmsis_dap_backend cmsis_dap_hid_backend;
+extern const struct cmsis_dap_backend cmsis_dap_usb_backend;
+extern const struct command_registration cmsis_dap_usb_subcommand_handlers[];
+
 #endif
