@@ -51,7 +51,7 @@ struct log_capture_state {
 
 static int unregister_command(struct command_context *context,
 	const char *cmd_prefix, const char *name);
-static int command_unknown(Jim_Interp *interp, int argc, Jim_Obj * const *argv);
+static int jim_command_dispatch(Jim_Interp *interp, int argc, Jim_Obj * const *argv);
 
 /* set of functions to wrap jimtcl internal data */
 static inline bool jimcmd_is_proc(Jim_Cmd *cmd)
@@ -61,7 +61,7 @@ static inline bool jimcmd_is_proc(Jim_Cmd *cmd)
 
 static inline bool jimcmd_is_ocd_command(Jim_Cmd *cmd)
 {
-	return !cmd->isproc && cmd->u.native.cmdProc == command_unknown;
+	return !cmd->isproc && cmd->u.native.cmdProc == jim_command_dispatch;
 }
 
 static inline void *jimcmd_privdata(Jim_Cmd *cmd)
@@ -306,7 +306,7 @@ static struct command *register_command(struct command_context *context,
 
 	LOG_DEBUG("registering '%s'...", full_name);
 	int retval = Jim_CreateCommand(context->interp, full_name,
-				command_unknown, c, command_free);
+				jim_command_dispatch, c, command_free);
 	if (retval != JIM_OK) {
 		command_run_linef(context, "del_help_text {%s}", full_name);
 		command_run_linef(context, "del_usage_text {%s}", full_name);
@@ -780,7 +780,7 @@ static int exec_command(Jim_Interp *interp, struct command_context *cmd_ctx,
 	return command_retval_set(interp, retval);
 }
 
-static int command_unknown(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
+static int jim_command_dispatch(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 {
 	struct command *c = Jim_CmdPrivData(interp);
 
@@ -822,7 +822,7 @@ static int command_unknown(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 	 * current_target_override is used also for event handlers
 	 * therefore we prevent touching it if command has no prefix.
 	 * Previous override is saved and restored back to ensure
-	 * correct work when command_unknown() is re-entered.
+	 * correct work when jim_command_dispatch() is re-entered.
 	 */
 	struct target *saved_target_override = cmd_ctx->current_target_override;
 	if (c->jim_override_target)
