@@ -147,7 +147,11 @@ static const struct stm32h7x_rev stm32_480_revs[] = {
 	{ 0x1000, "A"},
 };
 
-static uint32_t stm32x_compute_flash_cr_450(uint32_t cmd, int snb)
+static const struct stm32h7x_rev stm32_483_revs[] = {
+	{ 0x1000, "A" }, { 0x1001, "Z" },
+};
+
+static uint32_t stm32x_compute_flash_cr_450_483(uint32_t cmd, int snb)
 {
 	return cmd | (snb << 8);
 }
@@ -177,7 +181,7 @@ static const struct stm32h7x_part_info stm32h7x_parts[] = {
 	.fsize_addr			= 0x1FF1E880,
 	.wps_group_size		= 1,
 	.wps_mask			= 0xFF,
-	.compute_flash_cr	= stm32x_compute_flash_cr_450,
+	.compute_flash_cr	= stm32x_compute_flash_cr_450_483,
 	},
 	{
 	.id					= 0x480,
@@ -193,6 +197,21 @@ static const struct stm32h7x_part_info stm32h7x_parts[] = {
 	.wps_group_size		= 4,
 	.wps_mask			= 0xFFFFFFFF,
 	.compute_flash_cr	= stm32x_compute_flash_cr_480,
+	},
+	{
+	.id					= 0x483,
+	.revs				= stm32_483_revs,
+	.num_revs			= ARRAY_SIZE(stm32_483_revs),
+	.device_str			= "STM32H72x/73x",
+	.page_size_kb		= 128,
+	.block_size			= 32,
+	.max_flash_size_kb	= 1024,
+	.max_bank_size_kb	= 1024,
+	.has_dual_bank		= false,
+	.fsize_addr			= 0x1FF1E880,
+	.wps_group_size		= 1,
+	.wps_mask			= 0xFF,
+	.compute_flash_cr   = stm32x_compute_flash_cr_450_483,
 	},
 };
 
