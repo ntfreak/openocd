@@ -1025,7 +1025,7 @@ static int gdb_new_connection(struct connection *connection)
 		return ERROR_TARGET_NOT_EXAMINED;
 	}
 
-	if (target->state == TARGET_HALTED)
+	if (target->state != TARGET_HALTED)
 		LOG_WARNING("GDB connection %d on target %s not halted",
 					gdb_actual_connections, target_name(target));
 
