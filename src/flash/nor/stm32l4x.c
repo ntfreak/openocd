@@ -184,6 +184,10 @@ static const struct stm32l4_rev stm32_471_revs[] = {
 	{ 0x1001, "Z" },
 };
 
+static const struct stm32l4_rev stm32_479_revs[] = {
+	{ 0x1000, "A" },
+};
+
 static const struct stm32l4_rev stm32_495_revs[] = {
 	{ 0x2001, "2.1" },
 };
@@ -304,6 +308,16 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32L4P5/L4Q5x",
 	  .max_flash_size_kb     = 1024,
 	  .has_dual_bank         = true,
+	  .flash_regs_base       = 0x40022000,
+	  .fsize_addr            = 0x1FFF75E0,
+	},
+	{
+	  .id                    = 0x479,
+	  .revs                  = stm32_479_revs,
+	  .num_revs              = ARRAY_SIZE(stm32_479_revs),
+	  .device_str            = "STM32G49/G4Axx",
+	  .max_flash_size_kb     = 512,
+	  .has_dual_bank         = false,
 	  .flash_regs_base       = 0x40022000,
 	  .fsize_addr            = 0x1FFF75E0,
 	},
@@ -952,6 +966,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 	case 0x464: /* STM32L41/L42xx */
 	case 0x466: /* STM32G03/G04xx */
 	case 0x468: /* STM32G43/G44xx */
+	case 0x479: /* STM32G49/G4Axx */
 	case 0x497: /* STM32WLEx */
 		/* single bank flash */
 		page_size_kb = 2;
