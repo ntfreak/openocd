@@ -502,6 +502,18 @@ static int cortex_m_debug_entry(struct target *target)
 	if (retval != ERROR_OK)
 		return retval;
 
+	/* examine PE security state */
+	bool secure_state = false;
+	if (armv7m->arm.is_armv8m) {
+		uint32_t dscsr;
+
+		retval = mem_ap_read_u32(armv7m->debug_ap, DCB_DSCSR, &dscsr);
+		if (retval != ERROR_OK)
+			return retval;
+
+		secure_state = (dscsr & DSCSR_CDS) == DSCSR_CDS;
+	}
+
 	/* Examine target state and mode
 	 * First load register accessible through core debug port */
 	int num_regs = arm->core_cache->num_regs;
@@ -548,9 +560,10 @@ static int cortex_m_debug_entry(struct target *target)
 	if (armv7m->exception_number)
 		cortex_m_examine_exception_reason(target);
 
-	LOG_DEBUG("entered debug state in core mode: %s at PC 0x%" PRIx32 ", target->state: %s",
+	LOG_DEBUG("entered debug state in core mode: %s at PC 0x%" PRIx32 ", cpu in %s state, target->state: %s",
 		arm_mode_name(arm->core_mode),
 		buf_get_u32(arm->pc->value, 0, 32),
+		secure_state ? "Secure" : "Non-Secure",
 		target_state_name(target));
 
 	if (armv7m->post_debug_entry) {
@@ -2156,6 +2169,9 @@ int cortex_m_examine(struct target *target)
 		/* Get CPU Type */
 		i = (cpuid >> 4) & 0xf;
 
+		/* Check if it is an ARMv8-M core */
+		armv7m->arm.is_armv8m = true;
+
 		switch (cpuid & ARM_CPUID_PARTNO_MASK) {
 			case CORTEX_M23_PARTNO:
 				i = 23;
@@ -2166,6 +2182,7 @@ int cortex_m_examine(struct target *target)
 				break;
 
 			default:
+				armv7m->arm.is_armv8m = false;
 				break;
 		}
 

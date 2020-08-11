@@ -50,6 +50,7 @@
 #define DCB_DCRSR	0xE000EDF4
 #define DCB_DCRDR	0xE000EDF8
 #define DCB_DEMCR	0xE000EDFC
+#define DCB_DSCSR	0xE000EE08
 
 #define DCRSR_WnR	BIT(16)
 
@@ -113,6 +114,9 @@
 #define VC_NOCPERR		BIT(5)
 #define VC_MMERR		BIT(4)
 #define VC_CORERESET	BIT(0)
+
+/* DCB_DSCSR bit and field definitions */
+#define DSCSR_CDS		BIT(16)
 
 /* NVIC registers */
 #define NVIC_ICTR		0xE000E004
