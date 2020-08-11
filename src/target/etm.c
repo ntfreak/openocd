@@ -1106,8 +1106,8 @@ static int etmv1_analyze_trace(struct etm_context *ctx, struct command_invocatio
 			if (((instruction.type == ARM_B) ||
 				(instruction.type == ARM_BL) ||
 				(instruction.type == ARM_BLX)) &&
-				(instruction.info.b_bl_bx_blx.target_address != 0xffffffff))
-				next_pc = instruction.info.b_bl_bx_blx.target_address;
+				(instruction.info.branch.target_address != 0xffffffff))
+				next_pc = instruction.info.branch.target_address;
 			else
 				next_pc += (ctx->core_state == ARM_STATE_ARM) ? 4 : 2;
 		} else if (pipestat == STAT_IN)

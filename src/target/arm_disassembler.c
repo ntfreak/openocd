@@ -336,8 +336,8 @@ static int evaluate_blx_imm(uint32_t opcode,
 			opcode,
 			target_address);
 
-	instruction->info.b_bl_bx_blx.reg_operand = -1;
-	instruction->info.b_bl_bx_blx.target_address = target_address;
+	instruction->info.branch.reg_operand = -1;
+	instruction->info.branch.target_address = target_address;
 
 	return ERROR_OK;
 }
@@ -378,8 +378,8 @@ static int evaluate_b_bl(uint32_t opcode,
 			COND(opcode),
 			target_address);
 
-	instruction->info.b_bl_bx_blx.reg_operand = -1;
-	instruction->info.b_bl_bx_blx.target_address = target_address;
+	instruction->info.branch.reg_operand = -1;
+	instruction->info.branch.target_address = target_address;
 
 	return ERROR_OK;
 }
@@ -1430,8 +1430,8 @@ static int evaluate_misc_instr(uint32_t opcode,
 		snprintf(instruction->text, 128, "0x%8.8" PRIx32 "\t0x%8.8" PRIx32 "\tBX%s r%i",
 				address, opcode, COND(opcode), Rm);
 
-		instruction->info.b_bl_bx_blx.reg_operand = Rm;
-		instruction->info.b_bl_bx_blx.target_address = -1;
+		instruction->info.branch.reg_operand = Rm;
+		instruction->info.branch.target_address = -1;
 	}
 
 	/* BXJ - "Jazelle" support (ARMv5-J) */
@@ -1444,8 +1444,8 @@ static int evaluate_misc_instr(uint32_t opcode,
 				"0x%8.8" PRIx32 "\t0x%8.8" PRIx32 "\tBXJ%s r%i",
 				address, opcode, COND(opcode), Rm);
 
-		instruction->info.b_bl_bx_blx.reg_operand = Rm;
-		instruction->info.b_bl_bx_blx.target_address = -1;
+		instruction->info.branch.reg_operand = Rm;
+		instruction->info.branch.target_address = -1;
 	}
 
 	/* CLZ */
@@ -1474,8 +1474,8 @@ static int evaluate_misc_instr(uint32_t opcode,
 		snprintf(instruction->text, 128, "0x%8.8" PRIx32 "\t0x%8.8" PRIx32 "\tBLX%s r%i",
 				address, opcode, COND(opcode), Rm);
 
-		instruction->info.b_bl_bx_blx.reg_operand = Rm;
-		instruction->info.b_bl_bx_blx.target_address = -1;
+		instruction->info.branch.reg_operand = Rm;
+		instruction->info.branch.target_address = -1;
 	}
 
 	/* Enhanced DSP add/subtracts */
@@ -2110,8 +2110,8 @@ static int evaluate_b_bl_blx_thumb(uint16_t opcode,
 			"0x%8.8" PRIx32 "  0x%4.4x    \t%s\t%#8.8" PRIx32,
 			address, opcode, mnemonic, target_address);
 
-	instruction->info.b_bl_bx_blx.reg_operand = -1;
-	instruction->info.b_bl_bx_blx.target_address = target_address;
+	instruction->info.branch.reg_operand = -1;
+	instruction->info.branch.target_address = target_address;
 
 	return ERROR_OK;
 }
@@ -2286,7 +2286,7 @@ static int evaluate_data_proc_thumb(uint16_t opcode,
 				break;
 			case 0x3:
 				if ((opcode & 0x7) == 0x0) {
-					instruction->info.b_bl_bx_blx.reg_operand = Rm;
+					instruction->info.branch.reg_operand = Rm;
 					if (H1) {
 						instruction->type = ARM_BLX;
 						snprintf(instruction->text, 128,
@@ -2746,8 +2746,8 @@ static int evaluate_cond_branch_thumb(uint16_t opcode,
 			arm_condition_strings[cond], target_address);
 
 	instruction->type = ARM_B;
-	instruction->info.b_bl_bx_blx.reg_operand = -1;
-	instruction->info.b_bl_bx_blx.target_address = target_address;
+	instruction->info.branch.reg_operand = -1;
+	instruction->info.branch.target_address = target_address;
 
 	return ERROR_OK;
 }
@@ -3049,8 +3049,8 @@ static int t2ev_b_bl(uint32_t opcode, uint32_t address,
 	default:
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	}
-	instruction->info.b_bl_bx_blx.reg_operand = -1;
-	instruction->info.b_bl_bx_blx.target_address = address;
+	instruction->info.branch.reg_operand = -1;
+	instruction->info.branch.target_address = address;
 	sprintf(cp, "%s\t%#8.8" PRIx32, inst, address);
 
 	return ERROR_OK;
@@ -3085,8 +3085,8 @@ static int t2ev_cond_b(uint32_t opcode, uint32_t address,
 	address += offset << 1;
 
 	instruction->type = ARM_B;
-	instruction->info.b_bl_bx_blx.reg_operand = -1;
-	instruction->info.b_bl_bx_blx.target_address = address;
+	instruction->info.branch.reg_operand = -1;
+	instruction->info.branch.target_address = address;
 	sprintf(cp, "B%s.W\t%#8.8" PRIx32,
 			arm_condition_strings[cond],
 			address);

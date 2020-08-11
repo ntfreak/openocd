@@ -2799,7 +2799,7 @@ static int xscale_analyze_trace(struct target *target, struct command_invocation
 			if ((trace_msg_type == 8) || (trace_msg_type == 12)) {
 				retval = xscale_read_instruction(target, current_pc, &instruction);
 				if (retval == ERROR_OK)
-					current_pc = instruction.info.b_bl_bx_blx.target_address;
+					current_pc = instruction.info.branch.target_address;
 				else
 					current_pc = 0;	/* branch destination unknown */
 

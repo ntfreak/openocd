@@ -290,14 +290,14 @@ static int arm_simulate_step_core(struct target *target,
 
 		/* Deal with 32-bit BL/BLX */
 		if ((opcode & 0xf800) == 0xf000) {
-			uint32_t high = instruction.info.b_bl_bx_blx.target_address;
+			uint32_t high = instruction.info.branch.target_address;
 			retval = target_read_u16(target, current_pc+2, &opcode);
 			if (retval != ERROR_OK)
 				return retval;
 			retval = thumb_evaluate_opcode(opcode, current_pc, &instruction);
 			if (retval != ERROR_OK)
 				return retval;
-			instruction.info.b_bl_bx_blx.target_address += high;
+			instruction.info.branch.target_address += high;
 		}
 	}
 
@@ -307,12 +307,12 @@ static int arm_simulate_step_core(struct target *target,
 	if ((instruction.type >= ARM_B) && (instruction.type <= ARM_BLX)) {
 		uint32_t target_address;
 
-		if (instruction.info.b_bl_bx_blx.reg_operand == -1)
-			target_address = instruction.info.b_bl_bx_blx.target_address;
+		if (instruction.info.branch.reg_operand == -1)
+			target_address = instruction.info.branch.target_address;
 		else {
 			target_address = sim->get_reg_mode(sim,
-					instruction.info.b_bl_bx_blx.reg_operand);
-			if (instruction.info.b_bl_bx_blx.reg_operand == 15)
+					instruction.info.branch.reg_operand);
+			if (instruction.info.branch.reg_operand == 15)
 				target_address += 2 * instruction_size;
 		}
 
