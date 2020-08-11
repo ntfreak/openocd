@@ -2176,11 +2176,15 @@ int cortex_m_examine(struct target *target)
 			case CORTEX_M23_PARTNO:
 				i = 23;
 				break;
-
 			case CORTEX_M33_PARTNO:
 				i = 33;
 				break;
-
+			case CORTEX_M35P_PARTNO:
+				i = 35;
+				break;
+			case CORTEX_M55_PARTNO:
+				i = 55;
+				break;
 			default:
 				armv7m->arm.is_armv8m = false;
 				break;
@@ -2213,7 +2217,7 @@ int cortex_m_examine(struct target *target)
 				LOG_DEBUG("Cortex-M%d floating point feature FPv4_SP found", i);
 				armv7m->fp_feature = FPv4_SP;
 			}
-		} else if (i == 7 || i == 33) {
+		} else if (i == 7 || i == 33 || i == 35 || i == 55) {
 			target_read_u32(target, MVFR0, &mvfr0);
 			target_read_u32(target, MVFR1, &mvfr1);
 

@@ -44,6 +44,8 @@
 
 #define CORTEX_M23_PARTNO	0xD200
 #define CORTEX_M33_PARTNO	0xD210
+#define CORTEX_M35P_PARTNO	0xD310
+#define CORTEX_M55_PARTNO	0xD220
 
 /* Debug Control Block */
 #define DCB_DHCSR	0xE000EDF0
