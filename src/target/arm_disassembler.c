@@ -2300,6 +2300,21 @@ static int evaluate_data_proc_thumb(uint16_t opcode,
 								"  0x%4.4x    \tBX\tr%i",
 								address, opcode, Rm);
 					}
+				} else if ((opcode & 0x7) == 0x4) {
+					instruction->info.branch.reg_operand = Rm;
+					if (H1) {
+						instruction->type = ARM_BLXNS;
+						snprintf(instruction->text, 128,
+								"0x%8.8" PRIx32
+								"  0x%4.4x    \tBLXNS\tr%i",
+								address, opcode, Rm);
+					} else {
+						instruction->type = ARM_BXNS;
+						snprintf(instruction->text, 128,
+								"0x%8.8" PRIx32
+								"  0x%4.4x    \tBXNS\tr%i",
+								address, opcode, Rm);
+					}
 				} else {
 					instruction->type = ARM_UNDEFINED_INSTRUCTION;
 					snprintf(instruction->text, 128,

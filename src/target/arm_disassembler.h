@@ -26,7 +26,9 @@ enum arm_instruction_type {
 	ARM_B,
 	ARM_BL,
 	ARM_BX,
+	ARM_BXNS,
 	ARM_BLX,
+	ARM_BLXNS,
 
 	/* Data processing instructions */
 	ARM_AND,
