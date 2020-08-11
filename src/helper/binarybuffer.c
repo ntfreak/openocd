@@ -221,16 +221,26 @@ char *buf_to_str(const void *_buf, unsigned buf_len, unsigned radix)
 
 	const uint8_t *buf = _buf;
 	int b256_len = DIV_ROUND_UP(buf_len, 8);
-	for (int i = b256_len - 1; i >= 0; i--) {
-		uint32_t tmp = buf[i];
-		if (((unsigned)i == (buf_len / 8)) && (buf_len % 8))
-			tmp &= (0xff >> (8 - (buf_len % 8)));
+	if (radix == 16) {
+		for (int i = 0; i < b256_len; i++) {
+			uint8_t tmp = buf[b256_len - i - 1];
+			if ((i == 0) && (buf_len % 8))
+				tmp &= (0xff >> (8 - (buf_len % 8)));
+			str[2 * i] = tmp >> 4;
+			str[2 * i + 1] = tmp & 0xf;
+		}
+	} else {
+		for (int i = b256_len - 1; i >= 0; i--) {
+			uint32_t tmp = buf[i];
+			if (((unsigned)i == (buf_len / 8)) && (buf_len % 8))
+				tmp &= (0xff >> (8 - (buf_len % 8)));
 
-		/* base-256 digits */
-		for (unsigned j = str_len; j > 0; j--) {
-			tmp += (uint32_t)str[j-1] * 256;
-			str[j-1] = (uint8_t)(tmp % radix);
-			tmp /= radix;
+			/* base-256 digits */
+			for (unsigned j = str_len; j > 0; j--) {
+				tmp += (uint32_t)str[j-1] * 256;
+				str[j-1] = (uint8_t)(tmp % radix);
+				tmp /= radix;
+			}
 		}
 	}
 

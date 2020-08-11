@@ -960,7 +960,7 @@ int default_interface_jtag_execute_queue(void)
 	 * jtag/Makefile.am if MINIDRIVER_DUMMY || !MINIDRIVER, but those variables
 	 * aren't accessible here. */
 	struct jtag_command *cmd = jtag_command_queue;
-	while (debug_level >= LOG_LVL_DEBUG && cmd) {
+	while (debug_level >= LOG_LVL_DEBUG_IO && cmd) {
 		switch (cmd->type) {
 			case JTAG_SCAN:
 				LOG_DEBUG_IO("JTAG %s SCAN to %s",
