@@ -103,11 +103,10 @@ static int jtag_vpi_send_cmd(struct vpi_cmd *vpi)
 	if (LOG_LEVEL_IS(LOG_LVL_DEBUG_IO)) {
 		if (vpi->nb_bits > 0) {
 			/* command with a non-empty data payload */
-			char *char_buf = buf_to_str(vpi->buffer_out,
+			char *char_buf = buf_to_hex_str(vpi->buffer_out,
 					(vpi->nb_bits > DEBUG_JTAG_IOZ)
 						? DEBUG_JTAG_IOZ
-						: vpi->nb_bits,
-					16);
+						: vpi->nb_bits);
 			LOG_DEBUG_IO("sending JTAG VPI cmd: cmd=%s, "
 					"length=%" PRIu32 ", "
 					"nb_bits=%" PRIu32 ", "
@@ -328,9 +327,8 @@ static int jtag_vpi_queue_tdi_xfer(uint8_t *bits, int nb_bits, int tap_shift)
 
 	/* Optional low-level JTAG debug */
 	if (LOG_LEVEL_IS(LOG_LVL_DEBUG_IO)) {
-		char *char_buf = buf_to_str(vpi.buffer_in,
-				(nb_bits > DEBUG_JTAG_IOZ) ? DEBUG_JTAG_IOZ : nb_bits,
-				16);
+		char *char_buf = buf_to_hex_str(vpi.buffer_in,
+				(nb_bits > DEBUG_JTAG_IOZ) ? DEBUG_JTAG_IOZ : nb_bits);
 		LOG_DEBUG_IO("recvd JTAG VPI data: nb_bits=%d, buf_in=0x%s%s",
 			nb_bits, char_buf, (nb_bits > DEBUG_JTAG_IOZ) ? "(...)" : "");
 		free(char_buf);
