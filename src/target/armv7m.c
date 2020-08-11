@@ -48,7 +48,7 @@
 
 static const char * const armv7m_exception_strings[] = {
 	"", "Reset", "NMI", "HardFault",
-	"MemManage", "BusFault", "UsageFault", "RESERVED",
+	"MemManage", "BusFault", "UsageFault", "SecureFault",
 	"RESERVED", "RESERVED", "RESERVED", "SVCall",
 	"DebugMonitor", "RESERVED", "PendSV", "SysTick"
 };

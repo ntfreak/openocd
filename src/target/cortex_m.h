@@ -114,6 +114,7 @@
 #define VC_MMERR		BIT(4)
 #define VC_CORERESET	BIT(0)
 
+/* NVIC registers */
 #define NVIC_ICTR		0xE000E004
 #define NVIC_ISE0		0xE000E100
 #define NVIC_ICSR		0xE000ED04
@@ -127,6 +128,8 @@
 #define NVIC_DFSR		0xE000ED30
 #define NVIC_MMFAR		0xE000ED34
 #define NVIC_BFAR		0xE000ED38
+#define NVIC_SFSR		0xE000EDE4
+#define NVIC_SFAR		0xE000EDE8
 
 /* NVIC_AIRCR bits */
 #define AIRCR_VECTKEY		(0x5FAul << 16)

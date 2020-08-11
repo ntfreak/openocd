@@ -445,6 +445,14 @@ static int cortex_m_examine_exception_reason(struct target *target)
 			if (retval != ERROR_OK)
 				return retval;
 			break;
+		case 7:	/* Secure Fault */
+			retval = mem_ap_read_u32(armv7m->debug_ap, NVIC_SFSR, &except_sr);
+			if (retval != ERROR_OK)
+				return retval;
+			retval = mem_ap_read_u32(armv7m->debug_ap, NVIC_SFAR, &except_ar);
+			if (retval != ERROR_OK)
+				return retval;
+			break;
 		case 11:	/* SVCall */
 			break;
 		case 12:	/* Debug Monitor */
