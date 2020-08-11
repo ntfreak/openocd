@@ -214,10 +214,10 @@ int jtag_build_buffer(const struct scan_command *cmd, uint8_t **buffer)
 	for (i = 0; i < cmd->num_fields; i++) {
 		if (cmd->fields[i].out_value) {
 			if (LOG_LEVEL_IS(LOG_LVL_DEBUG_IO)) {
-				char *char_buf = buf_to_str(cmd->fields[i].out_value,
+				char *char_buf = buf_to_hex_str(cmd->fields[i].out_value,
 						(cmd->fields[i].num_bits > DEBUG_JTAG_IOZ)
 						? DEBUG_JTAG_IOZ
-								: cmd->fields[i].num_bits, 16);
+								: cmd->fields[i].num_bits);
 
 				LOG_DEBUG("fields[%i].out_value[%i]: 0x%s", i,
 						cmd->fields[i].num_bits, char_buf);
@@ -257,10 +257,10 @@ int jtag_read_buffer(uint8_t *buffer, const struct scan_command *cmd)
 					malloc(DIV_ROUND_UP(num_bits, 8)), 0, num_bits);
 
 			if (LOG_LEVEL_IS(LOG_LVL_DEBUG_IO)) {
-				char *char_buf = buf_to_str(captured,
+				char *char_buf = buf_to_hex_str(captured,
 						(num_bits > DEBUG_JTAG_IOZ)
 						? DEBUG_JTAG_IOZ
-								: num_bits, 16);
+								: num_bits);
 
 				LOG_DEBUG("fields[%i].in_value[%i]: 0x%s",
 						i, num_bits, char_buf);

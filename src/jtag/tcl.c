@@ -204,7 +204,7 @@ static int Jim_Command_drscan(Jim_Interp *interp, int argc, Jim_Obj *const *args
 		char *str;
 
 		Jim_GetLong(interp, args[i], &bits);
-		str = buf_to_str(fields[field_count].in_value, bits, 16);
+		str = buf_to_hex_str(fields[field_count].in_value, bits);
 		free(fields[field_count].in_value);
 
 		Jim_ListAppendElement(interp, list, Jim_NewStringObj(interp, str, strlen(str)));
