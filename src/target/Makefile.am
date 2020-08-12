@@ -7,6 +7,7 @@ endif
 %C%_libtarget_la_LIBADD = %D%/openrisc/libopenrisc.la \
 	%D%/riscv/libriscv.la
 
+%C%_libtarget_la_CPPFLAGS = $(AM_CPPFLAGS)
 
 STARTUP_TCL_SRCS += %D%/startup.tcl
 
@@ -32,6 +33,11 @@ noinst_LTLIBRARIES += %D%/libtarget.la
 	%D%/hla_target.c \
 	$(ARMV8_SRC) \
 	$(MIPS64_SRC)
+
+if HAVE_CAPSTONE
+%C%_libtarget_la_CPPFLAGS += $(CAPSTONE_CFLAGS)
+%C%_libtarget_la_LIBADD += $(CAPSTONE_LIBS)
+endif
 
 TARGET_CORE_SRC = \
 	%D%/algorithm.c \

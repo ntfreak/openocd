@@ -942,7 +942,7 @@ COMMAND_HANDLER(handle_armv4_5_core_state_command)
 
 COMMAND_HANDLER(handle_arm_disassemble_command)
 {
-	int retval = ERROR_OK;
+#if HAVE_CAPSTONE
 	struct target *target = get_current_target(CMD_CTX);
 
 	if (target == NULL) {
@@ -952,8 +952,8 @@ COMMAND_HANDLER(handle_arm_disassemble_command)
 
 	struct arm *arm = target_to_arm(target);
 	target_addr_t address;
-	int count = 1;
-	int thumb = 0;
+	unsigned int count = 1;
+	bool thumb = false;
 
 	if (!is_arm(arm)) {
 		command_print(CMD, "current target isn't an ARM");
@@ -962,62 +962,37 @@ COMMAND_HANDLER(handle_arm_disassemble_command)
 
 	if (arm->core_type == ARM_CORE_TYPE_M_PROFILE) {
 		/* armv7m is always thumb mode */
-		thumb = 1;
+		thumb = true;
 	}
 
 	switch (CMD_ARGC) {
 		case 3:
 			if (strcmp(CMD_ARGV[2], "thumb") != 0)
-				goto usage;
-			thumb = 1;
+				return ERROR_COMMAND_SYNTAX_ERROR;
+			thumb = true;
 		/* FALL THROUGH */
 		case 2:
-			COMMAND_PARSE_NUMBER(int, CMD_ARGV[1], count);
+			COMMAND_PARSE_NUMBER(uint, CMD_ARGV[1], count);
 		/* FALL THROUGH */
 		case 1:
 			COMMAND_PARSE_ADDRESS(CMD_ARGV[0], address);
 			if (address & 0x01) {
 				if (!thumb) {
 					command_print(CMD, "Disassemble as Thumb");
-					thumb = 1;
+					thumb = true;
 				}
 				address &= ~1;
 			}
 			break;
 		default:
-usage:
-			count = 0;
-			retval = ERROR_COMMAND_SYNTAX_ERROR;
+			return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 
-	while (count-- > 0) {
-		struct arm_instruction cur_instruction;
-
-		if (thumb) {
-			/* Always use Thumb2 disassembly for best handling
-			 * of 32-bit BL/BLX, and to work with newer cores
-			 * (some ARMv6, all ARMv7) that use Thumb2.
-			 */
-			retval = thumb2_opcode(target, address,
-					&cur_instruction);
-			if (retval != ERROR_OK)
-				break;
-		} else {
-			uint32_t opcode;
-
-			retval = target_read_u32(target, address, &opcode);
-			if (retval != ERROR_OK)
-				break;
-			retval = arm_evaluate_opcode(opcode, address,
-					&cur_instruction) != ERROR_OK;
-			if (retval != ERROR_OK)
-				break;
-		}
-		command_print(CMD, "%s", cur_instruction.text);
-		address += cur_instruction.instruction_size;
-	}
-
-	return retval;
+	return arm_disassemble(CMD, target, address, count, thumb);
+#else
+	command_print(CMD, "capstone disassembly framework required");
+	return ERROR_FAIL;
+#endif
 }
 
 static int jim_mcrmrc(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
