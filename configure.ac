@@ -639,6 +639,15 @@ PKG_CHECK_MODULES([LIBUSB1], [libusb-1.0], [
 
 PKG_CHECK_MODULES([LIBUSB0], [libusb], [use_libusb0=yes], [use_libusb0=no])
 
+PKG_CHECK_MODULES([CAPSTONE], [capstone], [have_capstone=yes],
+	[have_capstone=no])
+
+AS_IF([test "x$have_capstone" = "xyes"], [
+  AC_DEFINE([HAVE_CAPSTONE], [1], [1 if you have captone disassembly framework.])
+], [
+  AC_DEFINE([HAVE_CAPSTONE], [0], [0 if you don't have captone disassembly framework.])
+])
+
 for hidapi_lib in hidapi hidapi-hidraw hidapi-libusb; do
 	PKG_CHECK_MODULES([HIDAPI],[$hidapi_lib],[
 		use_hidapi=yes
@@ -757,6 +766,7 @@ AM_CONDITIONAL([USE_LIBGPIOD], [test "x$use_libgpiod" = "xyes"])
 AM_CONDITIONAL([USE_HIDAPI], [test "x$use_hidapi" = "xyes"])
 AM_CONDITIONAL([USE_LIBJAYLINK], [test "x$use_libjaylink" = "xyes"])
 AM_CONDITIONAL([RSHIM], [test "x$build_rshim" = "xyes"])
+AM_CONDITIONAL([HAVE_CAPSTONE], [test "x$have_capstone" = "xyes"])
 
 AM_CONDITIONAL([MINIDRIVER], [test "x$build_minidriver" = "xyes"])
 AM_CONDITIONAL([MINIDRIVER_DUMMY], [test "x$build_minidriver_dummy" = "xyes"])
