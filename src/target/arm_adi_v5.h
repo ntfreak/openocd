@@ -253,7 +253,7 @@ struct adiv5_dap {
 	/* Control config */
 	uint32_t dp_ctrl_stat;
 
-	struct adiv5_ap ap[256];
+	struct adiv5_ap ap[DP_APSEL_MAX + 1];
 
 	/* The current manually selected AP by the "dap apsel" command */
 	uint32_t apsel;
