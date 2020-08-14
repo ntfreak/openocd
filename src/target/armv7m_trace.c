@@ -89,27 +89,27 @@ int armv7m_trace_tpiu_config(struct target *target)
 		return ERROR_FAIL;
 	}
 
-	retval = target_write_u32(target, TPIU_CSPSR, 1 << trace_config->port_size);
+	retval = target_write_u32(target, TPIU_CSPSR(trace_config->tpiu_baseaddr), 1 << trace_config->port_size);
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = target_write_u32(target, TPIU_ACPR, prescaler - 1);
+	retval = target_write_u32(target, TPIU_ACPR(trace_config->tpiu_baseaddr), prescaler - 1);
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = target_write_u32(target, TPIU_SPPR, trace_config->pin_protocol);
+	retval = target_write_u32(target, TPIU_SPPR(trace_config->tpiu_baseaddr), trace_config->pin_protocol);
 	if (retval != ERROR_OK)
 		return retval;
 
 	uint32_t ffcr;
-	retval = target_read_u32(target, TPIU_FFCR, &ffcr);
+	retval = target_read_u32(target, TPIU_FFCR(trace_config->tpiu_baseaddr), &ffcr);
 	if (retval != ERROR_OK)
 		return retval;
 	if (trace_config->formatter)
 		ffcr |= (1 << 1);
 	else
 		ffcr &= ~(1 << 1);
-	retval = target_write_u32(target, TPIU_FFCR, ffcr);
+	retval = target_write_u32(target, TPIU_FFCR(trace_config->tpiu_baseaddr), ffcr);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -165,6 +165,7 @@ COMMAND_HANDLER(handle_tpiu_config_command)
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 
 	unsigned int cmd_idx = 0;
+	armv7m->trace_config.tpiu_baseaddr = TPIU_BASEADDR;
 
 	if (CMD_ARGC == cmd_idx)
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -202,6 +203,17 @@ COMMAND_HANDLER(handle_tpiu_config_command)
 		if (CMD_ARGC == cmd_idx)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 
+		if (!strcmp(CMD_ARGV[cmd_idx], "baseaddr")) {
+			cmd_idx++;
+			if (CMD_ARGC == cmd_idx)
+				return ERROR_COMMAND_SYNTAX_ERROR;
+
+			COMMAND_PARSE_ADDRESS(CMD_ARGV[cmd_idx], armv7m->trace_config.tpiu_baseaddr);
+		}
+
+		cmd_idx++;
+		if (CMD_ARGC == cmd_idx)
+			return ERROR_COMMAND_SYNTAX_ERROR;
 		if (!strcmp(CMD_ARGV[cmd_idx], "sync")) {
 			armv7m->trace_config.pin_protocol = TPIU_PIN_PROTOCOL_SYNC;
 
@@ -308,6 +320,7 @@ static const struct command_registration tpiu_command_handlers[] = {
 		.usage = "(disable | "
 		"((external | internal <filename>) "
 		"(sync <port width> | ((manchester | uart) <formatter enable>)) "
+		"(baseaddr <base address>)"
 		"<TRACECLKIN freq> [<trace freq>]))",
 	},
 	COMMAND_REGISTRATION_DONE

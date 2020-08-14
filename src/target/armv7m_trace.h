@@ -75,6 +75,8 @@ struct armv7m_trace_config {
 	unsigned int trace_freq;
 	/** Handle to output trace data in INTERNAL capture mode */
 	FILE *trace_file;
+	/** Base Address for the TPIU */
+	target_addr_t tpiu_baseaddr;
 };
 
 extern const struct command_registration armv7m_trace_command_handlers[];
