@@ -9177,6 +9177,7 @@ Selects whether interrupts will be processed when single stepping
 @cindex ETM
 
 @deffn Command {tpiu config} (@option{disable} | ((@option{external} | @option{internal (@var{filename} | -)}) @
+               [@option{baseaddr @var{base_address}}] @
                (@option{sync @var{port_width}} | ((@option{manchester} | @option{uart}) @var{formatter_enable})) @
                @var{TRACECLKIN_freq} [@var{trace_freq}]))
 
@@ -9202,6 +9203,7 @@ gather trace data and append it to @var{filename} (which can be
 either a regular file or a named pipe);
 @item @option{internal -} configure TPIU and debug adapter to
 gather trace data, but not write to any file. Useful in conjunction with the @command{tcl_trace} command;
+@item @option{baseaddr @var{base_address}} configure the base address of the TPIU; default is 0xE0040000.
 @item @option{sync @var{port_width}} use synchronous parallel trace output
 mode, and set port width to @var{port_width};
 @item @option{manchester} use asynchronous SWO mode with Manchester
