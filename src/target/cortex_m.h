@@ -79,13 +79,23 @@
 #define FPU_FPCAR	0xE000EF38
 #define FPU_FPDSCR	0xE000EF3C
 
-#define TPIU_SSPSR	0xE0040000
-#define TPIU_CSPSR	0xE0040004
-#define TPIU_ACPR	0xE0040010
-#define TPIU_SPPR	0xE00400F0
-#define TPIU_FFSR	0xE0040300
-#define TPIU_FFCR	0xE0040304
-#define TPIU_FSCR	0xE0040308
+#define TPIU_BASEADDR   0xE0040000
+
+#define TPIU_OFFSET_SSPSR 0x000
+#define TPIU_OFFSET_CSPSR 0x004
+#define TPIU_OFFSET_ACPR  0x010
+#define TPIU_OFFSET_SSPR  0x0F0
+#define TPIU_OFFSET_FFSR  0x300
+#define TPIU_OFFSET_FFCR  0x304
+#define TPIU_OFFSET_FSCR  0x308
+
+#define TPIU_SSPSR(base) ((base)+TPIU_OFFSET_SSPSR)
+#define TPIU_CSPSR(base) ((base)+TPIU_OFFSET_CSPSR)
+#define TPIU_ACPR(base)  ((base)+TPIU_OFFSET_ACPR)
+#define TPIU_SPPR(base)  ((base)+TPIU_OFFSET_SSPR)
+#define TPIU_FFSR(base)  ((base)+TPIU_OFFSET_FFSR)
+#define TPIU_FFCR(base)  ((base)+TPIU_OFFSET_FFCR)
+#define TPIU_FSCR(base)  ((base)+TPIU_OFFSET_FSCR)
 
 /* Maximum SWO prescaler value. */
 #define TPIU_ACPR_MAX_SWOSCALER	0x1fff
