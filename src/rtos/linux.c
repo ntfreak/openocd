@@ -627,8 +627,7 @@ struct threads *liste_del_task(struct threads *task_list, struct threads **t,
 		task_list = (*t)->next;
 
 	/*  free content of threads */
-	if ((*t)->context)
-		free((*t)->context);
+	free((*t)->context);
 
 	free(*t);
 	*t = prev ? prev : task_list;
@@ -781,8 +780,7 @@ static int clean_threadlist(struct target *target)
 	while (temp != NULL) {
 		old = temp;
 
-		if (temp->context)
-			free(temp->context);
+		free(temp->context);
 
 		temp = temp->next;
 		free(old);
@@ -931,10 +929,8 @@ static int linux_task_update(struct target *target, int context)
 	while (thread_list != NULL) {
 		thread_list->status = 0;	/*setting all tasks to dead state*/
 
-		if (thread_list->context) {
-			free(thread_list->context);
-			thread_list->context = NULL;
-		}
+		free(thread_list->context);
+		thread_list->context = NULL;
 
 		thread_list = thread_list->next;
 	}
