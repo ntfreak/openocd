@@ -1272,7 +1272,7 @@ static bool calculate_swo_prescaler(unsigned int traceclkin_freq,
 	unsigned int presc;
 	double deviation;
 
-	presc = ((1.0 - SWO_MAX_FREQ_DEV) * traceclkin_freq) / trace_freq + 1;
+	presc = traceclkin_freq/trace_freq;
 
 	if (presc > TPIU_ACPR_MAX_SWOSCALER)
 		return false;
