@@ -1270,16 +1270,14 @@ static bool calculate_swo_prescaler(unsigned int traceclkin_freq,
 		uint32_t trace_freq, uint16_t *prescaler)
 {
 	unsigned int presc;
-	double deviation;
-
-	presc = ((1.0 - SWO_MAX_FREQ_DEV) * traceclkin_freq) / trace_freq + 1;
-
+	presc = DIV_ROUND_UP(traceclkin_freq, trace_freq);
 	if (presc > TPIU_ACPR_MAX_SWOSCALER)
 		return false;
 
-	deviation = fabs(1.0 - ((double)trace_freq * presc / traceclkin_freq));
-
-	if (deviation > SWO_MAX_FREQ_DEV)
+	/* Probe's UART speed must be within 3% of the TPIU's SWO baud rate. */
+	unsigned int max_deviation = (traceclkin_freq * 3) / 100;
+	if (presc * trace_freq < traceclkin_freq - max_deviation ||
+	    presc * trace_freq > traceclkin_freq + max_deviation)
 		return false;
 
 	*prescaler = presc;
