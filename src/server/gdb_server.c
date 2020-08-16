@@ -1067,11 +1067,8 @@ static int gdb_connection_closed(struct connection *connection)
 	/* if this connection registered a debug-message receiver delete it */
 	delete_debug_msg_receiver(connection->cmd_ctx, target);
 
-	if (connection->priv) {
-		free(connection->priv);
-		connection->priv = NULL;
-	} else
-		LOG_ERROR("BUG: connection->priv == NULL");
+	free(connection->priv);
+	connection->priv = NULL;
 
 	target_unregister_event_callback(gdb_target_callback_event_handler, connection);
 
@@ -1758,8 +1755,7 @@ static __attribute__ ((format (PRINTF_ATTRIBUTE_FORMAT, 5, 6))) void xml_printf(
 			char *t = *xml;
 			*xml = realloc(*xml, *size);
 			if (*xml == NULL) {
-				if (t)
-					free(t);
+				free(t);
 				*retval = ERROR_SERVER_REMOTE_CLOSED;
 				return;
 			}

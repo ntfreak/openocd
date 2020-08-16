@@ -403,19 +403,14 @@ static int remove_services(void)
 
 		remove_connections(c);
 
-		if (c->name)
-			free(c->name);
+		free(c->name);
 
 		if (c->type == CONNECTION_PIPE) {
 			if (c->fd != -1)
 				close(c->fd);
 		}
-		if (c->port)
-			free(c->port);
-
-		if (c->priv)
-			free(c->priv);
-
+		free(c->port);
+		free(c->priv);
 		/* delete service */
 		free(c);
 

@@ -230,8 +230,7 @@ COMMAND_HANDLER(handle_cp_command)
 	else
 		command_print(CMD, "copy failed");
 
-	if (data != NULL)
-		free(data);
+	free(data);
 	if (f != NULL)
 		fclose(f);
 
