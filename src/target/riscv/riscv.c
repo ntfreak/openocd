@@ -1558,8 +1558,7 @@ int parse_ranges(range_t **ranges, const char **argv)
 		}
 
 		if (pass == 0) {
-			if (*ranges)
-				free(*ranges);
+			free(*ranges);
 			*ranges = calloc(range + 2, sizeof(range_t));
 		} else {
 			(*ranges)[range].low = 1;

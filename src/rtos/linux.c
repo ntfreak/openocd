@@ -627,8 +627,7 @@ struct threads *liste_del_task(struct threads *task_list, struct threads **t,
 		task_list = (*t)->next;
 
 	/*  free content of threads */
-	if ((*t)->context)
-		free((*t)->context);
+	free((*t)->context);
 
 	free(*t);
 	*t = prev ? prev : task_list;
