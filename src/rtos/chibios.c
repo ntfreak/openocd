@@ -150,10 +150,8 @@ static int chibios_update_memory_signature(struct rtos *rtos)
 	param = (struct chibios_params *) rtos->rtos_specific_params;
 
 	/* Free existing memory description.*/
-	if (param->signature) {
-		free(param->signature);
-		param->signature = 0;
-	}
+	free(param->signature);
+	param->signature = NULL;
 
 	signature = malloc(sizeof(*signature));
 	if (!signature) {

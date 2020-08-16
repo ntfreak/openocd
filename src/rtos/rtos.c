@@ -100,9 +100,7 @@ static void os_free(struct target *target)
 	if (!target->rtos)
 		return;
 
-	if (target->rtos->symbols)
-		free(target->rtos->symbols);
-
+	free(target->rtos->symbols);
 	free(target->rtos);
 	target->rtos = NULL;
 }
@@ -646,10 +644,9 @@ int rtos_try_next(struct target *target)
 		return 0;
 
 	os->type = *type;
-	if (os->symbols) {
-		free(os->symbols);
-		os->symbols = NULL;
-	}
+
+	free(os->symbols);
+	os->symbols = NULL;
 
 	return 1;
 }

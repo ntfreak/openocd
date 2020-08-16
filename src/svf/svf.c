@@ -302,22 +302,17 @@ static int svf_realloc_buffers(size_t len)
 static void svf_free_xxd_para(struct svf_xxr_para *para)
 {
 	if (NULL != para) {
-		if (para->tdi != NULL) {
-			free(para->tdi);
-			para->tdi = NULL;
-		}
-		if (para->tdo != NULL) {
-			free(para->tdo);
-			para->tdo = NULL;
-		}
-		if (para->mask != NULL) {
-			free(para->mask);
-			para->mask = NULL;
-		}
-		if (para->smask != NULL) {
-			free(para->smask);
-			para->smask = NULL;
-		}
+		free(para->tdi);
+		para->tdi = NULL;
+
+		free(para->tdo);
+		para->tdo = NULL;
+
+		free(para->mask);
+		para->mask = NULL;
+
+		free(para->smask);
+		para->smask = NULL;
 	}
 }
 
@@ -546,28 +541,23 @@ free_all:
 	svf_fd = 0;
 
 	/* free buffers */
-	if (svf_command_buffer) {
-		free(svf_command_buffer);
-		svf_command_buffer = NULL;
-		svf_command_buffer_size = 0;
-	}
-	if (svf_check_tdo_para) {
-		free(svf_check_tdo_para);
-		svf_check_tdo_para = NULL;
-		svf_check_tdo_para_index = 0;
-	}
-	if (svf_tdi_buffer) {
-		free(svf_tdi_buffer);
-		svf_tdi_buffer = NULL;
-	}
-	if (svf_tdo_buffer) {
-		free(svf_tdo_buffer);
-		svf_tdo_buffer = NULL;
-	}
-	if (svf_mask_buffer) {
-		free(svf_mask_buffer);
-		svf_mask_buffer = NULL;
-	}
+	free(svf_command_buffer);
+	svf_command_buffer = NULL;
+	svf_command_buffer_size = 0;
+
+	free(svf_check_tdo_para);
+	svf_check_tdo_para = NULL;
+	svf_check_tdo_para_index = 0;
+
+	free(svf_tdi_buffer);
+	svf_tdi_buffer = NULL;
+
+	free(svf_tdo_buffer);
+	svf_tdo_buffer = NULL;
+
+	free(svf_mask_buffer);
+	svf_mask_buffer = NULL;
+
 	svf_buffer_index = 0;
 	svf_buffer_size = 0;
 
@@ -771,16 +761,12 @@ static int svf_adjust_array_length(uint8_t **arr, int orig_bit_len, int new_bit_
 	int new_byte_len = (new_bit_len + 7) >> 3;
 
 	if ((NULL == *arr) || (((orig_bit_len + 7) >> 3) < ((new_bit_len + 7) >> 3))) {
-		if (*arr != NULL) {
-			free(*arr);
-			*arr = NULL;
-		}
-		*arr = malloc(new_byte_len);
+		free(*arr);
+		*arr = calloc(1, new_byte_len);
 		if (NULL == *arr) {
 			LOG_ERROR("not enough memory");
 			return ERROR_FAIL;
 		}
-		memset(*arr, 0, new_byte_len);
 	}
 	return ERROR_OK;
 }
