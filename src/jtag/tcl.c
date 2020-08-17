@@ -1155,10 +1155,8 @@ COMMAND_HANDLER(handle_irscan_command)
 	retval = jtag_execute_queue();
 
 error_return:
-	for (i = 0; i < num_fields; i++) {
-		if (NULL != fields[i].out_value)
-			free((void *)fields[i].out_value);
-	}
+	for (i = 0; i < num_fields; i++)
+		free((void *)fields[i].out_value);
 
 	free(fields);
 

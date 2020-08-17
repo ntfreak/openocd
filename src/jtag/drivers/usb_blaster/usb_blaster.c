@@ -736,8 +736,7 @@ static int ublast_scan(struct scan_command *cmd)
 	ublast_queue_tdi(buf, scan_bits, type);
 
 	ret = jtag_read_buffer(buf, cmd);
-	if (buf)
-		free(buf);
+	free(buf);
 	/*
 	 * ublast_queue_tdi sends the last bit with TMS=1. We are therefore
 	 * already in Exit1-DR/IR and have to skip the first step on our way

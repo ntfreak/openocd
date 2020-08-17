@@ -299,14 +299,11 @@ RESULT versaloon_fini(void)
 
 		versaloon_usb_device_handle = NULL;
 
-		if (versaloon_buf != NULL) {
-			free(versaloon_buf);
-			versaloon_buf = NULL;
-		}
-		if (versaloon_cmd_buf != NULL) {
-			free(versaloon_cmd_buf);
-			versaloon_cmd_buf = NULL;
-		}
+		free(versaloon_buf);
+		versaloon_buf = NULL;
+
+		free(versaloon_cmd_buf);
+		versaloon_cmd_buf = NULL;
 	}
 
 	return ERROR_OK;

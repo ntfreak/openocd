@@ -352,10 +352,8 @@ static int buspirate_quit(void)
 
 	buspirate_serial_close(buspirate_fd);
 
-	if (buspirate_port) {
-		free(buspirate_port);
-		buspirate_port = NULL;
-	}
+	free(buspirate_port);
+	buspirate_port = NULL;
 	return ERROR_OK;
 }
 

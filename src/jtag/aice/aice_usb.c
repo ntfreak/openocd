@@ -2563,15 +2563,9 @@ static int aice_usb_close(void)
 {
 	jtag_libusb_close(aice_handler.usb_handle);
 
-	if (custom_srst_script)
-		free(custom_srst_script);
-
-	if (custom_trst_script)
-		free(custom_trst_script);
-
-	if (custom_restart_script)
-		free(custom_restart_script);
-
+	free(custom_srst_script);
+	free(custom_trst_script);
+	free(custom_restart_script);
 	return ERROR_OK;
 }
 

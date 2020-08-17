@@ -662,14 +662,9 @@ static int icdi_usb_close(void *handle)
 	if (h->usb_ctx)
 		libusb_exit(h->usb_ctx);
 
-	if (h->read_buffer)
-		free(h->read_buffer);
-
-	if (h->write_buffer)
-		free(h->write_buffer);
-
+	free(h->read_buffer);
+	free(h->write_buffer);
 	free(handle);
-
 	return ERROR_OK;
 }
 

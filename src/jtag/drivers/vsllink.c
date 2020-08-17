@@ -245,18 +245,14 @@ static int vsllink_speed_div(int jtag_speed, int *khz)
 
 static void vsllink_free_buffer(void)
 {
-	if (tdi_buffer != NULL) {
-		free(tdi_buffer);
-		tdi_buffer = NULL;
-	}
-	if (tdo_buffer != NULL) {
-		free(tdo_buffer);
-		tdo_buffer = NULL;
-	}
-	if (tms_buffer != NULL) {
-		free(tms_buffer);
-		tms_buffer = NULL;
-	}
+	free(tdi_buffer);
+	tdi_buffer = NULL;
+
+	free(tdo_buffer);
+	tdo_buffer = NULL;
+
+	free(tms_buffer);
+	tms_buffer = NULL;
 }
 
 static int vsllink_quit(void)
@@ -676,8 +672,7 @@ static int vsllink_jtag_execute(void)
 					return ERROR_JTAG_QUEUE_FAILED;
 				}
 
-				if (pending_scan_result->buffer != NULL)
-					free(pending_scan_result->buffer);
+				free(pending_scan_result->buffer);
 			}
 		}
 	} else {

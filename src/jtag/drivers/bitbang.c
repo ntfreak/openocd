@@ -358,8 +358,7 @@ int bitbang_execute_queue(void)
 					return ERROR_FAIL;
 				if (jtag_read_buffer(buffer, cmd->cmd.scan) != ERROR_OK)
 					retval = ERROR_JTAG_QUEUE_FAILED;
-				if (buffer)
-					free(buffer);
+				free(buffer);
 				break;
 			case JTAG_SLEEP:
 				LOG_DEBUG_IO("sleep %" PRIi32, cmd->cmd.sleep->us);

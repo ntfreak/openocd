@@ -23,8 +23,7 @@ void jtag_usb_set_location(const char *location)
 	    JTAG_USB_MAX_LOCATION_LENGTH)
 		LOG_WARNING("usb location string is too long!!\n");
 
-	if (jtag_usb_location)
-		free(jtag_usb_location);
+	free(jtag_usb_location);
 
 	jtag_usb_location = strndup(location, JTAG_USB_MAX_LOCATION_LENGTH);
 }

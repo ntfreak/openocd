@@ -137,8 +137,7 @@ static int usbprog_execute_queue(void)
 			usbprog_scan(cmd->cmd.scan->ir_scan, type, buffer, scan_size);
 			if (jtag_read_buffer(buffer, cmd->cmd.scan) != ERROR_OK)
 				return ERROR_JTAG_QUEUE_FAILED;
-			if (buffer)
-				free(buffer);
+			free(buffer);
 			break;
 		case JTAG_SLEEP:
 			LOG_DEBUG_IO("sleep %i", cmd->cmd.sleep->us);
