@@ -591,8 +591,7 @@ static int openjtag_execute_tap_queue(void)
 #endif
 			jtag_read_buffer(buffer, openjtag_scan_result_buffer[res_count].command);
 
-			if (openjtag_scan_result_buffer[res_count].buffer)
-				free(openjtag_scan_result_buffer[res_count].buffer);
+			free(openjtag_scan_result_buffer[res_count].buffer);
 
 			res_count++;
 		}

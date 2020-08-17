@@ -282,8 +282,7 @@ static int xlnx_pcie_xvc_execute_scan(struct jtag_command *cmd)
 	};
 
 	err = jtag_read_buffer(buf, cmd->cmd.scan);
-	if (buf)
-		free(buf);
+	free(buf);
 
 	if (tap_get_state() != tap_get_end_state())
 		err = xlnx_pcie_xvc_execute_statemove(1);
@@ -291,8 +290,7 @@ static int xlnx_pcie_xvc_execute_scan(struct jtag_command *cmd)
 	return err;
 
 out_err:
-	if (buf)
-		free(buf);
+	free(buf);
 	return err;
 }
 
@@ -456,8 +454,7 @@ COMMAND_HANDLER(xlnx_pcie_xvc_handle_config_command)
 	 * limit the memory we're leaking by freeing the old one first
 	 * before allocating a new one ...
 	 */
-	if (xlnx_pcie_xvc->device)
-		free(xlnx_pcie_xvc->device);
+	free(xlnx_pcie_xvc->device);
 
 	xlnx_pcie_xvc->device = strdup(CMD_ARGV[0]);
 	return ERROR_OK;

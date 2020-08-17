@@ -227,18 +227,11 @@ static int kitprog_quit(void)
 {
 	kitprog_usb_close();
 
-	if (kitprog_handle->packet_buffer != NULL)
-		free(kitprog_handle->packet_buffer);
-	if (kitprog_handle->serial != NULL)
-		free(kitprog_handle->serial);
-	if (kitprog_handle != NULL)
-		free(kitprog_handle);
-
-	if (kitprog_serial != NULL)
-		free(kitprog_serial);
-
-	if (pending_transfers != NULL)
-		free(pending_transfers);
+	free(kitprog_handle->packet_buffer);
+	free(kitprog_handle->serial);
+	free(kitprog_handle);
+	free(kitprog_serial);
+	free(pending_transfers);
 
 	return ERROR_OK;
 }

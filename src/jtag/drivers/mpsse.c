@@ -404,13 +404,10 @@ void mpsse_close(struct mpsse_ctx *ctx)
 	if (ctx->usb_ctx)
 		libusb_exit(ctx->usb_ctx);
 	bit_copy_discard(&ctx->read_queue);
-	if (ctx->write_buffer)
-		free(ctx->write_buffer);
-	if (ctx->read_buffer)
-		free(ctx->read_buffer);
-	if (ctx->read_chunk)
-		free(ctx->read_chunk);
 
+	free(ctx->write_buffer);
+	free(ctx->read_buffer);
+	free(ctx->read_chunk);
 	free(ctx);
 }
 

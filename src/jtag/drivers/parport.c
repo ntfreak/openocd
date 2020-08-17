@@ -392,10 +392,8 @@ static int parport_quit(void)
 		parport_write_data();
 	}
 
-	if (parport_cable) {
-		free(parport_cable);
-		parport_cable = NULL;
-	}
+	free(parport_cable);
+	parport_cable = NULL;
 
 	return ERROR_OK;
 }

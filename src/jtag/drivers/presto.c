@@ -511,8 +511,7 @@ static char *presto_serial;
 COMMAND_HANDLER(presto_handle_serial_command)
 {
 	if (CMD_ARGC == 1) {
-		if (presto_serial)
-			free(presto_serial);
+		free(presto_serial);
 		presto_serial = strdup(CMD_ARGV[0]);
 	} else
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -553,10 +552,8 @@ static int presto_jtag_quit(void)
 	presto_close();
 	LOG_INFO("PRESTO closed");
 
-	if (presto_serial) {
-		free(presto_serial);
-		presto_serial = NULL;
-	}
+	free(presto_serial);
+	presto_serial = NULL;
 
 	return ERROR_OK;
 }

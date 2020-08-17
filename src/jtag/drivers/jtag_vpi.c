@@ -441,8 +441,7 @@ static int jtag_vpi_scan(struct scan_command *cmd)
 	if (retval != ERROR_OK)
 		return retval;
 
-	if (buf)
-		free(buf);
+	free(buf);
 
 	if (cmd->end_state != TAP_DRSHIFT) {
 		retval = jtag_vpi_state_move(cmd->end_state);
