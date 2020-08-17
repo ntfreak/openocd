@@ -1462,8 +1462,7 @@ int nds32_add_software_breakpoint(struct target *target,
 		break_insn = NDS32_BREAK_32;
 	}
 
-	if (breakpoint->orig_instr != NULL)
-		free(breakpoint->orig_instr);
+	free(breakpoint->orig_instr);
 
 	breakpoint->orig_instr = malloc(breakpoint->length);
 	memcpy(breakpoint->orig_instr, &data, breakpoint->length);
@@ -2334,10 +2333,8 @@ int nds32_get_gdb_fileio_info(struct target *target, struct gdb_fileio_info *fil
 	LOG_DEBUG("hit syscall ID: 0x%" PRIx32, syscall_id);
 
 	/* free previous identifier storage */
-	if (NULL != fileio_info->identifier) {
-		free(fileio_info->identifier);
-		fileio_info->identifier = NULL;
-	}
+	free(fileio_info->identifier);
+	fileio_info->identifier = NULL;
 
 	uint32_t reg_r0, reg_r1, reg_r2;
 	nds32_get_mapped_reg(nds32, R0, &reg_r0);

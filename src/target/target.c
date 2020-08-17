@@ -1788,10 +1788,8 @@ static void target_split_working_area(struct working_area *area, uint32_t size)
 
 		/* If backup memory was allocated to this area, it has the wrong size
 		 * now so free it and it will be reallocated if/when needed */
-		if (area->backup) {
-			free(area->backup);
-			area->backup = NULL;
-		}
+		free(area->backup);
+		area->backup = NULL;
 	}
 }
 
@@ -1811,16 +1809,13 @@ static void target_merge_working_areas(struct target *target)
 			/* Remove the last */
 			struct working_area *to_be_freed = c->next;
 			c->next = c->next->next;
-			if (to_be_freed->backup)
-				free(to_be_freed->backup);
+			free(to_be_freed->backup);
 			free(to_be_freed);
 
 			/* If backup memory was allocated to the remaining area, it's has
 			 * the wrong size now */
-			if (c->backup) {
-				free(c->backup);
-				c->backup = NULL;
-			}
+			free(c->backup);
+			c->backup = NULL;
 		} else {
 			c = c->next;
 		}
@@ -2050,8 +2045,7 @@ static void target_destroy(struct target *target)
 	if (target->type->deinit_target)
 		target->type->deinit_target(target);
 
-	if (target->semihosting)
-		free(target->semihosting);
+	free(target->semihosting);
 
 	jtag_unregister_event_callback(jtag_enable_callback, target);
 
@@ -5833,11 +5827,8 @@ static struct FastLoad *fastload;
 static void free_fastload(void)
 {
 	if (fastload != NULL) {
-		int i;
-		for (i = 0; i < fastload_num; i++) {
-			if (fastload[i].data)
-				free(fastload[i].data);
-		}
+		for (int i = 0; i < fastload_num; i++)
+			free(fastload[i].data);
 		free(fastload);
 		fastload = NULL;
 	}

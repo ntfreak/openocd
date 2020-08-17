@@ -187,21 +187,15 @@ static int jsp_connection_closed(struct connection *connection)
 	struct telnet_connection *t_con = connection->priv;
 	struct jsp_service *jsp_service = connection->service->priv;
 
-	if (t_con->prompt) {
-		free(t_con->prompt);
-		t_con->prompt = NULL;
-	}
+	free(t_con->prompt);
+	t_con->prompt = NULL;
 
 	int retval = target_unregister_timer_callback(&jsp_poll_read, jsp_service);
 	if (ERROR_OK != retval)
 		return retval;
 
-	if (connection->priv) {
-		free(connection->priv);
-		connection->priv = NULL;
-	} else
-		LOG_ERROR("BUG: connection->priv == NULL");
-
+	free(connection->priv);
+	connection->priv = NULL;
 	return ERROR_OK;
 }
 

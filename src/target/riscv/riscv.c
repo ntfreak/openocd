@@ -276,8 +276,7 @@ static void riscv_free_registers(struct target *target)
 	/* Free the shared structure use for most registers. */
 	if (target->reg_cache) {
 		if (target->reg_cache->reg_list) {
-			if (target->reg_cache->reg_list[0].arch_info)
-				free(target->reg_cache->reg_list[0].arch_info);
+			free(target->reg_cache->reg_list[0].arch_info);
 			/* Free the ones we allocated separately. */
 			for (unsigned i = GDB_REGNO_COUNT; i < target->reg_cache->num_regs; i++)
 				free(target->reg_cache->reg_list[i].arch_info);
@@ -1558,8 +1557,7 @@ int parse_ranges(range_t **ranges, const char **argv)
 		}
 
 		if (pass == 0) {
-			if (*ranges)
-				free(*ranges);
+			free(*ranges);
 			*ranges = calloc(range + 2, sizeof(range_t));
 		} else {
 			(*ranges)[range].low = 1;
@@ -2487,8 +2485,7 @@ int riscv_init_registers(struct target *target)
 		calloc(target->reg_cache->num_regs, sizeof(struct reg));
 
 	const unsigned int max_reg_name_len = 12;
-	if (info->reg_names)
-		free(info->reg_names);
+	free(info->reg_names);
 	info->reg_names =
 		calloc(target->reg_cache->num_regs, max_reg_name_len);
 	char *reg_name = info->reg_names;

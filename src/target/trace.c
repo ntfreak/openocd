@@ -62,10 +62,9 @@ COMMAND_HANDLER(handle_trace_point_command)
 	}
 
 	if (!strcmp(CMD_ARGV[0], "clear")) {
-		if (trace->trace_points) {
-			free(trace->trace_points);
-			trace->trace_points = NULL;
-		}
+		free(trace->trace_points);
+		trace->trace_points = NULL;
+
 		trace->num_trace_points = 0;
 		trace->trace_points_size = 0;
 
@@ -102,8 +101,7 @@ COMMAND_HANDLER(handle_trace_history_command)
 			return ERROR_OK;
 		}
 
-		if (trace->trace_history)
-			free(trace->trace_history);
+		free(trace->trace_history);
 
 		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], trace->trace_history_size);
 		trace->trace_history = malloc(sizeof(uint32_t) * trace->trace_history_size);

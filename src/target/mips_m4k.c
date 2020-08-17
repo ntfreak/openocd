@@ -1072,7 +1072,7 @@ static int mips_m4k_read_memory(struct target *target, target_addr_t address,
 		}
 	}
 
-	if ((size > 1) && (t != NULL))
+	if (size > 1)
 		free(t);
 
 	return retval;
@@ -1135,8 +1135,7 @@ static int mips_m4k_write_memory(struct target *target, target_addr_t address,
 	else
 		retval = mips32_dmaacc_write_mem(ejtag_info, address, size, count, buffer);
 
-	if (t != NULL)
-		free(t);
+	free(t);
 
 	if (ERROR_OK != retval)
 		return retval;
@@ -1261,8 +1260,7 @@ static int mips_m4k_bulk_write_memory(struct target *target, target_addr_t addre
 	retval = mips32_pracc_fastdata_xfer(ejtag_info, mips32->fast_data_area, write_t, address,
 			count, t);
 
-	if (t != NULL)
-		free(t);
+	free(t);
 
 	if (retval != ERROR_OK)
 		LOG_ERROR("Fastdata access Failed");

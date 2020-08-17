@@ -984,40 +984,30 @@ void image_close(struct image *image)
 
 		fileio_close(image_ihex->fileio);
 
-		if (image_ihex->buffer) {
-			free(image_ihex->buffer);
-			image_ihex->buffer = NULL;
-		}
+		free(image_ihex->buffer);
+		image_ihex->buffer = NULL;
 	} else if (image->type == IMAGE_ELF) {
 		struct image_elf *image_elf = image->type_private;
 
 		fileio_close(image_elf->fileio);
 
-		if (image_elf->header) {
-			free(image_elf->header);
-			image_elf->header = NULL;
-		}
+		free(image_elf->header);
+		image_elf->header = NULL;
 
-		if (image_elf->segments) {
-			free(image_elf->segments);
-			image_elf->segments = NULL;
-		}
+		free(image_elf->segments);
+		image_elf->segments = NULL;
 	} else if (image->type == IMAGE_MEMORY) {
 		struct image_memory *image_memory = image->type_private;
 
-		if (image_memory->cache) {
-			free(image_memory->cache);
-			image_memory->cache = NULL;
-		}
+		free(image_memory->cache);
+		image_memory->cache = NULL;
 	} else if (image->type == IMAGE_SRECORD) {
 		struct image_mot *image_mot = image->type_private;
 
 		fileio_close(image_mot->fileio);
 
-		if (image_mot->buffer) {
-			free(image_mot->buffer);
-			image_mot->buffer = NULL;
-		}
+		free(image_mot->buffer);
+		image_mot->buffer = NULL;
 	} else if (image->type == IMAGE_BUILDER) {
 		int i;
 
@@ -1027,15 +1017,11 @@ void image_close(struct image *image)
 		}
 	}
 
-	if (image->type_private) {
-		free(image->type_private);
-		image->type_private = NULL;
-	}
+	free(image->type_private);
+	image->type_private = NULL;
 
-	if (image->sections) {
-		free(image->sections);
-		image->sections = NULL;
-	}
+	free(image->sections);
+	image->sections = NULL;
 }
 
 int image_calculate_checksum(uint8_t *buffer, uint32_t nbytes, uint32_t *checksum)

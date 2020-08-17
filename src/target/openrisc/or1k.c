@@ -943,8 +943,7 @@ static int or1k_add_breakpoint(struct target *target,
 		return retval;
 	}
 
-	if (breakpoint->orig_instr != NULL)
-		free(breakpoint->orig_instr);
+	free(breakpoint->orig_instr);
 
 	breakpoint->orig_instr = malloc(breakpoint->length);
 	memcpy(breakpoint->orig_instr, &data, breakpoint->length);
