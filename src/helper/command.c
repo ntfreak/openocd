@@ -616,8 +616,8 @@ static int run_command(struct command_context *context,
 		char *full_name = command_name(c, ' ');
 		if (NULL != full_name) {
 			command_run_linef(context, "usage %s", full_name);
-			free(full_name);
 		}
+		free(full_name);
 	} else if (retval == ERROR_COMMAND_CLOSE_CONNECTION) {
 		/* just fall through for a shutdown request */
 	} else {
@@ -710,8 +710,8 @@ int command_run_linef(struct command_context *context, const char *format, ...)
 	string = alloc_vprintf(format, ap);
 	if (string != NULL) {
 		retval = command_run_line(context, string);
-		free(string);
 	}
+	free(string);
 	va_end(ap);
 	return retval;
 }
@@ -1125,10 +1125,9 @@ int help_add_command(struct command_context *cmd_ctx, struct command *parent,
 	}
 	if (help_text) {
 		bool replaced = false;
-		if (nc->help) {
-			free(nc->help);
+		if (nc->help)
 			replaced = true;
-		}
+		free(nc->help);
 		nc->help = strdup(help_text);
 		if (replaced)
 			LOG_INFO("replaced existing '%s' help", cmd_name);
@@ -1140,8 +1139,8 @@ int help_add_command(struct command_context *cmd_ctx, struct command *parent,
 		if (nc->usage) {
 			if (*nc->usage)
 				replaced = true;
-			free(nc->usage);
 		}
+		free(nc->usage);
 		nc->usage = strdup(usage);
 		if (replaced)
 			LOG_INFO("replaced existing '%s' usage", cmd_name);
