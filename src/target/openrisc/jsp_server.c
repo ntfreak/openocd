@@ -190,12 +190,8 @@ static int jsp_connection_closed(struct connection *connection)
 	if (ERROR_OK != retval)
 		return retval;
 
-	if (connection->priv) {
-		free(connection->priv);
-		connection->priv = NULL;
-	} else
-		LOG_ERROR("BUG: connection->priv == NULL");
-
+	free(connection->priv);
+	connection->priv = NULL;
 	return ERROR_OK;
 }
 

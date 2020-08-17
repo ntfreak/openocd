@@ -1110,8 +1110,7 @@ static void xscale_free_trace_data(struct xscale_common *xscale)
 	struct xscale_trace_data *td = xscale->trace.data;
 	while (td) {
 		struct xscale_trace_data *next_td = td->next;
-		if (td->entries)
-			free(td->entries);
+		free(td->entries);
 		free(td);
 		td = next_td;
 	}

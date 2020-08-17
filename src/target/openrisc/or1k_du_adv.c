@@ -975,8 +975,7 @@ static int or1k_adv_jtag_write_memory(struct or1k_jtag *jtag_info,
 					     size, blocks_this_round,
 					     block_count_address);
 		if (retval != ERROR_OK) {
-			if (t != NULL)
-				free(t);
+			free(t);
 			return retval;
 		}
 
@@ -985,9 +984,7 @@ static int or1k_adv_jtag_write_memory(struct or1k_jtag *jtag_info,
 		block_count_buffer += size * MAX_BURST_SIZE;
 	}
 
-	if (t != NULL)
-		free(t);
-
+	free(t);
 	return ERROR_OK;
 }
 
