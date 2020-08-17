@@ -1125,10 +1125,9 @@ int help_add_command(struct command_context *cmd_ctx, struct command *parent,
 	}
 	if (help_text) {
 		bool replaced = false;
-		if (nc->help) {
-			free(nc->help);
+		if (nc->help)
 			replaced = true;
-		}
+		free(nc->help);
 		nc->help = strdup(help_text);
 		if (replaced)
 			LOG_INFO("replaced existing '%s' help", cmd_name);
