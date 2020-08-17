@@ -585,10 +585,8 @@ static int psoc6_probe(struct flash_bank *bank)
 	/* Calculate size of Main Flash*/
 	uint32_t flash_sz_bytes = bank_cnt * row_cnt * row_sz;
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
+	bank->sectors = NULL;
 
 	size_t bank_size = 0;
 

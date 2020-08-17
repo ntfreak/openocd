@@ -724,10 +724,7 @@ static int em357_probe(struct flash_bank *bank)
 
 	LOG_INFO("flash size = %dkbytes", num_pages*page_size/1024);
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
 
 	bank->base = base_address;
 	bank->size = (num_pages * page_size);

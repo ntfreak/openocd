@@ -438,10 +438,7 @@ static int cc3220sf_probe(struct flash_bank *bank)
 	size = FLASH_NUM_SECTORS * FLASH_SECTOR_SIZE;
 	num_sectors = FLASH_NUM_SECTORS;
 
-	if (NULL != bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
 
 	bank->sectors = malloc(sizeof(struct flash_sector) * num_sectors);
 	if (NULL == bank->sectors)

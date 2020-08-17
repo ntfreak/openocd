@@ -333,10 +333,7 @@ static int avrf_probe(struct flash_bank *bank)
 	}
 
 	if (avr_info != NULL) {
-		if (bank->sectors) {
-			free(bank->sectors);
-			bank->sectors = NULL;
-		}
+		free(bank->sectors);
 
 		/* chip found */
 		bank->base = 0x00000000;

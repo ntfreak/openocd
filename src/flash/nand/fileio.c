@@ -99,14 +99,11 @@ int nand_fileio_cleanup(struct nand_fileio_state *state)
 	if (state->file_opened)
 		fileio_close(state->fileio);
 
-	if (state->oob) {
-		free(state->oob);
-		state->oob = NULL;
-	}
-	if (state->page) {
-		free(state->page);
-		state->page = NULL;
-	}
+	free(state->oob);
+	state->oob = NULL;
+
+	free(state->page);
+	state->page = NULL;
 	return ERROR_OK;
 }
 int nand_fileio_finish(struct nand_fileio_state *state)

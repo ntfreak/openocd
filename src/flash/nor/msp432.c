@@ -902,10 +902,8 @@ static int msp432_probe(struct flash_bank *bank)
 		}
 	}
 
-	if (NULL != bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
+	bank->sectors = NULL;
 
 	if (num_sectors > 0) {
 		bank->sectors = malloc(sizeof(struct flash_sector) * num_sectors);
@@ -1046,7 +1044,7 @@ static void msp432_flash_free_driver_priv(struct flash_bank *bank)
 
 	/* A single private struct is shared between main and info banks */
 	/* Only free it on the call for main bank */
-	if (is_main && (NULL != bank->driver_priv))
+	if (is_main)
 		free(bank->driver_priv);
 
 	/* Forget about the private struct on both main and info banks */

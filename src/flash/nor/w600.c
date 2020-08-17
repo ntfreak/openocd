@@ -331,10 +331,8 @@ static int w600_probe(struct flash_bank *bank)
 	/* check that calculation result makes sense */
 	assert(num_pages > 0);
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
+	bank->sectors = NULL;
 
 	bank->base = W600_FLASH_BASE;
 	bank->size = num_pages * W600_FLASH_SECSIZE;
