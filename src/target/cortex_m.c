@@ -2473,6 +2473,11 @@ COMMAND_HANDLER(handle_cortex_m_vector_catch_command)
 	if (retval != ERROR_OK)
 		return retval;
 
+	if (!target_was_examined(target)) {
+		LOG_ERROR("Target not examined yet");
+		return ERROR_FAIL;
+	}
+
 	retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DEMCR, &demcr);
 	if (retval != ERROR_OK)
 		return retval;
