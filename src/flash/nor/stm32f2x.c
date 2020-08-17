@@ -1013,17 +1013,13 @@ static int stm32x_probe(struct flash_bank *bank)
 	stm32x_info->protection_bits = 12;		/* max. number of nWRPi bits (in FLASH_OPTCR !!!) */
 	num_prot_blocks = 0;
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->num_sectors = 0;
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
+	bank->num_sectors = 0;
+	bank->sectors = NULL;
 
-	if (bank->prot_blocks) {
-		free(bank->prot_blocks);
-		bank->num_prot_blocks = 0;
-		bank->prot_blocks = NULL;
-	}
+	free(bank->prot_blocks);
+	bank->num_prot_blocks = 0;
+	bank->prot_blocks = NULL;
 
 	/* if explicitly called out as OTP bank, short circuit probe */
 	if (stm32x_is_otp(bank)) {

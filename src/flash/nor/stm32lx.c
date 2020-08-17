@@ -836,10 +836,7 @@ static int stm32lx_probe(struct flash_bank *bank)
 	/* calculate numbers of sectors (4kB per sector) */
 	unsigned int num_sectors = (flash_size_in_kb * 1024) / FLASH_SECTOR_SIZE;
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
 
 	bank->size = flash_size_in_kb * 1024;
 	bank->base = base_address;

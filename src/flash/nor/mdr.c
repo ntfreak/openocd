@@ -458,8 +458,7 @@ reset_pg_and_lock:
 		retval = retval2;
 
 free_buffer:
-	if (new_buffer)
-		free(new_buffer);
+	free(new_buffer);
 
 	/* read some bytes bytes to flush buffer in flash accelerator.
 	 * See errata for 1986VE1T and 1986VE3. Error 0007 */
@@ -573,10 +572,7 @@ static int mdr_probe(struct flash_bank *bank)
 	page_count = mdr_info->page_count;
 	page_size = bank->size / page_count;
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
 
 	bank->num_sectors = page_count;
 	bank->sectors = malloc(sizeof(struct flash_sector) * page_count);

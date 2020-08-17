@@ -951,9 +951,7 @@ reset_pg_and_lock:
 		retval = retval2;
 
 cleanup:
-	if (new_buffer)
-		free(new_buffer);
-
+	free(new_buffer);
 	return retval;
 }
 
@@ -987,10 +985,8 @@ static int efm32x_probe(struct flash_bank *bank)
 
 	assert(num_pages > 0);
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
+	bank->sectors = NULL;
 
 	bank->base = base_address;
 	bank->size = (num_pages * efm32_mcu_info.page_size);

@@ -610,8 +610,7 @@ static int psoc4_protect(struct flash_bank *bank, int set, unsigned int first,
 			break;
 	}
 
-	if (sysrq_buffer)
-		free(sysrq_buffer);
+	free(sysrq_buffer);
 
 	psoc4_protect_check(bank);
 	return retval;
@@ -714,9 +713,7 @@ static int psoc4_write(struct flash_bank *bank, const uint8_t *buffer,
 cleanup:
 	jtag_poll_set_enabled(save_poll);
 
-	if (sysrq_buffer)
-		free(sysrq_buffer);
-
+	free(sysrq_buffer);
 	return retval;
 }
 
@@ -827,9 +824,7 @@ static int psoc4_probe(struct flash_bank *bank)
 		}
 	}
 
-	if (bank->sectors) {
-		free(bank->sectors);
-	}
+	free(bank->sectors);
 
 	psoc4_info->family_id = family_id;
 	psoc4_info->num_macros = num_macros;

@@ -801,10 +801,7 @@ static int sim3x_probe(struct flash_bank *bank)
 	if (ret != ERROR_OK)
 		return ret;
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
 
 	bank->base = FLASH_BASE_ADDRESS;
 	bank->size = sim3x_info->flash_size_kb * SIM3X_FLASH_PAGE_SIZE;

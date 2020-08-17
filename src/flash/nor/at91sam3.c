@@ -3530,8 +3530,7 @@ static int sam3_write(struct flash_bank *bank,
 	LOG_DEBUG("Done!");
 	r = ERROR_OK;
 done:
-	if (pagebuffer)
-		free(pagebuffer);
+	free(pagebuffer);
 	return r;
 }
 
