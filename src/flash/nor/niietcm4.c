@@ -1469,9 +1469,7 @@ static int niietcm4_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 free_buffer:
-	if (new_buffer)
-		free(new_buffer);
-
+	free(new_buffer);
 	return retval;
 }
 
@@ -1681,10 +1679,9 @@ static int niietcm4_probe(struct flash_bank *bank)
 	struct niietcm4_flash_bank *niietcm4_info = bank->driver_priv;
 	struct target *target = bank->target;
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
+	bank->sectors = NULL;
+
 	uint32_t retval;
 	uint32_t chipid;
 

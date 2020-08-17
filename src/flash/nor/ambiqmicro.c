@@ -672,10 +672,7 @@ static int ambiqmicro_probe(struct flash_bank *bank)
 	if (retval != ERROR_OK)
 		return retval;
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
 
 	/* provide this for the benefit of the NOR flash framework */
 	bank->size = ambiqmicro_info->pagesize * ambiqmicro_info->num_pages;

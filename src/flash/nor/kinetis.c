@@ -2736,14 +2736,11 @@ static int kinetis_probe(struct flash_bank *bank)
 				" please report to OpenOCD mailing list", fcfg2_maxaddr1);
 	}
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
-	if (bank->prot_blocks) {
-		free(bank->prot_blocks);
-		bank->prot_blocks = NULL;
-	}
+	free(bank->sectors);
+	bank->sectors = NULL;
+
+	free(bank->prot_blocks);
+	bank->prot_blocks = NULL;
 
 	if (k_bank->sector_size == 0) {
 		LOG_ERROR("Unknown sector size for bank %u", bank->bank_number);

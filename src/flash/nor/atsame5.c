@@ -731,9 +731,7 @@ static int same5_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 free_pb:
-	if (pb)
-		free(pb);
-
+	free(pb);
 	return res;
 }
 

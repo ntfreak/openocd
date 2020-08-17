@@ -591,8 +591,7 @@ static int pic32mx_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	destroy_reg_param(&reg_params[1]);
 	destroy_reg_param(&reg_params[2]);
 
-	if (new_buffer != NULL)
-		free(new_buffer);
+	free(new_buffer);
 	return retval;
 }
 
@@ -774,10 +773,7 @@ static int pic32mx_probe(struct flash_bank *bank)
 
 	LOG_INFO("flash size = %" PRId32 "kbytes", num_pages / 1024);
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
 
 	/* calculate numbers of pages */
 	num_pages /= page_size;

@@ -1145,10 +1145,7 @@ static int kinetis_ke_probe(struct flash_bank *bank)
 			break;
 	}
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
 
 	assert(bank->num_sectors > 0);
 	bank->sectors = malloc(sizeof(struct flash_sector) * bank->num_sectors);

@@ -1040,10 +1040,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 	assert((stm32l4_info->wrpxxr_mask & 0xFFFF0000) == 0);
 	LOG_DEBUG("WRPxxR mask 0x%04" PRIx16, (uint16_t)stm32l4_info->wrpxxr_mask);
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
 
 	bank->size = (flash_size_kb + gap_size_kb) * 1024;
 	bank->base = STM32_FLASH_BANK_BASE;

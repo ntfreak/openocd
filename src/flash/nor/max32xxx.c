@@ -651,10 +651,7 @@ static int max32xxx_probe(struct flash_bank *bank)
 	uint32_t arm_id[2];
 	uint16_t arm_pid;
 
-	if (bank->sectors) {
-		free(bank->sectors);
-		bank->sectors = NULL;
-	}
+	free(bank->sectors);
 
 	/* provide this for the benefit of the NOR flash framework */
 	bank->size = info->flash_size;
