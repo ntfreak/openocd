@@ -2578,7 +2578,7 @@ static int kinetis_probe_chip(struct kinetis_chip *k_chip)
 		else
 			k_chip->pflash_size = k_chip->fcfg2_maxaddr0_shifted * num_blocks / 2;
 		if (k_chip->pflash_size != 2048<<10)
-			LOG_WARNING("SIM_FCFG1 PFSIZE = 0xf: please check if pflash is %u KB", k_chip->pflash_size>>10);
+			LOG_WARNING("SIM_FCFG1 PFSIZE = 0xf: please check if pflash is %" PRIu32 " KB", k_chip->pflash_size>>10);
 
 		break;
 	default:
@@ -2668,7 +2668,7 @@ static int kinetis_probe(struct flash_bank *bank)
 		k_bank->protection_block = bank->num_prot_blocks * k_bank->bank_number;
 
 		size_k = bank->size / 1024;
-		LOG_DEBUG("Kinetis bank %u: %" PRIu32 "k PFlash, FTFx base 0x%08" PRIx32 ", sect %u",
+		LOG_DEBUG("Kinetis bank %u: %" PRIu32 "k PFlash, FTFx base 0x%08" PRIx32 ", sect %" PRIu32,
 			 k_bank->bank_number, size_k, k_bank->prog_base, k_bank->sector_size);
 
 	} else if (k_bank->bank_number < num_blocks) {
@@ -2708,7 +2708,7 @@ static int kinetis_probe(struct flash_bank *bank)
 		}
 
 		size_k = bank->size / 1024;
-		LOG_DEBUG("Kinetis bank %u: %" PRIu32 "k FlexNVM, FTFx base 0x%08" PRIx32 ", sect %u",
+		LOG_DEBUG("Kinetis bank %u: %" PRIu32 "k FlexNVM, FTFx base 0x%08" PRIx32 ", sect %" PRIu32,
 			 k_bank->bank_number, size_k, k_bank->prog_base, k_bank->sector_size);
 
 	} else {

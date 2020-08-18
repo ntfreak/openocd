@@ -124,7 +124,7 @@ COMMAND_HANDLER(handle_nand_info_command)
 			bad_state = " (block condition unknown)";
 
 		command_print(CMD,
-			"\t#%i: 0x%8.8" PRIx32 " (%" PRId32 "kB) %s%s",
+			"\t#%i: 0x%8.8" PRIx32 " (%" PRIu32 "kB) %s%s",
 			j,
 			p->blocks[j].offset,
 			p->blocks[j].size / 1024,

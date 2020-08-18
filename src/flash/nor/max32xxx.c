@@ -76,7 +76,7 @@ struct max32xxx_flash_bank {
 	unsigned int flc_base;
 	unsigned int sector_size;
 	unsigned int clkdiv_value;
-	unsigned int int_state;
+	uint32_t int_state;
 	unsigned int burst_size_bits;
 };
 
@@ -98,13 +98,13 @@ FLASH_BANK_COMMAND_HANDLER(max32xxx_flash_bank_command)
 	}
 
 	info = calloc(sizeof(struct max32xxx_flash_bank), 1);
-	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[2], info->flash_size);
-	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[6], info->flc_base);
-	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[7], info->sector_size);
-	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[8], info->clkdiv_value);
+	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[2], info->flash_size);
+	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[6], info->flc_base);
+	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[7], info->sector_size);
+	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[8], info->clkdiv_value);
 
 	if (CMD_ARGC > 9)
-		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[9], info->burst_size_bits);
+		COMMAND_PARSE_NUMBER(uint, CMD_ARGV[9], info->burst_size_bits);
 	else
 		info->burst_size_bits = 32;
 
@@ -522,7 +522,7 @@ static int max32xxx_write(struct flash_bank *bank, const uint8_t *buffer,
 			} while ((--retry > 0) && (flsh_cn & FLSH_CN_PEND));
 
 			if (retry <= 0) {
-				LOG_ERROR("Timed out waiting for flash write @ 0x%08x", address);
+				LOG_ERROR("Timed out waiting for flash write @ 0x%08" PRIx32, address);
 				return ERROR_FLASH_OPERATION_FAILED;
 			}
 
@@ -543,7 +543,7 @@ static int max32xxx_write(struct flash_bank *bank, const uint8_t *buffer,
 
 		while (remaining >= 16) {
 			if ((address & 0xFFF) == 0)
-				LOG_DEBUG("Writing @ 0x%08x", address);
+				LOG_DEBUG("Writing @ 0x%08" PRIx32, address);
 
 			target_write_buffer(target, info->flc_base + FLSH_DATA0, 16, buffer);
 			flsh_cn |= 0x00000001;
@@ -556,7 +556,7 @@ static int max32xxx_write(struct flash_bank *bank, const uint8_t *buffer,
 			} while ((--retry > 0) && (flsh_cn & FLSH_CN_PEND));
 
 			if (retry <= 0) {
-				LOG_ERROR("Timed out waiting for flash write @ 0x%08x", address);
+				LOG_ERROR("Timed out waiting for flash write @ 0x%08" PRIx32, address);
 				return ERROR_FLASH_OPERATION_FAILED;
 			}
 
@@ -587,7 +587,7 @@ static int max32xxx_write(struct flash_bank *bank, const uint8_t *buffer,
 			} while ((--retry > 0) && (flsh_cn & FLSH_CN_PEND));
 
 			if (retry <= 0) {
-				LOG_ERROR("Timed out waiting for flash write @ 0x%08x", address);
+				LOG_ERROR("Timed out waiting for flash write @ 0x%08" PRIx32, address);
 				return ERROR_FLASH_OPERATION_FAILED;
 			}
 
@@ -625,7 +625,7 @@ static int max32xxx_write(struct flash_bank *bank, const uint8_t *buffer,
 		} while ((--retry > 0) && (flsh_cn & FLSH_CN_PEND));
 
 		if (retry <= 0) {
-			LOG_ERROR("Timed out waiting for flash write @ 0x%08x", address);
+			LOG_ERROR("Timed out waiting for flash write @ 0x%08" PRIx32, address);
 			return ERROR_FLASH_OPERATION_FAILED;
 		}
 	}
@@ -633,7 +633,7 @@ static int max32xxx_write(struct flash_bank *bank, const uint8_t *buffer,
 	/* Check access violations */
 	target_read_u32(target, info->flc_base + FLSH_INT, &flsh_int);
 	if (flsh_int & FLSH_INT_AF) {
-		LOG_ERROR("Flash Error writing 0x%x bytes at 0x%08x", count, offset);
+		LOG_ERROR("Flash Error writing 0x%" PRIx32 " bytes at 0x%08" PRIx32, count, offset);
 		max32xxx_flash_op_post(bank);
 		return ERROR_FLASH_OPERATION_FAILED;
 	}
@@ -678,7 +678,7 @@ static int max32xxx_probe(struct flash_bank *bank)
 	if ((arm_pid == ARM_PID_DEFAULT_CM3) || arm_pid == ARM_PID_DEFAULT_CM4) {
 		uint32_t max326xx_id;
 		target_read_u32(target, MAX326XX_ID_REG, &max326xx_id);
-		LOG_DEBUG("max326xx_id = 0x%x", max326xx_id);
+		LOG_DEBUG("max326xx_id = 0x%" PRIx32, max326xx_id);
 		max326xx_id = ((max326xx_id & 0xFF000000) >> 24);
 		if (max326xx_id == MAX326XX_ID)
 			info->max326xx = 1;

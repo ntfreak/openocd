@@ -346,7 +346,7 @@ static int sam4l_probe(struct flash_bank *bank)
 	/* Done */
 	chip->probed = true;
 
-	LOG_INFO("SAM4L MCU: %s (Rev %c) (%" PRIu32 "KB Flash with %d %" PRId32 "B pages, %" PRIu32 "KB RAM)",
+	LOG_INFO("SAM4L MCU: %s (Rev %c) (%" PRIu32 "KB Flash with %d %" PRIu32 "B pages, %" PRIu32 "KB RAM)",
 			chip->details ? chip->details->name : "unknown", (char)('A' + (id & 0xF)),
 			chip->flash_kb, chip->num_pages, chip->page_size, chip->ram_kb);
 

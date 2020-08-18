@@ -903,7 +903,7 @@ static int tms470_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t
 
 	tms470_read_part_info(bank);
 
-	LOG_INFO("Writing %" PRId32 " bytes starting at " TARGET_ADDR_FMT,
+	LOG_INFO("Writing %" PRIu32 " bytes starting at " TARGET_ADDR_FMT,
 			count, bank->base + offset);
 
 	/* set GLBCTRL.4  */

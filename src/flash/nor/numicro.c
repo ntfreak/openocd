@@ -1583,7 +1583,7 @@ static int numicro_write(struct flash_bank *bank, const uint8_t *buffer,
 		/* program command */
 		for (uint32_t i = 0; i < count; i += 4) {
 
-			LOG_DEBUG("write longword @ %08X", offset + i);
+			LOG_DEBUG("write longword @ %08" PRIX32, offset + i);
 
 			retval = target_write_u32(target, NUMICRO_FLASH_ISPADR, bank->base + offset + i);
 			if (retval != ERROR_OK)

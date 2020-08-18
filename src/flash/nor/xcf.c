@@ -624,7 +624,7 @@ static int xcf_probe(struct flash_bank *bank)
 			bank->num_sectors = 4;
 			break;
 		default:
-			LOG_ERROR("Unknown flash device ID 0x%X", id);
+			LOG_ERROR("Unknown flash device ID 0x%" PRIX32, id);
 			return ERROR_FAIL;
 	}
 
@@ -640,7 +640,7 @@ static int xcf_probe(struct flash_bank *bank)
 	bank->driver_priv = priv;
 
 	LOG_INFO("product name: %s", product_name(bank));
-	LOG_INFO("device id = 0x%X ", bank->target->tap->idcode);
+	LOG_INFO("device id = 0x%" PRIX32, bank->target->tap->idcode);
 	LOG_INFO("flash size = %d configuration bits",
 		bank->num_sectors * XCF_DATA_SECTOR_SIZE * 8);
 	LOG_INFO("number of sectors = %u", bank->num_sectors);

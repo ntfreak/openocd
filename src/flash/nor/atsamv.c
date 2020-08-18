@@ -615,7 +615,7 @@ static int samv_get_info(struct flash_bank *bank, char *buf, int buf_size)
 		if (ERROR_OK != r)
 			return r;
 	}
-	snprintf(buf, buf_size, "Cortex-M7 detected with %d kB flash",
+	snprintf(buf, buf_size, "Cortex-M7 detected with %" PRIu32 " kB flash",
 			bank->size / 1024);
 	return ERROR_OK;
 }
@@ -661,7 +661,7 @@ COMMAND_HANDLER(samv_handle_gpnvm_command)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 
-	uint32_t v;
+	unsigned v;
 	if (!strcmp("show", CMD_ARGV[0])) {
 		if (who == -1) {
 showall:

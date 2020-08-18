@@ -742,7 +742,7 @@ FLASH_BANK_COMMAND_HANDLER(same5_flash_bank_command)
 {
 	if (bank->base != SAMD_FLASH) {
 		LOG_ERROR("Address " TARGET_ADDR_FMT " invalid bank address (try "
-			"0x%08" PRIx32 "[same5] )", bank->base, SAMD_FLASH);
+			"0x%08x[same5] )", bank->base, SAMD_FLASH);
 		return ERROR_FAIL;
 	}
 

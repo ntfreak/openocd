@@ -212,7 +212,7 @@ static int ambiqmicro_read_part_info(struct flash_bank *bank)
 		/* Set PartNum to default device */
 		PartNum = 0;
 	}
-	LOG_DEBUG("Part number: 0x%x", PartNum);
+	LOG_DEBUG("Part number: 0x%" PRIx32, PartNum);
 
 	/*
 	 * Determine device class.
@@ -260,7 +260,7 @@ static int ambiqmicro_read_part_info(struct flash_bank *bank)
 		ambiqmicro_info->target_name =
 			ambiqmicroParts[0].partname;
 
-	LOG_DEBUG("num_pages: %d, pagesize: %d, flash: %d, sram: %d",
+	LOG_DEBUG("num_pages: %" PRIu32 ", pagesize: %" PRIu32 ", flash: %" PRIu32 ", sram: %" PRIu32,
 		ambiqmicro_info->num_pages,
 		ambiqmicro_info->pagesize,
 		ambiqmicro_info->flshsiz,
@@ -304,7 +304,7 @@ static int check_flash_status(struct target *target, uint32_t address)
 	}
 	/* target flash failed, unknown cause. */
 	if (retflash != 0) {
-		LOG_ERROR("Flash not happy: status(0x%x)", retflash);
+		LOG_ERROR("Flash not happy: status(0x%" PRIx32 ")", retflash);
 		return ERROR_FLASH_OPERATION_FAILED;
 	}
 	return ERROR_OK;
@@ -432,7 +432,7 @@ static int ambiqmicro_erase(struct flash_bank *bank, unsigned int first,
 {
 	struct ambiqmicro_flash_bank *ambiqmicro_info = bank->driver_priv;
 	struct target *target = bank->target;
-	uint32_t retval = ERROR_OK;
+	int retval;
 
 	if (bank->target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -615,7 +615,7 @@ static int ambiqmicro_write_block(struct flash_bank *bank,
 			break;
 		}
 
-		LOG_DEBUG("address = 0x%08x", address);
+		LOG_DEBUG("address = 0x%08" PRIx32, address);
 
 		retval = ambiqmicro_exec_command(target, FLASH_PROGRAM_MAIN_FROM_SRAM, 0x1000000c);
 		CHECK_STATUS(retval, "error executing ambiqmicro flash write algorithm");
@@ -641,7 +641,7 @@ static int ambiqmicro_write_block(struct flash_bank *bank,
 static int ambiqmicro_write(struct flash_bank *bank, const uint8_t *buffer,
 	uint32_t offset, uint32_t count)
 {
-	uint32_t retval;
+	int retval;
 
 	/* try using a block write */
 	retval = ambiqmicro_write_block(bank, buffer, offset, count);
@@ -654,7 +654,7 @@ static int ambiqmicro_write(struct flash_bank *bank, const uint8_t *buffer,
 static int ambiqmicro_probe(struct flash_bank *bank)
 {
 	struct ambiqmicro_flash_bank *ambiqmicro_info = bank->driver_priv;
-	uint32_t retval;
+	int retval;
 
 	/* If this is a ambiqmicro chip, it has flash; probe() is just
 	 * to figure out how much is present.  Only do it once.
@@ -701,7 +701,7 @@ static int ambiqmicro_otp_program(struct flash_bank *bank,
 {
 	struct target *target = NULL;
 	struct ambiqmicro_flash_bank *ambiqmicro_info = NULL;
-	uint32_t retval = ERROR_OK;
+	int retval;
 
 	ambiqmicro_info = bank->driver_priv;
 	target = bank->target;
@@ -760,7 +760,7 @@ static int ambiqmicro_otp_program(struct flash_bank *bank,
 	/*
 	 * Program OTP.
 	 */
-	LOG_INFO("Programming OTP offset 0x%08x", offset);
+	LOG_INFO("Programming OTP offset 0x%08" PRIx32, offset);
 
 	/*
 	 * passed pc, addr = ROM function, handle breakpoints, not debugging.
@@ -781,7 +781,7 @@ COMMAND_HANDLER(ambiqmicro_handle_mass_erase_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	struct flash_bank *bank;
-	uint32_t retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
+	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
 	if (ERROR_OK != retval)
 		return retval;
 
@@ -801,7 +801,7 @@ COMMAND_HANDLER(ambiqmicro_handle_page_erase_command)
 {
 	struct flash_bank *bank;
 	uint32_t first, last;
-	uint32_t retval;
+	int retval;
 
 	if (CMD_ARGC < 3)
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -829,7 +829,7 @@ COMMAND_HANDLER(ambiqmicro_handle_program_otp_command)
 {
 	struct flash_bank *bank;
 	uint32_t offset, count;
-	uint32_t retval;
+	int retval;
 
 	if (CMD_ARGC < 3)
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -837,7 +837,7 @@ COMMAND_HANDLER(ambiqmicro_handle_program_otp_command)
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[1], offset);
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[2], count);
 
-	command_print(CMD, "offset=0x%08x count=%d", offset, count);
+	command_print(CMD, "offset=0x%08" PRIx32 " count=%" PRIu32, offset, count);
 
 	CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
 

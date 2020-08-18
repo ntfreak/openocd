@@ -141,7 +141,7 @@ COMMAND_HANDLER(handle_flash_info_command)
 				protect_state = "protection state unknown";
 
 			command_print(CMD,
-				"\t#%3i: 0x%8.8" PRIx32 " (0x%" PRIx32 " %" PRIi32 "kB) %s",
+				"\t#%3i: 0x%8.8" PRIx32 " (0x%" PRIx32 " %" PRIu32 "kB) %s",
 				j,
 				block_array[j].offset,
 				block_array[j].size,
@@ -222,7 +222,7 @@ COMMAND_HANDLER(handle_flash_erase_check_command)
 
 		blank = false;
 		command_print(CMD,
-			"\t#%3i: 0x%8.8" PRIx32 " (0x%" PRIx32 " %" PRIi32 "kB) %s",
+			"\t#%3i: 0x%8.8" PRIx32 " (0x%" PRIx32 " %" PRIu32 "kB) %s",
 			j,
 			p->sectors[j].offset,
 			p->sectors[j].size,
@@ -288,8 +288,7 @@ COMMAND_HANDLER(handle_flash_erase_address_command)
 		retval = flash_erase_address_range(target, do_pad, address, length);
 
 	if ((ERROR_OK == retval) && (duration_measure(&bench) == ERROR_OK)) {
-		command_print(CMD, "erased address " TARGET_ADDR_FMT " (length %"
-				PRIi32 ")"
+		command_print(CMD, "erased address " TARGET_ADDR_FMT " (length %" PRIu32 ")"
 			" in %fs (%0.3f KiB/s)", address, length,
 			duration_elapsed(&bench), duration_kbps(&bench, length));
 	}
@@ -326,7 +325,7 @@ COMMAND_HANDLER(handle_flash_erase_command)
 
 	if (!(last <= (p->num_sectors - 1))) {
 		command_print(CMD, "ERROR: "
-			"last sector must be <= %" PRIu32,
+			"last sector must be <= %u",
 			p->num_sectors - 1);
 		return ERROR_FAIL;
 	}
@@ -384,7 +383,7 @@ COMMAND_HANDLER(handle_flash_protect_command)
 
 	if (!(last <= (uint32_t)(num_blocks - 1))) {
 		command_print(CMD, "ERROR: "
-			"last %s must be <= %" PRIu32,
+			"last %s must be <= %d",
 			(p->num_prot_blocks) ? "block" : "sector",
 			num_blocks - 1);
 		return ERROR_FAIL;
@@ -541,7 +540,7 @@ COMMAND_HANDLER(handle_flash_fill_command)
 		LOG_WARNING("Start address " TARGET_ADDR_FMT
 			" breaks the required alignment of flash bank %s",
 			address, bank->name);
-		LOG_WARNING("Padding %" PRId32 " bytes from " TARGET_ADDR_FMT,
+		LOG_WARNING("Padding %" PRIu32 " bytes from " TARGET_ADDR_FMT,
 		    padding_at_start, aligned_start);
 	}
 
@@ -571,7 +570,7 @@ COMMAND_HANDLER(handle_flash_fill_command)
 
 	if (padding_at_end) {
 		memset(ptr, bank->default_padded_value, padding_at_end);
-		LOG_INFO("Padding at " TARGET_ADDR_FMT " with %" PRId32
+		LOG_INFO("Padding at " TARGET_ADDR_FMT " with %" PRIu32
 			" bytes (bank write end alignment)",
 			end_addr + 1, padding_at_end);
 	}
@@ -759,7 +758,7 @@ COMMAND_HANDLER(handle_flash_write_bank_command)
 		LOG_WARNING("Start offset 0x%08" PRIx32
 			" breaks the required alignment of flash bank %s",
 			offset, bank->name);
-		LOG_WARNING("Padding %" PRId32 " bytes from " TARGET_ADDR_FMT,
+		LOG_WARNING("Padding %" PRIu32 " bytes from " TARGET_ADDR_FMT,
 		    padding_at_start, aligned_start);
 	}
 
@@ -781,7 +780,7 @@ COMMAND_HANDLER(handle_flash_write_bank_command)
 
 	if (padding_at_end) {
 		memset(ptr, bank->default_padded_value, padding_at_end);
-		LOG_INFO("Padding at " TARGET_ADDR_FMT " with %" PRId32
+		LOG_INFO("Padding at " TARGET_ADDR_FMT " with %" PRIu32
 			" bytes (bank write end alignment)",
 			end_addr + 1, padding_at_end);
 	}
@@ -988,7 +987,7 @@ COMMAND_HANDLER(handle_flash_verify_bank_command)
 		for (t = 0; t < length; t++) {
 			if (buffer_flash[t] == buffer_file[t])
 				continue;
-			command_print(CMD, "diff %d address 0x%08x. Was 0x%02x instead of 0x%02x",
+			command_print(CMD, "diff %d address 0x%08" PRIx32 ". Was 0x%02x instead of 0x%02x",
 					diffs, t + offset, buffer_flash[t], buffer_file[t]);
 			if (diffs++ >= 127) {
 				command_print(CMD, "More than 128 errors, the rest are not printed.");

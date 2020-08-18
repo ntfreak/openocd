@@ -508,7 +508,7 @@ static int sh_qspi_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	if (offset & 0xff) {
-		LOG_ERROR("sh_qspi_write_page: unaligned write address: %08x",
+		LOG_ERROR("sh_qspi_write_page: unaligned write address: %08" PRIx32,
 			  offset);
 		return ERROR_FAIL;
 	}

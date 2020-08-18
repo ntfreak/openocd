@@ -954,7 +954,7 @@ static int at91sam7_write(struct flash_bank *bank, const uint8_t *buffer, uint32
 		/* Send Write Page command to Flash Controller */
 		if (at91sam7_flash_command(bank, WP, pagen) != ERROR_OK)
 			return ERROR_FLASH_OPERATION_FAILED;
-		LOG_DEBUG("Write flash bank:%u page number:%" PRIi32 "", bank->bank_number, pagen);
+		LOG_DEBUG("Write flash bank:%u page number:%" PRIu32, bank->bank_number, pagen);
 	}
 
 	return ERROR_OK;

@@ -1015,7 +1015,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 	const int gap_size_kb = stm32l4_info->hole_sectors * page_size_kb;
 
 	if (gap_size_kb != 0) {
-		LOG_INFO("gap detected from 0x%08" PRIx32 " to 0x%08" PRIx32,
+		LOG_INFO("gap detected from 0x%08x to 0x%08x",
 			STM32_FLASH_BANK_BASE + stm32l4_info->bank1_sectors
 				* page_size_kb * 1024,
 			STM32_FLASH_BANK_BASE + (stm32l4_info->bank1_sectors

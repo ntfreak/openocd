@@ -1556,7 +1556,7 @@ static int get_lpc2000_info(struct flash_bank *bank, char *buf, int buf_size)
 {
 	struct lpc2000_flash_bank *lpc2000_info = bank->driver_priv;
 
-	snprintf(buf, buf_size, "lpc2000 flash driver variant: %i, clk: %" PRIi32 "kHz", lpc2000_info->variant,
+	snprintf(buf, buf_size, "lpc2000 flash driver variant: %i, clk: %" PRIu32 "kHz", lpc2000_info->variant,
 			lpc2000_info->cclk);
 
 	return ERROR_OK;

@@ -494,7 +494,7 @@ static int esirisc_flash_info(struct flash_bank *bank, char *buf, int buf_size)
 	struct esirisc_flash_bank *esirisc_info = bank->driver_priv;
 
 	snprintf(buf, buf_size,
-			"%4s cfg at 0x%" PRIx32 ", clock %" PRId32 ", wait_states %" PRId32,
+			"%4s cfg at 0x%" PRIx32 ", clock %" PRIu32 ", wait_states %" PRIu32,
 			"",	/* align with first line */
 			esirisc_info->cfg,
 			esirisc_info->clock,

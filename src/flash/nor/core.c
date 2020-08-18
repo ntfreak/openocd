@@ -825,7 +825,7 @@ int flash_write_unlock(struct target *target, struct image *image,
 				LOG_WARNING("Section start address " TARGET_ADDR_FMT
 					" breaks the required alignment of flash bank %s",
 					run_address, c->name);
-				LOG_WARNING("Padding %d bytes from " TARGET_ADDR_FMT,
+				LOG_WARNING("Padding %" PRIu32 " bytes from " TARGET_ADDR_FMT,
 					padding_at_start, aligned_start);
 
 				run_address -= padding_at_start;

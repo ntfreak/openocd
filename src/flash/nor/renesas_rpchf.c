@@ -451,8 +451,8 @@ static int rpchf_spansion_write_words(struct flash_bank *bank, const uint8_t *wo
 
 	/* Check for valid size */
 	if (wordcount > bufferwsize) {
-		LOG_ERROR("Number of data words %" PRId32 " exceeds available buffersize %"
-			PRId32, wordcount, buffersize);
+		LOG_ERROR("Number of data words %" PRIu32 " exceeds available buffersize %"
+			PRIu32, wordcount, buffersize);
 		return ERROR_FLASH_OPERATION_FAILED;
 	}
 
@@ -583,7 +583,7 @@ static int rpchf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t 
 
 	/* handle unaligned tail bytes */
 	if (count > 0) {
-		LOG_INFO("Fixup %" PRId32 " unaligned tail bytes", count);
+		LOG_INFO("Fixup %" PRIu32 " unaligned tail bytes", count);
 
 		/* read a complete word from flash */
 		retval = cfi_target_read_memory(bank, write_p, 1, current_word);
@@ -612,7 +612,7 @@ static int rpchf_read(struct flash_bank *bank, uint8_t *buffer, uint32_t offset,
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 	struct target *target = bank->target;
 
-	LOG_DEBUG("reading buffer of %" PRIi32 " byte at 0x%8.8" PRIx32,
+	LOG_DEBUG("reading buffer of %" PRIu32 " byte at 0x%8.8" PRIx32,
 		  count, offset);
 
 	if (bank->target->state != TARGET_HALTED) {

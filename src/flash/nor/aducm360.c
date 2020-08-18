@@ -285,7 +285,7 @@ static int aducm360_write_block_sync(
 
 		res = buf_get_u32(reg_params[4].value, 0, 32);
 		if (res) {
-			LOG_ERROR("aducm360 fast sync algorithm reports an error (%02X)", res);
+			LOG_ERROR("aducm360 fast sync algorithm reports an error (%02" PRIX32 ")", res);
 			retval = ERROR_FAIL;
 			break;
 		}
@@ -401,7 +401,7 @@ static int aducm360_write_block_async(
 	} else {
 		res = buf_get_u32(reg_params[4].value, 0, 32);	/*RESULT*/
 		if (res) {
-			LOG_ERROR("aducm360 fast async algorithm reports an error (%02X)", res);
+			LOG_ERROR("aducm360 fast async algorithm reports an error (%02" PRIX32 ")", res);
 			retval = ERROR_FAIL;
 		}
 	}

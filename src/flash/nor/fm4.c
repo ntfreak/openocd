@@ -172,7 +172,7 @@ static int fm4_flash_erase(struct flash_bank *bank, unsigned int first,
 			retval = ERROR_FLASH_OPERATION_FAILED;
 			goto err_run_ret;
 		} else if (result != 0) {
-			LOG_ERROR("Unexpected error %d from flash sector erase programming algorithm", result);
+			LOG_ERROR("Unexpected error %" PRIu32 " from flash sector erase programming algorithm", result);
 			retval = ERROR_FLASH_OPERATION_FAILED;
 			goto err_run_ret;
 		} else
@@ -213,7 +213,7 @@ static int fm4_flash_write(struct flash_bank *bank, const uint8_t *buffer,
 #include "../../../contrib/loaders/flash/fm4/write.inc"
 	};
 
-	LOG_DEBUG("Spansion FM4 write at 0x%08" PRIx32 " (%" PRId32 " bytes)",
+	LOG_DEBUG("Spansion FM4 write at 0x%08" PRIx32 " (%" PRIu32 " bytes)",
 		offset, byte_count);
 
 	if (offset & 0x1) {
@@ -222,7 +222,7 @@ static int fm4_flash_write(struct flash_bank *bank, const uint8_t *buffer,
 		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
 	}
 	if (byte_count & 0x1) {
-		LOG_WARNING("length %" PRId32 " is not 2-byte aligned, rounding up",
+		LOG_WARNING("length %" PRIu32 " is not 2-byte aligned, rounding up",
 			byte_count);
 	}
 
@@ -273,7 +273,7 @@ static int fm4_flash_write(struct flash_bank *bank, const uint8_t *buffer,
 		uint32_t halfwords = MIN(halfword_count, data_workarea->size / 2);
 		uint32_t addr = bank->base + offset;
 
-		LOG_DEBUG("copying %" PRId32 " bytes to SRAM " TARGET_ADDR_FMT,
+		LOG_DEBUG("copying %" PRIu32 " bytes to SRAM " TARGET_ADDR_FMT,
 			MIN(halfwords * 2, byte_count), data_workarea->address);
 
 		retval = target_write_buffer(target, data_workarea->address,
@@ -284,7 +284,7 @@ static int fm4_flash_write(struct flash_bank *bank, const uint8_t *buffer,
 			goto err_write_data;
 		}
 
-		LOG_DEBUG("writing 0x%08" PRIx32 "-0x%08" PRIx32 " (%" PRId32 "x)",
+		LOG_DEBUG("writing 0x%08" PRIx32 "-0x%08" PRIx32 " (%" PRIu32 "x)",
 			addr, addr + halfwords * 2 - 1, halfwords);
 
 		buf_set_u32(reg_params[0].value, 0, 32, (addr & ~0xffff) | 0xAA8);
@@ -312,7 +312,7 @@ static int fm4_flash_write(struct flash_bank *bank, const uint8_t *buffer,
 			retval = ERROR_FLASH_OPERATION_FAILED;
 			goto err_run_ret;
 		} else if (result != 0) {
-			LOG_ERROR("Unexpected error %d from flash write "
+			LOG_ERROR("Unexpected error %" PRIu32 " from flash write "
 				"programming algorithm", result);
 			retval = ERROR_FLASH_OPERATION_FAILED;
 			goto err_run_ret;

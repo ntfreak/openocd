@@ -320,7 +320,7 @@ static int msp432_init(struct flash_bank *bank)
 		/* Explicit device type check failed. Report this. */
 		LOG_WARNING(
 			"msp432: Unrecognized MSP432P4 Device ID and Hardware "
-			"Rev (%04X, %02X)", msp432_bank->device_id,
+			"Rev (%04" PRIX32 ", %02" PRIX32 ")", msp432_bank->device_id,
 			msp432_bank->hardware_rev);
 	} else if (MSP432P401X_DEPR == msp432_bank->device_type) {
 		LOG_WARNING(
@@ -330,7 +330,7 @@ static int msp432_init(struct flash_bank *bank)
 		/* Explicit device type check failed. Report this. */
 		LOG_WARNING(
 			"msp432: Unrecognized MSP432E4 DID0 and DID1 values "
-			"(%08X, %08X)", msp432_bank->device_id,
+			"(%08" PRIX32 ", %08" PRIX32 ")", msp432_bank->device_id,
 			msp432_bank->hardware_rev);
 	}
 
@@ -1014,14 +1014,14 @@ static int msp432_info(struct flash_bank *bank, char *buf, int buf_size)
 			break;
 		case MSP432E4X_GUESS:
 			printed = snprintf(buf, buf_size,
-				"Unrecognized MSP432E4 DID0 and DID1 IDs (%08X, %08X)",
+				"Unrecognized MSP432E4 DID0 and DID1 IDs (%08" PRIX32 ", %08" PRIX32 ")",
 				msp432_bank->device_id, msp432_bank->hardware_rev);
 			break;
 		case MSP432P401X_GUESS:
 		case MSP432P411X_GUESS:
 		default:
 			printed = snprintf(buf, buf_size,
-				"Unrecognized MSP432P4 Device ID and Hardware Rev (%04X, %02X)",
+				"Unrecognized MSP432P4 Device ID and Hardware Rev (%04" PRIX32 ", %02" PRIX32 ")",
 				msp432_bank->device_id, msp432_bank->hardware_rev);
 			break;
 	}

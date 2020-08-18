@@ -65,7 +65,7 @@
 static const char target_not_halted_err_msg[] =
 	"target must be halted to use mxc NAND flash controller";
 static const char data_block_size_err_msg[] =
-	"minimal granularity is one half-word, %" PRId32 " is incorrect";
+	"minimal granularity is one half-word, %" PRIu32 " is incorrect";
 static const char sram_buffer_bounds_err_msg[] =
 	"trying to access out of SRAM buffer bound (addr=0x%" PRIx32 ")";
 static const char get_status_register_err_msg[] = "can't get NAND status";

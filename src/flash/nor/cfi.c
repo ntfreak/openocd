@@ -2055,7 +2055,7 @@ static int cfi_intel_write_words(struct flash_bank *bank, const uint8_t *word,
 
 	/* Check for valid size */
 	if (wordcount > bufferwsize) {
-		LOG_ERROR("Number of data words %" PRId32 " exceeds available buffersize %" PRId32,
+		LOG_ERROR("Number of data words %" PRIu32 " exceeds available buffersize %" PRIu32,
 			wordcount, buffersize);
 		return ERROR_FLASH_OPERATION_FAILED;
 	}
@@ -2170,8 +2170,8 @@ static int cfi_spansion_write_words(struct flash_bank *bank, const uint8_t *word
 
 	/* Check for valid size */
 	if (wordcount > bufferwsize) {
-		LOG_ERROR("Number of data words %" PRId32 " exceeds available buffersize %"
-			PRId32, wordcount, buffersize);
+		LOG_ERROR("Number of data words %" PRIu32 " exceeds available buffersize %"
+			PRIu32, wordcount, buffersize);
 		return ERROR_FLASH_OPERATION_FAILED;
 	}
 
@@ -2470,7 +2470,7 @@ static int cfi_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t of
 
 	/* handle unaligned tail bytes */
 	if (count > 0) {
-		LOG_INFO("Fixup %" PRId32 " unaligned tail bytes", count);
+		LOG_INFO("Fixup %" PRIu32 " unaligned tail bytes", count);
 
 		/* read a complete word from flash */
 		retval = cfi_target_read_memory(bank, write_p, 1, current_word);

@@ -240,13 +240,13 @@ static int w600_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	if ((offset % W600_FLASH_PAGESIZE) != 0) {
-		LOG_WARNING("offset 0x%" PRIx32 " breaks required %" PRIu32 "-byte alignment",
+		LOG_WARNING("offset 0x%" PRIx32 " breaks required %d-byte alignment",
 			offset, W600_FLASH_PAGESIZE);
 		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
 	}
 
 	if ((count % W600_FLASH_PAGESIZE) != 0) {
-		LOG_WARNING("count 0x%" PRIx32 " breaks required %" PRIu32 "-byte alignment",
+		LOG_WARNING("count 0x%" PRIx32 " breaks required %d-byte alignment",
 			offset, W600_FLASH_PAGESIZE);
 		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
 	}
@@ -323,7 +323,7 @@ static int w600_probe(struct flash_bank *bank)
 		flash_size = 1 << flash_size;
 	}
 
-	LOG_INFO("flash size = %dkbytes", flash_size / 1024);
+	LOG_INFO("flash size = %" PRIu32 "kbytes", flash_size / 1024);
 
 	/* calculate numbers of pages */
 	size_t num_pages = flash_size / W600_FLASH_SECSIZE;

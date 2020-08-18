@@ -919,7 +919,7 @@ static int psoc5lp_eeprom_write(struct flash_bank *bank,
 		memset(buf + byte_count, bank->default_padded_value,
 				EEPROM_ROW_SIZE - byte_count);
 
-		LOG_DEBUG("Padding %d bytes", EEPROM_ROW_SIZE - byte_count);
+		LOG_DEBUG("Padding %" PRIu32 " bytes", EEPROM_ROW_SIZE - byte_count);
 		retval = psoc5lp_spc_load_row(target, SPC_ARRAY_EEPROM,
 				buf, EEPROM_ROW_SIZE);
 		if (retval != ERROR_OK)

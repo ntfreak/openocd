@@ -184,7 +184,7 @@ static int bluenrgx_erase(struct flash_bank *bank, unsigned int first,
 		command = FLASH_CMD_ERASE_PAGE;
 		for (unsigned int i = first; i <= last; i++) {
 			address = bank->base+i*FLASH_PAGE_SIZE(bluenrgx_info);
-			LOG_DEBUG("address = %08x, index = %u", address, i);
+			LOG_DEBUG("address = %08" PRIx32 ", index = %u", address, i);
 
 			if (bluenrgx_write_flash_reg(bank, FLASH_REG_IRQRAW, 0x3f) != ERROR_OK) {
 				LOG_ERROR("Register write failed");
@@ -249,7 +249,7 @@ static int bluenrgx_write(struct flash_bank *bank, const uint8_t *buffer,
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	if ((offset + count) > bank->size) {
-		LOG_ERROR("Requested write past beyond of flash size: (offset+count) = %d, size=%d",
+		LOG_ERROR("Requested write past beyond of flash size: (offset+count) = %" PRIu32 ", size=%" PRIu32,
 			  (offset + count),
 			  bank->size);
 		return ERROR_FLASH_DST_OUT_OF_BANK;
@@ -312,8 +312,8 @@ static int bluenrgx_write(struct flash_bank *bank, const uint8_t *buffer,
 	LOG_DEBUG("source->address = " TARGET_ADDR_FMT, source->address);
 	LOG_DEBUG("source->address+ source->size = " TARGET_ADDR_FMT, source->address+source->size);
 	LOG_DEBUG("write_algorithm_sp->address = " TARGET_ADDR_FMT, write_algorithm_sp->address);
-	LOG_DEBUG("address = %08x", address);
-	LOG_DEBUG("count = %08x", count);
+	LOG_DEBUG("address = %08" PRIx32, address);
+	LOG_DEBUG("count = %08" PRIx32, count);
 
 	retval = target_run_flash_async_algorithm(target,
 						  buffer,

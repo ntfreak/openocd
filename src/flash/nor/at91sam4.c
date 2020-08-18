@@ -1896,7 +1896,7 @@ static uint32_t sam4_reg_fieldname(struct sam4_chip *pChip,
 	}
 
 	/* show the basics */
-	LOG_USER_N("\t%*s: %*" PRId32 " [0x%0*" PRIx32 "] ",
+	LOG_USER_N("\t%*s: %*" PRIu32 " [0x%0*" PRIx32 "] ",
 		REG_NAME_WIDTH, regname,
 		dwidth, v,
 		hwidth, v);
@@ -2549,7 +2549,7 @@ static int sam4_GetDetails(struct sam4_bank_private *pPrivate)
 		sam4_explain_chipid_cidr(pPrivate->pChip);
 		return ERROR_FAIL;
 	} else {
-		LOG_DEBUG("SAM4 Found chip %s, CIDR 0x%08x", pDetails->name, pDetails->chipid_cidr);
+		LOG_DEBUG("SAM4 Found chip %s, CIDR 0x%08" PRIx32, pDetails->name, pDetails->chipid_cidr);
 	}
 
 	/* DANGER: THERE ARE DRAGONS HERE */
