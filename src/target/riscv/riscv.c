@@ -224,7 +224,7 @@ static uint32_t dtmcontrol_scan(struct target *target, uint32_t out)
 	}
 
 	uint32_t in = buf_get_u32(field.in_value, 0, 32);
-	LOG_DEBUG("DTMCONTROL: 0x%x -> 0x%x", out, in);
+	LOG_DEBUG("DTMCONTROL: 0x%" PRIx32 " -> 0x%" PRIx32, out, in);
 
 	return in;
 }
@@ -716,7 +716,7 @@ int riscv_hit_watchpoint(struct target *target, struct watchpoint **hit_watchpoi
 		LOG_DEBUG("Next byte is %x", buffer[i]);
 		instruction += (buffer[i] << 8 * i);
 	}
-	LOG_DEBUG("Full instruction is %x", instruction);
+	LOG_DEBUG("Full instruction is %" PRIx32, instruction);
 
 	/* find out which memory address is accessed by the instruction at dpc */
 	/* opcode is first 7 bits of the instruction */
@@ -730,10 +730,10 @@ int riscv_hit_watchpoint(struct target *target, struct watchpoint **hit_watchpoi
 		riscv_get_register(target, &mem_addr, rs1);
 
 		if (opcode == MATCH_SB) {
-			LOG_DEBUG("%x is store instruction", instruction);
+			LOG_DEBUG("%" PRIx32 " is store instruction", instruction);
 			imm = ((instruction & 0xf80) >> 7) | ((instruction & 0xfe000000) >> 20);
 		} else {
-			LOG_DEBUG("%x is load instruction", instruction);
+			LOG_DEBUG("%" PRIx32 " is load instruction", instruction);
 			imm = (instruction & 0xfff00000) >> 20;
 		}
 		/* sign extend 12-bit imm to 16-bits */
@@ -742,7 +742,7 @@ int riscv_hit_watchpoint(struct target *target, struct watchpoint **hit_watchpoi
 		mem_addr += imm;
 		LOG_DEBUG("memory address=0x%" PRIx64, mem_addr);
 	} else {
-		LOG_DEBUG("%x is not a RV32I load or store", instruction);
+		LOG_DEBUG("%" PRIx32 " is not a RV32I load or store", instruction);
 		return ERROR_FAIL;
 	}
 
@@ -796,7 +796,7 @@ static int riscv_examine(struct target *target)
 
 	riscv_info_t *info = (riscv_info_t *) target->arch_info;
 	uint32_t dtmcontrol = dtmcontrol_scan(target, 0);
-	LOG_DEBUG("dtmcontrol=0x%x", dtmcontrol);
+	LOG_DEBUG("dtmcontrol=0x%" PRIx32, dtmcontrol);
 	info->dtm_version = get_field(dtmcontrol, DTMCONTROL_VERSION);
 	LOG_DEBUG("  version=0x%x", info->dtm_version);
 
@@ -1020,7 +1020,7 @@ static int riscv_run_algorithm(struct target *target, int num_mem_params,
 		}
 
 		if (r->size != reg_params[i].size) {
-			LOG_ERROR("Register %s is %d bits instead of %d bits.",
+			LOG_ERROR("Register %s is %" PRIu32 " bits instead of %" PRIu32 " bits.",
 					reg_params[i].reg_name, r->size, reg_params[i].size);
 			return ERROR_FAIL;
 		}
@@ -1069,8 +1069,8 @@ static int riscv_run_algorithm(struct target *target, int num_mem_params,
 		int64_t now = timeval_ms();
 		if (now - start > timeout_ms) {
 			LOG_ERROR("Algorithm timed out after %d ms.", timeout_ms);
-			LOG_ERROR("  now   = 0x%08x", (uint32_t) now);
-			LOG_ERROR("  start = 0x%08x", (uint32_t) start);
+			LOG_ERROR("  now   = 0x%08" PRIx32, (uint32_t) now);
+			LOG_ERROR("  start = 0x%08" PRIx32, (uint32_t) start);
 			oldriscv_halt(target);
 			old_or_new_riscv_poll(target);
 			return ERROR_TARGET_TIMEOUT;

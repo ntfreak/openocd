@@ -301,7 +301,7 @@ static uint32_t dtmcontrol_scan(struct target *target, uint32_t out)
 	}
 
 	uint32_t in = buf_get_u32(field.in_value, 0, 32);
-	LOG_DEBUG("DTMCONTROL: 0x%x -> 0x%x", out, in);
+	LOG_DEBUG("DTMCONTROL: 0x%" PRIx32 " -> 0x%" PRIx32, out, in);
 
 	return in;
 }
@@ -328,7 +328,7 @@ static uint32_t idcode_scan(struct target *target)
 	jtag_add_ir_scan(target->tap, &select_dbus, TAP_IDLE);
 
 	uint32_t in = buf_get_u32(field.in_value, 0, 32);
-	LOG_DEBUG("IDCODE: 0x0 -> 0x%x", in);
+	LOG_DEBUG("IDCODE: 0x0 -> 0x%" PRIx32, in);
 
 	return in;
 }
@@ -736,7 +736,7 @@ static int dram_check32(struct target *target, unsigned int index,
 	uint16_t address = dram_address(index);
 	uint32_t actual = dbus_read(target, address);
 	if (expected != actual) {
-		LOG_ERROR("Wrote 0x%x to Debug RAM at %d, but read back 0x%x",
+		LOG_ERROR("Wrote 0x%" PRIx32 " to Debug RAM at %d, but read back 0x%" PRIx32,
 				expected, index, actual);
 		return ERROR_FAIL;
 	}
@@ -749,10 +749,10 @@ static void cache_set32(struct target *target, unsigned int index, uint32_t data
 	if (info->dram_cache[index].valid &&
 			info->dram_cache[index].data == data) {
 		/* This is already preset on the target. */
-		LOG_DEBUG("cache[0x%x] = 0x%08x: DASM(0x%x) (hit)", index, data, data);
+		LOG_DEBUG("cache[0x%x] = 0x%08" PRIx32 ": DASM(0x%" PRIx32 ") (hit)", index, data, data);
 		return;
 	}
-	LOG_DEBUG("cache[0x%x] = 0x%08x: DASM(0x%x)", index, data, data);
+	LOG_DEBUG("cache[0x%x] = 0x%08" PRIx32 ": DASM(0x%" PRIx32 ")", index, data, data);
 	info->dram_cache[index].data = data;
 	info->dram_cache[index].valid = true;
 	info->dram_cache[index].dirty = true;
@@ -790,7 +790,7 @@ static void dump_debug_ram(struct target *target)
 {
 	for (unsigned int i = 0; i < DRAM_CACHE_SIZE; i++) {
 		uint32_t value = dram_read32(target, i);
-		LOG_ERROR("Debug RAM 0x%x: 0x%08x", i, value);
+		LOG_ERROR("Debug RAM 0x%x: 0x%08" PRIx32, i, value);
 	}
 }
 
@@ -1021,11 +1021,11 @@ static int read_csr(struct target *target, uint64_t *value, uint32_t csr)
 	if (cache_write(target, 4, true) != ERROR_OK)
 		return ERROR_FAIL;
 	*value = cache_get(target, SLOT0);
-	LOG_DEBUG("csr 0x%x = 0x%" PRIx64, csr, *value);
+	LOG_DEBUG("csr 0x%" PRIx32 " = 0x%" PRIx64, csr, *value);
 
 	uint32_t exception = cache_get32(target, info->dramsize-1);
 	if (exception) {
-		LOG_WARNING("Got exception 0x%x when reading %s", exception,
+		LOG_WARNING("Got exception 0x%" PRIx32 " when reading %s", exception,
 				gdb_regno_name(GDB_REGNO_CSR0 + csr));
 		*value = ~0;
 		return ERROR_FAIL;
@@ -1036,7 +1036,7 @@ static int read_csr(struct target *target, uint64_t *value, uint32_t csr)
 
 static int write_csr(struct target *target, uint32_t csr, uint64_t value)
 {
-	LOG_DEBUG("csr 0x%x <- 0x%" PRIx64, csr, value);
+	LOG_DEBUG("csr 0x%" PRIx32 " <- 0x%" PRIx64, csr, value);
 	cache_set_load(target, 0, S0, SLOT0);
 	cache_set32(target, 1, csrw(S0, csr));
 	cache_set_jump(target, 2);
@@ -1231,7 +1231,7 @@ static int register_read(struct target *target, riscv_reg_t *value, int regnum)
 
 	uint32_t exception = cache_get32(target, info->dramsize-1);
 	if (exception) {
-		LOG_WARNING("Got exception 0x%x when reading %s", exception, gdb_regno_name(regnum));
+		LOG_WARNING("Got exception 0x%" PRIx32 " when reading %s", exception, gdb_regno_name(regnum));
 		*value = ~0;
 		return ERROR_FAIL;
 	}
@@ -1305,7 +1305,7 @@ static int register_write(struct target *target, unsigned int number,
 
 	uint32_t exception = cache_get32(target, info->dramsize-1);
 	if (exception) {
-		LOG_WARNING("Got exception 0x%x when writing %s", exception,
+		LOG_WARNING("Got exception 0x%" PRIx32 " when writing %s", exception,
 				gdb_regno_name(number));
 		return ERROR_FAIL;
 	}
@@ -1471,16 +1471,16 @@ static int examine(struct target *target)
 	/* Don't need to select dbus, since the first thing we do is read dtmcontrol. */
 
 	uint32_t dtmcontrol = dtmcontrol_scan(target, 0);
-	LOG_DEBUG("dtmcontrol=0x%x", dtmcontrol);
-	LOG_DEBUG("  addrbits=%d", get_field(dtmcontrol, DTMCONTROL_ADDRBITS));
-	LOG_DEBUG("  version=%d", get_field(dtmcontrol, DTMCONTROL_VERSION));
-	LOG_DEBUG("  idle=%d", get_field(dtmcontrol, DTMCONTROL_IDLE));
+	LOG_DEBUG("dtmcontrol=0x%" PRIx32, dtmcontrol);
+	LOG_DEBUG("  addrbits=%" PRIu32, get_field(dtmcontrol, DTMCONTROL_ADDRBITS));
+	LOG_DEBUG("  version=%" PRIu32, get_field(dtmcontrol, DTMCONTROL_VERSION));
+	LOG_DEBUG("  idle=%" PRIu32, get_field(dtmcontrol, DTMCONTROL_IDLE));
 	if (dtmcontrol == 0) {
 		LOG_ERROR("dtmcontrol is 0. Check JTAG connectivity/board power.");
 		return ERROR_FAIL;
 	}
 	if (get_field(dtmcontrol, DTMCONTROL_VERSION) != 0) {
-		LOG_ERROR("Unsupported DTM version %d. (dtmcontrol=0x%x)",
+		LOG_ERROR("Unsupported DTM version %" PRIu32 ". (dtmcontrol=0x%" PRIx32 ")",
 				get_field(dtmcontrol, DTMCONTROL_VERSION), dtmcontrol);
 		return ERROR_FAIL;
 	}
@@ -1499,23 +1499,23 @@ static int examine(struct target *target)
 	}
 
 	uint32_t dminfo = dbus_read(target, DMINFO);
-	LOG_DEBUG("dminfo: 0x%08x", dminfo);
-	LOG_DEBUG("  abussize=0x%x", get_field(dminfo, DMINFO_ABUSSIZE));
-	LOG_DEBUG("  serialcount=0x%x", get_field(dminfo, DMINFO_SERIALCOUNT));
-	LOG_DEBUG("  access128=%d", get_field(dminfo, DMINFO_ACCESS128));
-	LOG_DEBUG("  access64=%d", get_field(dminfo, DMINFO_ACCESS64));
-	LOG_DEBUG("  access32=%d", get_field(dminfo, DMINFO_ACCESS32));
-	LOG_DEBUG("  access16=%d", get_field(dminfo, DMINFO_ACCESS16));
-	LOG_DEBUG("  access8=%d", get_field(dminfo, DMINFO_ACCESS8));
-	LOG_DEBUG("  dramsize=0x%x", get_field(dminfo, DMINFO_DRAMSIZE));
-	LOG_DEBUG("  authenticated=0x%x", get_field(dminfo, DMINFO_AUTHENTICATED));
-	LOG_DEBUG("  authbusy=0x%x", get_field(dminfo, DMINFO_AUTHBUSY));
-	LOG_DEBUG("  authtype=0x%x", get_field(dminfo, DMINFO_AUTHTYPE));
-	LOG_DEBUG("  version=0x%x", get_field(dminfo, DMINFO_VERSION));
+	LOG_DEBUG("dminfo: 0x%08" PRIx32, dminfo);
+	LOG_DEBUG("  abussize=0x%" PRIx32, get_field(dminfo, DMINFO_ABUSSIZE));
+	LOG_DEBUG("  serialcount=0x%" PRIx32, get_field(dminfo, DMINFO_SERIALCOUNT));
+	LOG_DEBUG("  access128=%" PRIu32, get_field(dminfo, DMINFO_ACCESS128));
+	LOG_DEBUG("  access64=%" PRIu32, get_field(dminfo, DMINFO_ACCESS64));
+	LOG_DEBUG("  access32=%" PRIu32, get_field(dminfo, DMINFO_ACCESS32));
+	LOG_DEBUG("  access16=%" PRIu32, get_field(dminfo, DMINFO_ACCESS16));
+	LOG_DEBUG("  access8=%" PRIu32, get_field(dminfo, DMINFO_ACCESS8));
+	LOG_DEBUG("  dramsize=0x%" PRIx32, get_field(dminfo, DMINFO_DRAMSIZE));
+	LOG_DEBUG("  authenticated=0x%" PRIx32, get_field(dminfo, DMINFO_AUTHENTICATED));
+	LOG_DEBUG("  authbusy=0x%" PRIx32, get_field(dminfo, DMINFO_AUTHBUSY));
+	LOG_DEBUG("  authtype=0x%" PRIx32, get_field(dminfo, DMINFO_AUTHTYPE));
+	LOG_DEBUG("  version=0x%" PRIx32, get_field(dminfo, DMINFO_VERSION));
 
 	if (get_field(dminfo, DMINFO_VERSION) != 1) {
-		LOG_ERROR("OpenOCD only supports Debug Module version 1, not %d "
-				"(dminfo=0x%x)", get_field(dminfo, DMINFO_VERSION), dminfo);
+		LOG_ERROR("OpenOCD only supports Debug Module version 1, not %" PRIu32 " "
+				"(dminfo=0x%" PRIx32 ")", get_field(dminfo, DMINFO_VERSION), dminfo);
 		return ERROR_FAIL;
 	}
 
@@ -1523,7 +1523,7 @@ static int examine(struct target *target)
 
 	if (get_field(dminfo, DMINFO_AUTHTYPE) != 0) {
 		LOG_ERROR("Authentication required by RISC-V core but not "
-				"supported by OpenOCD. dminfo=0x%x", dminfo);
+				"supported by OpenOCD. dminfo=0x%" PRIx32, dminfo);
 		return ERROR_FAIL;
 	}
 
@@ -1563,7 +1563,7 @@ static int examine(struct target *target)
 		generic_info->xlen[0] = 128;
 	} else {
 		uint32_t exception = cache_get32(target, info->dramsize-1);
-		LOG_ERROR("Failed to discover xlen; word0=0x%x, word1=0x%x, exception=0x%x",
+		LOG_ERROR("Failed to discover xlen; word0=0x%" PRIx32 ", word1=0x%" PRIx32 ", exception=0x%" PRIx32,
 				word0, word1, exception);
 		dump_debug_ram(target);
 		return ERROR_FAIL;
@@ -2020,7 +2020,7 @@ static int read_memory(struct target *target, target_addr_t address,
 			cache_set32(target, 2, sw(S1, ZERO, DEBUG_RAM_START + 16));
 			break;
 		default:
-			LOG_ERROR("Unsupported size: %d", size);
+			LOG_ERROR("Unsupported size: %" PRIu32, size);
 			return ERROR_FAIL;
 	}
 	cache_set_jump(target, 3);
@@ -2116,7 +2116,7 @@ static int read_memory(struct target *target, target_addr_t address,
 	}
 
 	if (result_value != 0) {
-		LOG_USER("Core got an exception (0x%x) while reading from 0x%"
+		LOG_USER("Core got an exception (0x%" PRIx32 ") while reading from 0x%"
 				TARGET_PRIxADDR, result_value, address + size * (count-1));
 		if (count > 1) {
 			LOG_USER("(It may have failed between 0x%" TARGET_PRIxADDR
@@ -2153,7 +2153,7 @@ static int setup_write_memory(struct target *target, uint32_t size)
 			cache_set32(target, 1, sw(S0, T0, 0));
 			break;
 		default:
-			LOG_ERROR("Unsupported size: %d", size);
+			LOG_ERROR("Unsupported size: %" PRIu32, size);
 			return ERROR_FAIL;
 	}
 	cache_set32(target, 2, addi(T0, T0, size));
@@ -2278,7 +2278,7 @@ static int write_memory(struct target *target, target_addr_t address,
 	}
 
 	if (result_value != 0) {
-		LOG_ERROR("Core got an exception (0x%x) while writing to 0x%"
+		LOG_ERROR("Core got an exception (0x%" PRIx32 ") while writing to 0x%"
 				TARGET_PRIxADDR, result_value, address + size * (count-1));
 		if (count > 1) {
 			LOG_ERROR("(It may have failed between 0x%" TARGET_PRIxADDR

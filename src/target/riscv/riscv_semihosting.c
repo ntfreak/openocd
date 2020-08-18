@@ -101,7 +101,7 @@ int riscv_semihosting(struct target *target, int *retval)
 	uint32_t pre = target_buffer_get_u32(target, tmp);
 	uint32_t ebreak = target_buffer_get_u32(target, tmp + 4);
 	uint32_t post = target_buffer_get_u32(target, tmp + 8);
-	LOG_DEBUG("check %08x %08x %08x from 0x%" PRIx64 "-4", pre, ebreak, post, dpc);
+	LOG_DEBUG("check %08" PRIx32 " %08" PRIx32 " %08" PRIx32 " from 0x%" PRIx64 "-4", pre, ebreak, post, dpc);
 
 	if (pre != 0x01f01013 || ebreak != 0x00100073 || post != 0x40705013) {
 

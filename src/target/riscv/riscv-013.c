@@ -423,7 +423,7 @@ static uint32_t dtmcontrol_scan(struct target *target, uint32_t out)
 	}
 
 	uint32_t in = buf_get_u32(field.in_value, 0, 32);
-	LOG_DEBUG("DTMCS: 0x%x -> 0x%x", out, in);
+	LOG_DEBUG("DTMCS: 0x%" PRIx32 " -> 0x%" PRIx32, out, in);
 
 	return in;
 }
@@ -546,7 +546,7 @@ static int dmi_op_timeout(struct target *target, uint32_t *data_in,
 		} else if (status == DMI_STATUS_SUCCESS) {
 			break;
 		} else {
-			LOG_ERROR("failed %s at 0x%x, status=%d", op_name, address, status);
+			LOG_ERROR("failed %s at 0x%" PRIx32 ", status=%d", op_name, address, status);
 			return ERROR_FAIL;
 		}
 		if (time(NULL) - start > timeout_sec)
@@ -554,7 +554,7 @@ static int dmi_op_timeout(struct target *target, uint32_t *data_in,
 	}
 
 	if (status != DMI_STATUS_SUCCESS) {
-		LOG_ERROR("Failed %s at 0x%x; status=%d", op_name, address, status);
+		LOG_ERROR("Failed %s at 0x%" PRIx32 "; status=%d", op_name, address, status);
 		return ERROR_FAIL;
 	}
 
@@ -569,7 +569,7 @@ static int dmi_op_timeout(struct target *target, uint32_t *data_in,
 		} else if (status == DMI_STATUS_SUCCESS) {
 			break;
 		} else {
-			LOG_ERROR("failed %s (NOP) at 0x%x, status=%d", op_name, address,
+			LOG_ERROR("failed %s (NOP) at 0x%" PRIx32 ", status=%d", op_name, address,
 					status);
 			return ERROR_FAIL;
 		}
@@ -579,10 +579,10 @@ static int dmi_op_timeout(struct target *target, uint32_t *data_in,
 
 	if (status != DMI_STATUS_SUCCESS) {
 		if (status == DMI_STATUS_FAILED || !data_in) {
-			LOG_ERROR("Failed %s (NOP) at 0x%x; status=%d", op_name, address,
+			LOG_ERROR("Failed %s (NOP) at 0x%" PRIx32 "; status=%d", op_name, address,
 					status);
 		} else {
-			LOG_ERROR("Failed %s (NOP) at 0x%x; value=0x%x, status=%d",
+			LOG_ERROR("Failed %s (NOP) at 0x%" PRIx32 "; value=0x%" PRIx32 ", status=%d",
 					op_name, address, *data_in, status);
 		}
 		return ERROR_FAIL;
@@ -636,7 +636,7 @@ int dmstatus_read_timeout(struct target *target, uint32_t *dmstatus,
 		return result;
 	if (authenticated && !get_field(*dmstatus, DMI_DMSTATUS_AUTHENTICATED)) {
 		LOG_ERROR("Debugger is not authenticated to target Debug Module. "
-				"(dmstatus=0x%x). Use `riscv authdata_read` and "
+				"(dmstatus=0x%" PRIx32 "). Use `riscv authdata_read` and "
 				"`riscv authdata_write` commands to authenticate.", *dmstatus);
 		return ERROR_FAIL;
 	}
@@ -698,11 +698,11 @@ static int wait_for_idle(struct target *target, uint32_t *abstractcs)
 					"reserved",
 					"other" };
 
-				LOG_ERROR("Abstract command ended in error '%s' (abstractcs=0x%x)",
+				LOG_ERROR("Abstract command ended in error '%s' (abstractcs=0x%" PRIx32 ")",
 						errors[info->cmderr], *abstractcs);
 			}
 
-			LOG_ERROR("Timed out after %ds waiting for busy to go low (abstractcs=0x%x). "
+			LOG_ERROR("Timed out after %ds waiting for busy to go low (abstractcs=0x%" PRIx32 "). "
 					"Increase the timeout with riscv set_command_timeout_sec.",
 					riscv_command_timeout_sec,
 					*abstractcs);
@@ -717,8 +717,8 @@ static int execute_abstract_command(struct target *target, uint32_t command)
 	if (debug_level >= LOG_LVL_DEBUG) {
 		switch (get_field(command, DMI_COMMAND_CMDTYPE)) {
 			case 0:
-				LOG_DEBUG("command=0x%x; access register, size=%d, postexec=%d, "
-						"transfer=%d, write=%d, regno=0x%x",
+				LOG_DEBUG("command=0x%" PRIx32 "; access register, size=%d, postexec=%" PRIu32 ", "
+						"transfer=%" PRIu32 ", write=%" PRIu32 ", regno=0x%" PRIx32,
 						command,
 						8 << get_field(command, AC_ACCESS_REGISTER_SIZE),
 						get_field(command, AC_ACCESS_REGISTER_POSTEXEC),
@@ -727,7 +727,7 @@ static int execute_abstract_command(struct target *target, uint32_t command)
 						get_field(command, AC_ACCESS_REGISTER_REGNO));
 				break;
 			default:
-				LOG_DEBUG("command=0x%x", command);
+				LOG_DEBUG("command=0x%" PRIx32, command);
 				break;
 		}
 	}
@@ -739,7 +739,7 @@ static int execute_abstract_command(struct target *target, uint32_t command)
 
 	info->cmderr = get_field(abstractcs, DMI_ABSTRACTCS_CMDERR);
 	if (info->cmderr != 0) {
-		LOG_DEBUG("command 0x%x failed; abstractcs=0x%x", command, abstractcs);
+		LOG_DEBUG("command 0x%" PRIx32 " failed; abstractcs=0x%" PRIx32, command, abstractcs);
 		/* Clear the error. */
 		dmi_write(target, DMI_ABSTRACTCS, set_field(0, DMI_ABSTRACTCS_CMDERR,
 					info->cmderr));
@@ -1289,7 +1289,7 @@ static int register_read_direct(struct target *target, uint64_t *value, uint32_t
 		} else if (number >= GDB_REGNO_CSR0 && number <= GDB_REGNO_CSR4095) {
 			riscv_program_csrr(&program, S0, number);
 		} else {
-			LOG_ERROR("Unsupported register (enum gdb_regno)(%d)", number);
+			LOG_ERROR("Unsupported register (enum gdb_regno)(%" PRIu32 ")", number);
 			return ERROR_FAIL;
 		}
 
@@ -1319,7 +1319,7 @@ static int register_read_direct(struct target *target, uint64_t *value, uint32_t
 	}
 
 	if (result == ERROR_OK) {
-		LOG_DEBUG("{%d} reg[0x%x] = 0x%" PRIx64, riscv_current_hartid(target),
+		LOG_DEBUG("{%d} reg[0x%" PRIx32 "] = 0x%" PRIx64, riscv_current_hartid(target),
 				number, *value);
 	}
 
@@ -1338,7 +1338,7 @@ int wait_for_authbusy(struct target *target, uint32_t *dmstatus)
 		if (!get_field(value, DMI_DMSTATUS_AUTHBUSY))
 			break;
 		if (time(NULL) - start > riscv_command_timeout_sec) {
-			LOG_ERROR("Timed out after %ds waiting for authbusy to go low (dmstatus=0x%x). "
+			LOG_ERROR("Timed out after %ds waiting for authbusy to go low (dmstatus=0x%" PRIx32 "). "
 					"Increase the timeout with riscv set_command_timeout_sec.",
 					riscv_command_timeout_sec,
 					value);
@@ -1365,18 +1365,18 @@ static int examine(struct target *target)
 	/* Don't need to select dbus, since the first thing we do is read dtmcontrol. */
 
 	uint32_t dtmcontrol = dtmcontrol_scan(target, 0);
-	LOG_DEBUG("dtmcontrol=0x%x", dtmcontrol);
-	LOG_DEBUG("  dmireset=%d", get_field(dtmcontrol, DTM_DTMCS_DMIRESET));
-	LOG_DEBUG("  idle=%d", get_field(dtmcontrol, DTM_DTMCS_IDLE));
-	LOG_DEBUG("  dmistat=%d", get_field(dtmcontrol, DTM_DTMCS_DMISTAT));
-	LOG_DEBUG("  abits=%d", get_field(dtmcontrol, DTM_DTMCS_ABITS));
-	LOG_DEBUG("  version=%d", get_field(dtmcontrol, DTM_DTMCS_VERSION));
+	LOG_DEBUG("dtmcontrol=0x%" PRIx32, dtmcontrol);
+	LOG_DEBUG("  dmireset=%" PRIu32, get_field(dtmcontrol, DTM_DTMCS_DMIRESET));
+	LOG_DEBUG("  idle=%" PRIu32, get_field(dtmcontrol, DTM_DTMCS_IDLE));
+	LOG_DEBUG("  dmistat=%" PRIu32, get_field(dtmcontrol, DTM_DTMCS_DMISTAT));
+	LOG_DEBUG("  abits=%" PRIu32, get_field(dtmcontrol, DTM_DTMCS_ABITS));
+	LOG_DEBUG("  version=%" PRIu32, get_field(dtmcontrol, DTM_DTMCS_VERSION));
 	if (dtmcontrol == 0) {
 		LOG_ERROR("dtmcontrol is 0. Check JTAG connectivity/board power.");
 		return ERROR_FAIL;
 	}
 	if (get_field(dtmcontrol, DTM_DTMCS_VERSION) != 1) {
-		LOG_ERROR("Unsupported DTM version %d. (dtmcontrol=0x%x)",
+		LOG_ERROR("Unsupported DTM version %" PRIu32 ". (dtmcontrol=0x%" PRIx32 ")",
 				get_field(dtmcontrol, DTM_DTMCS_VERSION), dtmcontrol);
 		return ERROR_FAIL;
 	}
@@ -1400,7 +1400,7 @@ static int examine(struct target *target)
 		return ERROR_FAIL;
 
 	if (!get_field(dmcontrol, DMI_DMCONTROL_DMACTIVE)) {
-		LOG_ERROR("Debug Module did not become active. dmcontrol=0x%x",
+		LOG_ERROR("Debug Module did not become active. dmcontrol=0x%" PRIx32,
 				dmcontrol);
 		return ERROR_FAIL;
 	}
@@ -1408,10 +1408,10 @@ static int examine(struct target *target)
 	uint32_t dmstatus;
 	if (dmstatus_read(target, &dmstatus, false) != ERROR_OK)
 		return ERROR_FAIL;
-	LOG_DEBUG("dmstatus:  0x%08x", dmstatus);
+	LOG_DEBUG("dmstatus:  0x%08" PRIx32, dmstatus);
 	if (get_field(dmstatus, DMI_DMSTATUS_VERSION) != 2) {
-		LOG_ERROR("OpenOCD only supports Debug Module version 2, not %d "
-				"(dmstatus=0x%x)", get_field(dmstatus, DMI_DMSTATUS_VERSION), dmstatus);
+		LOG_ERROR("OpenOCD only supports Debug Module version 2, not %" PRIu32
+				" (dmstatus=0x%" PRIx32 ")", get_field(dmstatus, DMI_DMSTATUS_VERSION), dmstatus);
 		return ERROR_FAIL;
 	}
 
@@ -1436,7 +1436,7 @@ static int examine(struct target *target)
 
 	if (!get_field(dmstatus, DMI_DMSTATUS_AUTHENTICATED)) {
 		LOG_ERROR("Debugger is not authenticated to target Debug Module. "
-				"(dmstatus=0x%x). Use `riscv authdata_read` and "
+				"(dmstatus=0x%" PRIx32 "). Use `riscv authdata_read` and "
 				"`riscv authdata_write` commands to authenticate.", dmstatus);
 		/* If we return ERROR_FAIL here, then in a multicore setup the next
 		 * core won't be examined, which means we won't set up the
@@ -1736,7 +1736,7 @@ static int deassert_reset(struct target *target)
 				break;
 			if (time(NULL) - start > riscv_reset_timeout_sec) {
 				LOG_ERROR("Hart %d didn't %s coming out of reset in %ds; "
-						"dmstatus=0x%x; "
+						"dmstatus=0x%" PRIx32 "; "
 						"Increase the timeout with riscv set_reset_timeout_sec.",
 						index, operation, riscv_reset_timeout_sec, dmstatus);
 				return ERROR_FAIL;
@@ -1922,7 +1922,7 @@ static int read_sbcs_nonbusy(struct target *target, uint32_t *sbcs)
 		if (!get_field(*sbcs, DMI_SBCS_SBBUSY))
 			return ERROR_OK;
 		if (time(NULL) - start > riscv_command_timeout_sec) {
-			LOG_ERROR("Timed out after %ds waiting for sbbusy to go low (sbcs=0x%x). "
+			LOG_ERROR("Timed out after %ds waiting for sbbusy to go low (sbcs=0x%" PRIx32 "). "
 					"Increase the timeout with riscv set_command_timeout_sec.",
 					riscv_command_timeout_sec, *sbcs);
 			return ERROR_FAIL;
@@ -1933,7 +1933,7 @@ static int read_sbcs_nonbusy(struct target *target, uint32_t *sbcs)
 static int read_memory_bus_v0(struct target *target, target_addr_t address,
 		uint32_t size, uint32_t count, uint8_t *buffer)
 {
-	LOG_DEBUG("System Bus Access: size: %d\tcount:%d\tstart address: 0x%08"
+	LOG_DEBUG("System Bus Access: size: %" PRIu32 "\tcount:%" PRIu32 "\tstart address: 0x%08"
 			TARGET_PRIxADDR, size, count, address);
 	uint8_t *t_buffer = buffer;
 	riscv_addr_t cur_addr = address;
@@ -1955,13 +1955,13 @@ static int read_memory_bus_v0(struct target *target, target_addr_t address,
 			/* size/2 matching the bit access of the spec 0.13 */
 			access = set_field(access, DMI_SBCS_SBACCESS, size/2);
 			access = set_field(access, DMI_SBCS_SBSINGLEREAD, 1);
-			LOG_DEBUG("\r\nread_memory: sab: access:  0x%08x", access);
+			LOG_DEBUG("\r\nread_memory: sab: access:  0x%08" PRIx32, access);
 			dmi_write(target, DMI_SBCS, access);
 			/* 3) read */
 			uint32_t value;
 			if (dmi_read(target, &value, DMI_SBDATA0) != ERROR_OK)
 				return ERROR_FAIL;
-			LOG_DEBUG("\r\nread_memory: sab: value:  0x%08x", value);
+			LOG_DEBUG("\r\nread_memory: sab: value:  0x%08" PRIx32, value);
 			write_to_buf(t_buffer, value, size);
 			t_buffer += size;
 			cur_addr += size;
@@ -1981,11 +1981,11 @@ static int read_memory_bus_v0(struct target *target, target_addr_t address,
 	access = set_field(access, DMI_SBCS_SBAUTOREAD, 1);
 	access = set_field(access, DMI_SBCS_SBSINGLEREAD, 1);
 	access = set_field(access, DMI_SBCS_SBAUTOINCREMENT, 1);
-	LOG_DEBUG("\r\naccess:  0x%08x", access);
+	LOG_DEBUG("\r\naccess:  0x%08" PRIx32, access);
 	dmi_write(target, DMI_SBCS, access);
 
 	while (cur_addr < fin_addr) {
-		LOG_DEBUG("\r\nsab:autoincrement: \r\n size: %d\tcount:%d\taddress: 0x%08"
+		LOG_DEBUG("\r\nsab:autoincrement: \r\n size: %" PRIu32 "\tcount:%" PRIu32 "\taddress: 0x%08"
 				PRIx64, size, count, cur_addr);
 		/* read */
 		uint32_t value;
@@ -2299,7 +2299,7 @@ static int read_memory_progbuf(struct target *target, target_addr_t address,
 {
 	int result = ERROR_OK;
 
-	LOG_DEBUG("reading %d words of %d bytes from 0x%" TARGET_PRIxADDR, count,
+	LOG_DEBUG("reading %" PRIu32 " words of %" PRIu32 " bytes from 0x%" TARGET_PRIxADDR, count,
 			size, address);
 
 	select_dmi(target);
@@ -2332,7 +2332,7 @@ static int read_memory_progbuf(struct target *target, target_addr_t address,
 			riscv_program_lwr(&program, GDB_REGNO_S1, GDB_REGNO_S0, 0);
 			break;
 		default:
-			LOG_ERROR("Unsupported size: %d", size);
+			LOG_ERROR("Unsupported size: %" PRIu32, size);
 			return ERROR_FAIL;
 	}
 	riscv_program_addi(&program, GDB_REGNO_S0, GDB_REGNO_S0, size);
@@ -2359,7 +2359,7 @@ static int read_memory_progbuf(struct target *target, target_addr_t address,
 
 			/* The read of a single word failed, so we will just return 0 for that instead */
 			if (result != ERROR_OK) {
-				LOG_DEBUG("error reading single word of %d bytes from 0x%" TARGET_PRIxADDR,
+				LOG_DEBUG("error reading single word of %" PRIu32 " bytes from 0x%" TARGET_PRIxADDR,
 						size_i, address_i);
 
 				uint64_t value_i = 0;
@@ -2403,7 +2403,7 @@ static int write_memory_bus_v0(struct target *target, target_addr_t address,
 		uint32_t size, uint32_t count, const uint8_t *buffer)
 {
 	/*1) write sbaddress: for singlewrite and autoincrement, we need to write the address once*/
-	LOG_DEBUG("System Bus Access: size: %d\tcount:%d\tstart address: 0x%08"
+	LOG_DEBUG("System Bus Access: size: %" PRIu32 "\tcount:%" PRIu32 "\tstart address: 0x%08"
 			TARGET_PRIxADDR, size, count, address);
 	dmi_write(target, DMI_SBADDRESS0, address);
 	int64_t value = 0;
@@ -2430,7 +2430,7 @@ static int write_memory_bus_v0(struct target *target, target_addr_t address,
 					| ((uint32_t) t_buffer[3] << 24);
 				break;
 			default:
-				LOG_ERROR("unsupported access size: %d", size);
+				LOG_ERROR("unsupported access size: %" PRIu32, size);
 				return ERROR_FAIL;
 		}
 
@@ -2473,11 +2473,11 @@ static int write_memory_bus_v0(struct target *target, target_addr_t address,
 					| ((uint32_t) t_buffer[3] << 24);
 				break;
 			default:
-				LOG_ERROR("unsupported access size: %d", size);
+				LOG_ERROR("unsupported access size: %" PRIu32, size);
 				return ERROR_FAIL;
 		}
-		LOG_DEBUG("SAB:autoincrement: expected address: 0x%08x value: 0x%08x"
-				PRIx64, (uint32_t)t_addr, (uint32_t)value);
+		LOG_DEBUG("SAB:autoincrement: expected address: 0x%08" PRIx32 " value: 0x%08" PRIx32,
+				(uint32_t)t_addr, (uint32_t)value);
 		dmi_write(target, DMI_SBDATA0, value);
 	}
 	/*reset the autoincrement when finished (something weird is happening if this is not done at the end*/
@@ -2570,7 +2570,7 @@ static int write_memory_progbuf(struct target *target, target_addr_t address,
 {
 	RISCV013_INFO(info);
 
-	LOG_DEBUG("writing %d words of %d bytes to 0x%08lx", count, size, (long)address);
+	LOG_DEBUG("writing %" PRIu32 " words of %" PRIu32 " bytes to 0x%08lx", count, size, (long)address);
 
 	select_dmi(target);
 
@@ -2600,7 +2600,7 @@ static int write_memory_progbuf(struct target *target, target_addr_t address,
 			riscv_program_swr(&program, GDB_REGNO_S1, GDB_REGNO_S0, 0);
 			break;
 		default:
-			LOG_ERROR("Unsupported size: %d", size);
+			LOG_ERROR("Unsupported size: %" PRIu32, size);
 			result = ERROR_FAIL;
 			goto error;
 	}
@@ -2647,7 +2647,7 @@ static int write_memory_progbuf(struct target *target, target_addr_t address,
 						| ((uint32_t) t_buffer[3] << 24);
 					break;
 				default:
-					LOG_ERROR("unsupported access size: %d", size);
+					LOG_ERROR("unsupported access size: %" PRIu32, size);
 					riscv_batch_free(batch);
 					result = ERROR_FAIL;
 					goto error;
@@ -2898,8 +2898,8 @@ static int riscv013_halt_current_hart(struct target *target)
 			return ERROR_FAIL;
 
 		LOG_ERROR("unable to halt hart %d", r->current_hartid);
-		LOG_ERROR("  dmcontrol=0x%08x", dmcontrol);
-		LOG_ERROR("  dmstatus =0x%08x", dmstatus);
+		LOG_ERROR("  dmcontrol=0x%08" PRIx32, dmcontrol);
+		LOG_ERROR("  dmstatus =0x%08" PRIx32, dmstatus);
 		return ERROR_FAIL;
 	}
 
@@ -3104,7 +3104,7 @@ static int riscv013_test_sba_config_reg(struct target *target,
 	}
 
 	if (get_field(sbcs, DMI_SBCS_SBVERSION) != 1) {
-		LOG_ERROR("System Bus Access unsupported SBVERSION (%d). Only version 1 is supported.",
+		LOG_ERROR("System Bus Access unsupported SBVERSION (%" PRIu32 "). Only version 1 is supported.",
 				get_field(sbcs, DMI_SBCS_SBVERSION));
 		return ERROR_FAIL;
 	}
@@ -3138,8 +3138,8 @@ static int riscv013_test_sba_config_reg(struct target *target,
 			read_memory_sba_simple(target, addr, rd_buf, num_sbdata_regs, sbcs);
 			for (uint32_t j = 0; j < num_sbdata_regs; j++) {
 				if (((test_patterns[j]+i)&compare_mask) != (rd_buf[j]&compare_mask)) {
-					LOG_ERROR("System Bus Access Test 1: Error reading non-autoincremented address %x,"
-							"expected val = %x, read val = %x", addr, test_patterns[j]+i, rd_buf[j]);
+					LOG_ERROR("System Bus Access Test 1: Error reading non-autoincremented address %" PRIx32
+							", expected val = %" PRIx32 ", read val = %" PRIx32, addr, test_patterns[j]+i, rd_buf[j]);
 					test_passed = false;
 					tests_failed++;
 				}
@@ -3168,7 +3168,8 @@ static int riscv013_test_sba_config_reg(struct target *target,
 			read_sbcs_nonbusy(target, &sbcs);
 			curr_addr = sb_read_address(target);
 			if ((curr_addr - prev_addr != (uint32_t)(1 << sbaccess)) && (i != 0)) {
-				LOG_ERROR("System Bus Access Test 2: Error with address auto-increment, sbaccess = %x.", sbaccess);
+				LOG_ERROR("System Bus Access Test 2: Error with address auto-increment, sbaccess = %" PRIx32 ".",
+						  sbaccess);
 				test_passed = false;
 				tests_failed++;
 			}
@@ -3189,7 +3190,7 @@ static int riscv013_test_sba_config_reg(struct target *target,
 			read_sbcs_nonbusy(target, &sbcs);
 			curr_addr = sb_read_address(target);
 			if ((curr_addr - prev_addr != (uint32_t)(1 << sbaccess)) && (i != 0)) {
-				LOG_ERROR("System Bus Access Test 2: Error with address auto-increment, sbaccess = %x", sbaccess);
+				LOG_ERROR("System Bus Access Test 2: Error with address auto-increment, sbaccess = %" PRIx32, sbaccess);
 				test_passed = false;
 				tests_failed++;
 			}
@@ -3197,7 +3198,7 @@ static int riscv013_test_sba_config_reg(struct target *target,
 			read_sbcs_nonbusy(target, &sbcs);
 			if (i != val) {
 				LOG_ERROR("System Bus Access Test 2: Error reading auto-incremented address,"
-						"expected val = %x, read val = %x.", i, val);
+						"expected val = %" PRIx32 ", read val = %" PRIx32 ".", i, val);
 				test_passed = false;
 				tests_failed++;
 			}
@@ -3322,7 +3323,7 @@ static int riscv013_test_sba_config_reg(struct target *target,
 		LOG_INFO("ALL TESTS PASSED");
 		return ERROR_OK;
 	} else {
-		LOG_ERROR("%d TESTS FAILED", tests_failed);
+		LOG_ERROR("%" PRIu32 " TESTS FAILED", tests_failed);
 		return ERROR_FAIL;
 	}
 
@@ -3456,10 +3457,10 @@ static int riscv013_step_or_resume_current_hart(struct target *target, bool step
 	LOG_ERROR("unable to resume hart %d", r->current_hartid);
 	if (dmi_read(target, &dmcontrol, DMI_DMCONTROL) != ERROR_OK)
 		return ERROR_FAIL;
-	LOG_ERROR("  dmcontrol=0x%08x", dmcontrol);
+	LOG_ERROR("  dmcontrol=0x%08" PRIx32, dmcontrol);
 	if (dmstatus_read(target, &dmstatus, true) != ERROR_OK)
 		return ERROR_FAIL;
-	LOG_ERROR("  dmstatus =0x%08x", dmstatus);
+	LOG_ERROR("  dmstatus =0x%08" PRIx32, dmstatus);
 
 	if (step) {
 		LOG_ERROR("  was stepping, halting");
@@ -3481,7 +3482,7 @@ void riscv013_clear_abstract_error(struct target *target)
 
 		if (time(NULL) - start > riscv_command_timeout_sec) {
 			LOG_ERROR("abstractcs.busy is not going low after %d seconds "
-					"(abstractcs=0x%x). The target is either really slow or "
+					"(abstractcs=0x%" PRIx32 "). The target is either really slow or "
 					"broken. You could increase the timeout with riscv "
 					"set_command_timeout_sec.",
 					riscv_command_timeout_sec, abstractcs);
@@ -3943,7 +3944,7 @@ int riscv013_test_compliance(struct target *target)
 		LOG_INFO("ALL TESTS PASSED\n");
 		return ERROR_OK;
 	} else {
-		LOG_INFO("%d TESTS FAILED\n", failed_tests);
+		LOG_INFO("%" PRIu32 " TESTS FAILED\n", failed_tests);
 		return ERROR_FAIL;
 	}
 }
