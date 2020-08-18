@@ -281,7 +281,7 @@ static int hwthread_get_thread_reg(struct rtos *rtos, int64_t thread_id,
 
 	struct reg *reg = register_get_by_number(curr->reg_cache, reg_num, true);
 	if (!reg) {
-		LOG_ERROR("Couldn't find register %d in thread %" PRId64 ".", reg_num,
+		LOG_ERROR("Couldn't find register %" PRIu32 " in thread %" PRId64 ".", reg_num,
 				thread_id);
 		return ERROR_FAIL;
 	}

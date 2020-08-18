@@ -248,7 +248,7 @@ static const struct rtos_register_stacking *get_stacking_info_arm926ejs(const st
 		LOG_DEBUG("  solicited stack");
 		return param->stacking_info + 0;
 	} else {
-		LOG_DEBUG("  interrupt stack: %u", flag);
+		LOG_DEBUG("  interrupt stack: %" PRIu32, flag);
 		return param->stacking_info + 1;
 	}
 }

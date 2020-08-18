@@ -119,7 +119,7 @@ int xilinx_read_bit_file(struct xilinx_bit_file *bit_file, const char *filename)
 	if (read_section(input_file, 4, 'e', &bit_file->length, &bit_file->data) != ERROR_OK)
 		return ERROR_PLD_FILE_LOAD_FAILED;
 
-	LOG_DEBUG("bit_file: %s %s %s,%s %" PRIi32 "", bit_file->source_file, bit_file->part_name,
+	LOG_DEBUG("bit_file: %s %s %s,%s %" PRIu32 "", bit_file->source_file, bit_file->part_name,
 		bit_file->date, bit_file->time, bit_file->length);
 
 	fclose(input_file);
