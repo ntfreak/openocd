@@ -264,7 +264,7 @@ int bitq_execute_queue(void)
 			break;
 
 		case JTAG_SLEEP:
-			LOG_DEBUG_IO("sleep %i", cmd->cmd.sleep->us);
+			LOG_DEBUG_IO("sleep %" PRIu32, cmd->cmd.sleep->us);
 			bitq_interface->sleep(cmd->cmd.sleep->us);
 			if (bitq_interface->in_rdy())
 				bitq_in_proc();

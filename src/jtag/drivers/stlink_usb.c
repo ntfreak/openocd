@@ -3092,7 +3092,7 @@ static int stlink_read_dap_register(void *handle, unsigned short dap_port,
 
 	retval = stlink_usb_xfer_errcheck(handle, h->databuf, 8);
 	*val = le_to_h_u32(h->databuf + 4);
-	LOG_DEBUG_IO("dap_port_read = %d, addr =  0x%x, value = 0x%x", dap_port, addr, *val);
+	LOG_DEBUG_IO("dap_port_read = %d, addr =  0x%x, value = 0x%" PRIx32, dap_port, addr, *val);
 	return retval;
 }
 
@@ -3107,7 +3107,7 @@ static int stlink_write_dap_register(void *handle, unsigned short dap_port,
 	if (!(h->version.flags & STLINK_F_HAS_DAP_REG))
 		return ERROR_COMMAND_NOTFOUND;
 
-	LOG_DEBUG_IO("dap_write port = %d, addr = 0x%x, value = 0x%x", dap_port, addr, val);
+	LOG_DEBUG_IO("dap_write port = %d, addr = 0x%x, value = 0x%" PRIx32, dap_port, addr, val);
 	stlink_usb_init_buffer(handle, h->rx_ep, 16);
 	h->cmdbuf[h->cmdidx++] = STLINK_DEBUG_COMMAND;
 	h->cmdbuf[h->cmdidx++] = STLINK_DEBUG_APIV2_WRITE_DAP_REG;
@@ -3531,7 +3531,7 @@ static int stlink_swim_op_read_mem(uint32_t addr, uint32_t size,
 	int retval;
 	uint32_t bytes_remaining;
 
-	LOG_DEBUG_IO("read at 0x%08x len %d*0x%08x", addr, size, count);
+	LOG_DEBUG_IO("read at 0x%08" PRIx32 " len %" PRIu32 "*0x%08" PRIx32, addr, size, count);
 	count *= size;
 
 	while (count) {
@@ -3554,7 +3554,7 @@ static int stlink_swim_op_write_mem(uint32_t addr, uint32_t size,
 	int retval;
 	uint32_t bytes_remaining;
 
-	LOG_DEBUG_IO("write at 0x%08x len %d*0x%08x", addr, size, count);
+	LOG_DEBUG_IO("write at 0x%08" PRIx32 " len %" PRIu32 "*0x%08" PRIx32, addr, size, count);
 	count *= size;
 
 	while (count) {

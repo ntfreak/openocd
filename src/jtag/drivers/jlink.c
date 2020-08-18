@@ -254,7 +254,7 @@ static void jlink_execute_scan(struct jtag_command *cmd)
 
 static void jlink_execute_sleep(struct jtag_command *cmd)
 {
-	LOG_DEBUG_IO("sleep %" PRIi32 "", cmd->cmd.sleep->us);
+	LOG_DEBUG_IO("sleep %" PRIu32 "", cmd->cmd.sleep->us);
 	jlink_flush();
 	jtag_sleep(cmd->cmd.sleep->us);
 }
@@ -480,7 +480,7 @@ static bool adjust_swd_buffer_size(void)
 	}
 
 	if (tmp < 143) {
-		LOG_ERROR("Not enough free device internal memory: %u bytes.", tmp);
+		LOG_ERROR("Not enough free device internal memory: %" PRIu32 " bytes.", tmp);
 		return false;
 	}
 
@@ -1049,7 +1049,7 @@ COMMAND_HANDLER(jlink_handle_free_memory_command)
 		return ERROR_FAIL;
 	}
 
-	command_print(CMD, "Device has %u bytes of free memory.", tmp);
+	command_print(CMD, "Device has %" PRIu32 " bytes of free memory.", tmp);
 
 	return ERROR_OK;
 }
@@ -1288,7 +1288,7 @@ static bool calculate_swo_prescaler(unsigned int traceclkin_freq,
 }
 
 static bool detect_swo_freq_and_prescaler(struct jaylink_swo_speed speed,
-		unsigned int traceclkin_freq, uint32_t *trace_freq,
+		unsigned int traceclkin_freq, unsigned int *trace_freq,
 		uint16_t *prescaler)
 {
 	uint32_t divider;
@@ -1378,11 +1378,11 @@ static int config_trace(bool enabled, enum tpiu_pin_protocol pin_protocol,
 		max_freq = speed.freq / speed.min_div;
 
 		if (*trace_freq > max_freq) {
-			LOG_INFO("Given SWO frequency too high, using %u Hz instead.",
+			LOG_INFO("Given SWO frequency too high, using %" PRIu32 " Hz instead.",
 				max_freq);
 			*trace_freq = max_freq;
 		} else if (*trace_freq < min_freq) {
-			LOG_INFO("Given SWO frequency too low, using %u Hz instead.",
+			LOG_INFO("Given SWO frequency too low, using %" PRIu32 " Hz instead.",
 				min_freq);
 			*trace_freq = min_freq;
 		} else if (*trace_freq != speed.freq / divider) {
@@ -1420,7 +1420,7 @@ static int config_trace(bool enabled, enum tpiu_pin_protocol pin_protocol,
 		return ERROR_FAIL;
 	}
 
-	LOG_DEBUG("Using %u bytes device memory for trace capturing.",
+	LOG_DEBUG("Using %" PRIu32 " bytes device memory for trace capturing.",
 		buffer_size);
 
 	/*

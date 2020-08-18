@@ -555,11 +555,11 @@ static int ftdi_reset(int trst, int srst)
 
 static void ftdi_execute_sleep(struct jtag_command *cmd)
 {
-	LOG_DEBUG_IO("sleep %" PRIi32, cmd->cmd.sleep->us);
+	LOG_DEBUG_IO("sleep %" PRIu32, cmd->cmd.sleep->us);
 
 	mpsse_flush(mpsse_ctx);
 	jtag_sleep(cmd->cmd.sleep->us);
-	LOG_DEBUG_IO("sleep %" PRIi32 " usec while in %s",
+	LOG_DEBUG_IO("sleep %" PRIu32 " usec while in %s",
 		cmd->cmd.sleep->us,
 		tap_state_name(tap_get_state()));
 }

@@ -174,7 +174,7 @@ static int ublast_buf_read(uint8_t *buf, unsigned size, uint32_t *bytes_read)
 	int ret = info.drv->read(info.drv, buf, size, bytes_read);
 	char *str = hexdump(buf, *bytes_read);
 
-	LOG_DEBUG_IO("(size=%d, buf=[%s]) -> %u", size, str,
+	LOG_DEBUG_IO("(size=%d, buf=[%s]) -> %" PRIu32, size, str,
 		      *bytes_read);
 	free(str);
 	return ret;
@@ -185,7 +185,7 @@ static int ublast_buf_write(uint8_t *buf, int size, uint32_t *bytes_written)
 	int ret = info.drv->write(info.drv, buf, size, bytes_written);
 	char *str = hexdump(buf, *bytes_written);
 
-	LOG_DEBUG_IO("(size=%d, buf=[%s]) -> %u", size, str,
+	LOG_DEBUG_IO("(size=%d, buf=[%s]) -> %" PRIu32, size, str,
 		      *bytes_written);
 	free(str);
 	return ret;
@@ -198,7 +198,7 @@ static int nb_buf_remaining(void)
 
 static void ublast_flush_buffer(void)
 {
-	unsigned int retlen;
+	uint32_t retlen;
 	int nb = info.bufidx, ret = ERROR_OK;
 
 	while (ret == ERROR_OK && nb > 0) {
@@ -538,7 +538,7 @@ static void ublast_state_move(tap_state_t state, int skip)
  */
 static int ublast_read_byteshifted_tdos(uint8_t *buf, int nb_bytes)
 {
-	unsigned int retlen;
+	uint32_t retlen;
 	int ret = ERROR_OK;
 
 	LOG_DEBUG_IO("%s(buf=%p, num_bits=%d)", __func__, buf, nb_bytes * 8);
@@ -570,7 +570,7 @@ static int ublast_read_bitbang_tdos(uint8_t *buf, int nb_bits)
 {
 	int nb1 = nb_bits;
 	int i, ret = ERROR_OK;
-	unsigned int retlen;
+	uint32_t retlen;
 	uint8_t tmp[8];
 
 	LOG_DEBUG_IO("%s(buf=%p, num_bits=%d)", __func__, buf, nb_bits);
@@ -902,7 +902,7 @@ static int ublast_init(void)
 static int ublast_quit(void)
 {
 	uint8_t byte0 = 0;
-	unsigned int retlen;
+	uint32_t retlen;
 
 	ublast_buf_write(&byte0, 1, &retlen);
 	return info.drv->close(info.drv);

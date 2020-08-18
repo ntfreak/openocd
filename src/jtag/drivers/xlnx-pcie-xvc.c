@@ -82,7 +82,7 @@ static int xlnx_pcie_xvc_write_reg(const int offset, const uint32_t val)
 	err = pwrite(xlnx_pcie_xvc->fd, &val, sizeof(val),
 		     xlnx_pcie_xvc->offset + offset);
 	if (err != sizeof(val)) {
-		LOG_ERROR("Failed to write offset: %x with value: %x",
+		LOG_ERROR("Failed to write offset: %x with value: %" PRIx32,
 			  offset, val);
 		return ERROR_JTAG_DEVICE_ERROR;
 	}
@@ -112,10 +112,10 @@ static int xlnx_pcie_xvc_transact(size_t num_bits, uint32_t tms, uint32_t tdi,
 		return err;
 
 	if (tdo)
-		LOG_DEBUG_IO("Transact num_bits: %zu, tms: %x, tdi: %x, tdo: %x",
+		LOG_DEBUG_IO("Transact num_bits: %zu, tms: %" PRIx32 ", tdi: %" PRIx32 ", tdo: %" PRIx32,
 			     num_bits, tms, tdi, *tdo);
 	else
-		LOG_DEBUG_IO("Transact num_bits: %zu, tms: %x, tdi: %x, tdo: <null>",
+		LOG_DEBUG_IO("Transact num_bits: %zu, tms: %" PRIx32 ", tdi: %" PRIx32 ", tdo: <null>",
 			     num_bits, tms, tdi);
 	return ERROR_OK;
 }
@@ -304,7 +304,7 @@ static void xlnx_pcie_xvc_execute_reset(struct jtag_command *cmd)
 
 static void xlnx_pcie_xvc_execute_sleep(struct jtag_command *cmd)
 {
-	LOG_DEBUG("sleep %" PRIi32 "", cmd->cmd.sleep->us);
+	LOG_DEBUG("sleep %" PRIu32 "", cmd->cmd.sleep->us);
 	usleep(cmd->cmd.sleep->us);
 }
 
@@ -405,7 +405,7 @@ static int xlnx_pcie_xvc_init(void)
 		err = xlnx_pcie_xvc_read_reg(XLNX_XVC_EXT_CAP, &cap);
 		if (err != ERROR_OK)
 			return err;
-		LOG_DEBUG("Checking capability at 0x%x; id=0x%04x version=0x%x next=0x%x",
+		LOG_DEBUG("Checking capability at 0x%x; id=0x%04" PRIx32 " version=0x%" PRIx32 " next=0x%" PRIx32,
 			 xlnx_pcie_xvc->offset,
 			 PCI_EXT_CAP_ID(cap),
 			 PCI_EXT_CAP_VER(cap),
@@ -414,7 +414,7 @@ static int xlnx_pcie_xvc_init(void)
 			err = xlnx_pcie_xvc_read_reg(XLNX_XVC_VSEC_HDR, &vh);
 			if (err != ERROR_OK)
 				return err;
-			LOG_DEBUG("Checking possible match at 0x%x; id: 0x%x; rev: 0x%x; length: 0x%x",
+			LOG_DEBUG("Checking possible match at 0x%x; id: 0x%" PRIx32 "; rev: 0x%" PRIx32 "; length: 0x%" PRIx32,
 				 xlnx_pcie_xvc->offset,
 				 PCI_VNDR_HEADER_ID(vh),
 				 PCI_VNDR_HEADER_REV(vh),

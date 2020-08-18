@@ -655,7 +655,7 @@ static bool xds_execute(uint32_t out_length, uint32_t in_length,
 			if (bytes_read != in_length) {
 				/* Unexpected amount of data returned */
 				success = false;
-				LOG_DEBUG("XDS110: command 0x%02x return %d bytes, expected %d",
+				LOG_DEBUG("XDS110: command 0x%02x return %" PRIu32 " bytes, expected %" PRIu32,
 					xds110.write_payload[0], bytes_read, in_length);
 			} else {
 				/* Extract error code from return packet */
@@ -1389,7 +1389,7 @@ static void xds110_show_info(void)
 	uint32_t firmware = xds110.firmware;
 
 	LOG_INFO("XDS110: vid/pid = %04x/%04x", xds110.vid, xds110.pid);
-	LOG_INFO("XDS110: firmware version = %d.%d.%d.%d",
+	LOG_INFO("XDS110: firmware version = %" PRIu32 ".%" PRIu32 ".%" PRIu32 ".%" PRIu32,
 		(((firmware >> 28) & 0xf) * 10) + ((firmware >> 24) & 0xf),
 		(((firmware >> 20) & 0xf) * 10) + ((firmware >> 16) & 0xf),
 		(((firmware >> 12) & 0xf) * 10) + ((firmware >>  8) & 0xf),
@@ -1399,10 +1399,10 @@ static void xds110_show_info(void)
 		LOG_INFO("XDS110: serial number = %s", xds110.serial);
 	if (xds110.is_swd_mode) {
 		LOG_INFO("XDS110: connected to target via SWD");
-		LOG_INFO("XDS110: SWCLK set to %d kHz", xds110.speed);
+		LOG_INFO("XDS110: SWCLK set to %" PRIu32 " kHz", xds110.speed);
 	} else {
 		LOG_INFO("XDS110: connected to target via JTAG");
-		LOG_INFO("XDS110: TCK set to %d kHz", xds110.speed);
+		LOG_INFO("XDS110: TCK set to %" PRIu32 " kHz", xds110.speed);
 	}
 
 	/* Alert user that there's a better firmware to use */
@@ -1756,7 +1756,7 @@ static void xds110_queue_scan(struct jtag_command *cmd)
 
 	/* Check if this single request is too large to fit */
 	if ((1 + total_bytes + sizeof(end_state) + 1) > MAX_DATA_BLOCK) {
-		LOG_ERROR("BUG: JTAG scan request is too large to handle (%d bits)",
+		LOG_ERROR("BUG: JTAG scan request is too large to handle (%" PRIu32 " bits)",
 			total_bits);
 		/* Failing to run this scan mucks up debug on this target */
 		exit(-1);
@@ -2057,7 +2057,7 @@ COMMAND_HANDLER(xds110_handle_supply_voltage_command)
 	uint32_t voltage = 0;
 
 	if (CMD_ARGC == 1) {
-		COMMAND_PARSE_NUMBER(uint, CMD_ARGV[0], voltage);
+		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], voltage);
 		if (voltage == 0 || (voltage >= XDS110_MIN_VOLTAGE && voltage
 			<= XDS110_MAX_VOLTAGE)) {
 			/* Requested voltage is in range */
