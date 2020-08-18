@@ -252,8 +252,8 @@ int aice_scan_jtag_chain(void)
 		return res;
 	}
 
-	for (uint32_t i = 0; i < num_of_idcode; i++)
-		LOG_DEBUG("id_codes[%d] = 0x%x", i, aice_target_id_codes[i]);
+	for (unsigned int i = 0; i < num_of_idcode; i++)
+		LOG_DEBUG("id_codes[%u] = 0x%" PRIx32, i, aice_target_id_codes[i]);
 
 	/* Update tap idcode */
 	for (target = all_targets; target; target = target->next)
