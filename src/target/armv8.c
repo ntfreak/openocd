@@ -1054,7 +1054,7 @@ COMMAND_HANDLER(armv8_handle_exception_catch_command)
 			nsec = n->name;
 
 		if (sec == NULL || nsec == NULL) {
-			LOG_WARNING("Exception Catch: unknown exception catch configuration: EDECCR = %02x", edeccr & 0xff);
+			LOG_WARNING("Exception Catch: unknown exception catch configuration: EDECCR = %02" PRIx32, edeccr & 0xff);
 			return ERROR_FAIL;
 		}
 

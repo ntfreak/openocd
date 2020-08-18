@@ -197,7 +197,7 @@ int arc_reg_add(struct target *target, struct arc_reg_desc *arc_reg,
 	arc->num_regs += 1;
 
 	LOG_DEBUG(
-			"added register {name=%s, num=0x%x, type=%s%s%s%s}",
+			"added register {name=%s, num=0x%" PRIx32 ", type=%s%s%s%s}",
 			arc_reg->name, arc_reg->arch_num, arc_reg->data_type->id,
 			arc_reg->is_core ? ", core" : "",  arc_reg->is_bcr ? ", bcr" : "",
 			arc_reg->is_general ? ", general" : ""
@@ -889,7 +889,7 @@ static int arc_save_context(struct target *target)
 			core_cnt += 1;
 			reg->valid = true;
 			reg->dirty = false;
-			LOG_DEBUG("Get core register regnum=%" PRIu32 ", name=%s, value=0x%08" PRIx32,
+			LOG_DEBUG("Get core register regnum=%u, name=%s, value=0x%08" PRIx32,
 				i, arc_reg->name, core_values[core_cnt]);
 		}
 	}
@@ -904,7 +904,7 @@ static int arc_save_context(struct target *target)
 			aux_cnt += 1;
 			reg->valid = true;
 			reg->dirty = false;
-			LOG_DEBUG("Get aux register regnum=%" PRIu32 ", name=%s, value=0x%08" PRIx32,
+			LOG_DEBUG("Get aux register regnum=%u, name=%s, value=0x%08" PRIx32,
 				i, arc_reg->name, aux_values[aux_cnt]);
 		}
 	}
@@ -1464,7 +1464,7 @@ static int arc_configure_actionpoint(struct target *target, uint32_t ap_num,
 	if (control_tt != AP_AC_TT_DISABLE) {
 
 		if (arc->actionpoints_num_avail < 1) {
-			LOG_ERROR("No free actionpoints, maximim amount is %" PRIu32,
+			LOG_ERROR("No free actionpoints, maximim amount is %u",
 					arc->actionpoints_num);
 			return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 		}
@@ -1551,7 +1551,7 @@ static int arc_set_breakpoint(struct target *target,
 		}
 
 		if (bp_num >= arc->actionpoints_num) {
-			LOG_ERROR("No free actionpoints, maximum amount is %" PRIu32,
+			LOG_ERROR("No free actionpoints, maximum amount is %u",
 					arc->actionpoints_num);
 			return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 		}
@@ -1607,7 +1607,7 @@ static int arc_unset_breakpoint(struct target *target,
 			} else {
 				LOG_WARNING("Software breakpoint @0x%" TARGET_PRIxADDR
 					" has been overwritten outside of debugger."
-					"Expected: @0x%" PRIx32 ", got: @0x%" PRIx32,
+					"Expected: @0x%x, got: @0x%" PRIx32,
 					breakpoint->address, ARC_SDBBP_32, current_instr);
 			}
 		} else if (breakpoint->length == 2) {

@@ -185,7 +185,7 @@ static int arm7a_handle_l2x_cache_info_command(struct command_invocation *cmd,
 	}
 
 	command_print(cmd,
-		      "L2 unified cache Base Address 0x%" PRIx32 ", %" PRId32 " ways",
+		      "L2 unified cache Base Address 0x%" PRIx32 ", %" PRIu32 " ways",
 		      l2x_cache->base, l2x_cache->way);
 
 	return ERROR_OK;

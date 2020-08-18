@@ -461,7 +461,7 @@ static int esirisc_trace_analyze_full(struct command_invocation *cmd, uint8_t *b
 						if (retval != ERROR_OK)
 							goto fail;
 
-						command_print(cmd, "repeats %" PRId32 " %s", count,
+						command_print(cmd, "repeats %" PRIu32 " %s", count,
 								(count == 1) ? "time" : "times");
 						break;
 					}
@@ -470,13 +470,13 @@ static int esirisc_trace_analyze_full(struct command_invocation *cmd, uint8_t *b
 						return ERROR_OK;
 
 					default:
-						command_print(cmd, "invalid extended trace ID: %" PRId32, ext_id);
+						command_print(cmd, "invalid extended trace ID: %" PRIu32, ext_id);
 						return ERROR_FAIL;
 				}
 				break;
 			}
 			default:
-				command_print(cmd, "invalid trace ID: %" PRId32, id);
+				command_print(cmd, "invalid trace ID: %" PRIu32, id);
 				return ERROR_FAIL;
 		}
 	}
@@ -729,7 +729,7 @@ COMMAND_HANDLER(handle_esirisc_trace_info_command)
 
 	command_print(CMD, "trigger delay: %s",
 			esirisc_trace_delay_strings[trace_info->delay]);
-	command_print(CMD, "trigger delay cycles: %i", trace_info->delay_cycles);
+	command_print(CMD, "trigger delay cycles: %" PRIu32, trace_info->delay_cycles);
 
 	return ERROR_OK;
 }

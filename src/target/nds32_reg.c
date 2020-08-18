@@ -367,7 +367,7 @@ bool nds32_reg_exception(uint32_t number, uint32_t value)
 			field_value = (value >> ex_reg_value->ex_value_bit_pos) &
 				ex_reg_value->ex_value_mask;
 			if (field_value == ex_reg_value->ex_value) {
-				LOG_WARNING("It will generate exceptions as setting %" PRId32 " to %s",
+				LOG_WARNING("It will generate exceptions as setting %" PRIu32 " to %s",
 						value, nds32_regs[number].simple_mnemonic);
 				return true;
 			}

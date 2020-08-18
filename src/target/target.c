@@ -2201,7 +2201,7 @@ static int target_profiling_default(struct target *target, uint32_t *samples,
  */
 int target_write_buffer(struct target *target, target_addr_t address, uint32_t size, const uint8_t *buffer)
 {
-	LOG_DEBUG("writing buffer of %" PRIi32 " byte at " TARGET_ADDR_FMT,
+	LOG_DEBUG("writing buffer of %" PRIu32 " byte at " TARGET_ADDR_FMT,
 			  size, address);
 
 	if (!target_was_examined(target)) {
@@ -2263,7 +2263,7 @@ static int target_write_buffer_default(struct target *target,
  */
 int target_read_buffer(struct target *target, target_addr_t address, uint32_t size, uint8_t *buffer)
 {
-	LOG_DEBUG("reading buffer of %" PRIi32 " byte at " TARGET_ADDR_FMT,
+	LOG_DEBUG("reading buffer of %" PRIu32 " byte at " TARGET_ADDR_FMT,
 			  size, address);
 
 	if (!target_was_examined(target)) {
@@ -2333,7 +2333,7 @@ int target_checksum_memory(struct target *target, target_addr_t address, uint32_
 	if (retval != ERROR_OK) {
 		buffer = malloc(size);
 		if (buffer == NULL) {
-			LOG_ERROR("error allocating buffer for section (%" PRId32 " bytes)", size);
+			LOG_ERROR("error allocating buffer for section (%" PRIu32 " bytes)", size);
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		}
 		retval = target_read_buffer(target, address, size, buffer);
@@ -4301,7 +4301,7 @@ static int target_mem2array(Jim_Interp *interp, struct target *target, int argc,
 	} else {
 		char buf[100];
 		Jim_SetResult(interp, Jim_NewEmptyStringObj(interp));
-		sprintf(buf, "mem2array address: 0x%08" PRIx32 " is not aligned for %" PRId32 " byte reads",
+		sprintf(buf, "mem2array address: 0x%08" PRIx32 " is not aligned for %" PRIu32 " byte reads",
 				addr,
 				width);
 		Jim_AppendStrings(interp, Jim_GetResult(interp), buf, NULL);
@@ -4333,7 +4333,7 @@ static int target_mem2array(Jim_Interp *interp, struct target *target, int argc,
 			retval = target_read_memory(target, addr, width, count, buffer);
 		if (retval != ERROR_OK) {
 			/* BOO !*/
-			LOG_ERROR("mem2array: Read @ 0x%08" PRIx32 ", w=%" PRId32 ", cnt=%" PRId32 ", failed",
+			LOG_ERROR("mem2array: Read @ 0x%08" PRIx32 ", w=%" PRIu32 ", cnt=%" PRIu32 ", failed",
 					  addr,
 					  width,
 					  count);
@@ -4507,7 +4507,7 @@ static int target_array2mem(Jim_Interp *interp, struct target *target,
 	} else {
 		char buf[100];
 		Jim_SetResult(interp, Jim_NewEmptyStringObj(interp));
-		sprintf(buf, "array2mem address: 0x%08" PRIx32 " is not aligned for %" PRId32 " byte reads",
+		sprintf(buf, "array2mem address: 0x%08" PRIx32 " is not aligned for %" PRIu32 " byte reads",
 				addr,
 				width);
 		Jim_AppendStrings(interp, Jim_GetResult(interp), buf, NULL);
@@ -4556,7 +4556,7 @@ static int target_array2mem(Jim_Interp *interp, struct target *target,
 			retval = target_write_memory(target, addr, width, count, buffer);
 		if (retval != ERROR_OK) {
 			/* BOO !*/
-			LOG_ERROR("array2mem: Write @ 0x%08" PRIx32 ", w=%" PRId32 ", cnt=%" PRId32 ", failed",
+			LOG_ERROR("array2mem: Write @ 0x%08" PRIx32 ", w=%" PRIu32 ", cnt=%" PRIu32 ", failed",
 					  addr,
 					  width,
 					  count);

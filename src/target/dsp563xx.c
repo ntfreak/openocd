@@ -937,7 +937,7 @@ static int dsp563xx_examine(struct target *target)
 		if (((chip>>5)&0x1f) == 0)
 			chip += 300;
 
-		LOG_INFO("DSP56%03" PRId32 " device found", chip);
+		LOG_INFO("DSP56%03" PRIu32 " device found", chip);
 
 		/* Clear all breakpoints */
 		dsp563xx_once_reg_write(target->tap, 1, DSP563XX_ONCE_OBCR, 0);

@@ -55,7 +55,7 @@
 #define REG_TYPE_MAX_NAME_LENGTH	20
 
 /* ARC 32bits opcodes */
-#define ARC_SDBBP_32 0x256F003F  /* BRK */
+#define ARC_SDBBP_32 0x256F003FU  /* BRK */
 
 /* ARC 16bits opcodes */
 #define ARC_SDBBP_16 0x7FFF      /* BRK_S */

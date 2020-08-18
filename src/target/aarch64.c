@@ -105,7 +105,7 @@ static int aarch64_restore_system_control_reg(struct target *target)
 			break;
 
 		default:
-			LOG_ERROR("cannot read system control register in this mode: (%s : 0x%" PRIx32 ")",
+			LOG_ERROR("cannot read system control register in this mode: (%s : 0x%x)",
 					armv8_mode_name(armv8->arm.core_mode), armv8->arm.core_mode);
 			return ERROR_FAIL;
 		}
@@ -180,7 +180,7 @@ static int aarch64_mmu_modify(struct target *target, int enable)
 		break;
 
 	default:
-		LOG_DEBUG("unknown cpu state 0x%" PRIx32, armv8->arm.core_mode);
+		LOG_DEBUG("unknown cpu state 0x%x", armv8->arm.core_mode);
 		break;
 	}
 
@@ -1042,7 +1042,7 @@ static int aarch64_post_debug_entry(struct target *target)
 		break;
 
 	default:
-		LOG_ERROR("cannot read system control register in this mode: (%s : 0x%" PRIx32 ")",
+		LOG_ERROR("cannot read system control register in this mode: (%s : 0x%x)",
 				armv8_mode_name(armv8->arm.core_mode), armv8->arm.core_mode);
 		return ERROR_FAIL;
 	}

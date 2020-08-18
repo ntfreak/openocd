@@ -1308,7 +1308,7 @@ static int stm8_arch_state(struct target *target)
 static int stm8_step(struct target *target, int current,
 		target_addr_t address, int handle_breakpoints)
 {
-	LOG_DEBUG("%" PRIx32 " " TARGET_ADDR_FMT " %" PRIx32,
+	LOG_DEBUG("%x " TARGET_ADDR_FMT " %x",
 		current, address, handle_breakpoints);
 
 	/* get pointers to arch-specific information */
@@ -1969,7 +1969,7 @@ int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return e;
 
 		stm8->blocksize = w;
-		LOG_DEBUG("blocksize=%8.8x", stm8->blocksize);
+		LOG_DEBUG("blocksize=%8.8" PRIx32, stm8->blocksize);
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-flashstart")) {
@@ -1988,7 +1988,7 @@ int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return e;
 
 		stm8->flashstart = w;
-		LOG_DEBUG("flashstart=%8.8x", stm8->flashstart);
+		LOG_DEBUG("flashstart=%8.8" PRIx32, stm8->flashstart);
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-flashend")) {
@@ -2007,7 +2007,7 @@ int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return e;
 
 		stm8->flashend = w;
-		LOG_DEBUG("flashend=%8.8x", stm8->flashend);
+		LOG_DEBUG("flashend=%8.8" PRIx32, stm8->flashend);
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-eepromstart")) {
@@ -2026,7 +2026,7 @@ int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return e;
 
 		stm8->eepromstart = w;
-		LOG_DEBUG("eepromstart=%8.8x", stm8->eepromstart);
+		LOG_DEBUG("eepromstart=%8.8" PRIx32, stm8->eepromstart);
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-eepromend")) {
@@ -2045,7 +2045,7 @@ int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return e;
 
 		stm8->eepromend = w;
-		LOG_DEBUG("eepromend=%8.8x", stm8->eepromend);
+		LOG_DEBUG("eepromend=%8.8" PRIx32, stm8->eepromend);
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-optionstart")) {
@@ -2064,7 +2064,7 @@ int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return e;
 
 		stm8->optionstart = w;
-		LOG_DEBUG("optionstart=%8.8x", stm8->optionstart);
+		LOG_DEBUG("optionstart=%8.8" PRIx32, stm8->optionstart);
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-optionend")) {
@@ -2083,7 +2083,7 @@ int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return e;
 
 		stm8->optionend = w;
-		LOG_DEBUG("optionend=%8.8x", stm8->optionend);
+		LOG_DEBUG("optionend=%8.8" PRIx32, stm8->optionend);
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-enable_step_irq")) {

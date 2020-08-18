@@ -1682,7 +1682,7 @@ COMMAND_HANDLER(dap_memaccess_command)
 	}
 	dap->ap[dap->apsel].memaccess_tck = memaccess_tck;
 
-	command_print(CMD, "memory bus access delay set to %" PRIi32 " tck",
+	command_print(CMD, "memory bus access delay set to %" PRIu32 " tck",
 			dap->ap[dap->apsel].memaccess_tck);
 
 	return ERROR_OK;
@@ -1695,7 +1695,7 @@ COMMAND_HANDLER(dap_apsel_command)
 
 	switch (CMD_ARGC) {
 	case 0:
-		command_print(CMD, "%" PRIi32, dap->apsel);
+		command_print(CMD, "%" PRIu32, dap->apsel);
 		return ERROR_OK;
 	case 1:
 		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], apsel);
@@ -1721,7 +1721,7 @@ COMMAND_HANDLER(dap_apcsw_command)
 
 	switch (CMD_ARGC) {
 	case 0:
-		command_print(CMD, "ap %" PRIi32 " selected, csw 0x%8.8" PRIx32,
+		command_print(CMD, "ap %" PRIu32 " selected, csw 0x%8.8" PRIx32,
 			dap->apsel, apcsw);
 		return ERROR_OK;
 	case 1:

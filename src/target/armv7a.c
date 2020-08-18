@@ -257,10 +257,10 @@ int armv7a_handle_cache_info_command(struct command_invocation *cmd,
 
 		if (arch->ctype & 1) {
 			command_print(cmd,
-				"L%d I-Cache: linelen %" PRIi32
-				", associativity %" PRIi32
-				", nsets %" PRIi32
-				", cachesize %" PRId32 " KBytes",
+				"L%d I-Cache: linelen %" PRIu32
+				", associativity %" PRIu32
+				", nsets %" PRIu32
+				", cachesize %" PRIu32 " KBytes",
 				cl+1,
 				arch->i_size.linelen,
 				arch->i_size.associativity,
@@ -270,10 +270,10 @@ int armv7a_handle_cache_info_command(struct command_invocation *cmd,
 
 		if (arch->ctype >= 2) {
 			command_print(cmd,
-				"L%d D-Cache: linelen %" PRIi32
-				", associativity %" PRIi32
-				", nsets %" PRIi32
-				", cachesize %" PRId32 " KBytes",
+				"L%d D-Cache: linelen %" PRIu32
+				", associativity %" PRIu32
+				", nsets %" PRIu32
+				", cachesize %" PRIu32 " KBytes",
 				cl+1,
 				arch->d_u_size.linelen,
 				arch->d_u_size.associativity,
@@ -283,7 +283,7 @@ int armv7a_handle_cache_info_command(struct command_invocation *cmd,
 	}
 
 	if (l2x_cache != NULL)
-		command_print(cmd, "Outer unified cache Base Address 0x%" PRIx32 ", %" PRId32 " ways",
+		command_print(cmd, "Outer unified cache Base Address 0x%" PRIx32 ", %" PRIu32 " ways",
 			l2x_cache->base, l2x_cache->way);
 
 	return ERROR_OK;
@@ -399,7 +399,7 @@ int armv7a_identify_cache(struct target *target)
 
 	cache->iminline = 4UL << (ctr & 0xf);
 	cache->dminline = 4UL << ((ctr & 0xf0000) >> 16);
-	LOG_DEBUG("ctr %" PRIx32 " ctr.iminline %" PRId32 " ctr.dminline %" PRId32,
+	LOG_DEBUG("ctr %" PRIx32 " ctr.iminline %" PRIu32 " ctr.dminline %" PRIu32,
 		 ctr, cache->iminline, cache->dminline);
 
 	/*  retrieve CLIDR
@@ -439,13 +439,13 @@ int armv7a_identify_cache(struct target *target)
 				goto done;
 			cache->arch[cl].d_u_size = decode_cache_reg(cache_reg);
 
-			LOG_DEBUG("data/unified cache index %d << %d, way %d << %d",
+			LOG_DEBUG("data/unified cache index %" PRIu32 " << %" PRIu32 ", way %" PRIu32 " << %" PRIu32,
 					cache->arch[cl].d_u_size.index,
 					cache->arch[cl].d_u_size.index_shift,
 					cache->arch[cl].d_u_size.way,
 					cache->arch[cl].d_u_size.way_shift);
 
-			LOG_DEBUG("cacheline %d bytes %d KBytes asso %d ways",
+			LOG_DEBUG("cacheline %" PRIu32 " bytes %" PRIu32 " KBytes asso %" PRIu32 " ways",
 					cache->arch[cl].d_u_size.linelen,
 					cache->arch[cl].d_u_size.cachesize,
 					cache->arch[cl].d_u_size.associativity);
@@ -459,13 +459,13 @@ int armv7a_identify_cache(struct target *target)
 				goto done;
 			cache->arch[cl].i_size = decode_cache_reg(cache_reg);
 
-			LOG_DEBUG("instruction cache index %d << %d, way %d << %d",
+			LOG_DEBUG("instruction cache index %" PRIu32 " << %" PRIu32 ", way %" PRIu32 " << %" PRIu32,
 					cache->arch[cl].i_size.index,
 					cache->arch[cl].i_size.index_shift,
 					cache->arch[cl].i_size.way,
 					cache->arch[cl].i_size.way_shift);
 
-			LOG_DEBUG("cacheline %d bytes %d KBytes asso %d ways",
+			LOG_DEBUG("cacheline %" PRIu32 " bytes %" PRIu32 " KBytes asso %" PRIu32 " ways",
 					cache->arch[cl].i_size.linelen,
 					cache->arch[cl].i_size.cachesize,
 					cache->arch[cl].i_size.associativity);

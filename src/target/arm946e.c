@@ -596,7 +596,7 @@ COMMAND_HANDLER(arm946e_handle_cp15)
 		uint32_t value;
 		retval = arm946e_read_cp15(target, address, &value);
 		if (retval != ERROR_OK) {
-			command_print(CMD, "%s cp15 reg %" PRIi32 " access failed", target_name(target), address);
+			command_print(CMD, "%s cp15 reg %" PRIu32 " access failed", target_name(target), address);
 			return retval;
 		}
 		retval = jtag_execute_queue();
@@ -611,7 +611,7 @@ COMMAND_HANDLER(arm946e_handle_cp15)
 
 		retval = arm946e_write_cp15(target, address, value);
 		if (retval != ERROR_OK) {
-			command_print(CMD, "%s cp15 reg %" PRIi32 " access failed", target_name(target), address);
+			command_print(CMD, "%s cp15 reg %" PRIu32 " access failed", target_name(target), address);
 			return retval;
 		}
 		if (address == CP15_CTL)

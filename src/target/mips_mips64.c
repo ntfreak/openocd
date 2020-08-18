@@ -247,7 +247,7 @@ static int mips_mips64_set_hwbp(struct target *target, struct breakpoint *bp)
 		bp_num++;
 
 	if (bp_num >= mips64->num_inst_bpoints) {
-		LOG_DEBUG("ERROR Can not find free FP Comparator(bpid: %d)",
+		LOG_DEBUG("ERROR Can not find free FP Comparator(bpid: %" PRIu32 ")",
 			  bp->unique_id);
 		LOG_WARNING("ERROR Can not find free FP Comparator");
 		exit(-1);
@@ -274,7 +274,7 @@ static int mips_mips64_set_hwbp(struct target *target, struct breakpoint *bp)
 	if (retval != ERROR_OK)
 		return retval;
 
-	LOG_DEBUG("bpid: %d, bp_num %i bp_value 0x%" PRIx64 "", bp->unique_id,
+	LOG_DEBUG("bpid: %" PRIu32 ", bp_num %i bp_value 0x%" PRIx64, bp->unique_id,
 		  bp_num, c->bp_value);
 
 	return ERROR_OK;
@@ -354,7 +354,7 @@ static int mips_mips64_set_breakpoint(struct target *target,
 	if (bp->type == BKPT_HARD) {
 		retval = mips_mips64_set_hwbp(target, bp);
 	} else {
-		LOG_DEBUG("bpid: %d", bp->unique_id);
+		LOG_DEBUG("bpid: %" PRIu32, bp->unique_id);
 
 		switch (bp->length) {
 		case MIPS64_SDBBP_SIZE:
@@ -511,12 +511,12 @@ static int mips_mips64_unset_hwbp(struct target *target, struct breakpoint *bp)
 	bp_num = bp->set - 1;
 
 	if ((bp_num < 0) || (bp_num >= mips64->num_inst_bpoints)) {
-		LOG_DEBUG("Invalid FP Comparator number in breakpoint (bpid: %d)",
+		LOG_DEBUG("Invalid FP Comparator number in breakpoint (bpid: %" PRIu32 ")",
 			  bp->unique_id);
 		return ERROR_OK;
 	}
 
-	LOG_DEBUG("bpid: %d - releasing hw: %d", bp->unique_id, bp_num);
+	LOG_DEBUG("bpid: %" PRIu32 " - releasing hw: %d", bp->unique_id, bp_num);
 	comparator_list[bp_num].used = false;
 	comparator_list[bp_num].bp_value = 0;
 
@@ -576,7 +576,7 @@ static int mips_mips64_unset_breakpoint(struct target *target,
 	if (bp->type == BKPT_HARD) {
 		retval = mips_mips64_unset_hwbp(target, bp);
 	} else {
-		LOG_DEBUG("bpid: %d", bp->unique_id);
+		LOG_DEBUG("bpid: %" PRIu32, bp->unique_id);
 
 		switch (bp->length) {
 		case MIPS64_SDBBP_SIZE:

@@ -102,7 +102,7 @@ static void arm7_9_assign_wp(struct arm7_9_common *arm7_9, struct breakpoint *br
 	} else
 		LOG_ERROR("BUG: no hardware comparator available");
 
-	LOG_DEBUG("BPID: %" PRId32 " (0x%08" TARGET_PRIxADDR ") using hw wp: %d",
+	LOG_DEBUG("BPID: %" PRIu32 " (0x%08" TARGET_PRIxADDR ") using hw wp: %d",
 			breakpoint->unique_id,
 			breakpoint->address,
 			breakpoint->set);
@@ -188,7 +188,7 @@ static int arm7_9_set_breakpoint(struct target *target, struct breakpoint *break
 	struct arm7_9_common *arm7_9 = target_to_arm7_9(target);
 	int retval = ERROR_OK;
 
-	LOG_DEBUG("BPID: %" PRId32 ", Address: 0x%08" TARGET_PRIxADDR ", Type: %d",
+	LOG_DEBUG("BPID: %" PRIu32 ", Address: 0x%08" TARGET_PRIxADDR ", Type: %d",
 		breakpoint->unique_id,
 		breakpoint->address,
 		breakpoint->type);
@@ -300,7 +300,7 @@ static int arm7_9_unset_breakpoint(struct target *target, struct breakpoint *bre
 	int retval = ERROR_OK;
 	struct arm7_9_common *arm7_9 = target_to_arm7_9(target);
 
-	LOG_DEBUG("BPID: %" PRId32 ", Address: 0x%08" TARGET_PRIxADDR,
+	LOG_DEBUG("BPID: %" PRIu32 ", Address: 0x%08" TARGET_PRIxADDR,
 		breakpoint->unique_id,
 		breakpoint->address);
 
@@ -310,7 +310,7 @@ static int arm7_9_unset_breakpoint(struct target *target, struct breakpoint *bre
 	}
 
 	if (breakpoint->type == BKPT_HARD) {
-		LOG_DEBUG("BPID: %" PRId32 " Releasing hw wp: %d",
+		LOG_DEBUG("BPID: %" PRIu32 " Releasing hw wp: %d",
 			breakpoint->unique_id,
 			breakpoint->set);
 		if (breakpoint->set == 1) {
@@ -1725,7 +1725,7 @@ int arm7_9_resume(struct target *target,
 		breakpoint = breakpoint_find(target,
 				buf_get_u32(arm->pc->value, 0, 32));
 		if (breakpoint != NULL) {
-			LOG_DEBUG("unset breakpoint at 0x%8.8" TARGET_PRIxADDR " (id: %" PRId32,
+			LOG_DEBUG("unset breakpoint at 0x%8.8" TARGET_PRIxADDR " (id: %" PRIu32,
 				breakpoint->address,
 				breakpoint->unique_id);
 			retval = arm7_9_unset_breakpoint(target, breakpoint);

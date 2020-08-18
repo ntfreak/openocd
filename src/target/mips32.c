@@ -725,7 +725,7 @@ int mips32_read_config_regs(struct target *target)
 	else
 		return ERROR_OK;	/* already successfully read */
 
-	LOG_DEBUG("read  %"PRId32" config registers", ejtag_info->config_regs);
+	LOG_DEBUG("read  %"PRIu32" config registers", ejtag_info->config_regs);
 
 	if (ejtag_info->impcode & EJTAG_IMP_MIPS16) {
 		mips32->isa_imp = MIPS32_MIPS16;
@@ -950,11 +950,11 @@ COMMAND_HANDLER(mips32_handle_cp0_command)
 			retval = mips32_cp0_read(ejtag_info, &value, cp0_reg, cp0_sel);
 			if (retval != ERROR_OK) {
 				command_print(CMD,
-						"couldn't access reg %" PRIi32,
+						"couldn't access reg %" PRIu32,
 						cp0_reg);
 				return ERROR_OK;
 			}
-			command_print(CMD, "cp0 reg %" PRIi32 ", select %" PRIi32 ": %8.8" PRIx32,
+			command_print(CMD, "cp0 reg %" PRIu32 ", select %" PRIu32 ": %8.8" PRIx32,
 					cp0_reg, cp0_sel, value);
 
 		} else if (CMD_ARGC == 3) {
@@ -963,11 +963,11 @@ COMMAND_HANDLER(mips32_handle_cp0_command)
 			retval = mips32_cp0_write(ejtag_info, value, cp0_reg, cp0_sel);
 			if (retval != ERROR_OK) {
 				command_print(CMD,
-						"couldn't access cp0 reg %" PRIi32 ", select %" PRIi32,
+						"couldn't access cp0 reg %" PRIu32 ", select %" PRIu32,
 						cp0_reg,  cp0_sel);
 				return ERROR_OK;
 			}
-			command_print(CMD, "cp0 reg %" PRIi32 ", select %" PRIi32 ": %8.8" PRIx32,
+			command_print(CMD, "cp0 reg %" PRIu32 ", select %" PRIu32 ": %8.8" PRIx32,
 					cp0_reg, cp0_sel, value);
 		}
 	}

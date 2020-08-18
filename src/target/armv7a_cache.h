@@ -25,7 +25,7 @@
 int armv7a_l1_d_cache_clean_virt(struct target *target, uint32_t virt,
 					unsigned int size);
 int armv7a_l1_d_cache_inval_virt(struct target *target, uint32_t virt,
-					unsigned int size);
+					uint32_t size);
 int armv7a_l1_d_cache_flush_virt(struct target *target, uint32_t virt,
 					unsigned int size);
 int armv7a_l1_i_cache_inval_all(struct target *target);

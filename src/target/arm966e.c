@@ -199,7 +199,7 @@ COMMAND_HANDLER(arm966e_handle_cp15_command)
 			retval = arm966e_read_cp15(target, address, &value);
 			if (retval != ERROR_OK) {
 				command_print(CMD,
-						"couldn't access reg %" PRIi32,
+						"couldn't access reg %" PRIu32,
 						address);
 				return ERROR_OK;
 			}
@@ -207,7 +207,7 @@ COMMAND_HANDLER(arm966e_handle_cp15_command)
 			if (retval != ERROR_OK)
 				return retval;
 
-			command_print(CMD, "%" PRIi32 ": %8.8" PRIx32,
+			command_print(CMD, "%" PRIu32 ": %8.8" PRIx32,
 					address, value);
 		} else if (CMD_ARGC == 2) {
 			uint32_t value;
@@ -215,11 +215,11 @@ COMMAND_HANDLER(arm966e_handle_cp15_command)
 			retval = arm966e_write_cp15(target, address, value);
 			if (retval != ERROR_OK) {
 				command_print(CMD,
-						"couldn't access reg %" PRIi32,
+						"couldn't access reg %" PRIu32,
 						address);
 				return ERROR_OK;
 			}
-			command_print(CMD, "%" PRIi32 ": %8.8" PRIx32,
+			command_print(CMD, "%" PRIu32 ": %8.8" PRIx32,
 					address, value);
 		}
 	}
