@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 /*
  * Support for RISC-V, debug version 0.11. This was never an officially adopted
  * spec, but SiFive made some silicon that uses it.
@@ -204,7 +206,6 @@ typedef struct {
 	 * before the interrupt is cleared. */
 	unsigned int interrupt_high_delay;
 
-	bool need_strict_step;
 	bool never_halted;
 } riscv011_info_t;
 
@@ -519,6 +520,8 @@ typedef struct {
 static scans_t *scans_new(struct target *target, unsigned int scan_count)
 {
 	scans_t *scans = malloc(sizeof(scans_t));
+	if (!scans)
+		goto error0;
 	scans->scan_count = scan_count;
 	/* This code also gets called before xlen is detected. */
 	if (riscv_xlen(target))
@@ -527,10 +530,25 @@ static scans_t *scans_new(struct target *target, unsigned int scan_count)
 		scans->scan_size = 2 + 128 / 8;
 	scans->next_scan = 0;
 	scans->in = calloc(scans->scan_size, scans->scan_count);
+	if (!scans->in)
+		goto error1;
 	scans->out = calloc(scans->scan_size, scans->scan_count);
+	if (!scans->out)
+		goto error2;
 	scans->field = calloc(scans->scan_count, sizeof(struct scan_field));
+	if (!scans->field)
+		goto error3;
 	scans->target = target;
 	return scans;
+
+error3:
+	free(scans->out);
+error2:
+	free(scans->in);
+error1:
+	free(scans);
+error0:
+	return NULL;
 }
 
 static scans_t *scans_delete(scans_t *scans)
@@ -844,6 +862,8 @@ static int cache_write(struct target *target, unsigned int address, bool run)
 	LOG_DEBUG("enter");
 	riscv011_info_t *info = get_info(target);
 	scans_t *scans = scans_new(target, info->dramsize + 2);
+	if (!scans)
+		return ERROR_FAIL;
 
 	unsigned int last = info->dramsize;
 	for (unsigned int i = 0; i < info->dramsize; i++) {
@@ -1012,7 +1032,7 @@ static int wait_for_state(struct target *target, enum target_state state)
 	}
 }
 
-static int read_csr(struct target *target, uint64_t *value, uint32_t csr)
+static int read_remote_csr(struct target *target, uint64_t *value, uint32_t csr)
 {
 	riscv011_info_t *info = get_info(target);
 	cache_set32(target, 0, csrr(S0, csr));
@@ -1034,7 +1054,7 @@ static int read_csr(struct target *target, uint64_t *value, uint32_t csr)
 	return ERROR_OK;
 }
 
-static int write_csr(struct target *target, uint32_t csr, uint64_t value)
+static int write_remote_csr(struct target *target, uint32_t csr, uint64_t value)
 {
 	LOG_DEBUG("csr 0x%x <- 0x%" PRIx64, csr, value);
 	cache_set_load(target, 0, S0, SLOT0);
@@ -1062,7 +1082,7 @@ static int maybe_read_tselect(struct target *target)
 	riscv011_info_t *info = get_info(target);
 
 	if (info->tselect_dirty) {
-		int result = read_csr(target, &info->tselect, CSR_TSELECT);
+		int result = read_remote_csr(target, &info->tselect, CSR_TSELECT);
 		if (result != ERROR_OK)
 			return result;
 		info->tselect_dirty = false;
@@ -1076,7 +1096,7 @@ static int maybe_write_tselect(struct target *target)
 	riscv011_info_t *info = get_info(target);
 
 	if (!info->tselect_dirty) {
-		int result = write_csr(target, CSR_TSELECT, info->tselect);
+		int result = write_remote_csr(target, CSR_TSELECT, info->tselect);
 		if (result != ERROR_OK)
 			return result;
 		info->tselect_dirty = true;
@@ -1115,7 +1135,10 @@ static int execute_resume(struct target *target, bool step)
 		}
 	}
 
-	info->dcsr |= DCSR_EBREAKM | DCSR_EBREAKH | DCSR_EBREAKS | DCSR_EBREAKU;
+	info->dcsr = set_field(info->dcsr, DCSR_EBREAKM, riscv_ebreakm);
+	info->dcsr = set_field(info->dcsr, DCSR_EBREAKS, riscv_ebreaks);
+	info->dcsr = set_field(info->dcsr, DCSR_EBREAKU, riscv_ebreaku);
+	info->dcsr = set_field(info->dcsr, DCSR_EBREAKH, 1);
 	info->dcsr &= ~DCSR_HALT;
 
 	if (step)
@@ -1255,7 +1278,7 @@ static int register_write(struct target *target, unsigned int number,
 
 	if (number == S0) {
 		cache_set_load(target, 0, S0, SLOT0);
-		cache_set32(target, 1, csrw(S0, CSR_DSCRATCH));
+		cache_set32(target, 1, csrw(S0, CSR_DSCRATCH0));
 		cache_set_jump(target, 2);
 	} else if (number == S1) {
 		cache_set_load(target, 0, S0, SLOT0);
@@ -1384,25 +1407,6 @@ static int halt(struct target *target)
 	return ERROR_OK;
 }
 
-static int init_target(struct command_context *cmd_ctx,
-		struct target *target)
-{
-	LOG_DEBUG("init");
-	riscv_info_t *generic_info = (riscv_info_t *) target->arch_info;
-	generic_info->get_register = get_register;
-	generic_info->set_register = set_register;
-
-	generic_info->version_specific = calloc(1, sizeof(riscv011_info_t));
-	if (!generic_info->version_specific)
-		return ERROR_FAIL;
-
-	/* Assume 32-bit until we discover the real value in examine(). */
-	generic_info->xlen[0] = 32;
-	riscv_init_registers(target);
-
-	return ERROR_OK;
-}
-
 static void deinit_target(struct target *target)
 {
 	LOG_DEBUG("riscv_deinit_target()");
@@ -1413,8 +1417,6 @@ static void deinit_target(struct target *target)
 
 static int strict_step(struct target *target, bool announce)
 {
-	riscv011_info_t *info = get_info(target);
-
 	LOG_DEBUG("enter");
 
 	struct watchpoint *watchpoint = target->watchpoints;
@@ -1433,16 +1435,12 @@ static int strict_step(struct target *target, bool announce)
 		watchpoint = watchpoint->next;
 	}
 
-	info->need_strict_step = false;
-
 	return ERROR_OK;
 }
 
 static int step(struct target *target, int current, target_addr_t address,
 		int handle_breakpoints)
 {
-	riscv011_info_t *info = get_info(target);
-
 	jtag_add_ir_scan(target->tap, &select_dbus, TAP_IDLE);
 
 	if (!current) {
@@ -1455,7 +1453,7 @@ static int step(struct target *target, int current, target_addr_t address,
 			return result;
 	}
 
-	if (info->need_strict_step || handle_breakpoints) {
+	if (handle_breakpoints) {
 		int result = strict_step(target, true);
 		if (result != ERROR_OK)
 			return result;
@@ -1486,7 +1484,6 @@ static int examine(struct target *target)
 	}
 
 	RISCV_INFO(r);
-	r->hart_count = 1;
 
 	riscv011_info_t *info = get_info(target);
 	info->addrbits = get_field(dtmcontrol, DTMCONTROL_ADDRBITS);
@@ -1570,11 +1567,11 @@ static int examine(struct target *target)
 	}
 	LOG_DEBUG("Discovered XLEN is %d", riscv_xlen(target));
 
-	if (read_csr(target, &r->misa[0], CSR_MISA) != ERROR_OK) {
+	if (read_remote_csr(target, &r->misa[0], CSR_MISA) != ERROR_OK) {
 		const unsigned old_csr_misa = 0xf10;
 		LOG_WARNING("Failed to read misa at 0x%x; trying 0x%x.", CSR_MISA,
 				old_csr_misa);
-		if (read_csr(target, &r->misa[0], old_csr_misa) != ERROR_OK) {
+		if (read_remote_csr(target, &r->misa[0], old_csr_misa) != ERROR_OK) {
 			/* Maybe this is an old core that still has $misa at the old
 			 * address. */
 			LOG_ERROR("Failed to read misa at 0x%x.", old_csr_misa);
@@ -1606,6 +1603,8 @@ static riscv_error_t handle_halt_routine(struct target *target)
 	riscv011_info_t *info = get_info(target);
 
 	scans_t *scans = scans_new(target, 256);
+	if (!scans)
+		return RE_FAIL;
 
 	/* Read all GPRs as fast as we can, because gdb is going to ask for them
 	 * anyway. Reading them one at a time is much slower. */
@@ -1634,7 +1633,7 @@ static riscv_error_t handle_halt_routine(struct target *target)
 	scans_add_read(scans, SLOT0, false);
 
 	/* Read S0 from dscratch */
-	unsigned int csr[] = {CSR_DSCRATCH, CSR_DPC, CSR_DCSR};
+	unsigned int csr[] = {CSR_DSCRATCH0, CSR_DPC, CSR_DCSR};
 	for (unsigned int i = 0; i < DIM(csr); i++) {
 		scans_add_write32(scans, 0, csrr(S0, csr[i]), true);
 		scans_add_read(scans, SLOT0, false);
@@ -1848,9 +1847,6 @@ static int handle_halt(struct target *target, bool announce)
 			break;
 		case DCSR_CAUSE_HWBP:
 			target->debug_reason = DBG_REASON_WATCHPOINT;
-			/* If we halted because of a data trigger, gdb doesn't know to do
-			 * the disable-breakpoints-step-enable-breakpoints dance. */
-			info->need_strict_step = true;
 			break;
 		case DCSR_CAUSE_DEBUGINT:
 			target->debug_reason = DBG_REASON_DBGRQ;
@@ -1935,26 +1931,10 @@ static int riscv011_poll(struct target *target)
 static int riscv011_resume(struct target *target, int current,
 		target_addr_t address, int handle_breakpoints, int debug_execution)
 {
-	riscv011_info_t *info = get_info(target);
-
+	RISCV_INFO(r);
 	jtag_add_ir_scan(target->tap, &select_dbus, TAP_IDLE);
 
-	if (!current) {
-		if (riscv_xlen(target) > 32) {
-			LOG_WARNING("Asked to resume at 32-bit PC on %d-bit target.",
-					riscv_xlen(target));
-		}
-		int result = register_write(target, GDB_REGNO_PC, address);
-		if (result != ERROR_OK)
-			return result;
-	}
-
-	if (info->need_strict_step || handle_breakpoints) {
-		int result = strict_step(target, false);
-		if (result != ERROR_OK)
-			return result;
-	}
-
+	r->prepped = false;
 	return resume(target, debug_execution, false);
 }
 
@@ -1973,8 +1953,11 @@ static int assert_reset(struct target *target)
 
 	/* Not sure what we should do when there are multiple cores.
 	 * Here just reset the single hart we're talking to. */
-	info->dcsr |= DCSR_EBREAKM | DCSR_EBREAKH | DCSR_EBREAKS |
-		DCSR_EBREAKU | DCSR_HALT;
+	info->dcsr = set_field(info->dcsr, DCSR_EBREAKM, riscv_ebreakm);
+	info->dcsr = set_field(info->dcsr, DCSR_EBREAKS, riscv_ebreaks);
+	info->dcsr = set_field(info->dcsr, DCSR_EBREAKU, riscv_ebreaku);
+	info->dcsr = set_field(info->dcsr, DCSR_EBREAKH, 1);
+	info->dcsr |= DCSR_HALT;
 	if (target->reset_halt)
 		info->dcsr |= DCSR_NDRESET;
 	else
@@ -2001,8 +1984,13 @@ static int deassert_reset(struct target *target)
 }
 
 static int read_memory(struct target *target, target_addr_t address,
-		uint32_t size, uint32_t count, uint8_t *buffer)
+		uint32_t size, uint32_t count, uint8_t *buffer, uint32_t increment)
 {
+	if (increment != size) {
+		LOG_ERROR("read_memory with custom increment not implemented");
+		return ERROR_NOT_IMPLEMENTED;
+	}
+
 	jtag_add_ir_scan(target->tap, &select_dbus, TAP_IDLE);
 
 	cache_set32(target, 0, lw(S0, ZERO, DEBUG_RAM_START + 16));
@@ -2029,6 +2017,8 @@ static int read_memory(struct target *target, target_addr_t address,
 	riscv011_info_t *info = get_info(target);
 	const unsigned max_batch_size = 256;
 	scans_t *scans = scans_new(target, max_batch_size);
+	if (!scans)
+		return ERROR_FAIL;
 
 	uint32_t result_value = 0x777;
 	uint32_t i = 0;
@@ -2185,6 +2175,8 @@ static int write_memory(struct target *target, target_addr_t address,
 
 	const unsigned max_batch_size = 256;
 	scans_t *scans = scans_new(target, max_batch_size);
+	if (!scans)
+		return ERROR_FAIL;
 
 	uint32_t result_value = 0x777;
 	uint32_t i = 0;
@@ -2304,6 +2296,26 @@ static int arch_state(struct target *target)
 	return ERROR_OK;
 }
 
+static int init_target(struct command_context *cmd_ctx,
+		struct target *target)
+{
+	LOG_DEBUG("init");
+	riscv_info_t *generic_info = (riscv_info_t *)target->arch_info;
+	generic_info->get_register = get_register;
+	generic_info->set_register = set_register;
+	generic_info->read_memory = read_memory;
+
+	generic_info->version_specific = calloc(1, sizeof(riscv011_info_t));
+	if (!generic_info->version_specific)
+		return ERROR_FAIL;
+
+	/* Assume 32-bit until we discover the real value in examine(). */
+	generic_info->xlen[0] = 32;
+	riscv_init_registers(target);
+
+	return ERROR_OK;
+}
+
 struct target_type riscv011_target = {
 	.name = "riscv",
 
@@ -2321,7 +2333,6 @@ struct target_type riscv011_target = {
 	.assert_reset = assert_reset,
 	.deassert_reset = deassert_reset,
 
-	.read_memory = read_memory,
 	.write_memory = write_memory,
 
 	.arch_state = arch_state,
