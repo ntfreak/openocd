@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #include "encoding.h"
 
 #define ZERO	0
@@ -141,6 +143,18 @@ static uint32_t csrrw(unsigned int rd, unsigned int rs, unsigned int csr) __attr
 static uint32_t csrrw(unsigned int rd, unsigned int rs, unsigned int csr)
 {
 	return (csr << 20) | (rs << 15) | (rd << 7) | MATCH_CSRRW;
+}
+
+static uint32_t csrrci(unsigned int rd, unsigned int zimm, unsigned int csr) __attribute__ ((unused));
+static uint32_t csrrci(unsigned int rd, unsigned int zimm, unsigned int csr)
+{
+	return (csr << 20) | (zimm << 15) | (rd << 7) | MATCH_CSRRCI;
+}
+
+static uint32_t csrrsi(unsigned int rd, unsigned int zimm, unsigned int csr) __attribute__ ((unused));
+static uint32_t csrrsi(unsigned int rd, unsigned int zimm, unsigned int csr)
+{
+	return (csr << 20) | (zimm << 15) | (rd << 7) | MATCH_CSRRSI;
 }
 
 static uint32_t fsw(unsigned int src, unsigned int base, uint16_t offset) __attribute__ ((unused));
@@ -310,4 +324,34 @@ static uint32_t auipc(unsigned int dest) __attribute__((unused));
 static uint32_t auipc(unsigned int dest)
 {
 	return MATCH_AUIPC | (dest << 7);
+}
+
+static uint32_t vsetvli(unsigned int dest, unsigned int src, uint16_t imm) __attribute__((unused));
+static uint32_t vsetvli(unsigned int dest, unsigned int src, uint16_t imm)
+{
+	return (bits(imm, 10, 0) << 20) |
+		(src << 15) |
+		(dest << 7) |
+		MATCH_VSETVLI;
+}
+
+static uint32_t vmv_x_s(unsigned int rd, unsigned int vs2) __attribute__((unused));
+static uint32_t vmv_x_s(unsigned int rd, unsigned int vs2)
+{
+	return (vs2 << 20) | (rd << 7) | MATCH_VMV_X_S;
+}
+
+static uint32_t vmv_s_x(unsigned int vd, unsigned int vs2) __attribute__((unused));
+static uint32_t vmv_s_x(unsigned int vd, unsigned int rs1)
+{
+	return (rs1 << 15) | (vd << 7) | MATCH_VMV_S_X;
+}
+
+static uint32_t vslide1down_vx(unsigned int vd, unsigned int vs2,
+		unsigned int rs1, unsigned int vm) __attribute__((unused));
+static uint32_t vslide1down_vx(unsigned int vd, unsigned int vs2,
+		unsigned int rs1, unsigned int vm)
+{
+	return (vm << 25) | (vs2 << 20) | (rs1 << 15) | (vd << 7) |
+		MATCH_VSLIDE1DOWN_VX;
 }
