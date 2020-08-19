@@ -1,8 +1,11 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #ifndef TARGET__RISCV__SCANS_H
 #define TARGET__RISCV__SCANS_H
 
 #include "target/target.h"
 #include "jtag/jtag.h"
+#include "riscv.h"
 
 enum riscv_scan_type {
 	RISCV_SCAN_TYPE_INVALID,
@@ -26,6 +29,11 @@ struct riscv_batch {
 	uint8_t *data_out;
 	uint8_t *data_in;
 	struct scan_field *fields;
+
+	/* If in BSCAN mode, this field will be allocated (one per scan),
+	   and utilized to tunnel all the scans in the batch.  If not in
+	   BSCAN mode, this field is unallocated and stays NULL */
+	riscv_bscan_tunneled_scan_context_t *bscan_ctxt;
 
 	/* In JTAG we scan out the previous value's output when performing a
 	 * scan.  This is a pain for users, so we just provide them the
@@ -54,11 +62,16 @@ int riscv_batch_run(struct riscv_batch *batch);
 void riscv_batch_add_dmi_write(struct riscv_batch *batch, unsigned address, uint64_t data);
 
 /* DMI reads must be handled in two parts: the first one schedules a read and
- * provides a key, the second one actually obtains the value of that read .*/
+ * provides a key, the second one actually obtains the result of the read -
+ * status (op) and the actual data. */
 size_t riscv_batch_add_dmi_read(struct riscv_batch *batch, unsigned address);
-uint64_t riscv_batch_get_dmi_read(struct riscv_batch *batch, size_t key);
+unsigned riscv_batch_get_dmi_read_op(struct riscv_batch *batch, size_t key);
+uint32_t riscv_batch_get_dmi_read_data(struct riscv_batch *batch, size_t key);
 
 /* Scans in a NOP. */
 void riscv_batch_add_nop(struct riscv_batch *batch);
+
+/* Returns the number of available scans. */
+size_t riscv_batch_available_scans(struct riscv_batch *batch);
 
 #endif

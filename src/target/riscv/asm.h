@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: GPL-2.0-or-later */
+
 #ifndef TARGET__RISCV__ASM_H
 #define TARGET__RISCV__ASM_H
 

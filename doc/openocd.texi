@@ -9667,6 +9667,12 @@ indicates the first custom register, whose abstract command number is 0xc000.
 This command must be executed before `init`.
 @end deffn
 
+@deffn Command {riscv repeat_read} count address [size=4]
+Quickly read count words of the given size from address. This can be useful
+to read out a buffer that's memory-mapped to be accessed through a single
+address, or to sample a changing value in a memory-mapped device.
+@end deffn
+
 @deffn Command {riscv set_command_timeout_sec} [seconds]
 Set the wall-clock timeout (in seconds) for individual commands. The default
 should work fine for all but the slowest targets (eg. simulators).
@@ -9683,8 +9689,31 @@ This is used to access 64-bit floating point registers on 32-bit targets.
 @end deffn
 
 @deffn Command {riscv set_prefer_sba} on|off
-When on, prefer to use System Bus Access to access memory.  When off, prefer to
-use the Program Buffer to access memory.
+When on, prefer to use System Bus Access to access memory.  When off (default),
+prefer to use the Program Buffer to access memory.
+@end deffn
+
+@deffn Command {riscv set_enable_virtual} on|off
+When on, memory accesses are performed on physical or virtual memory depending
+on the current system configuration. When off (default), all memory accessses are performed
+on physical memory.
+@end deffn
+
+@deffn Command {riscv set_enable_virt2phys} on|off
+When on (default), memory accesses are performed on physical or virtual memory
+depending on the current satp configuration. When off, all memory accessses are
+performed on physical memory.
+@end deffn
+
+@deffn Command {riscv resume_order} normal|reversed
+Some software assumes all harts are executing nearly continuously. Such
+software may be sensitive to the order that harts are resumed in. On harts
+that don't support hasel, this option allows the user to choose the order the
+harts are resumed in. If you are using this option, it's probably masking a
+race condition problem in your code.
+
+Normal order is from lowest hart index to highest. This is the default
+behavior. Reversed order is from highest hart index to lowest.
 @end deffn
 
 @deffn Command {riscv set_ir} (@option{idcode}|@option{dtmcs}|@option{dmi}) [value]
@@ -9696,6 +9725,26 @@ values.
 When utilizing version 0.11 of the RISC-V Debug Specification,
 @option{dtmcs} and @option{dmi} set the IR values for the DTMCONTROL
 and DBUS registers, respectively.
+@end deffn
+
+@deffn Command {riscv use_bscan_tunnel} value
+Enable or disable use of a BSCAN tunnel to reach DM.  Supply the width of
+the DM transport TAP's instruction register to enable.  Supply a value of 0 to disable.
+@end deffn
+
+@deffn Command {riscv set_ebreakm} on|off
+Control dcsr.ebreakm. When on (default), M-mode ebreak instructions trap to
+OpenOCD. When off, they generate a breakpoint exception handled internally.
+@end deffn
+
+@deffn Command {riscv set_ebreaks} on|off
+Control dcsr.ebreaks. When on (default), S-mode ebreak instructions trap to
+OpenOCD. When off, they generate a breakpoint exception handled internally.
+@end deffn
+
+@deffn Command {riscv set_ebreaku} on|off
+Control dcsr.ebreaku. When on (default), U-mode ebreak instructions trap to
+OpenOCD. When off, they generate a breakpoint exception handled internally.
 @end deffn
 
 @subsection RISC-V Authentication Commands
@@ -9721,7 +9770,7 @@ Write the 32-bit value to authdata.
 The following commands allow direct access to the Debug Module Interface, which
 can be used to interact with custom debug features.
 
-@deffn Command {riscv dmi_read}
+@deffn Command {riscv dmi_read} address
 Perform a 32-bit DMI read at address, returning the value.
 @end deffn
 
