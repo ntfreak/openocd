@@ -36,7 +36,14 @@
 #define ITM_TPR		0xE0000E40
 #define ITM_TCR		0xE0000E80
 #define ITM_LAR		0xE0000FB0
+#define ITM_LSR		0xE0000FB4
 #define ITM_LAR_KEY	0xC5ACCE55
+#define ITM_TCR_ITMENA_BIT	0
+#define ITM_TCR_BUSY_BIT	23
+
+#define SWO_LAR		0xe0048FB0
+#define SWO_LSR		0xe0048FB4
+
 
 #define CPUID		0xE000ED00
 
