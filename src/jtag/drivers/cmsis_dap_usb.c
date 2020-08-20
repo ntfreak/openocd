@@ -37,6 +37,7 @@
 #include <jtag/interface.h>
 #include <jtag/commands.h>
 #include <jtag/tcl.h>
+#include <target/cortex_m.h>
 
 #include <hidapi.h>
 
@@ -86,9 +87,12 @@ static bool swd_mode;
 #define INFO_ID_CAPS              0xf0      /* byte */
 #define INFO_ID_PKT_CNT           0xfe      /* byte */
 #define INFO_ID_PKT_SZ            0xff      /* short */
+#define INFO_ID_SWO_BUF_SZ        0xfd      /* word */
 
-#define INFO_CAPS_SWD             0x01
-#define INFO_CAPS_JTAG            0x02
+#define INFO_CAPS_SWD             BIT(0)
+#define INFO_CAPS_JTAG            BIT(1)
+#define INFO_CAPS_SWO_UART        BIT(2)
+#define INFO_CAPS_SWO_MANCHESTER  BIT(3)
 
 /* CMD_LED */
 #define LED_ID_CONNECT            0x00
@@ -152,16 +156,51 @@ static bool swd_mode;
 #define DAP_OK                    0
 #define DAP_ERROR                 0xFF
 
+/* CMSIS-DAP SWO Commands */
+#define CMD_DAP_SWO_TRANSPORT     0x17
+#define CMD_DAP_SWO_MODE          0x18
+#define CMD_DAP_SWO_BAUDRATE      0x19
+#define CMD_DAP_SWO_CONTROL       0x1A
+#define CMD_DAP_SWO_STATUS        0x1B
+#define CMD_DAP_SWO_DATA          0x1C
+#define CMD_DAP_SWO_EX_STATUS     0x1E
+
+/* SWO transport mode for reading trace data */
+#define DAP_SWO_TRANSPORT_NONE    0
+#define DAP_SWO_TRANSPORT_DATA    1
+#define DAP_SWO_TRANSPORT_WINUSB  2
+
+/* SWO trace capture mode */
+#define DAP_SWO_MODE_OFF          0
+#define DAP_SWO_MODE_UART         1
+#define DAP_SWO_MODE_MANCHESTER   2
+
+/* SWO trace data capture */
+#define DAP_SWO_CONTROL_STOP      0
+#define DAP_SWO_CONTROL_START     1
+
+/* SWO trace status */
+#define DAP_SWO_STATUS_CAPTURE_INACTIVE      0
+#define DAP_SWO_STATUS_CAPTURE_ACTIVE        1
+#define DAP_SWO_STATUS_CAPTURE_MASK          BIT(0)
+#define DAP_SWO_STATUS_STREAM_ERROR_MASK     BIT(6)
+#define DAP_SWO_STATUS_BUFFER_OVERRUN_MASK   BIT(7)
+
+#define DAP_SWO_MIN_BAUDRATE 300
+#define DAP_SWO_MAX_BAUDRATE 921600
+
 /* CMSIS-DAP Vendor Commands
  * None as yet... */
 
 static const char * const info_caps_str[] = {
 	"SWD  Supported",
-	"JTAG Supported"
+	"JTAG Supported",
+	"SWO-UART Supported",
+	"SWO-MANCHESTER Supported"
 };
 
-/* max clock speed (kHz) */
-#define DAP_MAX_CLOCK             5000
+/* max clock speed */
+#define DAP_MAX_CLOCK_KHZ             50000
 
 struct cmsis_dap {
 	hid_device *dev_handle;
@@ -170,6 +209,8 @@ struct cmsis_dap {
 	uint8_t *packet_buffer;
 	uint8_t caps;
 	uint8_t mode;
+	bool trace_enabled;
+	uint32_t swo_buf_sz;
 };
 
 struct pending_transfer_result {
@@ -625,6 +666,190 @@ static int cmsis_dap_cmd_DAP_Delay(uint16_t delay_us)
 }
 #endif
 
+/**
+ * Sets the SWO transport mode.
+ * @param[in] transport     The transport mode. Can be None, SWO_Data or
+ *                          WinUSB (requires CMSIS-DAP v2).
+ */
+static int cmsis_dap_cmd_DAP_SWO_Transport(
+					struct cmsis_dap *dap,
+					uint8_t transport)
+{
+	int retval;
+	uint8_t *buffer = dap->packet_buffer;
+
+	buffer[0] = 0;	/* report number */
+	buffer[1] = CMD_DAP_SWO_TRANSPORT;
+	buffer[2] = transport;
+	retval = cmsis_dap_usb_xfer(dap, 3);
+
+	if (retval != ERROR_OK || buffer[1] != DAP_OK) {
+		LOG_ERROR("CMSIS-DAP: command CMD_SWO_Transport(%d) failed.", transport);
+		return ERROR_JTAG_DEVICE_ERROR;
+	}
+
+	return ERROR_OK;
+}
+
+/**
+ * Sets the SWO trace capture mode.
+ * @param[in] mode          Trace capture mode. Can be UART or MANCHESTER.
+ */
+static int cmsis_dap_cmd_DAP_SWO_Mode(struct cmsis_dap *dap, uint8_t mode)
+{
+	int retval;
+	uint8_t *buffer = dap->packet_buffer;
+
+	buffer[0] = 0;	/* report number */
+	buffer[1] = CMD_DAP_SWO_MODE;
+	buffer[2] = mode;
+	retval = cmsis_dap_usb_xfer(dap, 3);
+
+	if (retval != ERROR_OK || buffer[1] != DAP_OK) {
+		LOG_ERROR("CMSIS-DAP: command CMD_SWO_Mode(%d) failed.", mode);
+		return ERROR_JTAG_DEVICE_ERROR;
+	}
+
+	return ERROR_OK;
+}
+
+/**
+ * Sets the baudrate for capturing SWO trace data.
+ * Can be called iteratively to determine supported baudrates.
+ * @param[in]  dev_baudrate Requested baudrate.
+ * @param[out] dev_baudrate Actual baudrate or 0 (baudrate not configured).
+ *                          When requested baudrate is not achievable the
+ *                          closest configured baudrate can be returned or
+ *                          0 which indicates that baudrate was not configured.
+ */
+static int cmsis_dap_cmd_DAP_SWO_Baudrate(
+					struct cmsis_dap *dap,
+					uint32_t in_baudrate,
+					uint32_t *dev_baudrate)
+{
+	int retval;
+	uint8_t *buffer = dap->packet_buffer;
+	uint32_t rvbr;
+
+	buffer[0] = 0;	/* report number */
+	buffer[1] = CMD_DAP_SWO_BAUDRATE;
+	buffer[2] = in_baudrate & 0xff;
+	buffer[3] = (in_baudrate >> 8) & 0xff;
+	buffer[4] = (in_baudrate >> 16) & 0xff;
+	buffer[5] = (in_baudrate >> 24) & 0xff;
+	retval = cmsis_dap_usb_xfer(dap, 6);
+
+	rvbr = le_to_h_u32(&buffer[1]);
+
+	if (retval != ERROR_OK || rvbr == 0) {
+		LOG_ERROR("CMSIS-DAP: command CMD_SWO_Baudrate(%u) -> %u failed.", in_baudrate, rvbr);
+		if (dev_baudrate)
+			*dev_baudrate = 0;
+		return ERROR_JTAG_DEVICE_ERROR;
+	}
+
+	if (dev_baudrate)
+		*dev_baudrate = rvbr;
+
+	return ERROR_OK;
+}
+
+/**
+ * Controls the SWO trace data capture.
+ * @param[in] control       Start or stop a trace. Starting capture automatically
+ *                          flushes any existing trace data in buffers which has
+ *                          not yet been read.
+ */
+static int cmsis_dap_cmd_DAP_SWO_Control(
+					struct cmsis_dap *dap,
+					uint8_t control)
+{
+	int retval;
+	uint8_t *buffer = dap->packet_buffer;
+
+	buffer[0] = 0;	/* report number */
+	buffer[1] = CMD_DAP_SWO_CONTROL;
+	buffer[2] = control;
+	retval = cmsis_dap_usb_xfer(dap, 3);
+
+	if (retval != ERROR_OK || buffer[1] != DAP_OK) {
+		LOG_ERROR("CMSIS-DAP: command CMD_SWO_Control(%d) failed.", control);
+		return ERROR_JTAG_DEVICE_ERROR;
+	}
+
+	return ERROR_OK;
+}
+
+/**
+ * Reads the SWO trace status.
+ * @param[out] trace_status The trace's status.
+ *                          Bit0: Trace Capture (1 - active, 0 - inactive).
+ *                          Bit6: Trace Stream Error.
+ *                          Bit7: Trace Buffer Overrun.
+ * @param[out] trace_count  Number of bytes in Trace Buffer (not yet read).
+ */
+static int cmsis_dap_cmd_DAP_SWO_Status(
+					struct cmsis_dap *dap,
+					uint8_t *trace_status,
+					size_t *trace_count)
+{
+	int retval;
+	uint8_t *buffer = dap->packet_buffer;
+
+	buffer[0] = 0;	/* report number */
+	buffer[1] = CMD_DAP_SWO_STATUS;
+	retval = cmsis_dap_usb_xfer(dap, 2);
+
+	if (retval != ERROR_OK) {
+		LOG_ERROR("CMSIS-DAP: command CMD_SWO_Status failed.");
+		return ERROR_JTAG_DEVICE_ERROR;
+	}
+
+	if (trace_status)
+		*trace_status = buffer[1];
+	if (trace_count)
+		*trace_count = le_to_h_u32(&buffer[2]);
+
+	return ERROR_OK;
+}
+
+/**
+ * Reads the captured SWO trace data from Trace Buffer.
+ * @param[in]  max_trace_count Maximum number of Trace Data bytes to read.
+ * @param[out] trace_status The trace's status.
+ * @param[out] trace_count  Number of Trace Data bytes read.
+ * @param[out] data         Trace Data bytes read.
+ */
+static int cmsis_dap_cmd_DAP_SWO_Data(
+					struct cmsis_dap *dap,
+					size_t max_trace_count,
+					uint8_t *trace_status,
+					size_t *trace_count,
+					uint8_t *data)
+{
+	int retval;
+	uint8_t *buffer = dap->packet_buffer;
+
+	buffer[0] = 0;	/* report number */
+	buffer[1] = CMD_DAP_SWO_DATA;
+	buffer[2] = max_trace_count & 0xff;
+	buffer[3] = (max_trace_count >> 8) & 0xff;
+	retval = cmsis_dap_usb_xfer(dap, 4);
+
+	if (retval != ERROR_OK) {
+		LOG_ERROR("CMSIS-DAP: command CMD_SWO_Data failed.");
+		return ERROR_JTAG_DEVICE_ERROR;
+	}
+
+	*trace_status = buffer[1];
+	*trace_count = le_to_h_u16(&buffer[2]);
+
+	if (*trace_count > 0)
+		memcpy(data, &buffer[4], *trace_count);
+
+	return ERROR_OK;
+}
+
 static void cmsis_dap_swd_write_from_queue(struct cmsis_dap *dap)
 {
 	uint8_t *buffer = dap->packet_buffer;
@@ -870,7 +1095,30 @@ static int cmsis_dap_get_caps_info(void)
 			LOG_INFO("CMSIS-DAP: %s", info_caps_str[0]);
 		if (caps & INFO_CAPS_JTAG)
 			LOG_INFO("CMSIS-DAP: %s", info_caps_str[1]);
+		if (caps & INFO_CAPS_SWO_UART)
+			LOG_INFO("CMSIS-DAP: %s", info_caps_str[2]);
+		if (caps & INFO_CAPS_SWO_MANCHESTER)
+			LOG_INFO("CMSIS-DAP: %s", info_caps_str[3]);
 	}
+
+	return ERROR_OK;
+}
+
+static int cmsis_dap_get_swo_buf_sz(struct cmsis_dap *dap, uint32_t *swo_buf_sz)
+{
+	uint8_t *data;
+
+	/* INFO_ID_SWO_BUF_SZ - word */
+	int retval = cmsis_dap_cmd_DAP_Info(INFO_ID_SWO_BUF_SZ, &data);
+	if (retval != ERROR_OK)
+		return retval;
+
+	if (data[0] != 4)
+		return ERROR_FAIL;
+
+	*swo_buf_sz = le_to_h_u32(&data[1]);
+
+	LOG_INFO("CMSIS-DAP: SWO Trace Buffer Size = %u bytes", *swo_buf_sz);
 
 	return ERROR_OK;
 }
@@ -1626,7 +1874,7 @@ static int cmsis_dap_execute_queue(void)
 
 static int cmsis_dap_speed(int speed)
 {
-	if (speed > DAP_MAX_CLOCK)
+	if (speed > DAP_MAX_CLOCK_KHZ)
 		LOG_INFO("High speed (adapter speed %d) may be limited by adapter firmware.", speed);
 
 	if (speed == 0) {
@@ -1646,6 +1894,164 @@ static int cmsis_dap_speed_div(int speed, int *khz)
 static int cmsis_dap_khz(int khz, int *jtag_speed)
 {
 	*jtag_speed = khz;
+	return ERROR_OK;
+}
+
+static bool calculate_swo_prescaler(
+		unsigned int traceclkin_hz,
+		uint32_t swo_freq,
+		uint16_t *swo_prescaler)
+{
+	unsigned int presc;
+
+	presc = traceclkin_hz / swo_freq;
+	if (presc > TPIU_ACPR_MAX_SWOSCALER)
+		return false;
+
+	/* Probe's UART speed must be within 3% of the TPIU's SWO baud rate. */
+	unsigned int max_deviation = (traceclkin_hz * 3) / 100;
+	if (presc * swo_freq < traceclkin_hz - max_deviation ||
+	    presc * swo_freq > traceclkin_hz + max_deviation)
+		return false;
+
+	*swo_prescaler = presc;
+
+	return true;
+}
+
+/**
+ * @see adapter_driver::config_trace
+ */
+static int cmsis_dap_config_trace(
+				bool trace_enabled,
+				enum tpiu_pin_protocol pin_protocol,
+				uint32_t port_size,
+				unsigned int *swo_freq,
+				unsigned int traceclkin_hz,
+				uint16_t *swo_prescaler)
+{
+	int retval;
+
+	cmsis_dap_handle->trace_enabled = false;
+
+	if (!(cmsis_dap_handle->caps & INFO_CAPS_SWO_UART)) {
+		LOG_ERROR("Trace capturing is not supported by the device.");
+		return ERROR_FAIL;
+	}
+
+	uint8_t swo_mode;
+	switch (pin_protocol) {
+		case TPIU_PIN_PROTOCOL_ASYNC_UART:
+			swo_mode = DAP_SWO_MODE_UART;
+			break;
+		case TPIU_PIN_PROTOCOL_ASYNC_MANCHESTER:
+			swo_mode = DAP_SWO_MODE_MANCHESTER;
+			break;
+		default:
+			LOG_ERROR("Selected pin protocol is not supported.");
+			return ERROR_FAIL;
+	}
+
+	if (*swo_freq == 0) {
+		LOG_INFO("SWO frequency autodetection not implemented.");
+		return ERROR_FAIL;
+	}
+
+	retval = cmsis_dap_cmd_DAP_SWO_Control(cmsis_dap_handle, DAP_SWO_CONTROL_STOP);
+	if (retval != ERROR_OK)
+		return retval;
+
+	if (!trace_enabled)
+		return ERROR_OK;
+
+	retval = cmsis_dap_get_swo_buf_sz(cmsis_dap_handle, &cmsis_dap_handle->swo_buf_sz);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = cmsis_dap_cmd_DAP_SWO_Transport(cmsis_dap_handle, DAP_SWO_TRANSPORT_DATA);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = cmsis_dap_cmd_DAP_SWO_Mode(cmsis_dap_handle, swo_mode);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = cmsis_dap_cmd_DAP_SWO_Baudrate(cmsis_dap_handle, *swo_freq, swo_freq);
+	if (retval != ERROR_OK)
+		return retval;
+
+	if (*swo_freq > DAP_SWO_MAX_BAUDRATE) {
+		LOG_INFO("Given SWO frequency too high, using %u Hz instead.",
+			DAP_SWO_MAX_BAUDRATE);
+		*swo_freq = DAP_SWO_MAX_BAUDRATE;
+	} else if (*swo_freq < DAP_SWO_MIN_BAUDRATE) {
+		LOG_INFO("Given SWO frequency too low, using %u Hz instead.",
+			DAP_SWO_MIN_BAUDRATE);
+		*swo_freq = DAP_SWO_MIN_BAUDRATE;
+	}
+
+	if (!calculate_swo_prescaler(traceclkin_hz, *swo_freq,
+			swo_prescaler)) {
+		LOG_ERROR("SWO frequency is not suitable. Please choose a "
+			"different frequency or use auto-detection.");
+		return ERROR_FAIL;
+	}
+
+	LOG_INFO("SWO frequency: %u Hz.", *swo_freq);
+	LOG_INFO("SWO prescaler: %u.", *swo_prescaler);
+
+	retval = cmsis_dap_cmd_DAP_SWO_Control(cmsis_dap_handle, DAP_SWO_CONTROL_START);
+	if (retval != ERROR_OK)
+		return retval;
+
+	cmsis_dap_handle->trace_enabled = true;
+
+	return ERROR_OK;
+}
+
+/**
+ * @see adapter_driver::poll_trace
+ */
+static int cmsis_dap_poll_trace(uint8_t *buf, size_t *size)
+{
+	int retval;
+	uint8_t trace_status;
+	size_t trace_count;
+
+	if (!cmsis_dap_handle->trace_enabled) {
+		*size = 0;
+		return ERROR_OK;
+	}
+
+	if (!(cmsis_dap_handle->caps & INFO_CAPS_SWO_UART)) {
+		LOG_ERROR("SWO-UART capturing is not supported by the device.");
+		return ERROR_FAIL;
+	}
+
+	retval = cmsis_dap_cmd_DAP_SWO_Status(cmsis_dap_handle, &trace_status, &trace_count);
+	if (retval != ERROR_OK)
+		return retval;
+	if ((trace_status & DAP_SWO_STATUS_CAPTURE_MASK) != DAP_SWO_STATUS_CAPTURE_ACTIVE)
+		return ERROR_FAIL;
+
+	*size = trace_count < *size ? trace_count : *size - 1;
+	size_t off = 0;
+	do {
+		size_t rb = 0;
+		retval = cmsis_dap_cmd_DAP_SWO_Data(
+						cmsis_dap_handle,
+						*size - off,
+						&trace_status,
+						&rb,
+						&buf[off]);
+		if (retval != ERROR_OK)
+			return retval;
+		if ((trace_status & DAP_SWO_STATUS_CAPTURE_MASK) != DAP_SWO_STATUS_CAPTURE_ACTIVE)
+			return ERROR_FAIL;
+
+		off += rb;
+	} while (off < *size);
+
 	return ERROR_OK;
 }
 
@@ -1801,6 +2207,8 @@ struct adapter_driver cmsis_dap_adapter_driver = {
 	.speed = cmsis_dap_speed,
 	.khz = cmsis_dap_khz,
 	.speed_div = cmsis_dap_speed_div,
+	.config_trace = &cmsis_dap_config_trace,
+	.poll_trace = &cmsis_dap_poll_trace,
 
 	.jtag_ops = &cmsis_dap_interface,
 	.swd_ops = &cmsis_dap_swd_driver,
