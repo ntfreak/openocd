@@ -451,7 +451,7 @@ static const struct command_registration arc_jtag_command_group[] = {
 			"raw JTAG request that bypasses OpenOCD register cache "
 			"and thus is unsafe and can have unexpected consequences. "
 			"Use at your own risk.",
-		.usage = "arc jtag get-aux-reg <regnum>"
+		.usage = "<regnum>"
 	},
 	{
 		.name = "set-aux-reg",
@@ -461,7 +461,7 @@ static const struct command_registration arc_jtag_command_group[] = {
 			"raw JTAG request that bypasses OpenOCD register cache "
 			"and thus is unsafe and can have unexpected consequences. "
 			"Use at your own risk.",
-		.usage = "arc jtag set-aux-reg <regnum> <value>"
+		.usage = "<regnum> <value>"
 	},
 	{
 		.name = "get-core-reg",
@@ -471,7 +471,7 @@ static const struct command_registration arc_jtag_command_group[] = {
 			"raw JTAG request that bypasses OpenOCD register cache "
 			"and thus is unsafe and can have unexpected consequences. "
 			"Use at your own risk.",
-		.usage = "arc jtag get-core-reg <regnum> [<value>]"
+		.usage = "<regnum> [<value>]"
 	},
 	{
 		.name = "set-core-reg",
@@ -481,7 +481,7 @@ static const struct command_registration arc_jtag_command_group[] = {
 			"raw JTAG request that bypasses OpenOCD register cache "
 			"and thus is unsafe and can have unexpected consequences. "
 			"Use at your own risk.",
-		.usage = "arc jtag set-core-reg <regnum> [<value>]"
+		.usage = "<regnum> [<value>]"
 	},
 	COMMAND_REGISTRATION_DONE
 };
@@ -1010,7 +1010,7 @@ static const struct command_registration arc_core_command_handlers[] = {
 		.name = "add-reg-type-flags",
 		.jim_handler = jim_arc_add_reg_type_flags,
 		.mode = COMMAND_CONFIG,
-		.usage = "arc ardd-reg-type-flags -name <string> -flag <name> <position> "
+		.usage = "-name <string> -flag <name> <position> "
 			"[-flag <name> <position>]...",
 		.help = "Add new 'flags' register data type. Only single bit flags "
 			"are supported. Type name is global. Bitsize of register is fixed "
@@ -1020,7 +1020,7 @@ static const struct command_registration arc_core_command_handlers[] = {
 		.name = "add-reg-type-struct",
 		.jim_handler = jim_arc_add_reg_type_struct,
 		.mode = COMMAND_CONFIG,
-		.usage = "arc add-reg-type-struct -name <string> -bitfield <name> <start> <end> "
+		.usage = "-name <string> -bitfield <name> <start> <end> "
 			"[-bitfield <name> <start> <end>]...",
 		.help = "Add new 'struct' register data type. Only bit-fields are "
 			"supported so far, which means that for each bitfield start and end "
@@ -1032,7 +1032,7 @@ static const struct command_registration arc_core_command_handlers[] = {
 		.name = "add-reg",
 		.jim_handler = jim_arc_add_reg,
 		.mode = COMMAND_CONFIG,
-		.usage = "arc add-reg -name <string> -num <int> -feature <string> [-gdbnum <int>] "
+		.usage = "-name <string> -num <int> -feature <string> [-gdbnum <int>] "
 			"[-core|-bcr] [-type <type_name>] [-g]",
 		.help = "Add new register. Name, architectural number and feature name "
 			"are required options. GDB regnum will default to previous register "
@@ -1043,7 +1043,7 @@ static const struct command_registration arc_core_command_handlers[] = {
 		.name = "set-reg-exists",
 		.handler = arc_set_reg_exists,
 		.mode = COMMAND_ANY,
-		.usage = "arc set-reg-exists <register-name> [<register-name>]...",
+		.usage = "<register-name> [<register-name>]...",
 		.help = "Set that register exists. Accepts multiple register names as "
 			"arguments.",
 	},
@@ -1051,7 +1051,7 @@ static const struct command_registration arc_core_command_handlers[] = {
 		.name = "get-reg-field",
 		.jim_handler = jim_arc_get_reg_field,
 		.mode = COMMAND_ANY,
-		.usage = "arc get-reg-field <regname> <field_name>",
+		.usage = "<regname> <field_name>",
 		.help = "Returns value of field in a register with 'struct' type.",
 	},
 	{
@@ -1083,7 +1083,7 @@ const struct command_registration arc_monitor_command_handlers[] = {
 		.name = "arc",
 		.mode = COMMAND_ANY,
 		.help = "ARC monitor command group",
-		.usage = "Help info ...",
+		.usage = "",
 		.chain = arc_core_command_handlers,
 	},
 	COMMAND_REGISTRATION_DONE
