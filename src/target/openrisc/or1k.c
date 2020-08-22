@@ -1377,21 +1377,21 @@ static const struct command_registration or1k_hw_ip_command_handlers[] = {
 		.name = "tap_select",
 		.handler = or1k_tap_select_command_handler,
 		.mode = COMMAND_ANY,
-		.usage = "tap_select name",
+		.usage = "name",
 		.help = "Select the TAP core to use",
 	},
 	{
 		.name = "tap_list",
 		.handler = or1k_tap_list_command_handler,
 		.mode = COMMAND_ANY,
-		.usage = "tap_list",
+		.usage = "",
 		.help = "Display available TAP core",
 	},
 	{
 		.name = "du_select",
 		.handler = or1k_du_select_command_handler,
 		.mode = COMMAND_ANY,
-		.usage = "du_select name",
+		.usage = "name",
 		.help = "Select the Debug Unit core to use",
 	},
 	{
@@ -1409,7 +1409,7 @@ static const struct command_registration or1k_reg_command_handlers[] = {
 		.name = "addreg",
 		.handler = or1k_addreg_command_handler,
 		.mode = COMMAND_ANY,
-		.usage = "addreg name addr feature group",
+		.usage = "name addr feature group",
 		.help = "Add a register to the register list",
 	},
 	COMMAND_REGISTRATION_DONE

@@ -1036,7 +1036,7 @@ static const struct command_registration nds32_exec_command_handlers[] = {
 		.name = "login_edm_operation",
 		.handler = handle_nds32_login_edm_operation_command,
 		.mode = COMMAND_CONFIG,
-		.usage = "login_edm_operation misc_reg_no value",
+		.usage = "misc_reg_no value",
 		.help = "add EDM operations for secure MCU debugging.",
 	},
 	{

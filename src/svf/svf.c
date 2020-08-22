@@ -1570,7 +1570,7 @@ static const struct command_registration svf_command_handlers[] = {
 		.handler = handle_svf_command,
 		.mode = COMMAND_EXEC,
 		.help = "Runs a SVF file.",
-		.usage = "svf [-tap device.tap] <file> [quiet] [nil] [progress] [ignore_error]",
+		.usage = "[-tap device.tap] <file> [quiet] [nil] [progress] [ignore_error]",
 	},
 	COMMAND_REGISTRATION_DONE
 };
