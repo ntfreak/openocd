@@ -1330,7 +1330,7 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		}
 	},
 
-	/* atsamg55g19 */
+	/* atsamg55g19 Rev.A */
 	{
 		.chipid_cidr    = 0x24470ae0,
 		.name           = "atsamg55g19",
@@ -1364,10 +1364,78 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		}
 	},
 
-	/* atsamg55j19 */
+	/* atsamg55g19 Rev.B */
+	{
+		.chipid_cidr    = 0x24470ae1,
+		.name           = "atsamg55g19b",
+		.total_flash_size     = 512 * 1024,
+		.total_sram_size      = 160 * 1024,
+		.n_gpnvms       = 2,
+		.n_banks        = 1,
+
+		{
+/*			.bank[0] = */
+			{
+				.probed = false,
+				.pChip  = NULL,
+				.pBank  = NULL,
+				.bank_number = 0,
+				.base_address = FLASH_BANK_BASE_S,
+				.controller_address = 0x400e0a00,
+				.flash_wait_states = 5,
+				.present = true,
+				.size_bytes =  512 * 1024,
+				.nsectors   =  64,
+				.sector_size = 8192,
+				.page_size   = 512,
+			},
+/*			.bank[1] = */
+			{
+				.present = false,
+				.probed = false,
+				.bank_number = 1,
+			},
+		}
+	},
+
+	/* atsamg55j19 Rev.A */
 	{
 		.chipid_cidr    = 0x24570ae0,
 		.name           = "atsamg55j19",
+		.total_flash_size     = 512 * 1024,
+		.total_sram_size      = 160 * 1024,
+		.n_gpnvms       = 2,
+		.n_banks        = 1,
+
+		{
+/*			.bank[0] = */
+			{
+				.probed = false,
+				.pChip  = NULL,
+				.pBank  = NULL,
+				.bank_number = 0,
+				.base_address = FLASH_BANK_BASE_S,
+				.controller_address = 0x400e0a00,
+				.flash_wait_states = 5,
+				.present = true,
+				.size_bytes =  512 * 1024,
+				.nsectors   =  64,
+				.sector_size = 8192,
+				.page_size   = 512,
+			},
+/*			.bank[1] = */
+			{
+				.present = false,
+				.probed = false,
+				.bank_number = 1,
+			},
+		}
+	},
+
+	/* atsamg55j19 Rev.B */
+	{
+		.chipid_cidr    = 0x24570ae1,
+		.name           = "atsamg55j19b",
 		.total_flash_size     = 512 * 1024,
 		.total_sram_size      = 160 * 1024,
 		.n_gpnvms       = 2,
