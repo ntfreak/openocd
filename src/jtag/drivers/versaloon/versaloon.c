@@ -124,7 +124,7 @@ void versaloon_free_want_pos(void)
 	}
 	versaloon_want_pos = NULL;
 
-	for (i = 0; i < dimof(versaloon_pending); i++) {
+	for (i = 0; i < ARRAY_SIZE(versaloon_pending); i++) {
 		tmp = versaloon_pending[i].pos;
 		while (tmp != NULL) {
 			free_tmp = tmp;

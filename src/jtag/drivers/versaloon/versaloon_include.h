@@ -27,7 +27,6 @@
 #define PARAM_CHECK							1
 
 #define sleep_ms(ms)						jtag_sleep((ms) * 1000)
-#define dimof(arr)							(sizeof(arr) / sizeof((arr)[0]))
 #define TO_STR(name)						#name
 
 #define RESULT								int
