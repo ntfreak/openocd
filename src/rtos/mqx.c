@@ -267,8 +267,7 @@ static int mqx_create(
 )
 {
 	/* check target name against supported architectures */
-	int mqx_params_list_num = (sizeof(mqx_params_list)/sizeof(struct mqx_params));
-	for (int i = 0; i < mqx_params_list_num; i++) {
+	for (unsigned int i = 0; i < ARRAY_SIZE(mqx_params_list); i++) {
 		if (0 == strcmp(mqx_params_list[i].target_name, target->type->name)) {
 			target->rtos->rtos_specific_params = (void *)&mqx_params_list[i];
 			/* LOG_DEBUG("MQX RTOS - valid architecture: %s", target->type->name); */
@@ -351,7 +350,7 @@ static int mqx_update_threads(
 		uint8_t task_name[MQX_THREAD_NAME_LENGTH + 1];
 		uint32_t task_addr = 0, task_template = 0, task_state = 0;
 		uint32_t task_name_addr = 0, task_id = 0, task_errno = 0;
-		uint32_t state_index = 0, state_max = 0;
+		uint32_t state_index = 0;
 		uint32_t extra_info_length = 0;
 		char *state_name = "Unknown";
 
@@ -412,8 +411,7 @@ static int mqx_update_threads(
 		}
 		task_state &= MQX_TASK_STATE_MASK;
 		/* and search for defined state */
-		state_max = (sizeof(mqx_states)/sizeof(struct mqx_state));
-		for (state_index = 0; (state_index < state_max); state_index++) {
+		for (state_index = 0; state_index < ARRAY_SIZE(mqx_states); state_index++) {
 			if (mqx_states[state_index].state == task_state) {
 				state_name = mqx_states[state_index].name;
 				break;

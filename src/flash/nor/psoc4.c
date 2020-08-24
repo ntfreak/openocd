@@ -335,7 +335,7 @@ static int psoc4_sysreq(struct flash_bank *bank, uint8_t cmd,
 
 	/* Execute wait code */
 	retval = target_run_algorithm(target, 0, NULL,
-				sizeof(reg_params) / sizeof(*reg_params), reg_params,
+				ARRAY_SIZE(reg_params), reg_params,
 				sysreq_wait_algorithm->address, 0, 1000, &armv7m_info);
 	if (retval != ERROR_OK) {
 		LOG_ERROR("sysreq wait code execution failed");

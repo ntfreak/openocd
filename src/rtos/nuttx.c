@@ -314,7 +314,7 @@ static int nuttx_update_threads(struct rtos *rtos)
 
 			state = tcb.dat[state_offset - 8];
 			thread->extra_info_str = NULL;
-			if (state < sizeof(task_state_str)/sizeof(char *)) {
+			if (state < ARRAY_SIZE(task_state_str)) {
 				thread->extra_info_str = malloc(256);
 				snprintf(thread->extra_info_str, 256, "pid:%d, %s",
 				    tcb.dat[pid_offset - 8] |

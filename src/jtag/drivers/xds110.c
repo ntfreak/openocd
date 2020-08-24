@@ -356,7 +356,7 @@ static bool usb_connect(void)
 			/* Check for device vid/pid match */
 			libusb_get_device_descriptor(list[i], &desc);
 			match = false;
-			for (device = 0; device < sizeof(vids)/sizeof(vids[0]); device++) {
+			for (device = 0; device < ARRAY_SIZE(vids); device++) {
 				if (desc.idVendor == vids[device] &&
 					desc.idProduct == pids[device]) {
 					match = true;

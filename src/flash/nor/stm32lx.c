@@ -533,8 +533,8 @@ static int stm32lx_write_half_pages(struct flash_bank *bank, const uint8_t *buff
 		buf_set_u32(reg_params[2].value, 0, 32, this_count / 4);
 
 		/* 5: Execute the bunch of code */
-		retval = target_run_algorithm(target, 0, NULL, sizeof(reg_params)
-				/ sizeof(*reg_params), reg_params,
+		retval = target_run_algorithm(target, 0, NULL,
+				ARRAY_SIZE(reg_params), reg_params,
 				write_algorithm->address, 0, 10000, &armv7m_info);
 		if (retval != ERROR_OK)
 			break;
