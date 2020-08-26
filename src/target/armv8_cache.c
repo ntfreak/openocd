@@ -130,14 +130,36 @@ int armv8_cache_d_inner_flush_virt(struct armv8_common *armv8, target_addr_t va,
 	va_line = va & (-linelen);
 	va_end = va + size;
 
-	while (va_line < va_end) {
-		/* DC CIVAC */
+	if (armv8_dpm_get_core_state(dpm) != ARM_STATE_AARCH64) {
 		/* Aarch32: DCCIMVAC: ARMV4_5_MCR(15, 0, 0, 7, 14, 1) */
-		retval = dpm->instr_write_data_r0_64(dpm,
+		uint32_t opcode = ARMV4_5_MCR(15, 0, 0, 7, 14, 1);
+		enum arm_mode target_mode = ARM_MODE_ANY;
+		if (armv8->arm.core_mode == ARM_MODE_USR)
+			target_mode = ARM_MODE_SVC;
+
+		if (target_mode != ARM_MODE_ANY)
+			armv8_dpm_modeswitch(&armv8->dpm, target_mode);
+
+		while (va_line < va_end) {
+			retval = dpm->instr_write_data_r0(dpm, opcode, va_line);
+			if (retval != ERROR_OK)
+				goto done;
+			va_line += linelen;
+		}
+
+		if (target_mode != ARM_MODE_ANY)
+			armv8_dpm_modeswitch(&armv8->dpm, ARM_MODE_ANY);
+
+	} else {
+		while (va_line < va_end) {
+			/* DC CIVAC */
+
+			retval = dpm->instr_write_data_r0_64(dpm,
 				armv8_opcode(armv8, ARMV8_OPC_DCCIVAC), va_line);
-		if (retval != ERROR_OK)
-			goto done;
-		va_line += linelen;
+			if (retval != ERROR_OK)
+				goto done;
+			va_line += linelen;
+		}
 	}
 
 	dpm->finish(dpm);
@@ -169,20 +191,43 @@ int armv8_cache_i_inner_inval_virt(struct armv8_common *armv8, target_addr_t va,
 	va_line = va & (-linelen);
 	va_end = va + size;
 
-	while (va_line < va_end) {
-		/* IC IVAU - Invalidate instruction cache by VA to PoU. */
-		retval = dpm->instr_write_data_r0_64(dpm,
+	if (armv8_dpm_get_core_state(dpm) != ARM_STATE_AARCH64) {
+		/* Aarch32: ICIMVAU: ARMV4_5_MCR(15, 0, 0, 7, 5, 1) */
+		uint32_t opcode = ARMV4_5_MCR(15, 0, 0, 7, 5, 1);
+		enum arm_mode target_mode = ARM_MODE_ANY;
+		if (armv8->arm.core_mode == ARM_MODE_USR)
+			target_mode = ARM_MODE_SVC;
+
+		if (target_mode != ARM_MODE_ANY)
+			armv8_dpm_modeswitch(&armv8->dpm, target_mode);
+
+		while (va_line < va_end) {
+			retval = dpm->instr_write_data_r0(dpm, opcode, va_line);
+			if (retval != ERROR_OK)
+				goto done;
+			va_line += linelen;
+		}
+
+		if (target_mode != ARM_MODE_ANY)
+			armv8_dpm_modeswitch(&armv8->dpm, ARM_MODE_ANY);
+
+	} else {
+		while (va_line < va_end) {
+			/* IC IVAU - Invalidate instruction cache by VA to PoU. */
+
+			retval = dpm->instr_write_data_r0_64(dpm,
 				armv8_opcode(armv8, ARMV8_OPC_ICIVAU), va_line);
-		if (retval != ERROR_OK)
-			goto done;
-		va_line += linelen;
+			if (retval != ERROR_OK)
+				goto done;
+			va_line += linelen;
+		}
 	}
 
 	dpm->finish(dpm);
 	return retval;
 
 done:
-	LOG_ERROR("d-cache invalidate failed");
+	LOG_ERROR("i-cache invalidate failed");
 	dpm->finish(dpm);
 
 	return retval;
