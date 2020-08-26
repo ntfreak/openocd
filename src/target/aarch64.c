@@ -95,6 +95,9 @@ static int aarch64_restore_system_control_reg(struct target *target)
 			instr = ARMV8_MSR_GP(SYSTEM_SCTLR_EL3, 0);
 			break;
 
+		case ARM_MODE_USR:
+			target_mode = ARM_MODE_SVC;
+			/* fall through */
 		case ARM_MODE_SVC:
 		case ARM_MODE_ABT:
 		case ARM_MODE_FIQ:
@@ -132,6 +135,7 @@ static int aarch64_mmu_modify(struct target *target, int enable)
 	struct aarch64_common *aarch64 = target_to_aarch64(target);
 	struct armv8_common *armv8 = &aarch64->armv8_common;
 	int retval = ERROR_OK;
+	enum arm_mode target_mode = ARM_MODE_ANY;
 	uint32_t instr = 0;
 
 	if (enable) {
@@ -170,6 +174,9 @@ static int aarch64_mmu_modify(struct target *target, int enable)
 		instr = ARMV8_MSR_GP(SYSTEM_SCTLR_EL3, 0);
 		break;
 
+	case ARM_MODE_USR:
+		target_mode = ARM_MODE_SVC;
+		/* fall through */
 	case ARM_MODE_SVC:
 	case ARM_MODE_ABT:
 	case ARM_MODE_FIQ:
@@ -184,8 +191,24 @@ static int aarch64_mmu_modify(struct target *target, int enable)
 		break;
 	}
 
+	if (target_mode != ARM_MODE_ANY)
+		armv8_dpm_modeswitch(&armv8->dpm, target_mode);
+
 	retval = armv8->dpm.instr_write_data_r0(&armv8->dpm, instr,
 				aarch64->system_control_reg_curr);
+
+	if (retval != ERROR_OK)
+		return retval;
+
+	if (target_mode != ARM_MODE_ANY)
+		armv8_dpm_modeswitch(&armv8->dpm, ARM_MODE_ANY);
+
+	armv8->armv8_mmu.mmu_enabled =
+		(aarch64->system_control_reg & 0x1U) ? 1 : 0;
+	armv8->armv8_mmu.armv8_cache.d_u_cache_enabled =
+		(aarch64->system_control_reg & 0x4U) ? 1 : 0;
+	armv8->armv8_mmu.armv8_cache.i_cache_enabled =
+		(aarch64->system_control_reg & 0x1000U) ? 1 : 0;
 	return retval;
 }
 
@@ -1032,6 +1055,9 @@ static int aarch64_post_debug_entry(struct target *target)
 		instr = ARMV8_MRS(SYSTEM_SCTLR_EL3, 0);
 		break;
 
+	case ARM_MODE_USR:
+		target_mode = ARM_MODE_SVC;
+		/* fall through */
 	case ARM_MODE_SVC:
 	case ARM_MODE_ABT:
 	case ARM_MODE_FIQ:
