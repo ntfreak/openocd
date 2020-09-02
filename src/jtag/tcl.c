@@ -51,6 +51,7 @@
 
 static const Jim_Nvp nvp_jtag_tap_event[] = {
 	{ .value = JTAG_TRST_ASSERTED,          .name = "post-reset" },
+	{ .value = JTAG_SRST_DEASSERTED,        .name = "post-srst" },
 	{ .value = JTAG_TAP_EVENT_SETUP,        .name = "setup" },
 	{ .value = JTAG_TAP_EVENT_ENABLE,       .name = "tap-enable" },
 	{ .value = JTAG_TAP_EVENT_DISABLE,      .name = "tap-disable" },

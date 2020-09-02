@@ -759,6 +759,7 @@ void jtag_add_reset(int req_tlr_or_trst, int req_srst)
 {
 	int retval;
 	int trst_with_tlr = 0;
+	int post_srst = 0;
 	int new_srst = 0;
 	int new_trst = 0;
 
@@ -830,6 +831,8 @@ void jtag_add_reset(int req_tlr_or_trst, int req_srst)
 			LOG_DEBUG("SRST line released");
 			if (adapter_nsrst_delay)
 				jtag_add_sleep(adapter_nsrst_delay * 1000);
+
+			post_srst = 1;
 		}
 	}
 
@@ -865,6 +868,9 @@ void jtag_add_reset(int req_tlr_or_trst, int req_srst)
 			jtag_notify_event(JTAG_TRST_ASSERTED);
 		}
 	}
+
+	if (post_srst)
+		jtag_notify_event(JTAG_SRST_DEASSERTED);
 }
 
 void jtag_add_sleep(uint32_t us)

@@ -190,12 +190,16 @@ unsigned jtag_tap_count(void);
  *   deactivation outside the core using scripted code that understands
  *   the specific JTAG router type.  They might be triggered indirectly
  *   from EVENT_SETUP operations.
+ *
+ * - SRST_DEASSERTED is emitted whenever SRST transitions from asserted
+ *   to deasserted, i.e. every time the target comes out of reset.
  */
 enum jtag_event {
 	JTAG_TRST_ASSERTED,
 	JTAG_TAP_EVENT_SETUP,
 	JTAG_TAP_EVENT_ENABLE,
 	JTAG_TAP_EVENT_DISABLE,
+	JTAG_SRST_DEASSERTED,
 };
 
 struct jtag_tap_event_action {
