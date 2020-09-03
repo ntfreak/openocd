@@ -2247,7 +2247,7 @@ static int aarch64_examine_first(struct target *target)
 	struct aarch64_common *aarch64 = target_to_aarch64(target);
 	struct armv8_common *armv8 = &aarch64->armv8_common;
 	struct adiv5_dap *swjdp = armv8->arm.dap;
-	struct aarch64_private_config *pc;
+	struct aarch64_private_config *pc = target->private_config;
 	int i;
 	int retval = ERROR_OK;
 	uint64_t debug, ttypr;
@@ -2255,11 +2255,15 @@ static int aarch64_examine_first(struct target *target)
 	uint32_t tmp0, tmp1, tmp2, tmp3;
 	debug = ttypr = cpuid = 0;
 
-	/* Search for the APB-AB - it is needed for access to debug registers */
-	retval = dap_find_ap(swjdp, AP_TYPE_APB_AP, &armv8->debug_ap);
-	if (retval != ERROR_OK) {
-		LOG_ERROR("Could not find APB-AP for debug access");
-		return retval;
+	if (pc->adiv5_config.ap_num == DP_APSEL_INVALID) {
+		/* Search for the APB-AB */
+		retval = dap_find_ap(swjdp, AP_TYPE_APB_AP, &armv8->debug_ap);
+		if (retval != ERROR_OK) {
+			LOG_ERROR("Could not find APB-AP for debug access");
+			return retval;
+		}
+	} else {
+		armv8->debug_ap = dap_ap(swjdp, pc->adiv5_config.ap_num);
 	}
 
 	retval = mem_ap_init(armv8->debug_ap);
@@ -2337,7 +2341,6 @@ static int aarch64_examine_first(struct target *target)
 	if (target->private_config == NULL)
 		return ERROR_FAIL;
 
-	pc = (struct aarch64_private_config *)target->private_config;
 	if (pc->cti == NULL)
 		return ERROR_FAIL;
 
