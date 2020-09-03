@@ -197,6 +197,7 @@ struct armv8_common {
 	/* Core Debug Unit */
 	struct arm_dpm dpm;
 	uint32_t debug_base;
+	int apsel;
 	struct adiv5_ap *debug_ap;
 
 	const uint32_t *opcodes;

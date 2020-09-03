@@ -2255,11 +2255,15 @@ static int aarch64_examine_first(struct target *target)
 	uint32_t tmp0, tmp1, tmp2, tmp3;
 	debug = ttypr = cpuid = 0;
 
-	/* Search for the APB-AB - it is needed for access to debug registers */
-	retval = dap_find_ap(swjdp, AP_TYPE_APB_AP, &armv8->debug_ap);
-	if (retval != ERROR_OK) {
-		LOG_ERROR("Could not find APB-AP for debug access");
-		return retval;
+	if (armv8->apsel == DP_APSEL_INVALID) {
+		/* Search for the APB-AB */
+		retval = dap_find_ap(swjdp, AP_TYPE_APB_AP, &armv8->debug_ap);
+		if (retval != ERROR_OK) {
+			LOG_ERROR("Could not find APB-AP for debug access");
+			return retval;
+		}
+	} else {
+		armv8->debug_ap = dap_ap(swjdp, armv8->apsel);
 	}
 
 	retval = mem_ap_init(armv8->debug_ap);
@@ -2400,13 +2404,14 @@ static int aarch64_init_target(struct command_context *cmd_ctx,
 }
 
 static int aarch64_init_arch_info(struct target *target,
-	struct aarch64_common *aarch64, struct adiv5_dap *dap)
+	struct aarch64_common *aarch64, struct adiv5_dap *dap, int apsel)
 {
 	struct armv8_common *armv8 = &aarch64->armv8_common;
 
 	/* Setup struct aarch64_common */
 	aarch64->common_magic = AARCH64_COMMON_MAGIC;
 	armv8->arm.dap = dap;
+	armv8->apsel = apsel;
 
 	/* register arch-specific functions */
 	armv8->examine_debug_reason = NULL;
@@ -2435,7 +2440,8 @@ static int aarch64_target_create(struct target *target, Jim_Interp *interp)
 		return ERROR_FAIL;
 	}
 
-	return aarch64_init_arch_info(target, aarch64, pc->adiv5_config.dap);
+	return aarch64_init_arch_info(target, aarch64, pc->adiv5_config.dap,
+		pc->adiv5_config.ap_num);
 }
 
 static void aarch64_deinit_target(struct target *target)
