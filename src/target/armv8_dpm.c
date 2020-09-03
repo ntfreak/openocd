@@ -745,12 +745,17 @@ int armv8_dpm_read_current_registers(struct arm_dpm *dpm)
 	struct reg *r;
 	uint32_t cpsr;
 	int retval;
+	enum arm_state core_state;
 
 	retval = dpm->prepare(dpm);
 	if (retval != ERROR_OK)
 		return retval;
 
-	cache = arm->core_cache;
+	core_state = armv8_dpm_get_core_state(dpm);
+	if (core_state == ARM_STATE_AARCH64)
+		cache = arm->core_cache;
+	else
+		cache = arm->core_cache->next;
 
 	/* read R0 first (it's used for scratch), then CPSR */
 	r = cache->reg_list + ARMV8_R0;
