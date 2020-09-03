@@ -1706,7 +1706,11 @@ struct reg *armv8_reg_current(struct arm *arm, unsigned regnum)
 	if (regnum > (ARMV8_LAST_REG - 1))
 		return NULL;
 
-	r = arm->core_cache->reg_list + regnum;
+	if (arm->core_state == ARM_STATE_AARCH64)
+		r = arm->core_cache->reg_list + regnum;
+	else
+		r = arm->core_cache->next->reg_list + regnum;
+
 	return r;
 }
 
