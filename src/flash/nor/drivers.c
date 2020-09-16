@@ -43,7 +43,10 @@ extern const struct flash_driver esirisc_flash;
 extern const struct flash_driver faux_flash;
 extern const struct flash_driver fm3_flash;
 extern const struct flash_driver fm4_flash;
+#if BUILD_RISCV == 1
 extern const struct flash_driver fespi_flash;
+#endif
+extern const struct flash_driver gd32vf103_flash;
 extern const struct flash_driver jtagspi_flash;
 extern const struct flash_driver kinetis_flash;
 extern const struct flash_driver kinetis_ke_flash;
@@ -115,7 +118,10 @@ static const struct flash_driver * const flash_drivers[] = {
 	&faux_flash,
 	&fm3_flash,
 	&fm4_flash,
+#if BUILD_RISCV == 1
 	&fespi_flash,
+#endif
+	&gd32vf103_flash,
 	&jtagspi_flash,
 	&kinetis_flash,
 	&kinetis_ke_flash,

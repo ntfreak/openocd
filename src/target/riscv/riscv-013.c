@@ -402,7 +402,7 @@ static uint32_t dtmcontrol_scan(struct target *target, uint32_t out)
 {
 	struct scan_field field;
 	uint8_t in_value[4];
-	uint8_t out_value[4] = { 0 };
+	uint8_t out_value[4]; // = { 0 };
 
 	buf_set_u32(out_value, 0, 32, out);
 
@@ -468,7 +468,7 @@ static dmi_status_t dmi_scan(struct target *target, uint32_t *address_in,
 	}
 
 	memset(in, 0, num_bytes);
-	memset(out, 0, num_bytes);
+	//memset(out, 0, num_bytes);
 
 	assert(info->abits != 0);
 
@@ -666,8 +666,10 @@ uint32_t abstract_register_size(unsigned width)
 			return set_field(0, AC_ACCESS_REGISTER_SIZE, 2);
 		case 64:
 			return set_field(0, AC_ACCESS_REGISTER_SIZE, 3);
+			break;
 		case 128:
 			return set_field(0, AC_ACCESS_REGISTER_SIZE, 4);
+			break;
 		default:
 			LOG_ERROR("Unsupported register width: %d", width);
 			return 0;
@@ -1890,9 +1892,11 @@ static target_addr_t sb_read_address(struct target *target)
 	target_addr_t address = 0;
 	uint32_t v;
 	if (sbasize > 32) {
+#if BUILD_TARGET64
 		dmi_read(target, &v, DMI_SBADDRESS1);
 		address |= v;
 		address <<= 32;
+#endif
 	}
 	dmi_read(target, &v, DMI_SBADDRESS0);
 	address |= v;
@@ -1909,7 +1913,11 @@ static int sb_write_address(struct target *target, target_addr_t address)
 	if (sbasize > 64)
 		dmi_write(target, DMI_SBADDRESS2, 0);
 	if (sbasize > 32)
+#if BUILD_TARGET64
 		dmi_write(target, DMI_SBADDRESS1, address >> 32);
+#else
+		dmi_write(target, DMI_SBADDRESS1, 0);
+#endif
 	return dmi_write(target, DMI_SBADDRESS0, address);
 }
 
@@ -2936,6 +2944,12 @@ static int riscv013_on_halt(struct target *target)
 
 static bool riscv013_is_halted(struct target *target)
 {
+		int hartid = riscv_current_hartid(target);
+		uint32_t dmcontrol = DMI_DMCONTROL_DMACTIVE;
+		dmcontrol = set_hartsel(dmcontrol, hartid);
+		dmcontrol |= DMI_DMCONTROL_SETRESETHALTREQ;
+		dmi_write(target, DMI_DMCONTROL, dmcontrol);
+
 	uint32_t dmstatus;
 	if (dmstatus_read(target, &dmstatus, true) != ERROR_OK)
 		return false;
@@ -2944,10 +2958,11 @@ static bool riscv013_is_halted(struct target *target)
 	if (get_field(dmstatus, DMI_DMSTATUS_ANYNONEXISTENT))
 		LOG_ERROR("Hart %d doesn't exist.", riscv_current_hartid(target));
 	if (get_field(dmstatus, DMI_DMSTATUS_ANYHAVERESET)) {
-		int hartid = riscv_current_hartid(target);
+		hartid = riscv_current_hartid(target);
 		LOG_INFO("Hart %d unexpectedly reset!", hartid);
+		LOG_INFO("Note: Hart is halted due to the halt-on-reset bit is set,please continue your  program by appropriate debugger commands or operations!!");
 		/* TODO: Can we make this more obvious to eg. a gdb user? */
-		uint32_t dmcontrol = DMI_DMCONTROL_DMACTIVE |
+		 dmcontrol = DMI_DMCONTROL_DMACTIVE |
 			DMI_DMCONTROL_ACKHAVERESET;
 		dmcontrol = set_hartsel(dmcontrol, hartid);
 		/* If we had been halted when we reset, request another halt. If we
@@ -3712,13 +3727,13 @@ int riscv013_test_compliance(struct target *target)
 	But at any rate, this is not legal and should cause an error. */
 	COMPLIANCE_WRITE(target, DMI_COMMAND, 0xAAAAAAAA);
 	COMPLIANCE_READ(target, &testvar_read, DMI_ABSTRACTCS);
-	COMPLIANCE_TEST(get_field(testvar_read, DMI_ABSTRACTCS_CMDERR) == CMDERR_NOT_SUPPORTED,
+	COMPLIANCE_TEST(get_field(testvar_read, DMI_ABSTRACTCS_CMDERR) == CMDERR_NOT_SUPPORTED, \
 			"Illegal COMMAND should result in UNSUPPORTED");
 	COMPLIANCE_WRITE(target, DMI_ABSTRACTCS, DMI_ABSTRACTCS_CMDERR);
 
 	COMPLIANCE_WRITE(target, DMI_COMMAND, 0x55555555);
 	COMPLIANCE_READ(target, &testvar_read, DMI_ABSTRACTCS);
-	COMPLIANCE_TEST(get_field(testvar_read, DMI_ABSTRACTCS_CMDERR) == CMDERR_NOT_SUPPORTED,
+	COMPLIANCE_TEST(get_field(testvar_read, DMI_ABSTRACTCS_CMDERR) == CMDERR_NOT_SUPPORTED, \
 			"Illegal COMMAND should result in UNSUPPORTED");
 	COMPLIANCE_WRITE(target, DMI_ABSTRACTCS, DMI_ABSTRACTCS_CMDERR);
 
@@ -3732,10 +3747,10 @@ int riscv013_test_compliance(struct target *target)
 		COMPLIANCE_TEST(ERROR_OK == register_read_direct(target, &testval_read, GDB_REGNO_ZERO + i),
 				"GPR Reads should be supported.");
 		if (riscv_xlen(target) > 32) {
-			/* Dummy comment to satisfy linter, since removing the branches here doesn't actually compile. */
+			/* Dummy comment to satisfy linter, since removing the brances here doesn't actually compile. */
 			COMPLIANCE_TEST(testval == testval_read, "GPR Reads and writes should be supported.");
 		} else {
-			/* Dummy comment to satisfy linter, since removing the branches here doesn't actually compile. */
+			/* Dummy comment to satisfy linter, since removing the brances here doesn't actually compile. */
 			COMPLIANCE_TEST((testval & 0xFFFFFFFF) == testval_read, "GPR Reads and writes should be supported.");
 		}
 	}
