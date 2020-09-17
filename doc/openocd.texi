@@ -8279,6 +8279,90 @@ the watchpoint should trigger. The value may be first be masked
 using @var{mask} to mark ``don't care'' fields.
 @end deffn
 
+
+@section Real Time Transfer (RTT)
+
+Real Time Transfer (RTT) is an interface specified by SEGGER based on basic
+memory reads and writes to transfer data bidirectionally between target and host.
+The specification is independent of the target architecture.
+Every target that supports so called "background memory access", which means
+that the target memory can be accessed by the debugger while the target is
+running, can be used.
+This interface is especially of interest for targets without
+Serial Wire Output (SWO), such as ARM Cortex-M0, or where semihosting is not
+applicable because of real-time constraints.
+
+The data transfer between host and target device is organized through
+unidirectional up/down-channels for target-to-host and host-to-target
+communication, respectively.
+
+@quotation Note
+The current implementation does not respect channel buffer flags.
+They are used to determine what happens when writing to a full buffer, for
+example.
+@end quotation
+
+Channels are exposed via raw TCP/IP connections. One or more RTT servers can be
+assigned to each channel to make them accessible to an unlimited number
+of TCP/IP connections.
+
+@deffn Command {rtt setup} address size ID
+Configure RTT for the currently selected target.
+Once RTT is started, OpenOCD searches for a control block with the
+identifier @var{ID} starting at the memory address @var{address} within the next
+@var{size} bytes.
+@end deffn
+
+@deffn Command {rtt start}
+Start RTT.
+If the control block location is not known, OpenOCD starts searching for it.
+@end deffn
+
+@deffn Command {rtt stop}
+Stop RTT.
+@end deffn
+
+@deffn Command {rtt polling_interval [interval]}
+Display the polling interval.
+If @var{interval} is provided, set the polling interval.
+The polling interval determines (in milliseconds) how often the up-channels are
+checked for new data.
+@end deffn
+
+@deffn Command {rtt channels}
+Display a list of all channels and their properties.
+@end deffn
+
+@deffn Command {rtt channellist}
+Return a list of all channels and their properties as Tcl list.
+The list can be manipulated easily from within scripts.
+@end deffn
+
+@deffn Command {rtt server start} port channel
+Start a TCP server on @var{port} for the channel @var{channel}.
+@end deffn
+
+@deffn Command {rtt server stop} port
+Stop the TCP sever with port @var{port}.
+@end deffn
+
+The following example shows how to setup RTT using the SEGGER RTT implementation
+on the target device.
+
+@example
+resume
+
+rtt setup 0x20000000 2048 "SEGGER RTT"
+rtt start
+
+rtt server start 9090 0
+@end example
+
+In this example, OpenOCD searches the control block with the ID "SEGGER RTT"
+starting at 0x20000000 for 2048 bytes. The RTT channel 0 is exposed through the
+TCP/IP port 9090.
+
+
 @section Misc Commands
 
 @cindex profiling
