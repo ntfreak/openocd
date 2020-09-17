@@ -39,6 +39,7 @@
 #include "arm_opcodes.h"
 #include "arm_semihosting.h"
 #include <helper/time_support.h>
+#include <rtt/rtt.h>
 
 /* NOTE:  most of this should work fine for the Cortex-M1 and
  * Cortex-M0 cores too, although they're ARMv6-M not ARMv7-M.
@@ -2485,6 +2486,9 @@ static const struct command_registration cortex_m_command_handlers[] = {
 		.help = "Cortex-M command group",
 		.usage = "",
 		.chain = cortex_m_exec_command_handlers,
+	},
+	{
+		.chain = rtt_target_command_handlers,
 	},
 	COMMAND_REGISTRATION_DONE
 };
