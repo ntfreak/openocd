@@ -38,9 +38,11 @@
 #include <pld/pld.h>
 #include <target/arm_cti.h>
 #include <target/arm_adi_v5.h>
+#include <rtt/rtt.h>
 
 #include <server/server.h>
 #include <server/gdb_server.h>
+#include <server/rtt_server.h>
 
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
@@ -247,6 +249,8 @@ struct command_context *setup_command_handler(Jim_Interp *interp)
 		&server_register_commands,
 		&gdb_register_commands,
 		&log_register_commands,
+		&rtt_register_commands,
+		&rtt_server_register_commands,
 		&transport_register_commands,
 		&interface_register_commands,
 		&target_register_commands,
@@ -338,6 +342,9 @@ int openocd_main(int argc, char *argv[])
 	if (ioutil_init(cmd_ctx) != ERROR_OK)
 		return EXIT_FAILURE;
 
+	if (rtt_init() != ERROR_OK)
+		return EXIT_FAILURE;
+
 	LOG_OUTPUT("For bug reports, read\n\t"
 		"http://openocd.org/doc/doxygen/bugs.html"
 		"\n");
@@ -367,6 +374,7 @@ int openocd_main(int argc, char *argv[])
 	/* Shutdown commandline interface */
 	command_exit(cmd_ctx);
 
+	rtt_exit();
 	free_config();
 
 	if (ERROR_FAIL == ret)
