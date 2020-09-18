@@ -29,9 +29,11 @@
 
 #define XLNX_XVC_EXT_CAP	0x00
 #define XLNX_XVC_VSEC_HDR	0x04
-#define XLNX_XVC_LEN_REG	0x0C
-#define XLNX_XVC_TMS_REG	0x10
-#define XLNX_XVC_TDx_REG	0x14
+
+#define XLNX_PCI_XVC_LEN_REG	0x0C
+#define XLNX_PCI_XVC_TMS_REG	0x10
+#define XLNX_PCI_XVC_TDx_REG	0x14
+
 
 #define XLNX_XVC_CAP_SIZE	0x20
 #define XLNX_XVC_VSEC_ID	0x8
@@ -40,11 +42,33 @@
 #define MASK_ACK(x) (((x) >> 9) & 0x7)
 #define MASK_PAR(x) ((int)((x) & 0x1))
 
+
+#define MODE_PCI 0x01			/* XVC device attached via PCIe */
+#define MODE_MMAP 0x02			/* XVC device available in general memory space e.g. as AXI device */
+/* #define MODE_ETH 0x03		/* Remote XVC device available via network (XAPP 1251 */
+
+static int MODE = MODE_PCI;
+
+
+
 struct xlnx_pcie_xvc {
 	int fd;
 	unsigned offset;
 	char *device;
 };
+
+#define MAP_SIZE_AXI    0x10000
+
+typedef struct {
+uint32_t length_offset;
+uint32_t tms_offset;
+uint32_t tdi_offset;
+uint32_t tdo_offset;
+uint32_t ctrl_offset;
+} axi_jtag_t;
+
+volatile axi_jtag_t *ptr;
+
 
 static struct xlnx_pcie_xvc xlnx_pcie_xvc_state;
 static struct xlnx_pcie_xvc *xlnx_pcie_xvc = &xlnx_pcie_xvc_state;
@@ -95,27 +119,43 @@ static int xlnx_pcie_xvc_transact(size_t num_bits, uint32_t tms, uint32_t tdi,
 {
 	int err;
 
-	err = xlnx_pcie_xvc_write_reg(XLNX_XVC_LEN_REG, num_bits);
+	if (MODE == MODE_PCI) {
+		err = xlnx_pcie_xvc_write_reg(XLNX_PCI_XVC_LEN_REG, num_bits);
 	if (err != ERROR_OK)
 		return err;
 
-	err = xlnx_pcie_xvc_write_reg(XLNX_XVC_TMS_REG, tms);
+		err = xlnx_pcie_xvc_write_reg(XLNX_PCI_XVC_TMS_REG, tms);
 	if (err != ERROR_OK)
 		return err;
 
-	err = xlnx_pcie_xvc_write_reg(XLNX_XVC_TDx_REG, tdi);
+		err = xlnx_pcie_xvc_write_reg(XLNX_PCI_XVC_TDx_REG, tdi);
 	if (err != ERROR_OK)
 		return err;
 
-	err = xlnx_pcie_xvc_read_reg(XLNX_XVC_TDx_REG, tdo);
+		err = xlnx_pcie_xvc_read_reg(XLNX_PCI_XVC_TDx_REG, tdo);
 	if (err != ERROR_OK)
 		return err;
+
+	} else if (MODE == MODE_MMAP) {
+		ptr->length_offset = num_bits;
+		ptr->tms_offset = tms;
+		ptr->tdi_offset = tdi;
+		ptr->ctrl_offset = 0x01;
+
+		while (ptr->ctrl_offset) {
+			/* wait for end of transaction */
+		}
+
+		if (tdo)
+			*tdo = ptr->tdo_offset;
+
+	}
 
 	if (tdo)
-		LOG_DEBUG_IO("Transact num_bits: %zu, tms: %" PRIx32 ", tdi: %" PRIx32 ", tdo: %" PRIx32,
+		LOG_DEBUG_IO("Transact num_bits: %zu, tms: %x, tdi: %x, tdo: %x",
 			     num_bits, tms, tdi, *tdo);
 	else
-		LOG_DEBUG_IO("Transact num_bits: %zu, tms: %" PRIx32 ", tdi: %" PRIx32 ", tdo: <null>",
+		LOG_DEBUG_IO("Transact num_bits: %zu, tms: %x, tdi: %x, tdo: <null>",
 			     num_bits, tms, tdi);
 	return ERROR_OK;
 }
@@ -381,66 +421,93 @@ static int xlnx_pcie_xvc_execute_queue(void)
 
 static int xlnx_pcie_xvc_init(void)
 {
-	char filename[PATH_MAX];
-	uint32_t cap, vh;
-	int err;
+	if (MODE == MODE_PCI) {
+		char filename[PATH_MAX];
+		int err;
 
-	snprintf(filename, PATH_MAX, "/sys/bus/pci/devices/%s/config",
-		 xlnx_pcie_xvc->device);
-	xlnx_pcie_xvc->fd = open(filename, O_RDWR | O_SYNC);
-	if (xlnx_pcie_xvc->fd < 0) {
-		LOG_ERROR("Failed to open device: %s", filename);
-		return ERROR_JTAG_INIT_FAILED;
-	}
+		snprintf(filename, PATH_MAX, "/sys/bus/pci/devices/%s/config",
+			 xlnx_pcie_xvc->device);
+		xlnx_pcie_xvc->fd = open(filename, O_RDWR | O_SYNC);
+		if (xlnx_pcie_xvc->fd < 0) {
+			LOG_ERROR("Failed to open device: %s", filename);
+			return ERROR_JTAG_INIT_FAILED;
+		}
 
-	LOG_INFO("Scanning PCIe device %s's for Xilinx XVC/PCIe ...",
-		 xlnx_pcie_xvc->device);
-	/* Parse the PCIe extended capability list and try to find
-	 * vendor specific header */
-	xlnx_pcie_xvc->offset = PCIE_EXT_CAP_LST;
-	while (xlnx_pcie_xvc->offset <= PCI_CFG_SPACE_EXP_SIZE - sizeof(cap) &&
-	       xlnx_pcie_xvc->offset >= PCIE_EXT_CAP_LST) {
-		err = xlnx_pcie_xvc_read_reg(XLNX_XVC_EXT_CAP, &cap);
-		if (err != ERROR_OK)
-			return err;
-		LOG_DEBUG("Checking capability at 0x%x; id=0x%04" PRIx32 " version=0x%" PRIx32 " next=0x%" PRIx32,
-			 xlnx_pcie_xvc->offset,
-			 PCI_EXT_CAP_ID(cap),
-			 PCI_EXT_CAP_VER(cap),
-			 PCI_EXT_CAP_NEXT(cap));
-		if (PCI_EXT_CAP_ID(cap) == PCI_EXT_CAP_ID_VNDR) {
-			err = xlnx_pcie_xvc_read_reg(XLNX_XVC_VSEC_HDR, &vh);
+		LOG_INFO("Scanning PCIe device %s's for Xilinx XVC/PCIe ...",
+			 xlnx_pcie_xvc->device);
+		/* Parse the PCIe extended capability list and try to find
+		 * vendor specific header */
+		xlnx_pcie_xvc->offset = PCIE_EXT_CAP_LST;
+		while (xlnx_pcie_xvc->offset <= PCI_CFG_SPACE_EXP_SIZE - sizeof(cap) &&
+			   xlnx_pcie_xvc->offset >= PCIE_EXT_CAP_LST) {
+			err = xlnx_pcie_xvc_read_reg(XLNX_XVC_EXT_CAP, &cap);
 			if (err != ERROR_OK)
 				return err;
-			LOG_DEBUG("Checking possible match at 0x%x; id: 0x%" PRIx32 "; rev: 0x%" PRIx32 "; length: 0x%" PRIx32,
+			LOG_DEBUG("Checking capability at 0x%x; id=0x%04" PRIx32 " version=0x%" PRIx32 " next=0x%" PRIx32,
 				 xlnx_pcie_xvc->offset,
-				 PCI_VNDR_HEADER_ID(vh),
-				 PCI_VNDR_HEADER_REV(vh),
-				 PCI_VNDR_HEADER_LEN(vh));
-			if ((PCI_VNDR_HEADER_ID(vh) == XLNX_XVC_VSEC_ID) &&
-			    (PCI_VNDR_HEADER_LEN(vh) == XLNX_XVC_CAP_SIZE))
-				break;
+				 PCI_EXT_CAP_ID(cap),
+				 PCI_EXT_CAP_VER(cap),
+				 PCI_EXT_CAP_NEXT(cap));
+			if (PCI_EXT_CAP_ID(cap) == PCI_EXT_CAP_ID_VNDR) {
+				err = xlnx_pcie_xvc_read_reg(XLNX_XVC_VSEC_HDR, &vh);
+				if (err != ERROR_OK)
+					return err;
+				LOG_DEBUG("Checking possible match at 0x%x; id: 0x%" PRIx32 "; rev: 0x%" PRIx32 "; length: 0x%" PRIx32,
+					 xlnx_pcie_xvc->offset,
+					 PCI_VNDR_HEADER_ID(vh),
+					 PCI_VNDR_HEADER_REV(vh),
+					 PCI_VNDR_HEADER_LEN(vh));
+				if ((PCI_VNDR_HEADER_ID(vh) == XLNX_XVC_VSEC_ID) &&
+					(PCI_VNDR_HEADER_LEN(vh) == XLNX_XVC_CAP_SIZE))
+					break;
+			}
+			xlnx_pcie_xvc->offset = PCI_EXT_CAP_NEXT(cap);
 		}
-		xlnx_pcie_xvc->offset = PCI_EXT_CAP_NEXT(cap);
-	}
-	if ((xlnx_pcie_xvc->offset > PCI_CFG_SPACE_EXP_SIZE - XLNX_XVC_CAP_SIZE) ||
-	     xlnx_pcie_xvc->offset < PCIE_EXT_CAP_LST) {
-		close(xlnx_pcie_xvc->fd);
-		return ERROR_JTAG_INIT_FAILED;
-	}
+		if ((xlnx_pcie_xvc->offset > PCI_CFG_SPACE_EXP_SIZE - XLNX_XVC_CAP_SIZE) ||
+			 xlnx_pcie_xvc->offset < PCIE_EXT_CAP_LST) {
+			close(xlnx_pcie_xvc->fd);
+			return ERROR_JTAG_INIT_FAILED;
+		}
 
-	LOG_INFO("Found Xilinx XVC/PCIe capability at offset: 0x%x", xlnx_pcie_xvc->offset);
+		LOG_INFO("Found Xilinx XVC/PCIe capability at offset: 0x%x", xlnx_pcie_xvc->offset);
 
-	return ERROR_OK;
+		return ERROR_OK;
+
+	} else if (MODE == MODE_MMAP) {
+
+		int fd_uio;
+		fd_uio = open(xlnx_pcie_xvc->device, O_RDWR);
+		if (fd_uio < 1) {
+			LOG_ERROR("Failed to open device: %s\n", xlnx_pcie_xvc->device);
+			return ERROR_JTAG_INIT_FAILED;
+		}
+
+		ptr = (volatile axi_jtag_t *) mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd_uio, 0);
+		if (ptr == MAP_FAILED) {
+			LOG_ERROR("MMAP Failed\n");
+			return ERROR_JTAG_INIT_FAILED;
+		}
+		close(fd_uio);
+		LOG_INFO("Found Xilinx XVC/PCIe capability at offset: 0x%x", xlnx_pcie_xvc->offset);
+
+		return ERROR_OK;
+
+	} else {			/* (TODO: add support for IOCTL variant and ETH MODE) */
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	}
 }
 
 static int xlnx_pcie_xvc_quit(void)
 {
-	int err;
+	if (MODE == MODE_PCI) {
+		int err;
+		err = close(xlnx_pcie_xvc->fd);
+		if (err)
+			return err;
 
-	err = close(xlnx_pcie_xvc->fd);
-	if (err)
-		return err;
+	} else if (MODE == MODE_MMAP) {
+		munmap((void *) ptr, MAP_SIZE_AXI);
+	}
 
 	return ERROR_OK;
 }
@@ -454,9 +521,25 @@ COMMAND_HANDLER(xlnx_pcie_xvc_handle_config_command)
 	 * limit the memory we're leaking by freeing the old one first
 	 * before allocating a new one ...
 	 */
-	free(xlnx_pcie_xvc->device);
+
+	if (xlnx_pcie_xvc->device)
+		free(xlnx_pcie_xvc->device);
 
 	xlnx_pcie_xvc->device = strdup(CMD_ARGV[0]);
+	return ERROR_OK;
+}
+
+COMMAND_HANDLER(xlnx_pcie_xvc_handle_ismmapdevice_command)
+{
+	int flag = 0;
+	if (CMD_ARGC != 1)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	COMMAND_PARSE_NUMBER(int, CMD_ARGV[0], flag);
+	if (flag != 0) {
+		MODE = MODE_MMAP;
+		command_print(CMD, "Memory mapped XVC device, path = %s", xlnx_pcie_xvc->device);
+	}
 	return ERROR_OK;
 }
 
@@ -465,8 +548,16 @@ static const struct command_registration xlnx_pcie_xvc_command_handlers[] = {
 		.name = "xlnx_pcie_xvc_config",
 		.handler = xlnx_pcie_xvc_handle_config_command,
 		.mode = COMMAND_CONFIG,
-		.help = "Configure XVC/PCIe JTAG adapter",
+		.help = "Configure XVC JTAG adapter (supply full device path in case of memory mapped device)",
 		.usage = "device",
+	},
+	{
+		.name = "xlnx_pcie_xvc_is_mmap_device",
+		.handler = &xlnx_pcie_xvc_handle_ismmapdevice_command,
+		.mode = COMMAND_CONFIG,
+		.help =	"Set to 1 when the XVC device is not attached via PCIe, \
+				but available via mmap (e.g. an UIO device attached to the AXI bus)",
+		.usage = "devoffset_in_mmapped_space",
 	},
 	COMMAND_REGISTRATION_DONE
 };
