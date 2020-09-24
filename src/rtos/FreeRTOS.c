@@ -185,7 +185,7 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 	retval = target_read_u32(rtos->target,
 			rtos->symbols[FreeRTOS_VAL_uxCurrentNumberOfTasks].address,
 			&thread_list_size);
-	LOG_DEBUG("FreeRTOS: Read uxCurrentNumberOfTasks at 0x%" PRIx64 ", value %" PRIu32 "\r\n",
+	LOG_DEBUG("FreeRTOS: Read uxCurrentNumberOfTasks at 0x%" PRIx64 ", value %" PRIu32,
 										rtos->symbols[FreeRTOS_VAL_uxCurrentNumberOfTasks].address,
 										thread_list_size);
 
@@ -207,7 +207,7 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 		return retval;
 	}
 	rtos->current_thread = pointer_casts_are_bad;
-	LOG_DEBUG("FreeRTOS: Read pxCurrentTCB at 0x%" PRIx64 ", value 0x%" PRIx64 "\r\n",
+	LOG_DEBUG("FreeRTOS: Read pxCurrentTCB at 0x%" PRIx64 ", value 0x%" PRIx64,
 										rtos->symbols[FreeRTOS_VAL_pxCurrentTCB].address,
 										rtos->current_thread);
 
@@ -255,7 +255,7 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 			&top_used_priority);
 	if (retval != ERROR_OK)
 		return retval;
-	LOG_DEBUG("FreeRTOS: Read uxTopUsedPriority at 0x%" PRIx64 ", value %" PRIu32 "\r\n",
+	LOG_DEBUG("FreeRTOS: Read uxTopUsedPriority at 0x%" PRIx64 ", value %" PRIu32,
 										rtos->symbols[FreeRTOS_VAL_uxTopUsedPriority].address,
 										top_used_priority);
 	if (top_used_priority > FREERTOS_MAX_PRIORITIES) {
@@ -303,7 +303,7 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 			free(list_of_lists);
 			return retval;
 		}
-		LOG_DEBUG("FreeRTOS: Read thread count for list %u at 0x%" PRIx64 ", value %" PRIu32 "\r\n",
+		LOG_DEBUG("FreeRTOS: Read thread count for list %u at 0x%" PRIx64 ", value %" PRIu32,
 										i, list_of_lists[i], list_thread_count);
 
 		if (list_thread_count == 0)
@@ -320,7 +320,7 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 			free(list_of_lists);
 			return retval;
 		}
-		LOG_DEBUG("FreeRTOS: Read first item for list %u at 0x%" PRIx64 ", value 0x%" PRIx32 "\r\n",
+		LOG_DEBUG("FreeRTOS: Read first item for list %u at 0x%" PRIx64 ", value 0x%" PRIx32,
 										i, list_of_lists[i] + param->list_next_offset, list_elem_ptr);
 
 		while ((list_thread_count > 0) && (list_elem_ptr != 0) &&
@@ -337,7 +337,7 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 				return retval;
 			}
 			rtos->thread_details[tasks_found].threadid = pointer_casts_are_bad;
-			LOG_DEBUG("FreeRTOS: Read Thread ID at 0x%" PRIx32 ", value 0x%" PRIx64 "\r\n",
+			LOG_DEBUG("FreeRTOS: Read Thread ID at 0x%" PRIx32 ", value 0x%" PRIx64,
 										list_elem_ptr + param->list_elem_content_offset,
 										rtos->thread_details[tasks_found].threadid);
 
@@ -357,7 +357,7 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 				return retval;
 			}
 			tmp_str[FREERTOS_THREAD_NAME_STR_SIZE-1] = '\x00';
-			LOG_DEBUG("FreeRTOS: Read Thread Name at 0x%" PRIx64 ", value \"%s\"\r\n",
+			LOG_DEBUG("FreeRTOS: Read Thread Name at 0x%" PRIx64 ", value '%s'",
 										rtos->thread_details[tasks_found].threadid + param->thread_name_offset,
 										tmp_str);
 
@@ -391,7 +391,7 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 				free(list_of_lists);
 				return retval;
 			}
-			LOG_DEBUG("FreeRTOS: Read next thread location at 0x%" PRIx32 ", value 0x%" PRIx32 "\r\n",
+			LOG_DEBUG("FreeRTOS: Read next thread location at 0x%" PRIx32 ", value 0x%" PRIx32,
 										prev_list_elem_ptr + param->list_elem_next_offset,
 										list_elem_ptr);
 		}
@@ -430,7 +430,7 @@ static int FreeRTOS_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 		return retval;
 	}
 	stack_ptr = pointer_casts_are_bad;
-	LOG_DEBUG("FreeRTOS: Read stack pointer at 0x%" PRIx64 ", value 0x%" PRIx64 "\r\n",
+	LOG_DEBUG("FreeRTOS: Read stack pointer at 0x%" PRIx64 ", value 0x%" PRIx64,
 										thread_id + param->thread_stack_offset,
 										stack_ptr);
 
@@ -463,7 +463,7 @@ static int FreeRTOS_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 				stack_ptr + 0x20,
 				&LR_svc);
 		if (retval != ERROR_OK) {
-			LOG_OUTPUT("Error reading stack frame from FreeRTOS thread\r\n");
+			LOG_OUTPUT("Error reading stack frame from FreeRTOS thread");
 			return retval;
 		}
 		if ((LR_svc & 0x10) == 0)
