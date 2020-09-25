@@ -703,6 +703,10 @@ static int ftdi_quit(void)
 
 	free(swd_cmd_queue);
 
+	ftdi_device_desc = NULL;
+	ftdi_serial = NULL;
+	swd_cmd_queue = NULL;
+
 	return ERROR_OK;
 }
 

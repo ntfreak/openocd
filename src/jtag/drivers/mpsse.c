@@ -399,6 +399,9 @@ error:
 
 void mpsse_close(struct mpsse_ctx *ctx)
 {
+	if (!ctx)
+		return;
+
 	if (ctx->usb_dev)
 		libusb_close(ctx->usb_dev);
 	if (ctx->usb_ctx)

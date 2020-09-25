@@ -1651,12 +1651,15 @@ int jtag_init_inner(struct command_context *cmd_ctx)
 
 int adapter_quit(void)
 {
-	if (jtag && jtag->quit) {
+	if (adapter_driver && adapter_driver->quit) {
 		/* close the JTAG interface */
-		int result = jtag->quit();
+		int result = adapter_driver->quit();
 		if (ERROR_OK != result)
 			LOG_ERROR("failed: %d", result);
 	}
+
+	adapter_driver = NULL;
+	jtag = NULL;
 
 	struct jtag_tap *t = jtag_all_taps();
 	while (t) {
