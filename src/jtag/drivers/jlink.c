@@ -1269,8 +1269,7 @@ static uint32_t calculate_trace_buffer_size(void)
 static bool calculate_swo_prescaler(unsigned int traceclkin_freq,
 		uint32_t trace_freq, uint16_t *prescaler)
 {
-	unsigned int presc;
-	presc = DIV_ROUND_UP(traceclkin_freq, trace_freq);
+	unsigned int presc = (traceclkin_freq + trace_freq / 2) / trace_freq;
 	if (presc > TPIU_ACPR_MAX_SWOSCALER)
 		return false;
 
