@@ -822,7 +822,7 @@ static int gd32e23x_probe(struct flash_bank *bank)
 
 	/* set page size, protection granularity and max flash size depending on family */
 	switch (device_id & 0xfff) {
-	case 0x410: 
+	case 0x410:
 		page_size = 1024;
 		gd32e23x_info->ppage_size = 4;
 		max_flash_size_in_kb = 64;
