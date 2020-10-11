@@ -38,6 +38,7 @@
 #include <pld/pld.h>
 #include <target/arm_cti.h>
 #include <target/arm_adi_v5.h>
+#include <target/arm_tpiu_swo.h>
 
 #include <server/server.h>
 #include <server/gdb_server.h>
@@ -171,6 +172,10 @@ COMMAND_HANDLER(handle_init_command)
 		return ERROR_FAIL;
 	command_context_mode(CMD_CTX, COMMAND_EXEC);
 
+	/* in COMMAND_EXEC, after target_examine(), only tpiu or only swo */
+	if (command_run_line(CMD_CTX, "tpiu init") != ERROR_OK)
+		return ERROR_FAIL;
+
 	/* initialize telnet subsystem */
 	gdb_target_add_all(all_targets);
 
@@ -252,6 +257,7 @@ static struct command_context *setup_command_handler(Jim_Interp *interp)
 		&pld_register_commands,
 		&cti_register_commands,
 		&dap_register_commands,
+		&arm_tpiu_swo_register_commands,
 		NULL
 	};
 	for (unsigned i = 0; NULL != command_registrants[i]; i++) {
@@ -349,6 +355,7 @@ int openocd_main(int argc, char *argv[])
 
 	flash_free_all_banks();
 	gdb_service_free();
+	arm_tpiu_swo_cleanup_all();
 	server_free();
 
 	unregister_all_commands(cmd_ctx, NULL);

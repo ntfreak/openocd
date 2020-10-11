@@ -9328,6 +9328,132 @@ Selects whether interrupts will be processed when single stepping
 @cindex ITM
 @cindex ETM
 
+ARM CoreSight provides independent HW blocks named TPIU and SWO each with its
+own functionality. Embedded in Cortex-M3 and M4, ARM provides an optional HW
+block that includes both TPIU and SWO functionalities and is again named TPIU,
+which causes quite some confusion.
+The registers map of all the TPIU and SWO implementations allows using a single
+driver that detects at runtime the features available.
+
+The @command{tpiu} is used for either TPIU or SWO.
+A convenient alias @command{swo} is available to help distinguish, in scripts,
+the commands for SWO from the commands for TPIU.
+
+@deffn Command {swo} ...
+Alias of @command{tpiu ...}. Can be used in scripts to distinguish the commands
+for SWO from the commands for TPIU.
+@end deffn
+
+@deffn Command {tpiu create} tpiu_name configparams...
+Creates a TPIU or a SWO object. The two commands are equivalent.
+Add the object in a list and add new commands (@command{@var{tpiu_name}})
+which are used for various purposes including additional configuration.
+
+@itemize @bullet
+@item @var{tpiu_name} -- the name of the TPIU or SWO object.
+This name is also used to create the object's command, referred to here
+as @command{$tpiu_name}, and in other places where the TPIU or SWO needs to be identified.
+@item @var{configparams} -- all parameters accepted by @command{$tpiu_name configure} are permitted.
+
+You @emph{must} set here the AP and MEM_AP base_address through @code{-dap @var{dap_name}},
+@code{-ap-num @var{ap_number}} and @code{-baseaddr @var{base_address}}.
+@end itemize
+@end deffn
+
+@deffn Command {tpiu names}
+Lists all the TPIU or SWO objects created so far. The two commands are equivalent.
+@end deffn
+
+@deffn Command {tpiu init}
+Initialize all registered TPIU and SWO. The two commands are equivalent.
+These commands are used internally during initialization. They can be issued
+at any time after the initialization, too.
+@end deffn
+
+@deffn Command {$tpiu_name cget} queryparm
+Each configuration parameter accepted by @command{$tpiu_name configure} can be
+individually queried, to return its current value.
+The @var{queryparm} is a parameter name accepted by that command, such as @code{-dap}.
+@end deffn
+
+@deffn Command {$tpiu_name configure} configparams...
+The options accepted by this command may also be specified as parameters
+to @command{tpiu create}. Their values can later be queried one at a time by
+using the @command{$tpiu_name cget} command.
+
+@itemize @bullet
+@item @code{-dap} @var{dap_name} -- names the DAP used to access this
+TPIU. @xref{dapdeclaration,,DAP declaration}, on how to create and manage DAP instances.
+
+@item @code{-ap-num} @var{ap_number} -- sets DAP access port for TPIU,
+@var{ap_number} is the numeric index of the DAP AP the TPIU is connected to.
+
+@item @code{-baseaddr} @var{base_address} -- sets the TPIU @var{base_address} where
+to access the TPIU in the DAP AP memory space.
+
+@item @code{-protocol} (@option{sync}|@option{uart}|@option{manchester}) -- sets the
+protocol used for trade data:
+@itemize @minus
+@item @option{sync} -- synchronous parallel trace output mode, using @var{port_width}
+ data bits (default);
+@item @option{uart} -- use asynchronous SWO mode with NRZ (same as regular UART 8N1) coding;
+@item @option{manchester} -- use asynchronous SWO mode with Manchester coding.
+@end itemize
+
+@item @code{-event} @var{event_name} @var{event_body} -- assigns an event handler,
+a TCL string which is evaluated when the event is triggered. The events
+@code{pre-enable}, @code{post-enable}, @code{pre-disable} and @code{post-disable}
+are defined for TPIU/SWO.
+
+@item @code{-output} (@option{external}|@var{filename}|@option{-}) -- specifies
+the destination of the trace data:
+@itemize @minus
+@item @option{external} -- configure TPIU/SWO to let user capture trace
+output externally, either with an additional UART or with a logic analyzer (default);
+@item @option{-} -- configure TPIU/SWO and debug adapter to gather trace data
+and forward it to @command{tcl_trace} command;
+@item @option{:}@var{port} -- configure TPIU/SWO and debug adapter to gather
+trace data, open a TCP server at port @var{port} and send the trace data to
+each connected client;
+@item @var{filename} -- configure TPIU/SWO and debug adapter to
+gather trace data and append it to @var{filename}, which can be
+either a regular file or a named pipe.
+@end itemize
+
+@item @code{-traceclk} @var{TRACECLKIN_freq} -- mandatory parameter.
+Specifies the frequency in Hz of the trace clock. For protocol @option{sync}
+this is twice the frequency of the pin data rate.
+
+@item @code{-pin-freq} @var{trace_freq} -- specifies the expected data rate
+in Hz of the SWO pin. Parameter used only on protocols @option{uart} and
+@option{manchester}.
+
+@item @code{-port-width} @var{port_width} -- sets to @var{port_width} the width
+of the synchronous parallel port used for trace output. Parameter used only on
+protocol @option{sync}. If not specified, default value is @var{1}.
+
+@item @code{-formatter} (@option{0}|@option{1}) -- specifies if the formatter
+should be enabled. Parameter used only on protocol @option{sync}. If not specified,
+default value is @var{0}.
+
+@deffn Command {$tpiu_name enable}
+Uses the parameters specified by the previous @command{$tpiu_name configure}
+to configure and enable the TPIU or the SWO.
+If required, the adapter is also configured and enabled to receive the trace
+data.
+This command can be used before @command{init}, but it will take effect only
+after the @command{init}.
+@end deffn
+
+@deffn Command {$tpiu_name disable}
+Disable the TPIU or the SWO, terminating the receiving of the trace data.
+@end deffn
+
+@end itemize
+@end deffn
+
+TODO: remove the old tpiu commands
+
 @deffn Command {tpiu config} (@option{disable} | ((@option{external} | @option{internal (@var{filename} | @var{:port} | -)}) @
                (@option{sync @var{port_width}} | ((@option{manchester} | @option{uart}) @var{formatter_enable})) @
                @var{TRACECLKIN_freq} [@var{trace_freq}]))
