@@ -1602,6 +1602,128 @@ int adiv5_verify_config(struct adiv5_private_config *pc)
 	return ERROR_OK;
 }
 
+struct adiv5_mem_ap_spot *adiv5_mem_ap_spot_alloc(void)
+{
+	struct adiv5_mem_ap_spot *p = calloc(1, sizeof(struct adiv5_private_config));
+	if (!p) {
+		LOG_ERROR("Out of memory");
+		return NULL;
+	}
+	p->ap_num = DP_APSEL_INVALID;
+	return p;
+}
+
+int adiv5_mem_ap_spot_init(struct adiv5_mem_ap_spot *p)
+{
+	p->dap = NULL;
+	p->ap_num = DP_APSEL_INVALID;
+	p->address = 0;
+	return ERROR_OK;
+}
+
+enum adiv5_mem_ap_spot_cfg_param {
+	MEM_AP_SPOT_CFG_DAP,
+	MEM_AP_SPOT_CFG_AP_NUM,
+	MEM_AP_SPOT_CFG_AP_ADDR,
+};
+
+static const Jim_Nvp nvp_mem_ap_spot_config_opts[] = {
+	{ .name = "-dap",     .value = MEM_AP_SPOT_CFG_DAP },
+	{ .name = "-ap-num",  .value = MEM_AP_SPOT_CFG_AP_NUM },
+	{ .name = "-address", .value = MEM_AP_SPOT_CFG_AP_ADDR },
+	{ .name = NULL,       .value = -1 },
+};
+
+int adiv5_jim_mem_ap_spot_configure(struct adiv5_mem_ap_spot *cfg,
+		Jim_GetOptInfo *goi)
+{
+	if (!goi->argc)
+		return JIM_OK;
+
+	Jim_SetEmptyResult(goi->interp);
+
+	Jim_Nvp *n;
+	int e = Jim_Nvp_name2value_obj(goi->interp, nvp_mem_ap_spot_config_opts,
+				goi->argv[0], &n);
+	if (e != JIM_OK)
+		return JIM_CONTINUE;
+	e = Jim_GetOpt_Obj(goi, NULL);
+	if (e != JIM_OK)
+		return e;
+
+	switch (n->value) {
+	case MEM_AP_SPOT_CFG_DAP:
+		if (goi->isconfigure) {
+			Jim_Obj *o_t;
+			struct adiv5_dap *dap;
+			e = Jim_GetOpt_Obj(goi, &o_t);
+			if (e != JIM_OK)
+				return e;
+			dap = dap_instance_by_jim_obj(goi->interp, o_t);
+			if (!dap) {
+				Jim_SetResultString(goi->interp, "DAP name invalid!", -1);
+				return JIM_ERR;
+			}
+			if (cfg->dap && cfg->dap != dap) {
+				Jim_SetResultString(goi->interp,
+					"DAP assignment cannot be changed!", -1);
+				return JIM_ERR;
+			}
+			cfg->dap = dap;
+		} else {
+			if (goi->argc)
+				goto err_no_param;
+			if (!cfg->dap) {
+				Jim_SetResultString(goi->interp, "DAP not configured", -1);
+				return JIM_ERR;
+			}
+			Jim_SetResultString(goi->interp, adiv5_dap_name(cfg->dap), -1);
+		}
+		break;
+
+	case MEM_AP_SPOT_CFG_AP_NUM:
+		if (goi->isconfigure) {
+			jim_wide ap_num;
+			e = Jim_GetOpt_Wide(goi, &ap_num);
+			if (e != JIM_OK)
+				return e;
+			if (ap_num < 0 || ap_num > DP_APSEL_MAX) {
+				Jim_SetResultString(goi->interp, "Invalid AP number!", -1);
+				return JIM_ERR;
+			}
+			cfg->ap_num = ap_num;
+		} else {
+			if (goi->argc)
+				goto err_no_param;
+			if (cfg->ap_num == DP_APSEL_MAX) {
+				Jim_SetResultString(goi->interp, "AP number not configured", -1);
+				return JIM_ERR;
+			}
+			Jim_SetResult(goi->interp, Jim_NewIntObj(goi->interp, cfg->ap_num));
+		}
+		break;
+
+	case MEM_AP_SPOT_CFG_AP_ADDR:
+		if (goi->isconfigure) {
+			jim_wide addr;
+			e = Jim_GetOpt_Wide(goi, &addr);
+			if (e != JIM_OK)
+				return e;
+			cfg->address = (uint32_t)addr;
+		} else {
+			if (goi->argc)
+				goto err_no_param;
+			Jim_SetResult(goi->interp, Jim_NewIntObj(goi->interp, cfg->address));
+		}
+		break;
+	};
+
+	return JIM_OK;
+
+err_no_param:
+	Jim_WrongNumArgs(goi->interp, goi->argc, goi->argv, "NO PARAMS");
+	return JIM_ERR;
+}
 
 COMMAND_HANDLER(handle_dap_info_command)
 {
