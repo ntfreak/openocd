@@ -112,6 +112,7 @@ ARM_DEBUG_SRC = \
 	%D%/etm.c \
 	$(OOCD_TRACE_FILES) \
 	%D%/etm_dummy.c \
+	%D%/arm_tpiu_swo.c \
 	%D%/arm_cti.c
 
 AVR32_SRC = \
@@ -213,6 +214,7 @@ ARC_SRC = \
 	%D%/etb.h \
 	%D%/etm.h \
 	%D%/etm_dummy.h \
+	%D%/arm_tpiu_swo.h \
 	%D%/image.h \
 	%D%/mips32.h \
 	%D%/mips64.h \
