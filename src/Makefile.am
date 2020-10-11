@@ -54,7 +54,8 @@ endif
 	%D%/server/libserver.la \
 	%D%/rtos/librtos.la \
 	%D%/helper/libhelper.la \
-	%D%/rtt/librtt.la
+	%D%/rtt/librtt.la \
+	%D%/ipdbg/libipdbg.la
 
 BIN2C = $(srcdir)/%D%/helper/bin2char.sh
 
@@ -85,3 +86,4 @@ include %D%/server/Makefile.am
 include %D%/flash/Makefile.am
 include %D%/pld/Makefile.am
 include %D%/rtt/Makefile.am
+include %D%/ipdbg/Makefile.am
