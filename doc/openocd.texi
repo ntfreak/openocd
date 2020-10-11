@@ -10585,6 +10585,49 @@ If @emph{xsvfdump} shows a file is using those opcodes, it
 probably will not be usable with other XSVF tools.
 
 
+@section IPDBG: JTAG-Host server
+@cindex IPDBG JTAG-Host server
+@cindex IPDBG
+
+IPDBG is a set of tools to debug IP-Cores. It comprises, among others, a logic analyzer and an arbitrary
+waveform generator. These are synthesize-able hardware descriptions of
+logic circuits in addition to software for control, visualization and further analysis.
+In a session using JTAG for its transport protocol, OpenOCD supports the function
+of a JTAG-Host. The JTAG-Host is needed to connect the circuit over JTAG to the
+control-software. For more details see @url{http://ipdbg.org}.
+
+@deffn {Command} {ipdbg} [@option{-start|-stop}] @option{-tap @var{tapname}} @option{-hub @var{ir_value} [@var{dr_length}]} [@option{-port @var{number}}] [@option{-tool @var{number}}] [@option{-vir [@var{vir_value} [@var{length} [@var{instr_code}]]]}]
+Starts or stops a IPDBG JTAG-Host server. Arguments can be specified in any order.
+
+Command options:
+@itemize @bullet
+@item @option{-start|-stop} starts or stops a IPDBG JTAG-Host server (default: start).
+@item @option{-tap @var{tapname}} targeting the TAP @var{tapname}.
+@item @option{-hub @var{ir_value}} states that the JTAG hub is
+reachable with dr-scans while the JTAG instruction register has the value @var{ir_value}.
+@item @option{-port @var{number}} tcp port number where the JTAG-Host is listening.
+@item @option{-tool @var{number}} number of the tool/feature. These corresponds to the ports "data_(up/down)_(0..6)" at the JtagHub.
+@item @option{-vir [@var{vir_value} [@var{length} [@var{instr_code}]]]} On some devices, the user data-register is only reachable if there is a
+specific value in a second dr. This second dr is called vir (virtual ir). With this parameter given, the IPDBG satisfies this condition prior an
+access to the IPDBG-Hub. The value shifted into the vir is given by the first parameter @var{vir_value} (default: 0x11). The second
+parameter @var{length} is the length of the vir data register (default: 5). With the @var{instr_code} (default: 0x00e) parameter the ir value to
+shift data through vir can be configured.
+@end itemize
+@end deffn
+
+Examples:
+@example
+ipdbg -start -tap xc6s.tap -hub 0x02 -port 4242 -tool 4
+@end example
+Starts a server listening on tcp-port 4242 which connects to tool 4.
+The connection is through the TAP of a Xilinx Spartan 6 on USER1 instruction (tested with a papillion pro board).
+
+@example
+ipdbg -start -tap 10m50.tap -hub 0x00C -vir -port 60000 -tool 1
+@end example
+Starts a server listening on tcp-port 60000 which connects to tool 1 (data_up_1/data_down_1).
+The connection is through the TAP of a Intel MAX10 virtual jtag component (sld_instance_index is 0; sld_ir_width is smaller than 5).
+
 @node Utility Commands
 @chapter Utility Commands
 @cindex Utility Commands

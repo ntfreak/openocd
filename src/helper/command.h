@@ -427,6 +427,48 @@ DECLARE_PARSE_WRAPPER(_target_addr, target_addr_t);
 	COMMAND_PARSE_NUMBER(target_addr, in, out)
 
 /**
+ * @brief parses the command argument at position @a argn into @a out
+ * as a @a type, or prints a command error referring to @a name_str
+ * and passes the error code to the caller. @a argn will be incremented
+ * if no error occurred. Otherwise the calling function will return
+ * the error code produced by the parsing function.
+ *
+ * This function may cause the calling function to return immediately,
+ * so it should be used carefully to avoid leaking resources.  In most
+ * situations, parsing should be completed in full before proceeding
+ * to allocate resources, and this strategy will most prevents leaks.
+ */
+#define COMMAND_PARSE_ADDITIONAL_NUMBER(type, argn, out, name_str) \
+	do { \
+		if (argn+1 >= CMD_ARGC || CMD_ARGV[argn+1][0] == '-') { \
+			command_print(CMD, "no " name_str " given"); \
+			return ERROR_FAIL; \
+		} \
+		++argn; \
+		COMMAND_PARSE_NUMBER(type, CMD_ARGV[argn], out); \
+	} while (0)
+
+/**
+ * @brief parses the command argument at position @a argn into @a out
+ * as a @a type if the argument @a argn does not start with '-'.
+ * and passes the error code to the caller. @a argn will be incremented
+ * if no error occurred. Otherwise the calling function will return
+ * the error code produced by the parsing function.
+ *
+ * This function may cause the calling function to return immediately,
+ * so it should be used carefully to avoid leaking resources.  In most
+ * situations, parsing should be completed in full before proceeding
+ * to allocate resources, and this strategy will most prevents leaks.
+ */
+#define COMMAND_PARSE_OPTIONAL_NUMBER(type, argn, out) \
+	do { \
+		if (argn+1 < CMD_ARGC && CMD_ARGV[argn+1][0] != '-') { \
+			++argn; \
+			COMMAND_PARSE_NUMBER(type, CMD_ARGV[argn], out); \
+		} \
+	} while (0)
+
+/**
  * Parse the string @c as a binary parameter, storing the boolean value
  * in @c out.  The strings @c on and @c off are used to match different
  * strings for true and false options (e.g. "on" and "off" or

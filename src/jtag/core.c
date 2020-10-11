@@ -45,6 +45,9 @@
 #include "svf/svf.h"
 #include "xsvf/xsvf.h"
 
+/* ipdbg are utilities to debug IP-cores. It uses JTAG for transport. */
+#include "server/ipdbg.h"
+
 /** The number of JTAG queue flushes (for profiling and debugging purposes). */
 static int jtag_flush_queue_count;
 
@@ -1975,7 +1978,12 @@ static int jtag_select(struct command_context *ctx)
 	if (retval != ERROR_OK)
 		return retval;
 
-	return xsvf_register_commands(ctx);
+	retval = xsvf_register_commands(ctx);
+
+	if (retval != ERROR_OK)
+		return retval;
+
+	return ipdbg_register_commands(ctx);
 }
 
 static struct transport jtag_transport = {
