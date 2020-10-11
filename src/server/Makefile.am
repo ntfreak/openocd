@@ -10,7 +10,9 @@ noinst_LTLIBRARIES += %D%/libserver.la
 	%D%/tcl_server.c \
 	%D%/tcl_server.h \
 	%D%/rtt_server.c \
-	%D%/rtt_server.h
+	%D%/rtt_server.h \
+	%D%/ipdbg.c \
+	%D%/ipdbg.h
 
 %C%_libserver_la_CFLAGS = $(AM_CFLAGS)
 if IS_MINGW
