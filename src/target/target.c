@@ -754,6 +754,7 @@ static int jtag_enable_callback(enum jtag_event event, void *priv)
  */
 int target_examine(void)
 {
+	int fail_count = 0;
 	int retval = ERROR_OK;
 	struct target *target;
 
@@ -769,10 +770,12 @@ int target_examine(void)
 			continue;
 
 		retval = target_examine_one(target);
-		if (retval != ERROR_OK)
-			return retval;
+		if (retval != ERROR_OK) {
+			LOG_WARNING("target %s examination failed", target_name(target));
+			fail_count++;
+		}
 	}
-	return retval;
+	return fail_count;
 }
 
 const char *target_type_name(struct target *target)

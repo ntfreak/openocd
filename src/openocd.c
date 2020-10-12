@@ -121,7 +121,7 @@ COMMAND_HANDLER(handle_init_command)
 	if (CMD_ARGC != 0)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
-	int retval;
+	int retval, fail_count;
 	static int initialized;
 	if (initialized)
 		return ERROR_OK;
@@ -156,8 +156,9 @@ COMMAND_HANDLER(handle_init_command)
 		return ERROR_FAIL;
 
 	LOG_DEBUG("Examining targets...");
-	if (target_examine() != ERROR_OK)
-		LOG_DEBUG("target examination failed");
+	fail_count = target_examine();
+	if (fail_count > 0)
+		LOG_DEBUG("Failed to examine %d targets", fail_count);
 
 	command_context_mode(CMD_CTX, COMMAND_CONFIG);
 
