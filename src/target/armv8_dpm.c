@@ -552,6 +552,8 @@ int armv8_dpm_modeswitch(struct arm_dpm *dpm, enum arm_mode mode)
 	unsigned int target_el;
 	enum arm_state core_state;
 	uint32_t cpsr;
+	uint32_t rw = (dpm->dscr >> 10) & 0xF;
+	uint32_t ns = (dpm->dscr >> 18) & 0x1;
 
 	/* restore previous mode */
 	if (mode == ARM_MODE_ANY) {
@@ -574,7 +576,11 @@ int armv8_dpm_modeswitch(struct arm_dpm *dpm, enum arm_mode mode)
 	case ARM_MODE_IRQ:
 	case ARM_MODE_FIQ:
 	case ARM_MODE_SYS:
-		target_el = 1;
+		/* For Secure, EL1 if EL3 is aarch64, EL3 if EL3 is aarch32 */
+		if (ns || (rw & (1 << 3)))
+			target_el = 1;
+		else
+			target_el = 3;
 		break;
 	/*
 	 * TODO: handle ARM_MODE_HYP
@@ -605,8 +611,8 @@ int armv8_dpm_modeswitch(struct arm_dpm *dpm, enum arm_mode mode)
 	} else {
 		core_state = armv8_dpm_get_core_state(dpm);
 		if (core_state != ARM_STATE_AARCH64) {
-			/* cannot do DRPS/ERET when already in EL0 */
-			if (dpm->last_el != 0) {
+			/* cannot do DRPS/ERET when in EL0 or in SYS mode */
+			if (dpm->last_el != 0 && dpm->arm->core_mode != ARM_MODE_SYS) {
 				/* load SPSR with the desired mode and execute DRPS */
 				LOG_DEBUG("SPSR = 0x%08"PRIx32, cpsr);
 				retval = dpm->instr_write_data_r0(dpm,
