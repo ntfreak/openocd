@@ -770,9 +770,9 @@ int target_examine(void)
 
 		retval = target_examine_one(target);
 		if (retval != ERROR_OK)
-			return retval;
+			LOG_WARNING("target %s examination failed", target_name(target));
 	}
-	return retval;
+	return ERROR_OK;
 }
 
 const char *target_type_name(struct target *target)
