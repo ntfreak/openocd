@@ -768,9 +768,11 @@ int target_examine(void)
 		if (target->defer_examine)
 			continue;
 
-		retval = target_examine_one(target);
-		if (retval != ERROR_OK)
-			return retval;
+		int retval2 = target_examine_one(target);
+		if (retval2 != ERROR_OK) {
+			LOG_WARNING("target %s examination failed", target_name(target));
+			retval = retval2;
+		}
 	}
 	return retval;
 }
