@@ -1650,35 +1650,12 @@ static int cortex_m_load_core_reg_u32(struct target *target,
 				  (int)(regsel - ARMV7M_REGSEL_S0), *value);
 			break;
 
-		case ARMV7M_PRIMASK:
-		case ARMV7M_BASEPRI:
-		case ARMV7M_FAULTMASK:
-		case ARMV7M_CONTROL:
-			/* Cortex-M3 packages these four registers as bitfields
-			 * in one Debug Core register.  So say r0 and r2 docs;
-			 * it was removed from r1 docs, but still works.
-			 */
-			cortexm_dap_read_coreregister_u32(target, value, ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL);
+		case ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL:
+			retval = cortexm_dap_read_coreregister_u32(target, value, ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL);
+			if (retval != ERROR_OK)
+				return retval;
 
-			switch (regsel) {
-				case ARMV7M_PRIMASK:
-					*value = buf_get_u32((uint8_t *)value, 0, 1);
-					break;
-
-				case ARMV7M_BASEPRI:
-					*value = buf_get_u32((uint8_t *)value, 8, 8);
-					break;
-
-				case ARMV7M_FAULTMASK:
-					*value = buf_get_u32((uint8_t *)value, 16, 1);
-					break;
-
-				case ARMV7M_CONTROL:
-					*value = buf_get_u32((uint8_t *)value, 24, 3);
-					break;
-			}
-
-			LOG_DEBUG("load from special reg %" PRIu32 " value 0x%" PRIx32 "", regsel, *value);
+			LOG_DEBUG("load from special reg PRIMASK/BASEPRI/FAULTMASK/CONTROL value 0x%" PRIx32, *value);
 			break;
 
 		default:
@@ -1732,37 +1709,10 @@ static int cortex_m_store_core_reg_u32(struct target *target,
 				  (int)(regsel - ARMV7M_REGSEL_S0), value);
 			break;
 
-		case ARMV7M_PRIMASK:
-		case ARMV7M_BASEPRI:
-		case ARMV7M_FAULTMASK:
-		case ARMV7M_CONTROL:
-			/* Cortex-M3 packages these four registers as bitfields
-			 * in one Debug Core register.  So say r0 and r2 docs;
-			 * it was removed from r1 docs, but still works.
-			 */
-			cortexm_dap_read_coreregister_u32(target, &reg, ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL);
-
-			switch (regsel) {
-				case ARMV7M_PRIMASK:
-					buf_set_u32((uint8_t *)&reg, 0, 1, value);
-					break;
-
-				case ARMV7M_BASEPRI:
-					buf_set_u32((uint8_t *)&reg, 8, 8, value);
-					break;
-
-				case ARMV7M_FAULTMASK:
-					buf_set_u32((uint8_t *)&reg, 16, 1, value);
-					break;
-
-				case ARMV7M_CONTROL:
-					buf_set_u32((uint8_t *)&reg, 24, 3, value);
-					break;
-			}
-
+		case ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL:
 			cortexm_dap_write_coreregister_u32(target, reg, ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL);
 
-			LOG_DEBUG("write special reg %" PRIu32 " value 0x%" PRIx32 " ", regsel, value);
+			LOG_DEBUG("write special reg PRIMASK/BASEPRI/FAULTMASK/CONTROL value 0x%" PRIx32, value);
 			break;
 
 		default:
