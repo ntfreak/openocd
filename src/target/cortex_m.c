@@ -56,8 +56,8 @@ static int cortex_m_store_core_reg_u32(struct target *target,
 		uint32_t num, uint32_t value);
 static void cortex_m_dwt_free(struct target *target);
 
-static int cortexm_dap_read_coreregister_u32(struct target *target,
-	uint32_t *value, int regnum)
+static int cortex_m_load_core_reg_u32(struct target *target,
+		uint32_t regsel, uint32_t *value)
 {
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 	int retval;
@@ -71,7 +71,7 @@ static int cortexm_dap_read_coreregister_u32(struct target *target,
 			return retval;
 	}
 
-	retval = mem_ap_write_u32(armv7m->debug_ap, DCB_DCRSR, regnum);
+	retval = mem_ap_write_u32(armv7m->debug_ap, DCB_DCRSR, regsel);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -89,8 +89,8 @@ static int cortexm_dap_read_coreregister_u32(struct target *target,
 	return retval;
 }
 
-static int cortexm_dap_write_coreregister_u32(struct target *target,
-	uint32_t value, int regnum)
+static int cortex_m_store_core_reg_u32(struct target *target,
+		uint32_t regsel, uint32_t value)
 {
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 	int retval;
@@ -108,7 +108,7 @@ static int cortexm_dap_write_coreregister_u32(struct target *target,
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = mem_ap_write_atomic_u32(armv7m->debug_ap, DCB_DCRSR, regnum | DCRSR_WnR);
+	retval = mem_ap_write_atomic_u32(armv7m->debug_ap, DCB_DCRSR, regsel | DCRSR_WnR);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -1608,117 +1608,6 @@ void cortex_m_enable_watchpoints(struct target *target)
 			cortex_m_set_watchpoint(target, watchpoint);
 		watchpoint = watchpoint->next;
 	}
-}
-
-static int cortex_m_load_core_reg_u32(struct target *target,
-		uint32_t regsel, uint32_t *value)
-{
-	int retval;
-
-	switch (regsel) {
-		case ARMV7M_REGSEL_R0 ... ARMV7M_REGSEL_PSP:
-			/* read a normal core register */
-			retval = cortexm_dap_read_coreregister_u32(target, value, regsel);
-
-			if (retval != ERROR_OK) {
-				LOG_ERROR("JTAG failure %i", retval);
-				return ERROR_JTAG_DEVICE_ERROR;
-			}
-			LOG_DEBUG("load from core reg %" PRIu32 " value 0x%" PRIx32 "", regsel, *value);
-			break;
-
-		case ARMV7M_REGSEL_FPSCR:
-			/* Floating-point Status and Registers */
-			retval = target_write_u32(target, DCB_DCRSR, ARMV7M_REGSEL_FPSCR);
-			if (retval != ERROR_OK)
-				return retval;
-			retval = target_read_u32(target, DCB_DCRDR, value);
-			if (retval != ERROR_OK)
-				return retval;
-			LOG_DEBUG("load from FPSCR  value 0x%" PRIx32, *value);
-			break;
-
-		case ARMV7M_REGSEL_S0 ... ARMV7M_REGSEL_S31:
-			/* Floating-point Status and Registers */
-			retval = target_write_u32(target, DCB_DCRSR, regsel);
-			if (retval != ERROR_OK)
-				return retval;
-			retval = target_read_u32(target, DCB_DCRDR, value);
-			if (retval != ERROR_OK)
-				return retval;
-			LOG_DEBUG("load from FPU reg S%d  value 0x%" PRIx32,
-				  (int)(regsel - ARMV7M_REGSEL_S0), *value);
-			break;
-
-		case ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL:
-			retval = cortexm_dap_read_coreregister_u32(target, value, ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL);
-			if (retval != ERROR_OK)
-				return retval;
-
-			LOG_DEBUG("load from special reg PRIMASK/BASEPRI/FAULTMASK/CONTROL value 0x%" PRIx32, *value);
-			break;
-
-		default:
-			return ERROR_COMMAND_SYNTAX_ERROR;
-	}
-
-	return ERROR_OK;
-}
-
-static int cortex_m_store_core_reg_u32(struct target *target,
-		uint32_t regsel, uint32_t value)
-{
-	int retval;
-	struct armv7m_common *armv7m = target_to_armv7m(target);
-
-	switch (regsel) {
-		case ARMV7M_REGSEL_R0 ... ARMV7M_REGSEL_PSP:
-			retval = cortexm_dap_write_coreregister_u32(target, value, regsel);
-			if (retval != ERROR_OK) {
-				struct reg *r;
-
-				LOG_ERROR("JTAG failure");
-				r = armv7m->arm.core_cache->reg_list + regsel; /* TODO: don't use regsel as register index */
-				r->dirty = r->valid;
-				return ERROR_JTAG_DEVICE_ERROR;
-			}
-			LOG_DEBUG("write core reg %" PRIu32 " value 0x%" PRIx32 "", regsel, value);
-			break;
-
-		case ARMV7M_REGSEL_FPSCR:
-			/* Floating-point Status and Registers */
-			retval = target_write_u32(target, DCB_DCRDR, value);
-			if (retval != ERROR_OK)
-				return retval;
-			retval = target_write_u32(target, DCB_DCRSR, ARMV7M_REGSEL_FPSCR | DCRSR_WnR);
-			if (retval != ERROR_OK)
-				return retval;
-			LOG_DEBUG("write FPSCR value 0x%" PRIx32, value);
-			break;
-
-		case ARMV7M_REGSEL_S0 ... ARMV7M_REGSEL_S31:
-			/* Floating-point Status and Registers */
-			retval = target_write_u32(target, DCB_DCRDR, value);
-			if (retval != ERROR_OK)
-				return retval;
-			retval = target_write_u32(target, DCB_DCRSR, regsel | DCRSR_WnR);
-			if (retval != ERROR_OK)
-				return retval;
-			LOG_DEBUG("write FPU reg S%d  value 0x%" PRIx32,
-				  (int)(regsel - ARMV7M_REGSEL_S0), value);
-			break;
-
-		case ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL:
-			cortexm_dap_write_coreregister_u32(target, value, ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL);
-
-			LOG_DEBUG("write special reg PRIMASK/BASEPRI/FAULTMASK/CONTROL value 0x%" PRIx32, value);
-			break;
-
-		default:
-			return ERROR_COMMAND_SYNTAX_ERROR;
-	}
-
-	return ERROR_OK;
 }
 
 static int cortex_m_read_memory(struct target *target, target_addr_t address,
