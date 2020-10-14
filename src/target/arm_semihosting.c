@@ -275,6 +275,16 @@ int arm_semihosting(struct target *target, int *retval)
 		if (target->debug_reason != DBG_REASON_BREAKPOINT)
 			return 0;
 
+		/* According to ARM Semihosting for AArch32 and AArch64:
+		 * The HLT encodings are new in version 2.0 of the semihosting specification.
+		 * Where possible, have semihosting callers continue to use the previously
+		 * existing trap instructions to ensure compatibility with legacy semihosting
+		 * implementations.
+		 * These trap instructions are HLT for A64, SVC on A+R profile A32 or T32,
+		 * and BKPT on M profile.
+		 * However, it is necessary to change from SVC to HLT instructions to support
+		 * AArch32 semihosting properly in a mixed AArch32/AArch64 system. */
+
 		if (arm->core_state == ARM_STATE_AARCH64) {
 			uint32_t insn = 0;
 			r = arm->pc;
@@ -284,9 +294,37 @@ int arm_semihosting(struct target *target, int *retval)
 			if (*retval != ERROR_OK)
 				return 1;
 
-			/* bkpt 0xAB */
+			/* HLT 0xF000 */
 			if (insn != 0xD45E0000)
 				return 0;
+		} else if (arm->core_state == ARM_STATE_ARM) {
+			uint32_t insn = 0;
+
+			r = arm->pc;
+			pc = buf_get_u32(r->value, 0, 32);
+
+			if (pc & 1 == 0) {
+				/* check for HLT 0xF000 (A32 instruction) */
+				*retval = target_read_u32(target, pc, &insn);
+
+				if (*retval != ERROR_OK)
+					return 1;
+
+				/* HLT 0xF000*/
+				if (insn != 0xE10F0070)
+					return 0;
+			} else {
+				/* check for HLT 0x3C (T32 instruction) */
+				pc &= ~1;
+				*retval = target_read_u16(target, pc, &insn);
+
+				if (*retval != ERROR_OK)
+					return 1;
+
+				/* HLT 0x3C*/
+				if (insn != 0xBABC)
+					return 0;
+			}
 		} else
 			return 1;
 	} else {
