@@ -128,6 +128,16 @@ enum {
 	ARMV7M_PSP = ARMV7M_REGSEL_PSP,
 
 	/* following indices are arbitrary, do not match DCRSR.REGSEL selectors */
+
+	/* working register for packing/unpacking special regs, hidden from gdb */
+	ARMV7M_PMSK_BPRI_FLTMSK_CTRL,
+
+	/* WARNING: If you use armv7m_write_core_reg() on one of 4 following
+	 * special registers, the new data go to ARMV7M_PMSK_BPRI_FLTMSK_CTRL
+	 * cache only and are not flushed to CPU HW register.
+	 * To trigger write to CPU HW register, add
+	 *		armv7m_write_core_reg(,,ARMV7M_PMSK_BPRI_FLTMSK_CTRL,);
+	 */
 	ARMV7M_PRIMASK,
 	ARMV7M_BASEPRI,
 	ARMV7M_FAULTMASK,
