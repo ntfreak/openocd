@@ -1098,13 +1098,6 @@ int armv8_handle_cache_info_command(struct command_invocation *cmd,
 
 static int armv8_setup_semihosting(struct target *target, int enable)
 {
-	struct arm *arm = target_to_arm(target);
-
-	if (arm->core_state != ARM_STATE_AARCH64) {
-		LOG_ERROR("semihosting only supported in AArch64 state\n");
-		return ERROR_FAIL;
-	}
-
 	return ERROR_OK;
 }
 
