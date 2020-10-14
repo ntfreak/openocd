@@ -54,123 +54,65 @@ static int adapter_load_core_reg_u32(struct target *target,
 		uint32_t regsel, uint32_t *value)
 {
 	int retval;
-	struct hl_interface_s *adapter = target_to_adapter(target);
 
-	LOG_DEBUG("%s", __func__);
-
-	/* NOTE:  we "know" here that the register identifiers used
-	 * in the v7m header match the Cortex-M3 Debug Core Register
-	 * Selector values for R0..R15, xPSR, MSP, and PSP.
-	 */
 	switch (regsel) {
-	case ARMV7M_REGSEL_R0 ... ARMV7M_REGSEL_PSP:
+	case ARMV7M_REGSEL_R0 ... ARMV7M_REGSEL_R14:
+	case ARMV7M_REGSEL_PC:
+	case ARMV7M_REGSEL_xPSR:
+	case ARMV7M_REGSEL_MSP:
+	case ARMV7M_REGSEL_PSP:
+	case ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL:
 		/* read a normal core register */
-		retval = adapter->layout->api->read_reg(adapter->handle, regsel, value);
-
-		if (retval != ERROR_OK) {
-			LOG_ERROR("JTAG failure %i", retval);
-			return ERROR_JTAG_DEVICE_ERROR;
+		{
+			struct hl_interface_s *adapter = target_to_adapter(target);
+			retval = adapter->layout->api->read_reg(adapter->handle, regsel, value);
 		}
-		LOG_DEBUG("load from core reg %" PRIu32 " value 0x%" PRIx32 "", regsel, *value);
-		break;
-
-	case ARMV7M_REGSEL_FPSCR:
-		/* Floating-point Status and Registers */
-		retval = target_write_u32(target, ARMV7M_SCS_DCRSR, regsel);
-		if (retval != ERROR_OK)
-			return retval;
-		retval = target_read_u32(target, ARMV7M_SCS_DCRDR, value);
-		if (retval != ERROR_OK)
-			return retval;
-		LOG_DEBUG("load from FPSCR  value 0x%" PRIx32, *value);
 		break;
 
 	case ARMV7M_REGSEL_S0 ... ARMV7M_REGSEL_S31:
 		/* Floating-point Status and Registers */
+	default:
+		/* this is a safe slow implementation of load reg, should be ok for any
+		 * register not supported by hla adapter api */
 		retval = target_write_u32(target, ARMV7M_SCS_DCRSR, regsel);
 		if (retval != ERROR_OK)
 			return retval;
 		retval = target_read_u32(target, ARMV7M_SCS_DCRDR, value);
-		if (retval != ERROR_OK)
-			return retval;
-		LOG_DEBUG("load from FPU reg S%d  value 0x%" PRIx32,
-			  (int)(regsel - ARMV7M_REGSEL_S0), *value);
-		break;
-
-	case ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL:
-		retval = adapter->layout->api->read_reg(adapter->handle, ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL, value);
-		if (retval != ERROR_OK)
-			return retval;
-
-		LOG_DEBUG("load from special reg PRIMASK/BASEPRI/FAULTMASK/CONTROL value 0x%" PRIx32, *value);
-		break;
-
-	default:
-		return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 
-	return ERROR_OK;
+	return retval;
 }
 
 static int adapter_store_core_reg_u32(struct target *target,
 		uint32_t regsel, uint32_t value)
 {
 	int retval;
-	uint32_t reg;
-	struct armv7m_common *armv7m = target_to_armv7m(target);
-	struct hl_interface_s *adapter = target_to_adapter(target);
-
-	LOG_DEBUG("%s", __func__);
 
 	switch (regsel) {
-	case ARMV7M_REGSEL_R0 ... ARMV7M_REGSEL_PSP:
-		retval = adapter->layout->api->write_reg(adapter->handle, regsel, value);
-
-		if (retval != ERROR_OK) {
-			struct reg *r;
-
-			LOG_ERROR("JTAG failure");
-			r = armv7m->arm.core_cache->reg_list + regsel; /* TODO: don't use regsel as register index */
-			r->dirty = r->valid;
-			return ERROR_JTAG_DEVICE_ERROR;
+	case ARMV7M_REGSEL_R0 ... ARMV7M_REGSEL_R14:
+	case ARMV7M_REGSEL_PC:
+	case ARMV7M_REGSEL_xPSR:
+	case ARMV7M_REGSEL_MSP:
+	case ARMV7M_REGSEL_PSP:
+	case ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL:
+		{
+			struct hl_interface_s *adapter = target_to_adapter(target);
+			retval = adapter->layout->api->write_reg(adapter->handle, regsel, value);
 		}
-		LOG_DEBUG("write core reg %" PRIu32 " value 0x%" PRIx32 "", regsel, value);
-		break;
-
-	case ARMV7M_REGSEL_FPSCR:
-		/* Floating-point Status and Registers */
-		retval = target_write_u32(target, ARMV7M_SCS_DCRDR, value);
-		if (retval != ERROR_OK)
-			return retval;
-		retval = target_write_u32(target, ARMV7M_SCS_DCRSR, ARMV7M_REGSEL_FPSCR | DCRSR_WnR);
-		if (retval != ERROR_OK)
-			return retval;
-		LOG_DEBUG("write FPSCR value 0x%" PRIx32, value);
 		break;
 
 	case ARMV7M_REGSEL_S0 ... ARMV7M_REGSEL_S31:
 		/* Floating-point Status and Registers */
+	default:
+		/* this is a safe slow implementation of store reg, should be ok for any
+		 * register not supported by hla adapter api */
 		retval = target_write_u32(target, ARMV7M_SCS_DCRDR, value);
 		if (retval != ERROR_OK)
 			return retval;
 		retval = target_write_u32(target, ARMV7M_SCS_DCRSR, regsel | DCRSR_WnR);
-		if (retval != ERROR_OK)
-			return retval;
-		LOG_DEBUG("write FPU reg S%d  value 0x%" PRIx32,
-			  (int)(regsel - ARMV7M_REGSEL_S0), value);
-		break;
-
-	case ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL:
-		adapter->layout->api->write_reg(adapter->handle, ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL, reg);
-
-		LOG_DEBUG("write special reg PRIMASK/BASEPRI/FAULTMASK/CONTROL value 0x%" PRIx32, value);
-		break;
-
-	default:
-		return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 
-	return ERROR_OK;
+	return retval;
 }
 
 static int adapter_examine_debug_reason(struct target *target)
