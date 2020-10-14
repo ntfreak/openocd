@@ -3452,7 +3452,7 @@ static int register_get(struct reg *reg)
 		buf_set_u64(reg->value, 0, reg->size, value);
 	}
 	reg->valid = gdb_regno_cacheable(reg->number, false);
-	char *str = buf_to_str(reg->value, reg->size, 16);
+	char *str = buf_to_hex_str(reg->value, reg->size);
 	LOG_DEBUG("[%d]{%d} read 0x%s from %s (valid=%d)", target->coreid,
 			riscv_current_hartid(target), str, reg->name, reg->valid);
 	free(str);
@@ -3465,7 +3465,7 @@ static int register_set(struct reg *reg, uint8_t *buf)
 	struct target *target = reg_info->target;
 	RISCV_INFO(r);
 
-	char *str = buf_to_str(buf, reg->size, 16);
+	char *str = buf_to_hex_str(buf, reg->size);
 	LOG_DEBUG("[%d]{%d} write 0x%s to %s (valid=%d)", target->coreid,
 			riscv_current_hartid(target), str, reg->name, reg->valid);
 	free(str);
