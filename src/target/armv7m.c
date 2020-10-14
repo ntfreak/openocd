@@ -254,6 +254,7 @@ static int armv7m_read_core_reg(struct target *target, struct reg *r,
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 
 	assert(num < (int)armv7m->arm.core_cache->num_regs);
+	assert(num == (int)r->number);
 
 	armv7m_core_reg = armv7m->arm.core_cache->reg_list[num].arch_info;
 
@@ -293,6 +294,7 @@ static int armv7m_write_core_reg(struct target *target, struct reg *r,
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 
 	assert(num < (int)armv7m->arm.core_cache->num_regs);
+	assert(num == (int)r->number);
 
 	armv7m_core_reg = armv7m->arm.core_cache->reg_list[num].arch_info;
 
