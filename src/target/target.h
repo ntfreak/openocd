@@ -211,6 +211,8 @@ struct target {
 
 	char *gdb_port_override;			/* target-specific override for gdb_port */
 
+	int gdb_max_connections;			/* max number of simultaneous gdb connections */
+
 	/* The semihosting information, extracted from the target. */
 	struct semihosting *semihosting;
 };

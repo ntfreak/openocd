@@ -4694,6 +4694,11 @@ possible values of the parameter @var{number}, which are not only numeric values
 Use this option to override, for this target only, the global parameter set with
 command @command{gdb_port}.
 @xref{gdb_port,,command gdb_port}.
+
+@item @code{-gdb-max-connections} @var{number} -- EXPERIMENTAL: set the maximum
+number of GDB connections that are allowed for the target. Default is 1.
+A negative value for @var{number} means unlimited connections.
+See @xref{gdbmeminspect,,Using GDB as a non-intrusive memory inspector}.
 @end itemize
 @end deffn
 
@@ -10606,7 +10611,13 @@ of a running target. Do not use GDB commands @command{continue},
 and GDB would require stopping the target to get the prompt back.
 
 Do not use this mode under an IDE like Eclipse as it caches values of
-previously shown varibles.
+previously shown variables.
+
+It's also possible to connect more than one GDB to the same target by the
+target's configuration option @code{-gdb-max-connections}. This allows, for
+example, one GDB to run a script that continuously polls a set of variables
+while other GDB can be used interactively. Be extremely careful in this case,
+because the two GDB can easily get out-of-sync.
 
 @section RTOS Support
 @cindex RTOS Support

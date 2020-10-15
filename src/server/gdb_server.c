@@ -3508,7 +3508,7 @@ static int gdb_target_start(struct target *target, const char *port)
 	target->gdb_service = gdb_service;
 
 	ret = add_service("gdb",
-			port, 1, &gdb_new_connection, &gdb_input,
+			port, target->gdb_max_connections, &gdb_new_connection, &gdb_input,
 			&gdb_connection_closed, gdb_service);
 	/* initialize all targets gdb service with the same pointer */
 	{
