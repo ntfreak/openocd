@@ -24,7 +24,7 @@ jobs:
           mkdir -p $DL_DIR && cd $DL_DIR
           wget "https://github.com/libusb/libusb/releases/download/v${LIBUSB1_VER}/libusb-${LIBUSB1_VER}.tar.bz2"
           tar -xjf libusb-${LIBUSB1_VER}.tar.bz2
-          echo "::set-env name=LIBUSB1_SRC::$PWD/libusb-${LIBUSB1_VER}"
+          echo "LIBUSB1_SRC=$PWD/libusb-${LIBUSB1_VER}" >> $GITHUB_ENV
       - name: Prepare hidapi
         env:
           HIDAPI_VER: 0.9.0
@@ -34,7 +34,7 @@ jobs:
           tar -xzf hidapi-${HIDAPI_VER}.tar.gz
           cd hidapi-hidapi-${HIDAPI_VER}
           ./bootstrap
-          echo "::set-env name=HIDAPI_SRC::$PWD"
+          echo "HIDAPI_SRC=$PWD" >> $GITHUB_ENV
       - name: Prepare libftdi
         env:
           LIBFTDI_VER: 1.4
@@ -42,7 +42,7 @@ jobs:
           mkdir -p $DL_DIR && cd $DL_DIR
           wget "http://www.intra2net.com/en/developer/libftdi/download/libftdi1-${LIBFTDI_VER}.tar.bz2"
           tar -xjf libftdi1-${LIBFTDI_VER}.tar.bz2
-          echo "::set-env name=LIBFTDI_SRC::$PWD/libftdi1-${LIBFTDI_VER}"
+          echo "LIBFTDI_SRC=$PWD/libftdi1-${LIBFTDI_VER}" >> $GITHUB_ENV
       - name: Package OpenOCD for windows
         env:
           MAKE_JOBS: 2
@@ -67,8 +67,8 @@ jobs:
           # prepare the artifact
           ARTIFACT="openocd-${OPENOCD_TAG}-${HOST}.tar.gz"
           tar -czf $ARTIFACT *
-          echo "::set-env name=ARTIFACT_NAME::$ARTIFACT"
-          echo "::set-env name=ARTIFACT_PATH::$PWD/$ARTIFACT"
+          echo "ARTIFACT_NAME=$ARTIFACT" >> $GITHUB_ENV
+          echo "ARTIFACT_PATH=$PWD/$ARTIFACT" >> $GITHUB_ENV
       - name: Publish OpenOCD packaged for windows
         uses: actions/upload-artifact@v1
         with:
