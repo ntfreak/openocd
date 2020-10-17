@@ -1481,12 +1481,14 @@ enum adiv5_cfg_param {
 	CFG_DAP,
 	CFG_AP_NUM,
 	CFG_BASEADDR,
+	CFG_CTIBASE, /* DEPRECATED */
 };
 
 static const Jim_Nvp nvp_config_opts[] = {
 	{ .name = "-dap",       .value = CFG_DAP },
 	{ .name = "-ap-num",    .value = CFG_AP_NUM },
 	{ .name = "-baseaddr",  .value = CFG_BASEADDR },
+	{ .name = "-ctibase",   .value = CFG_CTIBASE }, /* DEPRECATED */
 	{ .name = NULL, .value = -1 }
 };
 
@@ -1505,7 +1507,7 @@ static int adiv5_jim_spot_configure(Jim_GetOptInfo *goi,
 		return JIM_CONTINUE;
 
 	/* base_p can be NULL, then '-baseaddr' option is treated as unknown */
-	if (!base_p && n->value == CFG_BASEADDR)
+	if (!base_p && (n->value == CFG_BASEADDR || n->value == CFG_CTIBASE))
 		return JIM_CONTINUE;
 
 	e = Jim_GetOpt_Obj(goi, NULL);
@@ -1564,6 +1566,9 @@ static int adiv5_jim_spot_configure(Jim_GetOptInfo *goi,
 		}
 		break;
 
+	case CFG_CTIBASE:
+		LOG_WARNING("DEPRECATED! use \'-baseaddr' not \'-ctibase\'");
+		/* fall through */
 	case CFG_BASEADDR:
 		if (goi->isconfigure) {
 			jim_wide base;
