@@ -373,6 +373,7 @@ static int telnet_input(struct connection *connection)
 	unsigned char *buf_p;
 	struct telnet_connection *t_con = connection->priv;
 	struct command_context *command_context = connection->cmd_ctx;
+	size_t i;
 
 	bytes_read = connection_read(connection, buffer, TELNET_BUFFER_SIZE);
 
@@ -402,7 +403,6 @@ static int telnet_input(struct connection *connection)
 							t_con->line[t_con->line_size++] = *buf_p;
 							t_con->line_cursor++;
 						} else {
-							size_t i;
 							memmove(t_con->line + t_con->line_cursor + 1,
 									t_con->line + t_con->line_cursor,
 									t_con->line_size - t_con->line_cursor);
@@ -494,7 +494,6 @@ static int telnet_input(struct connection *connection)
 						} else if ((*buf_p == 0x7f) || (*buf_p == 0x8)) {	/* delete character */
 							if (t_con->line_cursor > 0) {
 								if (t_con->line_cursor != t_con->line_size) {
-									size_t i;
 									telnet_write(connection, "\b", 1);
 									t_con->line_cursor--;
 									t_con->line_size--;
@@ -538,7 +537,17 @@ static int telnet_input(struct connection *connection)
 							telnet_move_cursor(connection, 0);
 						else if (*buf_p == CTRL('E'))
 							telnet_move_cursor(connection, t_con->line_size);
-						else
+						else if (*buf_p == CTRL('K')) {         /* kill line to end */
+							if (t_con->line_cursor < t_con->line_size) {
+								/* overwrite with space, until end of line, move back */
+								for (i = t_con->line_cursor; i < t_con->line_size; i++)
+									telnet_write(connection, " ", 1);
+								for (i = t_con->line_cursor; i < t_con->line_size; i++)
+									telnet_write(connection, "\b", 1);
+								t_con->line[t_con->line_cursor] = '\0';
+								t_con->line_size = t_con->line_cursor;
+							}
+						} else
 							LOG_DEBUG("unhandled nonprintable: %2.2x", *buf_p);
 					}
 				}
@@ -594,7 +603,6 @@ static int telnet_input(struct connection *connection)
 					/* Remove character */
 					if (*buf_p == '~') {
 						if (t_con->line_cursor < t_con->line_size) {
-							size_t i;
 							t_con->line_size--;
 							/* remove char from line buffer */
 							memmove(t_con->line + t_con->line_cursor,
