@@ -538,7 +538,17 @@ static int telnet_input(struct connection *connection)
 							telnet_move_cursor(connection, 0);
 						else if (*buf_p == CTRL('E'))
 							telnet_move_cursor(connection, t_con->line_size);
-						else
+						else if (*buf_p == CTRL('K')) {         /* kill line to end */
+							if (t_con->line_cursor < t_con->line_size) {
+								/* overwrite with space, until end of line, move back */
+								for (size_t i = t_con->line_cursor; i < t_con->line_size; i++)
+									telnet_write(connection, " ", 1);
+								for (size_t i = t_con->line_cursor; i < t_con->line_size; i++)
+									telnet_write(connection, "\b", 1);
+								t_con->line[t_con->line_cursor] = '\0';
+								t_con->line_size = t_con->line_cursor;
+							}
+						} else
 							LOG_DEBUG("unhandled nonprintable: %2.2x", *buf_p);
 					}
 				}
