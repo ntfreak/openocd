@@ -1,0 +1,8 @@
+Verified+1: jenkins
+Code-Review+1: Pieter De Gendt <pieter.degendt@gmail.com>
+Code-Review+2: Tomas Vanek <vanekt@fbl.cz>
+Submitted-by: Tomas Vanek <vanekt@fbl.cz>
+Submitted-at: Thu, 22 Oct 2020 21:19:59 +0100
+Reviewed-on: http://openocd.zylin.com/5845
+Project: openocd
+Branch: refs/heads/master
