@@ -5671,7 +5671,9 @@ static int jim_target_current(Jim_Interp *interp, int argc, Jim_Obj *const *argv
 	struct command_context *cmd_ctx = current_command_context(interp);
 	assert(cmd_ctx != NULL);
 
-	Jim_SetResultString(interp, target_name(get_current_target(cmd_ctx)), -1);
+	struct target *target = get_current_target_or_null(cmd_ctx);
+	if (target)
+		Jim_SetResultString(interp, target_name(target), -1);
 	return JIM_OK;
 }
 
