@@ -51,10 +51,25 @@ struct hl_layout_api_s {
 	int (*step)(void *handle);
 	/** */
 	int (*read_regs)(void *handle);
-	/** */
-	int (*read_reg)(void *handle, int num, uint32_t *val);
-	/** */
-	int (*write_reg)(void *handle, int num, uint32_t val);
+	/**
+	 * Read one register from the target
+	 *
+	 * @param handle A pointer to the device-specific handle
+	 * @param regsel Register selection index compatible with all the
+	 * values allowed by armv7m DCRSR.REGSEL
+	 * @param val A pointer to retrieve the register value
+	 * @returns ERROR_OK on success, or an error code on failure.
+	 */
+	int (*read_reg)(void *handle, unsigned int regsel, uint32_t *val);
+	/**
+	 * Write one register to the target
+	 * @param handle A pointer to the device-specific handle
+	 * @param regsel Register selection index compatible with all the
+	 * values allowed by armv7m DCRSR.REGSEL
+	 * @param val The value to be written in the register
+	 * @returns ERROR_OK on success, or an error code on failure.
+	 */
+	int (*write_reg)(void *handle, unsigned int regsel, uint32_t val);
 	/** */
 	int (*read_mem)(void *handle, uint32_t addr, uint32_t size,
 			uint32_t count, uint8_t *buffer);

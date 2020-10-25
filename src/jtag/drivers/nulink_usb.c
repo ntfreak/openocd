@@ -411,7 +411,7 @@ static int nulink_usb_step(void *handle)
 	return res;
 }
 
-static int nulink_usb_read_reg(void *handle, int num, uint32_t *val)
+static int nulink_usb_read_reg(void *handle, unsigned int regsel, uint32_t *val)
 {
 	struct nulink_usb_handle_s *h = handle;
 
@@ -434,7 +434,7 @@ static int nulink_usb_read_reg(void *handle, int num, uint32_t *val)
 	h->cmdbuf[h->cmdidx] = 0;
 	h->cmdidx += 1;
 	/* u32Addr */
-	h_u32_to_le(h->cmdbuf + h->cmdidx, num);
+	h_u32_to_le(h->cmdbuf + h->cmdidx, regsel);
 	h->cmdidx += 4;
 	/* u32Data */
 	h_u32_to_le(h->cmdbuf + h->cmdidx, 0);
@@ -450,7 +450,7 @@ static int nulink_usb_read_reg(void *handle, int num, uint32_t *val)
 	return res;
 }
 
-static int nulink_usb_write_reg(void *handle, int num, uint32_t val)
+static int nulink_usb_write_reg(void *handle, unsigned int regsel, uint32_t val)
 {
 	struct nulink_usb_handle_s *h = handle;
 
@@ -473,7 +473,7 @@ static int nulink_usb_write_reg(void *handle, int num, uint32_t val)
 	h->cmdbuf[h->cmdidx] = 0;
 	h->cmdidx += 1;
 	/* u32Addr */
-	h_u32_to_le(h->cmdbuf + h->cmdidx, num);
+	h_u32_to_le(h->cmdbuf + h->cmdidx, regsel);
 	h->cmdidx += 4;
 	/* u32Data */
 	h_u32_to_le(h->cmdbuf + h->cmdidx, val);

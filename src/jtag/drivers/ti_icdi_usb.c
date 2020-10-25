@@ -476,13 +476,13 @@ static int icdi_usb_read_regs(void *handle)
 	return ERROR_OK;
 }
 
-static int icdi_usb_read_reg(void *handle, int num, uint32_t *val)
+static int icdi_usb_read_reg(void *handle, unsigned int regsel, uint32_t *val)
 {
 	int result;
 	struct icdi_usb_handle_s *h = handle;
 	char cmd[10];
 
-	snprintf(cmd, sizeof(cmd), "p%x", num);
+	snprintf(cmd, sizeof(cmd), "p%x", regsel);
 	result = icdi_send_cmd(handle, cmd);
 	if (result != ERROR_OK)
 		return result;
@@ -505,14 +505,14 @@ static int icdi_usb_read_reg(void *handle, int num, uint32_t *val)
 	return result;
 }
 
-static int icdi_usb_write_reg(void *handle, int num, uint32_t val)
+static int icdi_usb_write_reg(void *handle, unsigned int regsel, uint32_t val)
 {
 	int result;
 	char cmd[20];
 	uint8_t buf[4];
 	h_u32_to_le(buf, val);
 
-	int cmd_len = snprintf(cmd, sizeof(cmd), "P%x=", num);
+	int cmd_len = snprintf(cmd, sizeof(cmd), "P%x=", regsel);
 	hexify(cmd + cmd_len, buf, 4, sizeof(cmd));
 
 	result = icdi_send_cmd(handle, cmd);
