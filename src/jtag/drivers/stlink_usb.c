@@ -323,6 +323,9 @@ struct stlink_usb_handle_s {
 
 /* aliases */
 #define STLINK_F_HAS_TARGET_VOLT        STLINK_F_HAS_TRACE
+#define STLINK_F_HAS_FPU_REG            STLINK_F_HAS_GETLASTRWSTATUS2
+
+#define STLINK_REGSEL_IS_FPU(x)         ((x) > 0x1F)
 
 struct speed_map {
 	int speed;
@@ -2022,6 +2025,15 @@ static int stlink_usb_read_reg(void *handle, unsigned int regsel, uint32_t *val)
 
 	assert(handle != NULL);
 
+	if (STLINK_REGSEL_IS_FPU(regsel) && !(h->version.flags & STLINK_F_HAS_FPU_REG)) {
+		res = stlink_usb_write_debug_reg(h, DCB_DCRSR, regsel & 0x7f);
+		if (res != ERROR_OK)
+			return res;
+
+		/* FIXME: poll DHCSR.S_REGRDY before read DCRDR */
+		return stlink_usb_v2_read_debug_reg(h, DCB_DCRDR, val);
+	}
+
 	stlink_usb_init_buffer(handle, h->rx_ep, h->version.jtag_api == STLINK_JTAG_API_V1 ? 4 : 8);
 
 	h->cmdbuf[h->cmdidx++] = STLINK_DEBUG_COMMAND;
@@ -2052,6 +2064,15 @@ static int stlink_usb_write_reg(void *handle, unsigned int regsel, uint32_t val)
 	struct stlink_usb_handle_s *h = handle;
 
 	assert(handle != NULL);
+
+	if (STLINK_REGSEL_IS_FPU(regsel) && !(h->version.flags & STLINK_F_HAS_FPU_REG)) {
+		int res = stlink_usb_write_debug_reg(h, DCB_DCRDR, val);
+		if (res != ERROR_OK)
+			return res;
+
+		return stlink_usb_write_debug_reg(h, DCB_DCRSR, DCRSR_WnR | (regsel & 0x7f));
+		/* FIXME: poll DHCSR.S_REGRDY after write DCRSR */
+	}
 
 	stlink_usb_init_buffer(handle, h->rx_ep, 2);
 
