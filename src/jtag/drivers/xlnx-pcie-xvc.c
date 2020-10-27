@@ -120,7 +120,7 @@ static int xlnx_pcie_xvc_transact(size_t num_bits, uint32_t tms, uint32_t tdi,
 	return ERROR_OK;
 }
 
-int xlnx_pcie_xvc_execute_stableclocks(struct jtag_command *cmd)
+static int xlnx_pcie_xvc_execute_stableclocks(struct jtag_command *cmd)
 {
 	int tms = tap_get_state() == TAP_RESET ? 1 : 0;
 	size_t left = cmd->cmd.stableclocks->num_cycles;
