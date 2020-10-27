@@ -187,6 +187,7 @@ DRIVERHEADERS = \
 	%D%/bitbang.h \
 	%D%/bitq.h \
 	%D%/jtag_usb_common.h \
+	%D%/libftdi_helper.h \
 	%D%/libusb_helper.h \
 	%D%/minidriver_imp.h \
 	%D%/mpsse.h \

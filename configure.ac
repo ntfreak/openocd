@@ -669,7 +669,11 @@ for hidapi_lib in hidapi hidapi-hidraw hidapi-libusb; do
 	])
 done
 
-PKG_CHECK_MODULES([LIBFTDI], [libftdi1], [use_libftdi=yes], [
+PKG_CHECK_MODULES([LIBFTDI], [libftdi1], [
+	use_libftdi=yes
+	PKG_CHECK_EXISTS([libftdi1 >= 1.5],
+		[AC_DEFINE([HAVE_LIBFTDI_TCIOFLUSH], [1], [Define if your libftdi has ftdi_tcioflush()])])
+  ], [
 	PKG_CHECK_MODULES([LIBFTDI], [libftdi], [use_libftdi=yes], [use_libftdi=no])
 ])
 

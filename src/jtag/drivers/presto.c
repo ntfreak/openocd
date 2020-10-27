@@ -34,7 +34,7 @@
 #include "bitq.h"
 
 /* PRESTO access library includes */
-#include <ftdi.h>
+#include "libftdi_helper.h"
 
 /* -------------------------------------------------------------------------- */
 
@@ -160,8 +160,8 @@ static int presto_open_libftdi(char *req_serial)
 		return ERROR_JTAG_DEVICE_ERROR;
 	}
 
-	if (ftdi_usb_purge_buffers(&presto->ftdic) < 0) {
-		LOG_ERROR("unable to purge PRESTO buffers");
+	if (ftdi_tcioflush(&presto->ftdic) < 0) {
+		LOG_ERROR("unable to flush PRESTO buffers");
 		return ERROR_JTAG_DEVICE_ERROR;
 	}
 
@@ -174,7 +174,7 @@ static int presto_open_libftdi(char *req_serial)
 	if (presto_read(&presto_data, 1) != ERROR_OK) {
 		LOG_DEBUG("no response from PRESTO, retrying");
 
-		if (ftdi_usb_purge_buffers(&presto->ftdic) < 0)
+		if (ftdi_tcioflush(&presto->ftdic) < 0)
 			return ERROR_JTAG_DEVICE_ERROR;
 
 		presto_data = 0xD0;
