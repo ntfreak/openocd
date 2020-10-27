@@ -36,6 +36,14 @@
 /* PRESTO access library includes */
 #include <ftdi.h>
 
+#ifndef HAVE_LIBFTDI_TCIOFLUSH
+/* Backward compatibility with libftdi pre 1.5 */
+static inline int ftdi_tcioflush(struct ftdi_context *ftdi)
+{
+	return ftdi_usb_purge_buffers(ftdi);
+}
+#endif
+
 /* -------------------------------------------------------------------------- */
 
 #define FT_DEVICE_NAME_LEN 64
@@ -160,8 +168,8 @@ static int presto_open_libftdi(char *req_serial)
 		return ERROR_JTAG_DEVICE_ERROR;
 	}
 
-	if (ftdi_usb_purge_buffers(&presto->ftdic) < 0) {
-		LOG_ERROR("unable to purge PRESTO buffers");
+	if (ftdi_tcioflush(&presto->ftdic) < 0) {
+		LOG_ERROR("unable to flush PRESTO buffers");
 		return ERROR_JTAG_DEVICE_ERROR;
 	}
 
@@ -174,7 +182,7 @@ static int presto_open_libftdi(char *req_serial)
 	if (presto_read(&presto_data, 1) != ERROR_OK) {
 		LOG_DEBUG("no response from PRESTO, retrying");
 
-		if (ftdi_usb_purge_buffers(&presto->ftdic) < 0)
+		if (ftdi_tcioflush(&presto->ftdic) < 0)
 			return ERROR_JTAG_DEVICE_ERROR;
 
 		presto_data = 0xD0;

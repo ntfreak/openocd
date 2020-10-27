@@ -84,6 +84,14 @@ typedef enum openjtag_tap_state {
 /* OPENJTAG access library includes */
 #include <ftdi.h>
 
+#ifndef HAVE_LIBFTDI_TCIOFLUSH
+/* Backward compatibility with libftdi pre 1.5 */
+static inline int ftdi_tcioflush(struct ftdi_context *ftdi)
+{
+	return ftdi_usb_purge_buffers(ftdi);
+}
+#endif
+
 /* OpenJTAG vid/pid */
 static uint16_t openjtag_vid = 0x0403;
 static uint16_t openjtag_pid = 0x6001;
@@ -436,8 +444,8 @@ static int openjtag_init_standard(void)
 		return ERROR_JTAG_DEVICE_ERROR;
 	}
 
-	if (ftdi_usb_purge_buffers(&ftdic) < 0) {
-		LOG_ERROR("ftdi_purge_buffers: %s", ftdic.error_str);
+	if (ftdi_tcioflush(&ftdic) < 0) {
+		LOG_ERROR("ftdi flush: %s", ftdic.error_str);
 		return ERROR_JTAG_INIT_FAILED;
 	}
 
