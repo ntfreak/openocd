@@ -92,7 +92,7 @@ struct cpu_context {
 	uint32_t PC;
 	uint32_t preempt_count;
 };
-struct cpu_context *cpu_context_read(struct target *target, uint32_t base_addr,
+static struct cpu_context *cpu_context_read(struct target *target, uint32_t base_addr,
 				     uint32_t *info_addr);
 static int insert_into_threadlist(struct target *target, struct threads *t);
 
@@ -144,7 +144,7 @@ static int linux_read_memory(struct target *target,
 	return ERROR_OK;
 }
 
-int fill_buffer(struct target *target, uint32_t addr, uint8_t *buffer)
+static int fill_buffer(struct target *target, uint32_t addr, uint8_t *buffer)
 {
 
 	if ((addr & 0xfffffffc) != addr)
@@ -155,7 +155,7 @@ int fill_buffer(struct target *target, uint32_t addr, uint8_t *buffer)
 
 }
 
-uint32_t get_buffer(struct target *target, const uint8_t *buffer)
+static uint32_t get_buffer(struct target *target, const uint8_t *buffer)
 {
 	uint32_t value = 0;
 	const uint8_t *value_ptr = buffer;
@@ -293,7 +293,7 @@ int fill_task_pid(struct target *target, struct threads *t)
 }
 #endif
 
-int fill_task(struct target *target, struct threads *t)
+static int fill_task(struct target *target, struct threads *t)
 {
 	int retval;
 	uint32_t pid_addr = t->base_addr + PID;
@@ -349,7 +349,7 @@ int fill_task(struct target *target, struct threads *t)
 	return retval;
 }
 
-int get_name(struct target *target, struct threads *t)
+static int get_name(struct target *target, struct threads *t)
 {
 	int retval;
 	uint32_t full_name[4];
@@ -395,7 +395,7 @@ int get_name(struct target *target, struct threads *t)
 
 }
 
-int get_current(struct target *target, int create)
+static int get_current(struct target *target, int create)
 {
 	struct target_list *head;
 	head = target->head;
@@ -483,7 +483,7 @@ int get_current(struct target *target, int create)
 	return ERROR_OK;
 }
 
-struct cpu_context *cpu_context_read(struct target *target, uint32_t base_addr,
+static struct cpu_context *cpu_context_read(struct target *target, uint32_t base_addr,
 	uint32_t *thread_info_addr_old)
 {
 	struct cpu_context *context = calloc(1, sizeof(struct cpu_context));
@@ -579,7 +579,7 @@ retry:
 	return context;
 }
 
-uint32_t next_task(struct target *target, struct threads *t)
+static uint32_t next_task(struct target *target, struct threads *t)
 {
 	uint8_t *buffer = calloc(1, 4);
 	uint32_t next_addr = t->base_addr + NEXT;
@@ -598,7 +598,7 @@ uint32_t next_task(struct target *target, struct threads *t)
 	return 0;
 }
 
-struct current_thread *add_current_thread(struct current_thread *currents,
+static struct current_thread *add_current_thread(struct current_thread *currents,
 	struct current_thread *ct)
 {
 	ct->next = NULL;
@@ -617,7 +617,7 @@ struct current_thread *add_current_thread(struct current_thread *currents,
 	}
 }
 
-struct threads *liste_del_task(struct threads *task_list, struct threads **t,
+static struct threads *liste_del_task(struct threads *task_list, struct threads **t,
 	struct threads *prev)
 {
 	LOG_INFO("del task %" PRId64, (*t)->threadid);
@@ -634,7 +634,7 @@ struct threads *liste_del_task(struct threads *task_list, struct threads **t,
 	return task_list;
 }
 
-struct threads *liste_add_task(struct threads *task_list, struct threads *t,
+static struct threads *liste_add_task(struct threads *task_list, struct threads *t,
 	struct threads **last)
 {
 	t->next = NULL;
@@ -683,7 +683,7 @@ static int current_base_addr(struct linux_os *linux_os, uint32_t base_addr)
 	return 0;
 }
 
-int linux_get_tasks(struct target *target, int context)
+static int linux_get_tasks(struct target *target, int context)
 {
 	int loop = 0;
 	int retval = 0;
@@ -1033,7 +1033,7 @@ static int linux_task_update(struct target *target, int context)
 	return ERROR_OK;
 }
 
-int linux_gdb_thread_packet(struct target *target,
+static int linux_gdb_thread_packet(struct target *target,
 	struct connection *connection, char const *packet,
 	int packet_size)
 {
@@ -1070,7 +1070,7 @@ int linux_gdb_thread_packet(struct target *target,
 	return ERROR_OK;
 }
 
-int linux_gdb_thread_update(struct target *target,
+static int linux_gdb_thread_update(struct target *target,
 	struct connection *connection, char const *packet,
 	int packet_size)
 {
@@ -1117,7 +1117,7 @@ int linux_gdb_thread_update(struct target *target,
 	return ERROR_OK;
 }
 
-int linux_thread_extra_info(struct target *target,
+static int linux_thread_extra_info(struct target *target,
 	struct connection *connection, char const *packet,
 	int packet_size)
 {
@@ -1163,7 +1163,7 @@ int linux_thread_extra_info(struct target *target,
 	return ERROR_OK;
 }
 
-int linux_gdb_T_packet(struct connection *connection,
+static int linux_gdb_T_packet(struct connection *connection,
 	struct target *target, char const *packet, int packet_size)
 {
 	int64_t threadid;
@@ -1223,7 +1223,7 @@ int linux_gdb_T_packet(struct connection *connection,
 	return retval;
 }
 
-int linux_gdb_h_packet(struct connection *connection,
+static int linux_gdb_h_packet(struct connection *connection,
 	struct target *target, char const *packet, int packet_size)
 {
 	struct linux_os *linux_os = (struct linux_os *)

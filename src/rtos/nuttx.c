@@ -72,7 +72,7 @@ struct tcb {
 	uint8_t  dat[512];
 };
 
-struct {
+static struct {
 	uint32_t addr;
 	uint32_t prio;
 } g_tasklist[TASK_QUEUE_NUM];

@@ -110,7 +110,7 @@ static const struct stack_register_offset rtos_threadx_arm926ejs_stack_offsets_i
 	{ 16, 0x04, 32 },		/* xPSR      */
 };
 
-const struct rtos_register_stacking rtos_threadx_arm926ejs_stacking[] = {
+static const struct rtos_register_stacking rtos_threadx_arm926ejs_stacking[] = {
 {
 	ARM926EJS_REGISTERS_SIZE_SOLICITED,	/* stack_registers_size */
 	-1,									/* stack_growth_direction */
