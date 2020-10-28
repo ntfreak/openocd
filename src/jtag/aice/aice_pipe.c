@@ -35,8 +35,8 @@
 #ifdef _WIN32
 PROCESS_INFORMATION proc_info;
 
-HANDLE aice_pipe_output[2];
-HANDLE aice_pipe_input[2];
+static HANDLE aice_pipe_output[2];
+static HANDLE aice_pipe_input[2];
 
 static int aice_pipe_write(const void *buffer, int count)
 {
@@ -158,8 +158,8 @@ static int aice_pipe_open(struct aice_port_param_s *param)
 
 #else
 
-int aice_pipe_output[2];
-int aice_pipe_input[2];
+static int aice_pipe_output[2];
+static int aice_pipe_input[2];
 
 static int aice_pipe_write(const void *buffer, int count)
 {

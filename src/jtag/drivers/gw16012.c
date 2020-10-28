@@ -63,7 +63,7 @@
 #endif
 
 /* configuration */
-uint16_t gw16012_port;
+static uint16_t gw16012_port;
 
 /* interface variables
  */

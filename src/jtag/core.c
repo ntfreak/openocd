@@ -209,7 +209,7 @@ unsigned jtag_tap_count_enabled(void)
 }
 
 /** Append a new TAP to the chain of all taps. */
-void jtag_tap_add(struct jtag_tap *t)
+static void jtag_tap_add(struct jtag_tap *t)
 {
 	unsigned jtag_num_taps = 0;
 

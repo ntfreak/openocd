@@ -188,7 +188,7 @@ int hl_interface_override_target(const char **targetname)
 	return ERROR_FAIL;
 }
 
-int hl_interface_config_trace(bool enabled, enum tpiu_pin_protocol pin_protocol,
+static int hl_interface_config_trace(bool enabled, enum tpiu_pin_protocol pin_protocol,
 		uint32_t port_size, unsigned int *trace_freq,
 		unsigned int traceclkin_freq, uint16_t *prescaler)
 {
@@ -203,7 +203,7 @@ int hl_interface_config_trace(bool enabled, enum tpiu_pin_protocol pin_protocol,
 	return ERROR_OK;
 }
 
-int hl_interface_poll_trace(uint8_t *buf, size_t *size)
+static int hl_interface_poll_trace(uint8_t *buf, size_t *size)
 {
 	if (hl_if.layout->api->poll_trace)
 		return hl_if.layout->api->poll_trace(hl_if.handle, buf, size);

@@ -170,7 +170,7 @@ static int ft232r_send_recv(void)
 	return ERROR_OK;
 }
 
-void ft232r_increase_buf_size(size_t new_buf_size)
+static void ft232r_increase_buf_size(size_t new_buf_size)
 {
 	uint8_t *new_buf_ptr;
 	if (new_buf_size >= ft232r_buf_size) {

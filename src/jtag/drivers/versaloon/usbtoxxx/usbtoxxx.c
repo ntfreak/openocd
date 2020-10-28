@@ -29,7 +29,7 @@
 
 #define N_A "n/a"
 
-const char *types_name[96] = {
+static const char *types_name[96] = {
 	"usbtousart", "usbtospi", "usbtoi2c", "usbtogpio", "usbtocan", "usbtopwm",
 	"usbtoadc", "usbtodac",
 	"usbtomicrowire", "usbtoswim", "usbtodusi", N_A, N_A, N_A, "usbtopower", "usbtodelay",
@@ -55,8 +55,8 @@ static uint16_t usbtoxxx_buffer_index;
 static uint16_t usbtoxxx_current_cmd_index;
 static uint8_t *usbtoxxx_buffer;
 
-uint16_t collect_index;
-uint8_t collect_cmd;
+static uint16_t collect_index;
+static uint8_t collect_cmd;
 static uint8_t poll_nesting;
 
 struct usbtoxxx_context_t {
@@ -86,7 +86,7 @@ static void usbtoxxx_pop_context(struct usbtoxxx_context_t *c)
 	versaloon_pending_idx = c->versaloon_pending_idx;
 }
 
-RESULT usbtoxxx_validate_current_command_type(void)
+static RESULT usbtoxxx_validate_current_command_type(void)
 {
 	if (type_pre > 0) {
 		/* not the first command */
@@ -272,7 +272,7 @@ bool usbtoxxx_interface_supported(uint8_t cmd)
 	return (usbtoxxx_abilities[cmd  / 8] & (1 << (cmd % 8))) > 0;
 }
 
-RESULT usbtoxxx_ensure_buffer_size(uint16_t cmdlen)
+static RESULT usbtoxxx_ensure_buffer_size(uint16_t cmdlen)
 {
 	/* check free space, commit if not enough */
 	if (((usbtoxxx_buffer_index + usbtoxxx_current_cmd_index + cmdlen)

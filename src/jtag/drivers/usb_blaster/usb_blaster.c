@@ -275,7 +275,7 @@ static void ublast_queue_byte(uint8_t abyte)
  *
  * Returns pin value (1 means driven high, 0 mean driven low)
  */
-bool ublast_compute_pin(enum gpio_steer steer)
+static bool ublast_compute_pin(enum gpio_steer steer)
 {
 	switch (steer) {
 	case FIXED_0:

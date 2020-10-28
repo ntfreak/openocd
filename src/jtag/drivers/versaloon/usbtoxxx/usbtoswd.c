@@ -28,7 +28,7 @@
 #include "usbtoxxx.h"
 #include "usbtoxxx_internal.h"
 
-RESULT usbtoswd_read_callback(void *p, uint8_t *src, uint8_t *processed)
+static RESULT usbtoswd_read_callback(void *p, uint8_t *src, uint8_t *processed)
 {
 	struct versaloon_pending_t *pending = (struct versaloon_pending_t *)p;
 
@@ -38,7 +38,7 @@ RESULT usbtoswd_read_callback(void *p, uint8_t *src, uint8_t *processed)
 	return ERROR_OK;
 }
 
-RESULT usbtoswd_write_callback(void *p, uint8_t *src, uint8_t *processed)
+static RESULT usbtoswd_write_callback(void *p, uint8_t *src, uint8_t *processed)
 {
 	struct versaloon_pending_t *pending = (struct versaloon_pending_t *)p;
 

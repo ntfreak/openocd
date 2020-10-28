@@ -38,12 +38,12 @@ uint16_t versaloon_pending_idx;
 libusb_device_handle *versaloon_usb_device_handle;
 static uint32_t versaloon_usb_to = VERSALOON_TIMEOUT;
 
-RESULT versaloon_init(void);
-RESULT versaloon_fini(void);
-RESULT versaloon_get_target_voltage(uint16_t *voltage);
-RESULT versaloon_set_target_voltage(uint16_t voltage);
-RESULT versaloon_delay_ms(uint16_t ms);
-RESULT versaloon_delay_us(uint16_t us);
+static RESULT versaloon_init(void);
+static RESULT versaloon_fini(void);
+static RESULT versaloon_get_target_voltage(uint16_t *voltage);
+static RESULT versaloon_set_target_voltage(uint16_t voltage);
+static RESULT versaloon_delay_ms(uint16_t ms);
+static RESULT versaloon_delay_us(uint16_t us);
 
 struct versaloon_interface_t versaloon_interface = {
 	.init				= versaloon_init,
@@ -233,7 +233,7 @@ RESULT versaloon_send_command(uint16_t out_len, uint16_t *inlen)
 }
 
 #define VERSALOON_RETRY_CNT 10
-RESULT versaloon_init(void)
+static RESULT versaloon_init(void)
 {
 	uint16_t ret = 0;
 	uint8_t retry;
@@ -291,7 +291,7 @@ RESULT versaloon_init(void)
 	return versaloon_get_target_voltage(&ret);
 }
 
-RESULT versaloon_fini(void)
+static RESULT versaloon_fini(void)
 {
 	if (versaloon_usb_device_handle != NULL) {
 		usbtoxxx_fini();
@@ -309,7 +309,7 @@ RESULT versaloon_fini(void)
 	return ERROR_OK;
 }
 
-RESULT versaloon_set_target_voltage(uint16_t voltage)
+static RESULT versaloon_set_target_voltage(uint16_t voltage)
 {
 	usbtopwr_init(0);
 	usbtopwr_config(0);
@@ -319,7 +319,7 @@ RESULT versaloon_set_target_voltage(uint16_t voltage)
 	return usbtoxxx_execute_command();
 }
 
-RESULT versaloon_get_target_voltage(uint16_t *voltage)
+static RESULT versaloon_get_target_voltage(uint16_t *voltage)
 {
 	uint16_t inlen;
 
@@ -345,12 +345,12 @@ RESULT versaloon_get_target_voltage(uint16_t *voltage)
 	}
 }
 
-RESULT versaloon_delay_ms(uint16_t ms)
+static RESULT versaloon_delay_ms(uint16_t ms)
 {
 	return usbtodelay_delay(ms | 0x8000);
 }
 
-RESULT versaloon_delay_us(uint16_t us)
+static RESULT versaloon_delay_us(uint16_t us)
 {
 	return usbtodelay_delay(us & 0x7FFF);
 }

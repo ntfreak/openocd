@@ -186,7 +186,7 @@
 #define CMD_STABLECLOCKS 4
 
 /* Array to convert from OpenOCD tap_state_t to XDS JTAG state */
-const uint32_t xds_jtag_state[] = {
+static const uint32_t xds_jtag_state[] = {
 	XDS_JTAG_STATE_EXIT2_DR,   /* TAP_DREXIT2   = 0x0 */
 	XDS_JTAG_STATE_EXIT1_DR,   /* TAP_DREXIT1   = 0x1 */
 	XDS_JTAG_STATE_SHIFT_DR,   /* TAP_DRSHIFT   = 0x2 */

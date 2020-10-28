@@ -162,34 +162,34 @@ struct ulink {
 /**************************** Function Prototypes *****************************/
 
 /* USB helper functions */
-int ulink_usb_open(struct ulink **device);
-int ulink_usb_close(struct ulink **device);
+static int ulink_usb_open(struct ulink **device);
+static int ulink_usb_close(struct ulink **device);
 
 /* ULINK MCU (Cypress EZ-USB) specific functions */
-int ulink_cpu_reset(struct ulink *device, unsigned char reset_bit);
-int ulink_load_firmware_and_renumerate(struct ulink **device, const char *filename,
+static int ulink_cpu_reset(struct ulink *device, unsigned char reset_bit);
+static int ulink_load_firmware_and_renumerate(struct ulink **device, const char *filename,
 		uint32_t delay);
-int ulink_load_firmware(struct ulink *device, const char *filename);
-int ulink_write_firmware_section(struct ulink *device,
+static int ulink_load_firmware(struct ulink *device, const char *filename);
+static int ulink_write_firmware_section(struct ulink *device,
 		struct image *firmware_image, int section_index);
 
 /* Generic helper functions */
-void ulink_print_signal_states(uint8_t input_signals, uint8_t output_signals);
+static void ulink_print_signal_states(uint8_t input_signals, uint8_t output_signals);
 
 /* OpenULINK command generation helper functions */
-int ulink_allocate_payload(struct ulink_cmd *ulink_cmd, int size,
+static int ulink_allocate_payload(struct ulink_cmd *ulink_cmd, int size,
 		enum ulink_payload_direction direction);
 
 /* OpenULINK command queue helper functions */
-int ulink_get_queue_size(struct ulink *device,
+static int ulink_get_queue_size(struct ulink *device,
 		enum ulink_payload_direction direction);
-void ulink_clear_queue(struct ulink *device);
-int ulink_append_queue(struct ulink *device, struct ulink_cmd *ulink_cmd);
-int ulink_execute_queued_commands(struct ulink *device, int timeout);
+static void ulink_clear_queue(struct ulink *device);
+static int ulink_append_queue(struct ulink *device, struct ulink_cmd *ulink_cmd);
+static int ulink_execute_queued_commands(struct ulink *device, int timeout);
 
 static void ulink_print_queue(struct ulink *device);
 
-int ulink_append_scan_cmd(struct ulink *device,
+static int ulink_append_scan_cmd(struct ulink *device,
 		enum scan_type scan_type,
 		int scan_size_bits,
 		uint8_t *tdi,
@@ -201,39 +201,39 @@ int ulink_append_scan_cmd(struct ulink *device,
 		uint8_t tms_sequence_end,
 		struct jtag_command *origin,
 		bool postprocess);
-int ulink_append_clock_tms_cmd(struct ulink *device, uint8_t count,
+static int ulink_append_clock_tms_cmd(struct ulink *device, uint8_t count,
 		uint8_t sequence);
-int ulink_append_clock_tck_cmd(struct ulink *device, uint16_t count);
-int ulink_append_get_signals_cmd(struct ulink *device);
-int ulink_append_set_signals_cmd(struct ulink *device, uint8_t low,
+static int ulink_append_clock_tck_cmd(struct ulink *device, uint16_t count);
+static int ulink_append_get_signals_cmd(struct ulink *device);
+static int ulink_append_set_signals_cmd(struct ulink *device, uint8_t low,
 		uint8_t high);
-int ulink_append_sleep_cmd(struct ulink *device, uint32_t us);
-int ulink_append_configure_tck_cmd(struct ulink *device,
+static int ulink_append_sleep_cmd(struct ulink *device, uint32_t us);
+static int ulink_append_configure_tck_cmd(struct ulink *device,
 		int delay_scan_in,
 		int delay_scan_out,
 		int delay_scan_io,
 		int delay_tck,
 		int delay_tms);
-int ulink_append_led_cmd(struct ulink *device, uint8_t led_state);
-int ulink_append_test_cmd(struct ulink *device);
+static int __attribute__((unused)) ulink_append_led_cmd(struct ulink *device, uint8_t led_state);
+static int ulink_append_test_cmd(struct ulink *device);
 
 /* OpenULINK TCK frequency helper functions */
-int ulink_calculate_delay(enum ulink_delay_type type, long f, int *delay);
+static int ulink_calculate_delay(enum ulink_delay_type type, long f, int *delay);
 
 /* Interface between OpenULINK and OpenOCD */
 static void ulink_set_end_state(tap_state_t endstate);
-int ulink_queue_statemove(struct ulink *device);
+static int ulink_queue_statemove(struct ulink *device);
 
-int ulink_queue_scan(struct ulink *device, struct jtag_command *cmd);
-int ulink_queue_tlr_reset(struct ulink *device, struct jtag_command *cmd);
-int ulink_queue_runtest(struct ulink *device, struct jtag_command *cmd);
-int ulink_queue_reset(struct ulink *device, struct jtag_command *cmd);
-int ulink_queue_pathmove(struct ulink *device, struct jtag_command *cmd);
-int ulink_queue_sleep(struct ulink *device, struct jtag_command *cmd);
-int ulink_queue_stableclocks(struct ulink *device, struct jtag_command *cmd);
+static int ulink_queue_scan(struct ulink *device, struct jtag_command *cmd);
+static int ulink_queue_tlr_reset(struct ulink *device, struct jtag_command *cmd);
+static int ulink_queue_runtest(struct ulink *device, struct jtag_command *cmd);
+static int ulink_queue_reset(struct ulink *device, struct jtag_command *cmd);
+static int ulink_queue_pathmove(struct ulink *device, struct jtag_command *cmd);
+static int ulink_queue_sleep(struct ulink *device, struct jtag_command *cmd);
+static int ulink_queue_stableclocks(struct ulink *device, struct jtag_command *cmd);
 
-int ulink_post_process_scan(struct ulink_cmd *ulink_cmd);
-int ulink_post_process_queue(struct ulink *device);
+static int ulink_post_process_scan(struct ulink_cmd *ulink_cmd);
+static int ulink_post_process_queue(struct ulink *device);
 
 /* adapter driver functions */
 static int ulink_execute_queue(void);
@@ -245,7 +245,7 @@ static int ulink_quit(void);
 
 /****************************** Global Variables ******************************/
 
-struct ulink *ulink_handle;
+static struct ulink *ulink_handle;
 
 /**************************** USB helper functions ****************************/
 
@@ -258,7 +258,7 @@ struct ulink *ulink_handle;
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_usb_open(struct ulink **device)
+static int ulink_usb_open(struct ulink **device)
 {
 	ssize_t num_devices, i;
 	bool found;
@@ -304,7 +304,7 @@ int ulink_usb_open(struct ulink **device)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_usb_close(struct ulink **device)
+static int ulink_usb_close(struct ulink **device)
 {
 	if (libusb_release_interface((*device)->usb_device_handle, 0) != 0)
 		return ERROR_FAIL;
@@ -327,7 +327,7 @@ int ulink_usb_close(struct ulink **device)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_cpu_reset(struct ulink *device, unsigned char reset_bit)
+static int ulink_cpu_reset(struct ulink *device, unsigned char reset_bit)
 {
 	int ret;
 
@@ -354,7 +354,7 @@ int ulink_cpu_reset(struct ulink *device, unsigned char reset_bit)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_load_firmware_and_renumerate(struct ulink **device,
+static int ulink_load_firmware_and_renumerate(struct ulink **device,
 	const char *filename, uint32_t delay)
 {
 	int ret;
@@ -390,7 +390,7 @@ int ulink_load_firmware_and_renumerate(struct ulink **device,
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_load_firmware(struct ulink *device, const char *filename)
+static int ulink_load_firmware(struct ulink *device, const char *filename)
 {
 	struct image ulink_firmware_image;
 	int ret, i;
@@ -439,7 +439,7 @@ int ulink_load_firmware(struct ulink *device, const char *filename)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_write_firmware_section(struct ulink *device,
+static int ulink_write_firmware_section(struct ulink *device,
 	struct image *firmware_image, int section_index)
 {
 	uint16_t addr, size, bytes_remaining, chunk_size;
@@ -499,7 +499,7 @@ int ulink_write_firmware_section(struct ulink *device,
  * @param input_signals input signal states as returned by CMD_GET_SIGNALS
  * @param output_signals output signal states as returned by CMD_GET_SIGNALS
  */
-void ulink_print_signal_states(uint8_t input_signals, uint8_t output_signals)
+static void ulink_print_signal_states(uint8_t input_signals, uint8_t output_signals)
 {
 	LOG_INFO("ULINK signal states: TDI: %i, TDO: %i, TMS: %i, TCK: %i, TRST: %i,"
 		" SRST: %i",
@@ -522,7 +522,7 @@ void ulink_print_signal_states(uint8_t input_signals, uint8_t output_signals)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_allocate_payload(struct ulink_cmd *ulink_cmd, int size,
+static int ulink_allocate_payload(struct ulink_cmd *ulink_cmd, int size,
 	enum ulink_payload_direction direction)
 {
 	uint8_t *payload;
@@ -576,7 +576,7 @@ int ulink_allocate_payload(struct ulink_cmd *ulink_cmd, int size,
  * @return the number of bytes currently stored in the queue for the specified
  *  direction.
  */
-int ulink_get_queue_size(struct ulink *device,
+static int ulink_get_queue_size(struct ulink *device,
 	enum ulink_payload_direction direction)
 {
 	struct ulink_cmd *current = device->queue_start;
@@ -605,7 +605,7 @@ int ulink_get_queue_size(struct ulink *device,
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-void ulink_clear_queue(struct ulink *device)
+static void ulink_clear_queue(struct ulink *device)
 {
 	struct ulink_cmd *current = device->queue_start;
 	struct ulink_cmd *next = NULL;
@@ -647,7 +647,7 @@ void ulink_clear_queue(struct ulink *device)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_append_queue(struct ulink *device, struct ulink_cmd *ulink_cmd)
+static int ulink_append_queue(struct ulink *device, struct ulink_cmd *ulink_cmd)
 {
 	int newsize_out, newsize_in;
 	int ret = ERROR_OK;
@@ -698,7 +698,7 @@ int ulink_append_queue(struct ulink *device, struct ulink_cmd *ulink_cmd)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_execute_queued_commands(struct ulink *device, int timeout)
+static int ulink_execute_queued_commands(struct ulink *device, int timeout)
 {
 	struct ulink_cmd *current;
 	int ret, i, index_out, index_in, count_out, count_in, transferred;
@@ -865,7 +865,7 @@ static void ulink_print_queue(struct ulink *device)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_append_scan_cmd(struct ulink *device, enum scan_type scan_type,
+static int ulink_append_scan_cmd(struct ulink *device, enum scan_type scan_type,
 	int scan_size_bits, uint8_t *tdi, uint8_t *tdo_start, uint8_t *tdo,
 	uint8_t tms_count_start, uint8_t tms_sequence_start, uint8_t tms_count_end,
 	uint8_t tms_sequence_end, struct jtag_command *origin, bool postprocess)
@@ -966,7 +966,7 @@ int ulink_append_scan_cmd(struct ulink *device, enum scan_type scan_type,
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_append_clock_tms_cmd(struct ulink *device, uint8_t count,
+static int ulink_append_clock_tms_cmd(struct ulink *device, uint8_t count,
 	uint8_t sequence)
 {
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
@@ -1003,7 +1003,7 @@ int ulink_append_clock_tms_cmd(struct ulink *device, uint8_t count,
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_append_clock_tck_cmd(struct ulink *device, uint16_t count)
+static int ulink_append_clock_tck_cmd(struct ulink *device, uint16_t count)
 {
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
@@ -1036,7 +1036,7 @@ int ulink_append_clock_tck_cmd(struct ulink *device, uint16_t count)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_append_get_signals_cmd(struct ulink *device)
+static int ulink_append_get_signals_cmd(struct ulink *device)
 {
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
@@ -1075,7 +1075,7 @@ int ulink_append_get_signals_cmd(struct ulink *device)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_append_set_signals_cmd(struct ulink *device, uint8_t low,
+static int ulink_append_set_signals_cmd(struct ulink *device, uint8_t low,
 	uint8_t high)
 {
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
@@ -1108,7 +1108,7 @@ int ulink_append_set_signals_cmd(struct ulink *device, uint8_t low,
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_append_sleep_cmd(struct ulink *device, uint32_t us)
+static int ulink_append_sleep_cmd(struct ulink *device, uint32_t us)
 {
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
@@ -1144,7 +1144,7 @@ int ulink_append_sleep_cmd(struct ulink *device, uint32_t us)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_append_configure_tck_cmd(struct ulink *device, int delay_scan_in,
+static int ulink_append_configure_tck_cmd(struct ulink *device, int delay_scan_in,
 	int delay_scan_out, int delay_scan_io, int delay_tck, int delay_tms)
 {
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
@@ -1206,7 +1206,7 @@ int ulink_append_configure_tck_cmd(struct ulink *device, int delay_scan_in,
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_append_led_cmd(struct ulink *device, uint8_t led_state)
+static int ulink_append_led_cmd(struct ulink *device, uint8_t led_state)
 {
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
@@ -1236,7 +1236,7 @@ int ulink_append_led_cmd(struct ulink *device, uint8_t led_state)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_append_test_cmd(struct ulink *device)
+static int ulink_append_test_cmd(struct ulink *device)
 {
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
@@ -1292,7 +1292,7 @@ int ulink_append_test_cmd(struct ulink *device)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_calculate_delay(enum ulink_delay_type type, long f, int *delay)
+static int ulink_calculate_delay(enum ulink_delay_type type, long f, int *delay)
 {
 	float t, x, x_ceil;
 
@@ -1423,7 +1423,7 @@ static void ulink_set_end_state(tap_state_t endstate)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_queue_statemove(struct ulink *device)
+static int ulink_queue_statemove(struct ulink *device)
 {
 	uint8_t tms_sequence, tms_count;
 	int ret;
@@ -1452,7 +1452,7 @@ int ulink_queue_statemove(struct ulink *device)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_queue_scan(struct ulink *device, struct jtag_command *cmd)
+static int ulink_queue_scan(struct ulink *device, struct jtag_command *cmd)
 {
 	uint32_t scan_size_bits, scan_size_bytes, bits_last_scan;
 	uint32_t scans_max_payload, bytecount;
@@ -1631,7 +1631,7 @@ int ulink_queue_scan(struct ulink *device, struct jtag_command *cmd)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_queue_tlr_reset(struct ulink *device, struct jtag_command *cmd)
+static int ulink_queue_tlr_reset(struct ulink *device, struct jtag_command *cmd)
 {
 	int ret;
 
@@ -1654,7 +1654,7 @@ int ulink_queue_tlr_reset(struct ulink *device, struct jtag_command *cmd)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_queue_runtest(struct ulink *device, struct jtag_command *cmd)
+static int ulink_queue_runtest(struct ulink *device, struct jtag_command *cmd)
 {
 	int ret;
 
@@ -1685,7 +1685,7 @@ int ulink_queue_runtest(struct ulink *device, struct jtag_command *cmd)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_queue_reset(struct ulink *device, struct jtag_command *cmd)
+static int ulink_queue_reset(struct ulink *device, struct jtag_command *cmd)
 {
 	uint8_t low = 0, high = 0;
 
@@ -1711,7 +1711,7 @@ int ulink_queue_reset(struct ulink *device, struct jtag_command *cmd)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_queue_pathmove(struct ulink *device, struct jtag_command *cmd)
+static int ulink_queue_pathmove(struct ulink *device, struct jtag_command *cmd)
 {
 	int ret, i, num_states, batch_size, state_count;
 	tap_state_t *path;
@@ -1770,7 +1770,7 @@ int ulink_queue_pathmove(struct ulink *device, struct jtag_command *cmd)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_queue_sleep(struct ulink *device, struct jtag_command *cmd)
+static int ulink_queue_sleep(struct ulink *device, struct jtag_command *cmd)
 {
 	/* IMPORTANT! Due to the time offset in command execution introduced by
 	 * command queueing, this needs to be implemented in the ULINK device */
@@ -1783,7 +1783,7 @@ int ulink_queue_sleep(struct ulink *device, struct jtag_command *cmd)
  * @param device pointer to struct ulink identifying ULINK driver instance.
  * @param cmd pointer to the command that shall be executed.
  */
-int ulink_queue_stableclocks(struct ulink *device, struct jtag_command *cmd)
+static int ulink_queue_stableclocks(struct ulink *device, struct jtag_command *cmd)
 {
 	int ret;
 	unsigned num_cycles;
@@ -1828,7 +1828,7 @@ int ulink_queue_stableclocks(struct ulink *device, struct jtag_command *cmd)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_post_process_scan(struct ulink_cmd *ulink_cmd)
+static int ulink_post_process_scan(struct ulink_cmd *ulink_cmd)
 {
 	struct jtag_command *cmd = ulink_cmd->cmd_origin;
 	int ret;
@@ -1859,7 +1859,7 @@ int ulink_post_process_scan(struct ulink_cmd *ulink_cmd)
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
-int ulink_post_process_queue(struct ulink *device)
+static int ulink_post_process_queue(struct ulink *device)
 {
 	struct ulink_cmd *current;
 	struct jtag_command *openocd_cmd;

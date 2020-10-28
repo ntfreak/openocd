@@ -358,7 +358,7 @@ static const struct speed_map stlink_khz_to_speed_map_jtag[] = {
 
 static void stlink_usb_init_buffer(void *handle, uint8_t direction, uint32_t size);
 static int stlink_swim_status(void *handle);
-void stlink_dump_speed_map(const struct speed_map *map, unsigned int map_size);
+static void stlink_dump_speed_map(const struct speed_map *map, unsigned int map_size);
 static int stlink_get_com_freq(void *handle, bool is_jtag, struct speed_map *map);
 static int stlink_speed(void *handle, int khz, bool query);
 static int stlink_usb_open_ap(void *handle, unsigned short apsel);
@@ -2577,7 +2577,7 @@ static int stlink_speed_jtag(void *handle, int khz, bool query)
 	return stlink_khz_to_speed_map_jtag[speed_index].speed;
 }
 
-void stlink_dump_speed_map(const struct speed_map *map, unsigned int map_size)
+static void stlink_dump_speed_map(const struct speed_map *map, unsigned int map_size)
 {
 	unsigned int i;
 
@@ -2725,7 +2725,7 @@ static int stlink_usb_close(void *handle)
  *    based on the length (0x1a = 26) we could easily decide if we have to fixup the serial
  *    and then we have just to convert the raw data into printable characters using sprintf
  */
-char *stlink_usb_get_alternate_serial(libusb_device_handle *device,
+static char *stlink_usb_get_alternate_serial(libusb_device_handle *device,
 		struct libusb_device_descriptor *dev_desc)
 {
 	int usb_retval;
@@ -2982,7 +2982,7 @@ static int stlink_usb_hl_open(struct hl_interface_param_s *param, void **fd)
 	return stlink_usb_open(param, stlink_get_mode(param->transport), fd);
 }
 
-int stlink_config_trace(void *handle, bool enabled,
+static int stlink_config_trace(void *handle, bool enabled,
 		enum tpiu_pin_protocol pin_protocol, uint32_t port_size,
 		unsigned int *trace_freq, unsigned int traceclkin_freq,
 		uint16_t *prescaler)

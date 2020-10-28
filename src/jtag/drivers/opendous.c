@@ -144,7 +144,7 @@ static int opendous_usb_write(struct opendous_jtag *opendous_jtag, int out_lengt
 static int opendous_usb_read(struct opendous_jtag *opendous_jtag);
 
 /* helper functions */
-int opendous_get_version_info(void);
+static int opendous_get_version_info(void);
 
 #ifdef _DEBUG_USB_COMMS_
 static void opendous_debug_buffer(uint8_t *buffer, int length);
@@ -544,7 +544,7 @@ int opendous_get_status(void)
 	return ERROR_OK;
 }
 
-int opendous_get_version_info(void)
+static int opendous_get_version_info(void)
 {
 	return ERROR_OK;
 }

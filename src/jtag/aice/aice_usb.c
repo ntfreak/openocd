@@ -683,7 +683,7 @@ int aice_write_ctrl(uint32_t address, uint32_t data)
 	return ERROR_OK;
 }
 
-int aice_read_dtr(uint8_t target_id, uint32_t *data)
+static int aice_read_dtr(uint8_t target_id, uint32_t *data)
 {
 	int retry_times = 0;
 
@@ -733,7 +733,7 @@ int aice_read_dtr(uint8_t target_id, uint32_t *data)
 	return ERROR_OK;
 }
 
-int aice_read_dtr_to_buffer(uint8_t target_id, uint32_t buffer_idx)
+static int aice_read_dtr_to_buffer(uint8_t target_id, uint32_t buffer_idx)
 {
 	int retry_times = 0;
 
@@ -784,7 +784,7 @@ int aice_read_dtr_to_buffer(uint8_t target_id, uint32_t buffer_idx)
 	return ERROR_OK;
 }
 
-int aice_write_dtr(uint8_t target_id, uint32_t data)
+static int aice_write_dtr(uint8_t target_id, uint32_t data)
 {
 	int retry_times = 0;
 
@@ -836,7 +836,7 @@ int aice_write_dtr(uint8_t target_id, uint32_t data)
 	return ERROR_OK;
 }
 
-int aice_write_dtr_from_buffer(uint8_t target_id, uint32_t buffer_idx)
+static int aice_write_dtr_from_buffer(uint8_t target_id, uint32_t buffer_idx)
 {
 	int retry_times = 0;
 
@@ -887,7 +887,7 @@ int aice_write_dtr_from_buffer(uint8_t target_id, uint32_t buffer_idx)
 	return ERROR_OK;
 }
 
-int aice_read_misc(uint8_t target_id, uint32_t address, uint32_t *data)
+static int aice_read_misc(uint8_t target_id, uint32_t address, uint32_t *data)
 {
 	int retry_times = 0;
 
@@ -936,7 +936,7 @@ int aice_read_misc(uint8_t target_id, uint32_t address, uint32_t *data)
 	return ERROR_OK;
 }
 
-int aice_write_misc(uint8_t target_id, uint32_t address, uint32_t data)
+static int aice_write_misc(uint8_t target_id, uint32_t address, uint32_t data)
 {
 	int retry_times = 0;
 
@@ -992,7 +992,7 @@ int aice_write_misc(uint8_t target_id, uint32_t address, uint32_t data)
 	return ERROR_OK;
 }
 
-int aice_read_edmsr(uint8_t target_id, uint32_t address, uint32_t *data)
+static int aice_read_edmsr(uint8_t target_id, uint32_t address, uint32_t *data)
 {
 	int retry_times = 0;
 
@@ -1042,7 +1042,7 @@ int aice_read_edmsr(uint8_t target_id, uint32_t address, uint32_t *data)
 	return ERROR_OK;
 }
 
-int aice_write_edmsr(uint8_t target_id, uint32_t address, uint32_t data)
+static int aice_write_edmsr(uint8_t target_id, uint32_t address, uint32_t data)
 {
 	int retry_times = 0;
 
@@ -1236,7 +1236,7 @@ static int aice_do_execute(uint8_t target_id)
 	return ERROR_OK;
 }
 
-int aice_write_mem_b(uint8_t target_id, uint32_t address, uint32_t data)
+static int aice_write_mem_b(uint8_t target_id, uint32_t address, uint32_t data)
 {
 	int retry_times = 0;
 
@@ -1290,7 +1290,7 @@ int aice_write_mem_b(uint8_t target_id, uint32_t address, uint32_t data)
 	return ERROR_OK;
 }
 
-int aice_write_mem_h(uint8_t target_id, uint32_t address, uint32_t data)
+static int aice_write_mem_h(uint8_t target_id, uint32_t address, uint32_t data)
 {
 	int retry_times = 0;
 
@@ -1345,7 +1345,7 @@ int aice_write_mem_h(uint8_t target_id, uint32_t address, uint32_t data)
 	return ERROR_OK;
 }
 
-int aice_write_mem(uint8_t target_id, uint32_t address, uint32_t data)
+static int aice_write_mem(uint8_t target_id, uint32_t address, uint32_t data)
 {
 	int retry_times = 0;
 
@@ -1400,7 +1400,7 @@ int aice_write_mem(uint8_t target_id, uint32_t address, uint32_t data)
 	return ERROR_OK;
 }
 
-int aice_fastread_mem(uint8_t target_id, uint8_t *word, uint32_t num_of_words)
+static int aice_fastread_mem(uint8_t target_id, uint8_t *word, uint32_t num_of_words)
 {
 	int retry_times = 0;
 
@@ -1450,7 +1450,7 @@ int aice_fastread_mem(uint8_t target_id, uint8_t *word, uint32_t num_of_words)
 	return ERROR_OK;
 }
 
-int aice_fastwrite_mem(uint8_t target_id, const uint8_t *word, uint32_t num_of_words)
+static int aice_fastwrite_mem(uint8_t target_id, const uint8_t *word, uint32_t num_of_words)
 {
 	int retry_times = 0;
 
@@ -1506,7 +1506,7 @@ int aice_fastwrite_mem(uint8_t target_id, const uint8_t *word, uint32_t num_of_w
 	return ERROR_OK;
 }
 
-int aice_read_mem_b(uint8_t target_id, uint32_t address, uint32_t *data)
+static int aice_read_mem_b(uint8_t target_id, uint32_t address, uint32_t *data)
 {
 	int retry_times = 0;
 
@@ -1556,7 +1556,7 @@ int aice_read_mem_b(uint8_t target_id, uint32_t address, uint32_t *data)
 	return ERROR_OK;
 }
 
-int aice_read_mem_h(uint8_t target_id, uint32_t address, uint32_t *data)
+static int aice_read_mem_h(uint8_t target_id, uint32_t address, uint32_t *data)
 {
 	int retry_times = 0;
 
@@ -1606,7 +1606,7 @@ int aice_read_mem_h(uint8_t target_id, uint32_t address, uint32_t *data)
 	return ERROR_OK;
 }
 
-int aice_read_mem(uint8_t target_id, uint32_t address, uint32_t *data)
+static int aice_read_mem(uint8_t target_id, uint32_t address, uint32_t *data)
 {
 	int retry_times = 0;
 
@@ -1657,7 +1657,7 @@ int aice_read_mem(uint8_t target_id, uint32_t address, uint32_t *data)
 	return ERROR_OK;
 }
 
-int aice_batch_buffer_read(uint8_t buf_index, uint32_t *word, uint32_t num_of_words)
+static int aice_batch_buffer_read(uint8_t buf_index, uint32_t *word, uint32_t num_of_words)
 {
 	int retry_times = 0;
 
@@ -1760,7 +1760,7 @@ int aice_batch_buffer_write(uint8_t buf_index, const uint8_t *word, uint32_t num
 typedef int (*read_mem_func_t)(uint32_t coreid, uint32_t address, uint32_t *data);
 typedef int (*write_mem_func_t)(uint32_t coreid, uint32_t address, uint32_t data);
 
-struct aice_nds32_info core_info[AICE_MAX_NUM_CORE];
+static struct aice_nds32_info core_info[AICE_MAX_NUM_CORE];
 static uint8_t total_num_of_core;
 
 static char *custom_srst_script;
