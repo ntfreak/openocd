@@ -119,7 +119,6 @@ int rtos_generic_stack_read(struct target *target,
 		int64_t stack_ptr,
 		struct rtos_reg **reg_list,
 		int *num_regs);
-int rtos_try_next(struct target *target);
 int gdb_thread_packet(struct connection *connection, char const *packet, int packet_size);
 int rtos_get_gdb_reg(struct connection *connection, int reg_num);
 int rtos_get_gdb_reg_list(struct connection *connection);
