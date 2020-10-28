@@ -1413,7 +1413,7 @@ int cortex_m_remove_breakpoint(struct target *target, struct breakpoint *breakpo
 	return cortex_m_unset_breakpoint(target, breakpoint);
 }
 
-int cortex_m_set_watchpoint(struct target *target, struct watchpoint *watchpoint)
+static int cortex_m_set_watchpoint(struct target *target, struct watchpoint *watchpoint)
 {
 	int dwt_num = 0;
 	struct cortex_m_common *cortex_m = target_to_cm(target);
@@ -1496,7 +1496,7 @@ int cortex_m_set_watchpoint(struct target *target, struct watchpoint *watchpoint
 	return ERROR_OK;
 }
 
-int cortex_m_unset_watchpoint(struct target *target, struct watchpoint *watchpoint)
+static int cortex_m_unset_watchpoint(struct target *target, struct watchpoint *watchpoint)
 {
 	struct cortex_m_common *cortex_m = target_to_cm(target);
 	struct cortex_m_dwt_comparator *comparator;
@@ -2013,7 +2013,7 @@ static void cortex_m_dwt_addreg(struct target *t, struct reg *r, const struct dw
 	r->type = &dwt_reg_type;
 }
 
-void cortex_m_dwt_setup(struct cortex_m_common *cm, struct target *target)
+static void cortex_m_dwt_setup(struct cortex_m_common *cm, struct target *target)
 {
 	uint32_t dwtcr;
 	struct reg_cache *cache;
