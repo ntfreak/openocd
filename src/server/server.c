@@ -595,7 +595,7 @@ int server_loop(struct command_context *command_context)
 	return shutdown_openocd == SHUTDOWN_WITH_ERROR_CODE ? ERROR_FAIL : ERROR_OK;
 }
 
-void sig_handler(int sig)
+static void sig_handler(int sig)
 {
 	/* store only first signal that hits us */
 	if (shutdown_openocd == CONTINUE_MAIN_LOOP) {
