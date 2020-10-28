@@ -43,7 +43,7 @@ struct flash_ctrl_priv_data {
 	char *part_name;
 };
 
-const struct flash_ctrl_priv_data flash_priv_data_1 = {
+static const struct flash_ctrl_priv_data flash_priv_data_1 = {
 	.die_id_reg = 0x4090001C,
 	.jtag_idcode_reg = 0x40900028,
 	.flash_base = 0x10040000,
@@ -53,7 +53,7 @@ const struct flash_ctrl_priv_data flash_priv_data_1 = {
 	.part_name = "BLUENRG-1",
 };
 
-const struct flash_ctrl_priv_data flash_priv_data_2 = {
+static const struct flash_ctrl_priv_data flash_priv_data_2 = {
 	.die_id_reg = 0x4090001C,
 	.jtag_idcode_reg = 0x40900028,
 	.flash_base = 0x10040000,
@@ -63,7 +63,7 @@ const struct flash_ctrl_priv_data flash_priv_data_2 = {
 	.part_name = "BLUENRG-2",
 };
 
-const struct flash_ctrl_priv_data flash_priv_data_lp = {
+static const struct flash_ctrl_priv_data flash_priv_data_lp = {
 	.die_id_reg = 0x40000000,
 	.jtag_idcode_reg = 0x40000004,
 	.flash_base = 0x10040000,
@@ -79,7 +79,11 @@ struct bluenrgx_flash_bank {
 	const struct flash_ctrl_priv_data *flash_ptr;
 };
 
-const struct flash_ctrl_priv_data *flash_ctrl[] = {&flash_priv_data_1, &flash_priv_data_2, &flash_priv_data_lp};
+static const struct flash_ctrl_priv_data *flash_ctrl[] = {
+	&flash_priv_data_1,
+	&flash_priv_data_2,
+	&flash_priv_data_lp
+};
 
 /* flash_bank bluenrg-x 0 0 0 0 <target#> */
 FLASH_BANK_COMMAND_HANDLER(bluenrgx_flash_bank_command)

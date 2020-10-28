@@ -434,7 +434,7 @@ static int kinetis_ke_prepare_flash(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-int kinetis_ke_stop_watchdog(struct target *target)
+static int kinetis_ke_stop_watchdog(struct target *target)
 {
 	struct working_area *watchdog_algorithm;
 	struct armv7m_algorithm armv7m_info;

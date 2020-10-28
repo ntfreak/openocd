@@ -908,7 +908,7 @@ COMMAND_HANDLER(psoc6_handle_mass_erase_command)
  * @param target current target
  * @return ERROR_OK in case of success, ERROR_XXX code otherwise
  *************************************************************************************************/
-int handle_reset_halt(struct target *target)
+static int handle_reset_halt(struct target *target)
 {
 	int hr;
 	uint32_t reset_addr;

@@ -860,7 +860,7 @@ static int validate_target_state(struct nand_device *nand)
 	return ERROR_OK;
 }
 
-int ecc_status_v1(struct nand_device *nand)
+static int ecc_status_v1(struct nand_device *nand)
 {
 	struct mxc_nf_controller *mxc_nf_info = nand->controller_priv;
 	struct target *target = nand->target;
@@ -886,7 +886,7 @@ int ecc_status_v1(struct nand_device *nand)
 	return ERROR_OK;
 }
 
-int ecc_status_v2(struct nand_device *nand)
+static int ecc_status_v2(struct nand_device *nand)
 {
 	struct mxc_nf_controller *mxc_nf_info = nand->controller_priv;
 	struct target *target = nand->target;
