@@ -761,7 +761,7 @@ static int mrvlqspi_flash_write(struct flash_bank *bank, const uint8_t *buffer,
 	return retval;
 }
 
-int mrvlqspi_flash_read(struct flash_bank *bank, uint8_t *buffer,
+static int mrvlqspi_flash_read(struct flash_bank *bank, uint8_t *buffer,
 				uint32_t offset, uint32_t count)
 {
 	struct target *target = bank->target;
@@ -914,7 +914,7 @@ static int mrvlqspi_flash_erase_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-int mrvlqspi_get_info(struct flash_bank *bank, char *buf, int buf_size)
+static int mrvlqspi_get_info(struct flash_bank *bank, char *buf, int buf_size)
 {
 	struct mrvlqspi_flash_bank *mrvlqspi_info = bank->driver_priv;
 

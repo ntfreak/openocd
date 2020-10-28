@@ -139,7 +139,7 @@ struct psoc4_chip_family {
 	uint32_t flags;
 };
 
-const struct psoc4_chip_family psoc4_families[] = {
+static const struct psoc4_chip_family psoc4_families[] = {
 	{ 0x93, "PSoC4100/4200",           .flags = PSOC4_FAMILY_FLAG_LEGACY },
 	{ 0x9A, "PSoC4000",                .flags = 0 },
 	{ 0x9E, "PSoC/PRoC BLE (119E)",    .flags = 0 },

@@ -3099,7 +3099,7 @@ FLASH_BANK_COMMAND_HANDLER(sam3_flash_bank_command)
  * is owned by this bank. This simplification works only for one shot
  * deallocation like current flash_free_all_banks()
  */
-void sam3_free_driver_priv(struct flash_bank *bank)
+static void sam3_free_driver_priv(struct flash_bank *bank)
 {
 	struct sam3_chip *chip = all_sam3_chips;
 	while (chip) {

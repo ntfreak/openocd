@@ -30,7 +30,7 @@
  * Implements Tcl commands used to access NOR flash facilities.
  */
 
-COMMAND_HELPER(flash_command_get_bank_maybe_probe, unsigned name_index,
+static COMMAND_HELPER(flash_command_get_bank_maybe_probe, unsigned name_index,
 	       struct flash_bank **bank, bool do_probe)
 {
 	const char *name = CMD_ARGV[name_index];

@@ -45,7 +45,7 @@
 #define ID_XCF32P                       0x05059093
 #define ID_MEANINGFUL_MASK              0x0FFFFFFF
 
-const char *xcf_name_list[] = {
+static const char * const xcf_name_list[] = {
 	"XCF08P",
 	"XCF16P",
 	"XCF32P",
@@ -399,7 +399,7 @@ static void flip_u8(uint8_t *out, const uint8_t *in, int len)
  * Function presumes need of bit reversing if it can not exactly detects
  * the opposite.
  */
-bool need_bit_reverse(const uint8_t *buffer)
+static bool need_bit_reverse(const uint8_t *buffer)
 {
 	const size_t L = 20;
 	uint8_t reference[L];
