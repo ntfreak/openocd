@@ -31,7 +31,7 @@ int nds32_probe_tlb(struct nds32 *nds32, const target_addr_t virtual_address,
 	return aice_read_tlb(aice, virtual_address, physical_address);
 }
 
-struct page_table_walker_info_s page_table_info[PAGE_SIZE_NUM] = {
+static struct page_table_walker_info_s page_table_info[PAGE_SIZE_NUM] = {
 	/* 4K page */
 	{0xFFC00000, 20, 0x003FF000, 10, 0x00000FFF, 0xFFFFF000, 0xFFFFF000, 0xFFFFF000},
 	/* 8K page */

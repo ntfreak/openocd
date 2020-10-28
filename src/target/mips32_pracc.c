@@ -120,7 +120,7 @@ static void mips32_pracc_finish(struct mips_ejtag *ejtag_info)
 	mips_ejtag_drscan_32_out(ejtag_info, ctrl);
 }
 
-int mips32_pracc_clean_text_jump(struct mips_ejtag *ejtag_info)
+static int mips32_pracc_clean_text_jump(struct mips_ejtag *ejtag_info)
 {
 	uint32_t jt_code = MIPS32_J(ejtag_info->isa, MIPS32_PRACC_TEXT);
 	pracc_swap16_array(ejtag_info, &jt_code, 1);
@@ -453,7 +453,7 @@ exit:
 	return retval;
 }
 
-int mips32_pracc_read_u32(struct mips_ejtag *ejtag_info, uint32_t addr, uint32_t *buf)
+static int mips32_pracc_read_u32(struct mips_ejtag *ejtag_info, uint32_t addr, uint32_t *buf)
 {
 	struct pracc_queue_info ctx = {.ejtag_info = ejtag_info};
 	pracc_queue_init(&ctx);

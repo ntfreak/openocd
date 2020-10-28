@@ -156,8 +156,8 @@ static struct target_type *target_types[] = {
 struct target *all_targets;
 static struct target_event_callback *target_event_callbacks;
 static struct target_timer_callback *target_timer_callbacks;
-LIST_HEAD(target_reset_callback_list);
-LIST_HEAD(target_trace_callback_list);
+static LIST_HEAD(target_reset_callback_list);
+static LIST_HEAD(target_trace_callback_list);
 static const int polling_interval = 100;
 
 static const Jim_Nvp nvp_assert[] = {
@@ -1321,7 +1321,7 @@ unsigned target_address_bits(struct target *target)
 	return 32;
 }
 
-int target_profiling(struct target *target, uint32_t *samples,
+static int target_profiling(struct target *target, uint32_t *samples,
 			uint32_t max_num_samples, uint32_t *num_samples, uint32_t seconds)
 {
 	if (target->state != TARGET_HALTED) {

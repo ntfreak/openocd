@@ -40,7 +40,7 @@ struct dsp5680xx_common dsp5680xx_context;
 #define CHECK_HALT(target) if (target->state != TARGET_HALTED) HALT_FAIL
 #define check_halt_and_debug(target) { CHECK_HALT(target); CHECK_DBG; }
 
-int dsp5680xx_execute_queue(void)
+static int dsp5680xx_execute_queue(void)
 {
 	int retval;
 
@@ -892,12 +892,6 @@ static int dsp5680xx_arch_state(struct target *target)
 	return ERROR_OK;
 }
 
-int dsp5680xx_target_status(struct target *target, uint8_t *jtag_st,
-			    uint16_t *eonce_st)
-{
-	return target->state;
-}
-
 static int dsp5680xx_assert_reset(struct target *target)
 {
 	target->state = TARGET_RESET;
@@ -1555,7 +1549,7 @@ static int perl_crc(const uint8_t *buff8, uint32_t word_count)
  *
  * @return
  */
-int dsp5680xx_f_SIM_reset(struct target *target)
+static int dsp5680xx_f_SIM_reset(struct target *target)
 {
 	int retval = ERROR_OK;
 
@@ -1978,7 +1972,8 @@ int dsp5680xx_f_erase(struct target *target, int first, int last)
  * 0x0000001E  0xA961		 bra	 *-30
  */
 
-const uint16_t pgm_write_pflash[] = { 0x8A46, 0x0013, 0x807D, 0xE700,
+static const uint16_t pgm_write_pflash[] = {
+		0x8A46, 0x0013, 0x807D, 0xE700,
 		0xE700, 0x8A44, 0xFFFE, 0x017B,
 		0xE700, 0xF514, 0x8563, 0x8646,
 		0x0020, 0x0014, 0x8646, 0x0080,
@@ -1988,7 +1983,7 @@ const uint16_t pgm_write_pflash[] = { 0x8A46, 0x0013, 0x807D, 0xE700,
 		0x0013, 0x0010, 0xA961
 };
 
-const uint32_t pgm_write_pflash_length = 31;
+static const uint32_t pgm_write_pflash_length = 31;
 
 int dsp5680xx_f_wr(struct target *t, const uint8_t *b, uint32_t a, uint32_t count,
 		   int is_flash_lock)

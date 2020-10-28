@@ -57,7 +57,7 @@ static int telnet_write(struct connection *connection, const void *data, int len
 	return ERROR_SERVER_REMOTE_CLOSED;
 }
 
-int jsp_poll_read(void *priv)
+static int jsp_poll_read(void *priv)
 {
 	struct jsp_service *jsp_service = (struct jsp_service *)priv;
 	unsigned char out_buffer[10];

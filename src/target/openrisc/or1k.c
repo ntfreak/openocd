@@ -1200,7 +1200,7 @@ static int or1k_get_gdb_reg_list(struct target *target, struct reg **reg_list[],
 
 }
 
-int or1k_get_gdb_fileio_info(struct target *target, struct gdb_fileio_info *fileio_info)
+static int or1k_get_gdb_fileio_info(struct target *target, struct gdb_fileio_info *fileio_info)
 {
 	return ERROR_FAIL;
 }

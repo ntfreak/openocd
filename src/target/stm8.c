@@ -1945,7 +1945,7 @@ static int stm8_run_algorithm(struct target *target, int num_mem_params,
 	return ERROR_OK;
 }
 
-int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
+static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 {
 	struct stm8_common *stm8 = target_to_stm8(target);
 	jim_wide w;

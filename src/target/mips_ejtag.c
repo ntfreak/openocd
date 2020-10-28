@@ -58,7 +58,7 @@ int mips_ejtag_get_idcode(struct mips_ejtag *ejtag_info)
 	return mips_ejtag_drscan_32(ejtag_info, &ejtag_info->idcode);
 }
 
-int mips_ejtag_get_impcode(struct mips_ejtag *ejtag_info)
+static int mips_ejtag_get_impcode(struct mips_ejtag *ejtag_info)
 {
 	mips_ejtag_set_instr(ejtag_info, EJTAG_INST_IMPCODE);
 
@@ -119,7 +119,8 @@ int mips_ejtag_drscan_64(struct mips_ejtag *ejtag_info, uint64_t *data)
 	return ERROR_OK;
 }
 
-void mips_ejtag_drscan_32_queued(struct mips_ejtag *ejtag_info, uint32_t data_out, uint8_t *data_in)
+static void mips_ejtag_drscan_32_queued(struct mips_ejtag *ejtag_info,
+		uint32_t data_out, uint8_t *data_in)
 {
 	assert(ejtag_info->tap != NULL);
 	struct jtag_tap *tap = ejtag_info->tap;

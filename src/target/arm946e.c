@@ -51,8 +51,8 @@
  */
 static uint8_t arm946e_preserve_cache;
 
-int arm946e_post_debug_entry(struct target *target);
-void arm946e_pre_restore_context(struct target *target);
+static int arm946e_post_debug_entry(struct target *target);
+static void arm946e_pre_restore_context(struct target *target);
 static int arm946e_read_cp15(struct target *target, int reg_addr, uint32_t *value);
 
 int arm946e_init_arch_info(struct target *target,
@@ -250,7 +250,7 @@ static uint32_t arm946e_cp15_get_csize(struct target *target, int idsel)
 	return csize ? 1 << (12 + (csize-3)) : 0;
 }
 
-uint32_t arm946e_invalidate_whole_dcache(struct target *target)
+static uint32_t arm946e_invalidate_whole_dcache(struct target *target)
 {
 	uint32_t csize = arm946e_cp15_get_csize(target, GET_DCACHE_SIZE);
 	if (csize == 0)
@@ -306,7 +306,7 @@ uint32_t arm946e_invalidate_whole_dcache(struct target *target)
 	return ERROR_OK;
 }
 
-uint32_t arm946e_invalidate_whole_icache(struct target *target)
+static uint32_t arm946e_invalidate_whole_icache(struct target *target)
 {
 	/* Check cache presence before flushing - avoid undefined behavior */
 	uint32_t csize = arm946e_cp15_get_csize(target, GET_ICACHE_SIZE);
@@ -327,7 +327,7 @@ uint32_t arm946e_invalidate_whole_icache(struct target *target)
 	return ERROR_OK;
 }
 
-int arm946e_post_debug_entry(struct target *target)
+static int arm946e_post_debug_entry(struct target *target)
 {
 	uint32_t ctr_reg = 0x0;
 	uint32_t retval = ERROR_OK;
@@ -368,7 +368,7 @@ int arm946e_post_debug_entry(struct target *target)
 	return ERROR_OK;
 }
 
-void arm946e_pre_restore_context(struct target *target)
+static void arm946e_pre_restore_context(struct target *target)
 {
 	uint32_t ctr_reg = 0x0;
 	uint32_t retval;
@@ -393,7 +393,7 @@ void arm946e_pre_restore_context(struct target *target)
 	}	/* if preserve_cache */
 }
 
-uint32_t arm946e_invalidate_dcache(struct target *target, uint32_t address,
+static uint32_t arm946e_invalidate_dcache(struct target *target, uint32_t address,
 	uint32_t size, uint32_t count)
 {
 	uint32_t cur_addr = 0x0;
@@ -458,7 +458,7 @@ uint32_t arm946e_invalidate_dcache(struct target *target, uint32_t address,
 	return ERROR_OK;
 }
 
-uint32_t arm946e_invalidate_icache(struct target *target, uint32_t address,
+static uint32_t arm946e_invalidate_icache(struct target *target, uint32_t address,
 	uint32_t size, uint32_t count)
 {
 	uint32_t cur_addr = 0x0;
@@ -509,7 +509,7 @@ uint32_t arm946e_invalidate_icache(struct target *target, uint32_t address,
 }
 
 /** Writes a buffer, in the specified word size, with current MMU settings. */
-int arm946e_write_memory(struct target *target, target_addr_t address,
+static int arm946e_write_memory(struct target *target, target_addr_t address,
 	uint32_t size, uint32_t count, const uint8_t *buffer)
 {
 	int retval;
@@ -557,7 +557,7 @@ int arm946e_write_memory(struct target *target, target_addr_t address,
 
 }
 
-int arm946e_read_memory(struct target *target, target_addr_t address,
+static int arm946e_read_memory(struct target *target, target_addr_t address,
 	uint32_t size, uint32_t count, uint8_t *buffer)
 {
 	int retval;

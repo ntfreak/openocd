@@ -1126,7 +1126,7 @@ int armv8_init_arch_info(struct target *target, struct armv8_common *armv8)
 	return ERROR_OK;
 }
 
-int armv8_aarch64_state(struct target *target)
+static int armv8_aarch64_state(struct target *target)
 {
 	struct arm *arm = target_to_arm(target);
 

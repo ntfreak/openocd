@@ -572,7 +572,7 @@ static const struct command_registration arm7a_l1_i_cache_commands[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-const struct command_registration arm7a_l1_di_cache_group_handlers[] = {
+static const struct command_registration arm7a_l1_di_cache_group_handlers[] = {
 	{
 		.name = "info",
 		.handler = arm7a_l1_cache_info_cmd,
@@ -597,7 +597,7 @@ const struct command_registration arm7a_l1_di_cache_group_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-const struct command_registration arm7a_cache_group_handlers[] = {
+static const struct command_registration arm7a_cache_group_handlers[] = {
 	{
 		.name = "auto",
 		.handler = arm7a_cache_disable_auto_cmd,

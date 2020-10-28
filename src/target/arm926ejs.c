@@ -723,7 +723,7 @@ static int arm926ejs_target_create(struct target *target, Jim_Interp *interp)
 	return arm926ejs_init_arch_info(target, arm926ejs, target->tap);
 }
 
-void arm926ejs_deinit_target(struct target *target)
+static void arm926ejs_deinit_target(struct target *target)
 {
 	struct arm *arm = target_to_arm(target);
 	struct arm926ejs_common *arm926ejs = target_to_arm926(target);
