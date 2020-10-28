@@ -92,8 +92,6 @@ COMMAND_HELPER(transport_list_parse, char ***vector);
 
 int allow_transports(struct command_context *ctx, const char * const *vector);
 
-bool transports_are_declared(void);
-
 bool transport_is_jtag(void);
 bool transport_is_swd(void);
 bool transport_is_dapdirect_jtag(void);

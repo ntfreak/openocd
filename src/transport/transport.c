@@ -122,16 +122,6 @@ int allow_transports(struct command_context *ctx, const char * const *vector)
 }
 
 /**
- * Used to verify correct adapter driver initialization.
- *
- * @returns true if the adapter declares one or more transports.
- */
-bool transports_are_declared(void)
-{
-	return allowed_transports != NULL;
-}
-
-/**
  * Registers a transport.  There are general purpose transports
  * (such as JTAG), as well as relatively proprietary ones which are
  * specific to a given chip (or chip family).
