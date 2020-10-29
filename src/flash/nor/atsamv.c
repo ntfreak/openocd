@@ -676,6 +676,9 @@ showall:
 		}
 		if ((who >= 0) && (((unsigned)who) < SAMV_NUM_GPNVM_BITS)) {
 			r = samv_get_gpnvm(target, who, &v);
+			if (r != ERROR_OK)
+				return r;
+
 			command_print(CMD, "samv-gpnvm%u: %u", who, v);
 			return r;
 		} else {
