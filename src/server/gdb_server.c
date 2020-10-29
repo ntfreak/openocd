@@ -1332,7 +1332,7 @@ static int gdb_get_register_packet(struct connection *connection,
 		}
 	}
 
-	reg_packet = malloc(DIV_ROUND_UP(reg_list[reg_num]->size, 8) * 2 + 1); /* plus one for string termination null */
+	reg_packet = calloc(DIV_ROUND_UP(reg_list[reg_num]->size, 8) * 2 + 1, 1); /* plus one for string termination null */
 
 	gdb_str_to_target(target, reg_packet, reg_list[reg_num]);
 
