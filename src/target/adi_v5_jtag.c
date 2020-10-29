@@ -145,7 +145,7 @@ struct dap_cmd {
 struct dap_cmd_pool {
 	struct list_head lh;
 	struct dap_cmd cmd;
-} dap_cmd_pool;
+};
 
 static void log_dap_cmd(const char *header, struct dap_cmd *el)
 {
