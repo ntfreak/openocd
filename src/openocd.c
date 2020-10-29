@@ -230,10 +230,7 @@ static int openocd_register_commands(struct command_context *cmd_ctx)
 
 struct command_context *global_cmd_ctx;
 
-/* NB! this fn can be invoked outside this file for non PC hosted builds
- * NB! do not change to 'static'!!!!
- */
-struct command_context *setup_command_handler(Jim_Interp *interp)
+static struct command_context *setup_command_handler(Jim_Interp *interp)
 {
 	log_init();
 	LOG_DEBUG("log_init: complete");
