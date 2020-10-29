@@ -920,39 +920,29 @@ COMMAND_HANDLER(handle_help_command)
 	bool full = strcmp(CMD_NAME, "help") == 0;
 	int retval;
 	struct command *c = CMD_CTX->commands;
-	char *cmd_match = NULL;
+	char *cmd_match;
 
-	if (CMD_ARGC == 0)
-		cmd_match = "";
-	else if (CMD_ARGC >= 1) {
-		unsigned i;
+	if (CMD_ARGC <= 0)
+		cmd_match = strdup("");
 
-		for (i = 0; i < CMD_ARGC; ++i) {
-			if (NULL != cmd_match) {
-				char *prev = cmd_match;
+	else {
+		cmd_match = strdup(CMD_ARGV[0]);
 
-				cmd_match = alloc_printf("%s %s", cmd_match, CMD_ARGV[i]);
-				free(prev);
-				if (NULL == cmd_match) {
-					LOG_ERROR("unable to build search string");
-					return -ENOMEM;
-				}
-			} else {
-				cmd_match = alloc_printf("%s", CMD_ARGV[i]);
-				if (NULL == cmd_match) {
-					LOG_ERROR("unable to build search string");
-					return -ENOMEM;
-				}
-			}
+		for (unsigned int i = 1; i < CMD_ARGC && cmd_match; ++i) {
+			char *prev = cmd_match;
+			cmd_match = alloc_printf("%s %s", prev, CMD_ARGV[i]);
+			free(prev);
 		}
-	} else
-		return ERROR_COMMAND_SYNTAX_ERROR;
+	}
 
+	if (cmd_match == NULL) {
+		LOG_ERROR("unable to build search string");
+		return -ENOMEM;
+	}
 	retval = CALL_COMMAND_HANDLER(command_help_show_list,
 			c, 0, full, cmd_match);
 
-	if (CMD_ARGC >= 1)
-		free(cmd_match);
+	free(cmd_match);
 	return retval;
 }
 
