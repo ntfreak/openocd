@@ -233,16 +233,6 @@ static void arm720t_pre_restore_context(struct target *target)
 	arm720t_write_cp15(target, 0xee060f10, arm720t->far_reg);
 }
 
-static int arm720t_verify_pointer(struct command_invocation *cmd,
-		struct arm720t_common *arm720t)
-{
-	if (arm720t->common_magic != ARM720T_COMMON_MAGIC) {
-		command_print(cmd, "target is not an ARM720");
-		return ERROR_TARGET_INVALID;
-	}
-	return ERROR_OK;
-}
-
 static int arm720t_arch_state(struct target *target)
 {
 	struct arm720t_common *arm720t = target_to_arm720(target);
@@ -441,55 +431,6 @@ static int arm720t_target_create(struct target *target, Jim_Interp *interp)
 	return arm720t_init_arch_info(target, arm720t, target->tap);
 }
 
-COMMAND_HANDLER(arm720t_handle_cp15_command)
-{
-	int retval;
-	struct target *target = get_current_target(CMD_CTX);
-	struct arm720t_common *arm720t = target_to_arm720(target);
-
-	retval = arm720t_verify_pointer(CMD, arm720t);
-	if (retval != ERROR_OK)
-		return retval;
-
-	if (target->state != TARGET_HALTED) {
-		command_print(CMD, "target must be stopped for \"%s\" command", CMD_NAME);
-		return ERROR_OK;
-	}
-
-	/* one or more argument, access a single register (write if second argument is given */
-	if (CMD_ARGC >= 1) {
-		uint32_t opcode;
-		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], opcode);
-
-		if (CMD_ARGC == 1) {
-			uint32_t value;
-			retval = arm720t_read_cp15(target, opcode, &value);
-			if (retval != ERROR_OK) {
-				command_print(CMD, "couldn't access cp15 with opcode 0x%8.8" PRIx32 "", opcode);
-				return ERROR_OK;
-			}
-
-			retval = jtag_execute_queue();
-			if (retval != ERROR_OK)
-				return retval;
-
-			command_print(CMD, "0x%8.8" PRIx32 ": 0x%8.8" PRIx32 "", opcode, value);
-		} else if (CMD_ARGC == 2) {
-			uint32_t value;
-			COMMAND_PARSE_NUMBER(u32, CMD_ARGV[1], value);
-
-			retval = arm720t_write_cp15(target, opcode, value);
-			if (retval != ERROR_OK) {
-				command_print(CMD, "couldn't access cp15 with opcode 0x%8.8" PRIx32 "", opcode);
-				return ERROR_OK;
-			}
-			command_print(CMD, "0x%8.8" PRIx32 ": 0x%8.8" PRIx32 "", opcode, value);
-		}
-	}
-
-	return ERROR_OK;
-}
-
 static int arm720t_mrc(struct target *target, int cpnum,
 		uint32_t op1, uint32_t op2,
 		uint32_t CRn, uint32_t CRm,
@@ -523,29 +464,9 @@ static int arm720t_mcr(struct target *target, int cpnum,
 			value);
 }
 
-static const struct command_registration arm720t_exec_command_handlers[] = {
-	{
-		.name = "cp15",
-		.handler = arm720t_handle_cp15_command,
-		.mode = COMMAND_EXEC,
-		/* prefer using less error-prone "arm mcr" or "arm mrc" */
-		.help = "display/modify cp15 register using ARM opcode"
-			" (DEPRECATED)",
-		.usage = "instruction [value]",
-	},
-	COMMAND_REGISTRATION_DONE
-};
-
 static const struct command_registration arm720t_command_handlers[] = {
 	{
 		.chain = arm7_9_command_handlers,
-	},
-	{
-		.name = "arm720t",
-		.mode = COMMAND_ANY,
-		.help = "arm720t command group",
-		.usage = "",
-		.chain = arm720t_exec_command_handlers,
 	},
 	COMMAND_REGISTRATION_DONE
 };
