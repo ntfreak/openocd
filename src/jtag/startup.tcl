@@ -117,23 +117,8 @@ proc jtag_ntrst_assert_width args {
 # JTAG-specific names despite the fact that the operations were not
 # specific to JTAG, or otherwise had troublesome/misleading names.
 #
-# FIXME phase these aids out after about April 2011
+# FIXME phase these aids out after some releases
 #
-proc jtag_khz args {
-	echo "DEPRECATED! use 'adapter speed' not 'jtag_khz'"
-	eval adapter speed $args
-}
-
-proc jtag_nsrst_delay args {
-	echo "DEPRECATED! use 'adapter srst delay' not 'jtag_nsrst_delay'"
-	eval adapter srst delay $args
-}
-
-proc jtag_nsrst_assert_width args {
-	echo "DEPRECATED! use 'adapter srst pulse_width' not 'jtag_nsrst_assert_width'"
-	eval adapter srst pulse_width $args
-}
-
 proc jtag_reset args {
 	echo "DEPRECATED! use 'adapter \[de\]assert' not 'jtag_reset'"
 	switch $args {
@@ -148,32 +133,6 @@ proc jtag_reset args {
 		default
 			{return -code 1 -level 1 "jtag_reset: syntax error"}
 	}
-}
-
-# stlink migration helpers
-proc stlink_device_desc args {
-	echo "DEPRECATED! use 'hla_device_desc' not 'stlink_device_desc'"
-	eval hla_device_desc $args
-}
-
-proc stlink_serial args {
-	echo "DEPRECATED! use 'hla_serial' not 'stlink_serial'"
-	eval hla_serial $args
-}
-
-proc stlink_layout args {
-	echo "DEPRECATED! use 'hla_layout' not 'stlink_layout'"
-	eval hla_layout $args
-}
-
-proc stlink_vid_pid args {
-	echo "DEPRECATED! use 'hla_vid_pid' not 'stlink_vid_pid'"
-	eval hla_vid_pid $args
-}
-
-proc stlink args {
-	echo "DEPRECATED! use 'hla' not 'stlink'"
-	eval hla $args
 }
 
 proc adapter_khz args {
