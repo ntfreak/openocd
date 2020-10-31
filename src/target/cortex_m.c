@@ -2500,7 +2500,6 @@ static const struct command_registration cortex_m_command_handlers[] = {
 
 struct target_type cortexm_target = {
 	.name = "cortex_m",
-	.deprecated_name = "cortex_m3",
 
 	.poll = cortex_m_poll,
 	.arch_state = armv7m_arch_state,
