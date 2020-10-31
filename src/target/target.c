@@ -5673,15 +5673,6 @@ static int target_create(Jim_GetOptInfo *goi)
 			/* found */
 			break;
 		}
-
-		/* check for deprecated name */
-		if (target_types[x]->deprecated_name) {
-			if (0 == strcmp(cp, target_types[x]->deprecated_name)) {
-				/* found */
-				LOG_WARNING("target name is deprecated use: \'%s\'", target_types[x]->name);
-				break;
-			}
-		}
 	}
 	if (target_types[x] == NULL) {
 		Jim_SetResultFormatted(goi->interp, "Unknown target type %s, try one of ", cp);
