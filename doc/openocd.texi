@@ -9147,18 +9147,6 @@ shown in bits 38..33 of table 9-9 in the ARM920T TRM.
 (Not all registers can be written.)
 @end deffn
 
-@deffn Command {arm920t cp15i} opcode [value [address]]
-@emph{DEPRECATED -- avoid using this.
-Use the @command{arm mrc} or @command{arm mcr} commands instead.}
-
-Interpreted access using ARM instruction @var{opcode}, which should
-be the value of either an MRC or MCR instruction
-(as shown tables 9-11, 9-12, and 9-13 in the ARM920T TRM).
-If no @var{value} is provided, the result is displayed.
-Else if that value is written using the specified @var{address},
-or using zero if no other address is provided.
-@end deffn
-
 @deffn Command {arm920t read_cache} filename
 Dump the content of ICache and DCache to a file named @file{filename}.
 @end deffn
