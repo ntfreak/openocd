@@ -9094,23 +9094,6 @@ cables (FT2232), but might be unsafe if used with targets running at very low
 speeds, like the 32kHz startup clock of an AT91RM9200.
 @end deffn
 
-@subsection ARM720T specific commands
-@cindex ARM720T
-
-These commands are available to ARM720T based CPUs,
-which are implementations of the ARMv4T architecture
-based on the ARM7TDMI-S integer core.
-They are available in addition to the ARM and ARM7/ARM9 commands.
-
-@deffn Command {arm720t cp15} opcode [value]
-@emph{DEPRECATED -- avoid using this.
-Use the @command{arm mrc} or @command{arm mcr} commands instead.}
-
-Display cp15 register returned by the ARM instruction @var{opcode};
-else if a @var{value} is provided, that value is written to that register.
-The @var{opcode} should be the value of either an MRC or MCR instruction.
-@end deffn
-
 @subsection ARM9 specific commands
 @cindex ARM9
 
