@@ -2989,7 +2989,6 @@ int stlink_config_trace(void *handle, bool enabled,
 		uint16_t *prescaler)
 {
 	struct stlink_usb_handle_s *h = handle;
-	uint16_t presc;
 
 	if (enabled && (!(h->version.flags & STLINK_F_HAS_TRACE) ||
 			pin_protocol != TPIU_PIN_PROTOCOL_ASYNC_UART)) {
@@ -3012,12 +3011,17 @@ int stlink_config_trace(void *handle, bool enabled,
 	if (!*trace_freq)
 		*trace_freq = max_trace_freq;
 
-	presc = traceclkin_freq / *trace_freq;
+	unsigned int presc = (traceclkin_freq + *trace_freq / 2) / *trace_freq;
+	if (presc == 0 || presc > TPIU_ACPR_MAX_SWOSCALER + 1) {
+		LOG_ERROR("SWO frequency is not suitable. Please choose a different "
+			"frequency.");
+		return ERROR_FAIL;
+	}
 
-	if (traceclkin_freq % *trace_freq > 0)
-		presc++;
-
-	if (presc > TPIU_ACPR_MAX_SWOSCALER) {
+	/* Probe's UART speed must be within 3% of the TPIU's SWO baud rate. */
+	unsigned int max_deviation = (traceclkin_freq * 3) / 100;
+	if (presc * *trace_freq < traceclkin_freq - max_deviation ||
+			presc * *trace_freq > traceclkin_freq + max_deviation) {
 		LOG_ERROR("SWO frequency is not suitable. Please choose a different "
 			"frequency.");
 		return ERROR_FAIL;
