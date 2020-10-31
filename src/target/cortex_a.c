@@ -3143,7 +3143,6 @@ static const struct command_registration cortex_a_command_handlers[] = {
 
 struct target_type cortexa_target = {
 	.name = "cortex_a",
-	.deprecated_name = "cortex_a8",
 
 	.poll = cortex_a_poll,
 	.arch_state = armv7a_arch_state,
