@@ -1270,7 +1270,7 @@ static bool calculate_swo_prescaler(unsigned int traceclkin_freq,
 		uint32_t trace_freq, uint16_t *prescaler)
 {
 	unsigned int presc = (traceclkin_freq + trace_freq / 2) / trace_freq;
-	if (presc > TPIU_ACPR_MAX_SWOSCALER)
+	if (presc == 0 || presc > TPIU_ACPR_MAX_SWOSCALER + 1)
 		return false;
 
 	/* Probe's UART speed must be within 3% of the TPIU's SWO baud rate. */
@@ -1296,7 +1296,7 @@ static bool detect_swo_freq_and_prescaler(struct jaylink_swo_speed speed,
 		*trace_freq = speed.freq / divider;
 		presc = ((1.0 - SWO_MAX_FREQ_DEV) * traceclkin_freq) / *trace_freq + 1;
 
-		if (presc > TPIU_ACPR_MAX_SWOSCALER)
+		if (presc > TPIU_ACPR_MAX_SWOSCALER + 1)
 			break;
 
 		deviation = fabs(1.0 - ((double)*trace_freq * presc / traceclkin_freq));
