@@ -2155,9 +2155,6 @@ disables the gdb server.
 When using "pipe", also use log_output to redirect the log
 output to a file so as not to flood the stdin/out pipes.
 
-The -p/--pipe option is deprecated and a warning is printed
-as it is equivalent to passing in -c "gdb_port pipe; log_output openocd.log".
-
 Any other string is interpreted as named pipe to listen to.
 Output pipe is the same name as input pipe, but with 'o' appended,
 e.g. /var/gdb, /var/gdbo.
