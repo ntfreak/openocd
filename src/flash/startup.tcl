@@ -119,14 +119,3 @@ proc stm32g4x args { eval stm32l4x $args }
 proc stm32l5x args { eval stm32l4x $args }
 proc stm32wbx args { eval stm32l4x $args }
 proc stm32wlx args { eval stm32l4x $args }
-
-# ease migration to updated flash driver
-proc stm32x args {
-	echo "DEPRECATED! use 'stm32f1x $args' not 'stm32x $args'"
-	eval stm32f1x $args
-}
-
-proc stm32f2xxx args {
-	echo "DEPRECATED! use 'stm32f2x $args' not 'stm32f2xxx $args'"
-	eval stm32f2x $args
-}

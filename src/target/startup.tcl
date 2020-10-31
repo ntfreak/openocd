@@ -179,12 +179,6 @@ proc using_hla {} {
 
 #########
 
-# Temporary migration aid.  May be removed starting in January 2011.
-proc armv4_5 params {
-	echo "DEPRECATED! use 'arm $params' not 'armv4_5 $params'"
-	arm $params
-}
-
 # Target/chain configuration scripts can either execute commands directly
 # or define a procedure which is executed once all configuration
 # scripts have completed.
@@ -211,15 +205,4 @@ proc init_target_events {} {
 
 # Additionally board config scripts can define a procedure init_board that will be executed after init and init_targets
 proc init_board {} {
-}
-
-# deprecated target name cmds
-proc cortex_m3 args {
-	echo "DEPRECATED! use 'cortex_m' not 'cortex_m3'"
-	eval cortex_m $args
-}
-
-proc cortex_a8 args {
-	echo "DEPRECATED! use 'cortex_a' not 'cortex_a8'"
-	eval cortex_a $args
 }
