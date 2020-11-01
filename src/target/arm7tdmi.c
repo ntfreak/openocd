@@ -115,11 +115,9 @@ static inline int arm7tdmi_clock_out_inner(struct arm_jtag *jtag_info, uint32_t 
 
 /* put an instruction in the ARM7TDMI pipeline or write the data bus,
  * and optionally read data
- *
- * FIXME remove the unused "deprecated" parameter
  */
 static inline int arm7tdmi_clock_out(struct arm_jtag *jtag_info,
-		uint32_t out, uint32_t *deprecated, int breakpoint)
+		uint32_t out, int breakpoint)
 {
 	int retval;
 	retval = arm_jtag_scann(jtag_info, 0x1, TAP_DRPAUSE);
@@ -246,35 +244,35 @@ static void arm7tdmi_change_to_arm(struct target *target,
 	 * to allow common handling of ARM and THUMB debugging */
 
 	/* fetch STR r0, [r0] */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_STR(0, 0), NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_STR(0, 0), 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
 	/* nothing fetched, STR r0, [r0] in Execute (2) */
 	arm7tdmi_clock_data_in(jtag_info, r0);
 
 	/* MOV r0, r15 fetched, STR in Decode */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_MOV(0, 15), NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_STR(0, 0), NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_MOV(0, 15), 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_STR(0, 0), 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
 	/* nothing fetched, STR r0, [r0] in Execute (2) */
 	arm7tdmi_clock_data_in(jtag_info, pc);
 
 	/* use pc-relative LDR to clear r0[1:0] (for switch to ARM mode) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_LDR_PCREL(0), NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_LDR_PCREL(0), 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
 	/* nothing fetched, data for LDR r0, [PC, #0] */
-	arm7tdmi_clock_out(jtag_info, 0x0, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, 0x0, 0);
 	/* nothing fetched, data from previous cycle is written to register */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
 
 	/* fetch BX */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_BX(0), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_BX(0), 0);
 	/* NOP fetched, BX in Decode, MOV in Execute */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
 	/* NOP fetched, BX in Execute (1) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
 
 	jtag_execute_queue();
 
@@ -301,12 +299,12 @@ static void arm7tdmi_read_core_regs(struct target *target,
 	/* STMIA r0-15, [r0] at debug speed
 	 * register values will start to appear on 4th DCLK
 	 */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_STMIA(0, mask & 0xffff, 0, 0), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_STMIA(0, mask & 0xffff, 0, 0), 0);
 
 	/* fetch NOP, STM in DECODE stage */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* fetch NOP, STM in EXECUTE stage (1st cycle) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 
 	for (i = 0; i <= 15; i++) {
 		if (mask & (1 << i))
@@ -329,12 +327,12 @@ static void arm7tdmi_read_core_regs_target_buffer(struct target *target,
 	/* STMIA r0-15, [r0] at debug speed
 	 * register values will start to appear on 4th DCLK
 	 */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_STMIA(0, mask & 0xffff, 0, 0), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_STMIA(0, mask & 0xffff, 0, 0), 0);
 
 	/* fetch NOP, STM in DECODE stage */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* fetch NOP, STM in EXECUTE stage (1st cycle) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 
 	for (i = 0; i <= 15; i++) {
 		/* nothing fetched, STM still in EXECUTE (1 + i cycle), read databus */
@@ -360,14 +358,14 @@ static void arm7tdmi_read_xpsr(struct target *target, uint32_t *xpsr, int spsr)
 	struct arm_jtag *jtag_info = &arm7_9->jtag_info;
 
 	/* MRS r0, cpsr */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_MRS(0, spsr & 1), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_MRS(0, spsr & 1), 0);
 
 	/* STR r0, [r15] */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_STR(0, 15), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_STR(0, 15), 0);
 	/* fetch NOP, STR in DECODE stage */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* fetch NOP, STR in EXECUTE stage (1st cycle) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* nothing fetched, STR still in EXECUTE (2nd cycle) */
 	arm7tdmi_clock_data_in(jtag_info, xpsr);
 }
@@ -380,25 +378,25 @@ static void arm7tdmi_write_xpsr(struct target *target, uint32_t xpsr, int spsr)
 	LOG_DEBUG("xpsr: %8.8" PRIx32 ", spsr: %i", xpsr, spsr);
 
 	/* MSR1 fetched */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_MSR_IM(xpsr & 0xff, 0, 1, spsr), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_MSR_IM(xpsr & 0xff, 0, 1, spsr), 0);
 	/* MSR2 fetched, MSR1 in DECODE */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_MSR_IM((xpsr & 0xff00) >> 8, 0xc, 2, spsr), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_MSR_IM((xpsr & 0xff00) >> 8, 0xc, 2, spsr), 0);
 	/* MSR3 fetched, MSR1 in EXECUTE (1), MSR2 in DECODE */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_MSR_IM((xpsr & 0xff0000) >> 16, 0x8, 4, spsr), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_MSR_IM((xpsr & 0xff0000) >> 16, 0x8, 4, spsr), 0);
 	/* nothing fetched, MSR1 in EXECUTE (2) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* MSR4 fetched, MSR2 in EXECUTE (1), MSR3 in DECODE */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_MSR_IM((xpsr & 0xff000000) >> 24, 0x4, 8, spsr), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_MSR_IM((xpsr & 0xff000000) >> 24, 0x4, 8, spsr), 0);
 	/* nothing fetched, MSR2 in EXECUTE (2) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* NOP fetched, MSR3 in EXECUTE (1), MSR4 in DECODE */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* nothing fetched, MSR3 in EXECUTE (2) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* NOP fetched, MSR4 in EXECUTE (1) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* nothing fetched, MSR4 in EXECUTE (2) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 }
 
 static void arm7tdmi_write_xpsr_im8(struct target *target,
@@ -410,13 +408,13 @@ static void arm7tdmi_write_xpsr_im8(struct target *target,
 	LOG_DEBUG("xpsr_im: %2.2x, rot: %i, spsr: %i", xpsr_im, rot, spsr);
 
 	/* MSR fetched */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_MSR_IM(xpsr_im, rot, 1, spsr), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_MSR_IM(xpsr_im, rot, 1, spsr), 0);
 	/* NOP fetched, MSR in DECODE */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* NOP fetched, MSR in EXECUTE (1) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* nothing fetched, MSR in EXECUTE (2) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 }
 
 static void arm7tdmi_write_core_regs(struct target *target,
@@ -429,7 +427,7 @@ static void arm7tdmi_write_core_regs(struct target *target,
 	/* LDMIA r0-15, [r0] at debug speed
 	* register values will start to appear on 4th DCLK
 	*/
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_LDMIA(0, mask & 0xffff, 0, 0), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_LDMIA(0, mask & 0xffff, 0, 0), 0);
 
 	/* fetch NOP, LDM in DECODE stage */
 	arm7tdmi_clock_out_inner(jtag_info, ARMV4_5_NOP, 0);
@@ -450,9 +448,9 @@ static void arm7tdmi_load_word_regs(struct target *target, uint32_t mask)
 	struct arm_jtag *jtag_info = &arm7_9->jtag_info;
 
 	/* put system-speed load-multiple into the pipeline */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 1);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_LDMIA(0, mask & 0xffff, 0, 1), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 1);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_LDMIA(0, mask & 0xffff, 0, 1), 0);
 }
 
 static void arm7tdmi_load_hword_reg(struct target *target, int num)
@@ -461,9 +459,9 @@ static void arm7tdmi_load_hword_reg(struct target *target, int num)
 	struct arm_jtag *jtag_info = &arm7_9->jtag_info;
 
 	/* put system-speed load half-word into the pipeline */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 1);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_LDRH_IP(num, 0), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 1);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_LDRH_IP(num, 0), 0);
 }
 
 static void arm7tdmi_load_byte_reg(struct target *target, int num)
@@ -472,9 +470,9 @@ static void arm7tdmi_load_byte_reg(struct target *target, int num)
 	struct arm_jtag *jtag_info = &arm7_9->jtag_info;
 
 	/* put system-speed load byte into the pipeline */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 1);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_LDRB_IP(num, 0), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 1);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_LDRB_IP(num, 0), 0);
 }
 
 static void arm7tdmi_store_word_regs(struct target *target, uint32_t mask)
@@ -483,9 +481,9 @@ static void arm7tdmi_store_word_regs(struct target *target, uint32_t mask)
 	struct arm_jtag *jtag_info = &arm7_9->jtag_info;
 
 	/* put system-speed store-multiple into the pipeline */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 1);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_STMIA(0, mask, 0, 1), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 1);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_STMIA(0, mask, 0, 1), 0);
 }
 
 static void arm7tdmi_store_hword_reg(struct target *target, int num)
@@ -494,9 +492,9 @@ static void arm7tdmi_store_hword_reg(struct target *target, int num)
 	struct arm_jtag *jtag_info = &arm7_9->jtag_info;
 
 	/* put system-speed store half-word into the pipeline */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 1);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_STRH_IP(num, 0), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 1);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_STRH_IP(num, 0), 0);
 }
 
 static void arm7tdmi_store_byte_reg(struct target *target, int num)
@@ -505,9 +503,9 @@ static void arm7tdmi_store_byte_reg(struct target *target, int num)
 	struct arm_jtag *jtag_info = &arm7_9->jtag_info;
 
 	/* put system-speed store byte into the pipeline */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 1);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_STRB_IP(num, 0), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 1);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_STRB_IP(num, 0), 0);
 }
 
 static void arm7tdmi_write_pc(struct target *target, uint32_t pc)
@@ -518,7 +516,7 @@ static void arm7tdmi_write_pc(struct target *target, uint32_t pc)
 	/* LDMIA r0-15, [r0] at debug speed
 	 * register values will start to appear on 4th DCLK
 	 */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_LDMIA(0, 0x8000, 0, 0), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_LDMIA(0, 0x8000, 0, 0), 0);
 	/* fetch NOP, LDM in DECODE stage */
 	arm7tdmi_clock_out_inner(jtag_info, ARMV4_5_NOP, 0);
 	/* fetch NOP, LDM in EXECUTE stage (1st cycle) */
@@ -540,7 +538,7 @@ static void arm7tdmi_branch_resume(struct target *target)
 	struct arm7_9_common *arm7_9 = target_to_arm7_9(target);
 	struct arm_jtag *jtag_info = &arm7_9->jtag_info;
 
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 1);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 1);
 	arm7tdmi_clock_out_inner(jtag_info, ARMV4_5_B(0xfffffa, 0), 0);
 }
 
@@ -556,53 +554,52 @@ static void arm7tdmi_branch_resume_thumb(struct target *target)
 	/* LDMIA r0, [r0] at debug speed
 	 * register values will start to appear on 4th DCLK
 	 */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_LDMIA(0, 0x1, 0, 0), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_LDMIA(0, 0x1, 0, 0), 0);
 
 	/* fetch NOP, LDM in DECODE stage */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* fetch NOP, LDM in EXECUTE stage (1st cycle) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 	/* nothing fetched, LDM in EXECUTE stage (2nd cycle) */
-	arm7tdmi_clock_out(jtag_info,
-			buf_get_u32(arm->pc->value, 0, 32) | 1, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, buf_get_u32(arm->pc->value, 0, 32) | 1, 0);
 	/* nothing fetched, LDM in EXECUTE stage (3rd cycle) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 
 	/* Branch and eXchange */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_BX(0), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_BX(0), 0);
 
 	embeddedice_read_reg(dbg_stat);
 
 	/* fetch NOP, BX in DECODE stage */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 
 	/* target is now in Thumb state */
 	embeddedice_read_reg(dbg_stat);
 
 	/* fetch NOP, BX in EXECUTE stage (1st cycle) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0);
 
 	/* target is now in Thumb state */
 	embeddedice_read_reg(dbg_stat);
 
 	/* load r0 value */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_LDR_PCREL(0), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_LDR_PCREL(0), 0);
 	/* fetch NOP, LDR in Decode */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
 	/* fetch NOP, LDR in Execute */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
 	/* nothing fetched, LDR in EXECUTE stage (2nd cycle) */
-	arm7tdmi_clock_out(jtag_info, buf_get_u32(arm->core_cache->reg_list[0].value, 0, 32), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, buf_get_u32(arm->core_cache->reg_list[0].value, 0, 32), 0);
 	/* nothing fetched, LDR in EXECUTE stage (3rd cycle) */
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
 
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 0);
 
 	embeddedice_read_reg(dbg_stat);
 
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, NULL, 1);
-	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_B(0x7f8), NULL, 0);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_NOP, 1);
+	arm7tdmi_clock_out(jtag_info, ARMV4_5_T_B(0x7f8), 0);
 }
 
 static void arm7tdmi_build_reg_cache(struct target *target)
