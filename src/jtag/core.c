@@ -953,12 +953,12 @@ int default_interface_jtag_execute_queue(void)
 
 	int result = jtag->jtag_ops->execute_queue();
 
-#if !BUILD_ZY1000
+#if !HAVE_JTAG_MINIDRIVER_H
 	/* Only build this if we use a regular driver with a command queue.
 	 * Otherwise jtag_command_queue won't be found at compile/link time. Its
 	 * definition is in jtag/commands.c, which is only built/linked by
 	 * jtag/Makefile.am if MINIDRIVER_DUMMY || !MINIDRIVER, but those variables
-	 * aren't accessible here. */
+	 * aren't accessible here. Use HAVE_JTAG_MINIDRIVER_H */
 	struct jtag_command *cmd = jtag_command_queue;
 	while (debug_level >= LOG_LVL_DEBUG_IO && cmd) {
 		switch (cmd->type) {
