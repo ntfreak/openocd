@@ -8,10 +8,6 @@ CLEANFILES += %D%/minidriver_imp.h
 
 if MINIDRIVER
 
-if ZY1000
-JTAG_SRCS += %D%/zy1000/zy1000.c
-JTAG_MINIDRIVER_DIR = %D%/zy1000
-endif
 if MINIDRIVER_DUMMY
 JTAG_SRCS += %D%/minidummy/minidummy.c
 JTAG_MINIDRIVER_DIR = %D%/minidummy

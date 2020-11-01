@@ -283,14 +283,6 @@ AC_ARG_ENABLE([amtjtagaccel],
   AS_HELP_STRING([--enable-amtjtagaccel], [Enable building the Amontec JTAG-Accelerator driver]),
   [build_amtjtagaccel=$enableval], [build_amtjtagaccel=no])
 
-AC_ARG_ENABLE([zy1000_master],
-  AS_HELP_STRING([--enable-zy1000-master], [Use ZY1000 JTAG master registers]),
-  [build_zy1000_master=$enableval], [build_zy1000_master=no])
-
-AC_ARG_ENABLE([zy1000],
-  AS_HELP_STRING([--enable-zy1000], [Enable ZY1000 interface]),
-  [build_zy1000=$enableval], [build_zy1000=no])
-
 AS_CASE(["${host_cpu}"],
   [arm*|aarch64], [
     AC_ARG_ENABLE([bcm2835gpio],
@@ -373,16 +365,6 @@ AC_ARG_ENABLE([internal-libjaylink],
   [use_internal_libjaylink=$enableval], [use_internal_libjaylink=yes])
 
 build_minidriver=no
-AC_MSG_CHECKING([whether to enable ZY1000 minidriver])
-AS_IF([test "x$build_zy1000" = "xyes"], [
-  AS_IF([test "x$build_minidriver" = "xyes"], [
-    AC_MSG_ERROR([Multiple minidriver options have been enabled.])
-  ])
-  AC_DEFINE([HAVE_JTAG_MINIDRIVER_H], [1],
-      [Define to 1 if you have the <jtag_minidriver.h> header file.])
-  build_minidriver=yes
-])
-AC_MSG_RESULT([$build_zy1000])
 
 AC_ARG_ENABLE([remote-bitbang],
   AS_HELP_STRING([--enable-remote-bitbang], [Enable building support for the Remote Bitbang jtag driver]),
@@ -519,18 +501,6 @@ AS_IF([test "x$build_ep93xx" = "xyes"], [
   AC_DEFINE([BUILD_EP93XX], [1], [1 if you want ep93xx.])
 ], [
   AC_DEFINE([BUILD_EP93XX], [0], [0 if you don't want ep93xx.])
-])
-
-AS_IF([test "x$build_zy1000" = "xyes"], [
-  AC_DEFINE([BUILD_ZY1000], [1], [1 if you want ZY1000.])
-], [
-  AC_DEFINE([BUILD_ZY1000], [0], [0 if you don't want ZY1000.])
-])
-
-AS_IF([test "x$build_zy1000_master" = "xyes"], [
-  AC_DEFINE([BUILD_ZY1000_MASTER], [1], [1 if you want ZY1000 JTAG master registers.])
-], [
-  AC_DEFINE([BUILD_ZY1000_MASTER], [0], [0 if you don't want ZY1000 JTAG master registers.])
 ])
 
 AS_IF([test "x$build_at91rm9200" = "xyes"], [
@@ -687,9 +657,6 @@ PKG_CHECK_MODULES([LIBJAYLINK], [libjaylink >= 0.2],
 
 m4_define([PROCESS_ADAPTERS], [
   m4_foreach([adapter], [$1], [
-	AS_IF([test "x$build_zy1000" = "xyes"], [
-		ADAPTER_VAR([adapter])=no
-	])
 	AS_IF([test $2], [
 		AS_IF([test "x$ADAPTER_VAR([adapter])" != "xno"], [
 			AC_DEFINE([BUILD_]ADAPTER_SYM([adapter]), [1], [1 if you want the ]ADAPTER_DESC([adapter]).)
@@ -751,8 +718,6 @@ AM_CONDITIONAL([PARPORT], [test "x$build_parport" = "xyes"])
 AM_CONDITIONAL([DUMMY], [test "x$build_dummy" = "xyes"])
 AM_CONDITIONAL([GIVEIO], [test "x$parport_use_giveio" = "xyes"])
 AM_CONDITIONAL([EP93XX], [test "x$build_ep93xx" = "xyes"])
-AM_CONDITIONAL([ZY1000], [test "x$build_zy1000" = "xyes"])
-AM_CONDITIONAL([ZY1000_MASTER], [test "x$build_zy1000_master" = "xyes"])
 AM_CONDITIONAL([AT91RM9200], [test "x$build_at91rm9200" = "xyes"])
 AM_CONDITIONAL([BCM2835GPIO], [test "x$build_bcm2835gpio" = "xyes"])
 AM_CONDITIONAL([IMX_GPIO], [test "x$build_imx_gpio" = "xyes"])
@@ -867,11 +832,3 @@ m4_foreach([adapter], [USB1_ADAPTERS, USB0_ADAPTERS,
 	])
 ])
 echo
-
-AS_IF([test "x$build_zy1000" = "xyes" -o "x$build_zy1000_master" = "xyes"], [
-  echo 'WARNING! Deprecated configure option (--enable-zy1000, --enable-zy1000-master)'
-  echo 'Support for the ZY1000 platform is deprecated and will be removed in the next'
-  echo 'release. If you regularly use this platform, please report to the OpenOCD'
-  echo 'Mailing List.'
-  echo
-])

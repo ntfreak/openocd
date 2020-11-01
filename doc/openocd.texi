@@ -298,7 +298,6 @@ The OpenOCD Bug Tracker is hosted on SourceForge:
 @cindex dongles
 @cindex FTDI
 @cindex wiggler
-@cindex zy1000
 @cindex printer port
 @cindex USB Adapter
 @cindex RTCK
@@ -307,12 +306,7 @@ Defined: @b{dongle}: A small device that plugs into a computer and serves as
 an adapter .... [snip]
 
 In the OpenOCD case, this generally refers to @b{a small adapter} that
-attaches to your computer via USB or the parallel port. One
-exception is the Ultimate Solutions ZY1000, packaged as a small box you
-attach via an ethernet cable. The ZY1000 has the advantage that it does not
-require any drivers to be installed on the developer PC. It also has
-a built in web interface. It supports RTCK/RCLK or adaptive clocking
-and has a built-in relay to power cycle targets remotely.
+attaches to your computer via USB or the parallel port.
 
 
 @section Choosing a Dongle
@@ -333,26 +327,6 @@ Ethernet port needed?
 @item @b{RTCK} Do you expect to use it with ARM chips and boards with
 RTCK support (also known as ``adaptive clocking'')?
 @end enumerate
-
-@section Stand-alone JTAG Probe
-
-The ZY1000 from Ultimate Solutions is technically not a dongle but a
-stand-alone JTAG probe that, unlike most dongles, doesn't require any drivers
-running on the developer's host computer.
-Once installed on a network using DHCP or a static IP assignment, users can
-access the ZY1000 probe locally or remotely from any host with access to the
-IP address assigned to the probe.
-The ZY1000 provides an intuitive web interface with direct access to the
-OpenOCD debugger.
-Users may also run a GDBSERVER directly on the ZY1000 to take full advantage
-of GCC & GDB to debug any distribution of embedded Linux or NetBSD running on
-the target.
-The ZY1000 supports RTCK & RCLK or adaptive clocking and has a built-in relay
-to power cycle the target remotely.
-
-For more information, visit:
-
-@b{ZY1000} See: @url{http://www.ultsol.com/index.php/component/content/article/8/210-zylin-zy1000-main}
 
 @section USB FT2232 Based
 
@@ -3200,20 +3174,6 @@ of lscpi -D (first column) for the corresponding device.
 The string will be of the format "DDDD:BB:SS.F" such as "0000:65:00.1".
 
 @end deffn
-@end deffn
-
-@deffn {Interface Driver} {ZY1000}
-This is the Zylin ZY1000 JTAG debugger.
-@end deffn
-
-@quotation Note
-This defines some driver-specific commands,
-which are not currently documented here.
-@end quotation
-
-@deffn Command power [@option{on}|@option{off}]
-Turn power switch to target on/off.
-No arguments: print status.
 @end deffn
 
 @deffn {Interface Driver} {bcm2835gpio}

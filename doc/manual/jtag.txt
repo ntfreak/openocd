@@ -36,7 +36,6 @@ asynchronous transactions.
   - declared in @c src/jtag/minidriver.h
   - used @a only by the core and minidriver implementations:
     - @c jtag_driver.c (in-tree OpenOCD drivers)
-    - @c zy1000/build/include/jtag_minidriver.h (ZY1000 minidriver)
     - future implementations (on other embedded hosts)
     - interface device drivers do @b not need this API.
 

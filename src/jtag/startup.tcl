@@ -29,7 +29,7 @@ proc init_reset { mode } {
 #########
 
 # TODO: power_restore and power_dropout are currently neither
-# documented nor supported except on ZY1000.
+# documented nor supported.
 
 proc power_restore {} {
 	echo "Sensed power restore, running reset init and halting GDB."
@@ -55,7 +55,7 @@ proc power_dropout {} {
 #########
 
 # TODO: srst_deasserted and srst_asserted are currently neither
-# documented nor supported except on ZY1000.
+# documented nor supported.
 
 proc srst_deasserted {} {
 	echo "Sensed nSRST deasserted, running reset init and halting GDB."
