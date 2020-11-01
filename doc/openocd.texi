@@ -79,7 +79,6 @@ Free Documentation License''.
 * JTAG Commands::                    JTAG Commands
 * Boundary Scan Commands::           Boundary Scan Commands
 * Utility Commands::                 Utility Commands
-* TFTP::                             TFTP
 * GDB and OpenOCD::                  Using GDB and OpenOCD
 * Tcl Scripting API::                Tcl Scripting API
 * FAQ::                              Frequently Asked Questions
@@ -10360,28 +10359,6 @@ For quickstart instructions run:
 @example
 openocd -f tools/firmware-recovery.tcl -c firmware_help
 @end example
-
-@node TFTP
-@chapter TFTP
-@cindex TFTP
-If OpenOCD runs on an embedded host (as ZY1000 does), then TFTP can
-be used to access files on PCs (either the developer's PC or some other PC).
-
-The way this works on the ZY1000 is to prefix a filename by
-"/tftp/ip/" and append the TFTP path on the TFTP
-server (tftpd). For example,
-
-@example
-load_image /tftp/10.0.0.96/c:\temp\abc.elf
-@end example
-
-will load c:\temp\abc.elf from the developer pc (10.0.0.96) into memory as
-if the file was hosted on the embedded host.
-
-In order to achieve decent performance, you must choose a TFTP server
-that supports a packet size bigger than the default packet size (512 bytes). There
-are numerous TFTP servers out there (free and commercial) and you will have to do
-a bit of googling to find something that fits your requirements.
 
 @node GDB and OpenOCD
 @chapter GDB and OpenOCD
