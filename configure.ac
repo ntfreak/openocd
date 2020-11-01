@@ -328,11 +328,6 @@ AC_ARG_ENABLE([gw16012],
   AS_HELP_STRING([--enable-gw16012], [Enable building support for the Gateworks GW16012 JTAG Programmer]),
   [build_gw16012=$enableval], [build_gw16012=no])
 
-AC_ARG_ENABLE([oocd_trace],
-  AS_HELP_STRING([--enable-oocd_trace],
-  [Enable building support for some prototype OpenOCD+trace ETM capture hardware]),
-  [build_oocd_trace=$enableval], [build_oocd_trace=no])
-
 AC_ARG_ENABLE([buspirate],
   AS_HELP_STRING([--enable-buspirate], [Enable building support for the Buspirate]),
   [build_buspirate=$enableval], [build_buspirate=no])
@@ -600,12 +595,6 @@ AS_IF([test "x$build_gw16012" = "xyes"], [
   AC_DEFINE([BUILD_GW16012], [0], [0 if you don't want the Gateworks GW16012 driver.])
 ])
 
-AS_IF([test "x$build_oocd_trace" = "xyes"], [
-  AC_DEFINE([BUILD_OOCD_TRACE], [1], [1 if you want the OpenOCD+trace ETM capture driver.])
-], [
-  AC_DEFINE([BUILD_OOCD_TRACE], [0], [0 if you don't want the OpenOCD+trace ETM capture driver.])
-])
-
 AS_IF([test "x$build_buspirate" = "xyes"], [
   AC_DEFINE([BUILD_BUSPIRATE], [1], [1 if you want the Buspirate JTAG driver.])
 ], [
@@ -778,7 +767,6 @@ AM_CONDITIONAL([JTAG_DPI], [test "x$build_jtag_dpi" = "xyes" -o "x$build_jtag_dp
 AM_CONDITIONAL([USB_BLASTER_DRIVER], [test "x$enable_usb_blaster" != "xno" -o "x$enable_usb_blaster_2" != "xno"])
 AM_CONDITIONAL([AMTJTAGACCEL], [test "x$build_amtjtagaccel" = "xyes"])
 AM_CONDITIONAL([GW16012], [test "x$build_gw16012" = "xyes"])
-AM_CONDITIONAL([OOCD_TRACE], [test "x$build_oocd_trace" = "xyes"])
 AM_CONDITIONAL([REMOTE_BITBANG], [test "x$build_remote_bitbang" = "xyes"])
 AM_CONDITIONAL([BUSPIRATE], [test "x$build_buspirate" = "xyes"])
 AM_CONDITIONAL([SYSFSGPIO], [test "x$build_sysfsgpio" = "xyes"])
@@ -884,13 +872,6 @@ m4_foreach([adapter], [USB1_ADAPTERS, USB0_ADAPTERS,
 	])
 ])
 echo
-
-AS_IF([test "x$build_oocd_trace" = "xyes"], [
-  echo 'WARNING! Deprecated configure option (--enable-oocd_trace)'
-  echo 'The oocd_trace driver is deprecated and will be removed in the next release.'
-  echo 'If you regularly use this driver, please report to the OpenOCD Mailing List.'
-  echo
-])
 
 AS_IF([test "x$build_zy1000" = "xyes" -o "x$build_zy1000_master" = "xyes"], [
   echo 'WARNING! Deprecated configure option (--enable-zy1000, --enable-zy1000-master)'

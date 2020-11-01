@@ -103,12 +103,6 @@ OPENOCD_CONFIG_OPTIONS_libusb_y += --enable-usbprog
 # Build OPENOCD config options...
 # Always enable "dummy"
 OPENOCD_CONFIG_OPTIONS += --enable-dummy
-# 
-# Today: Cannot enable 'oocd_trace' on cygwin.
-# it assumes/uses termios functions like
-# cfmakeraw() which do not exist on cygwin.
-#
-#OPENOCD_CONFIG_OPTIONS += --enable-oocd-trace
 #
 # Add printer options..
 OPENOCD_CONFIG_OPTIONS += ${OPENOCD_CONFIG_OPTIONS_printer_${X86_PRINTER_PORT}}

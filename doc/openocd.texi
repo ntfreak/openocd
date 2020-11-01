@@ -8846,29 +8846,6 @@ how the event caused trouble.
 
 @end deffn
 
-@deffn {Trace Port Driver} oocd_trace
-This driver isn't available unless OpenOCD was explicitly configured
-with the @option{--enable-oocd_trace} option. You probably don't want
-to configure it unless you've built the appropriate prototype hardware;
-it's @emph{proof-of-concept} software.
-
-Use the @option{oocd_trace} driver if you are configuring an ETM that's
-connected to an off-chip trace connector.
-
-@deffn {Config Command} {oocd_trace config} target tty
-Associates the ETM for @var{target} with a trace driver which
-collects data through the serial port @var{tty}.
-@end deffn
-
-@deffn Command {oocd_trace resync}
-Re-synchronizes with the capture clock.
-@end deffn
-
-@deffn Command {oocd_trace status}
-Reports whether the capture clock is locked or not.
-@end deffn
-@end deffn
-
 @anchor{armcrosstrigger}
 @section ARM Cross-Trigger Interface
 @cindex CTI
