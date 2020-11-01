@@ -8265,66 +8265,6 @@ with handlers for that event.
 @end quotation
 @end deffn
 
-@section I/O Utilities
-
-These commands are available when
-OpenOCD is built with @option{--enable-ioutil}.
-They are mainly useful on embedded targets,
-notably the ZY1000.
-Hosts with operating systems have complementary tools.
-
-@emph{Note:} there are several more such commands.
-
-@deffn Command append_file filename [string]*
-Appends the @var{string} parameters to
-the text file @file{filename}.
-Each string except the last one is followed by one space.
-The last string is followed by a newline.
-@end deffn
-
-@deffn Command cat filename
-Reads and displays the text file @file{filename}.
-@end deffn
-
-@deffn Command cp src_filename dest_filename
-Copies contents from the file @file{src_filename}
-into @file{dest_filename}.
-@end deffn
-
-@deffn Command ip
-@emph{No description provided.}
-@end deffn
-
-@deffn Command ls
-@emph{No description provided.}
-@end deffn
-
-@deffn Command mac
-@emph{No description provided.}
-@end deffn
-
-@deffn Command meminfo
-Display available RAM memory on OpenOCD host.
-Used in OpenOCD regression testing scripts.
-@end deffn
-
-@deffn Command peek
-@emph{No description provided.}
-@end deffn
-
-@deffn Command poke
-@emph{No description provided.}
-@end deffn
-
-@deffn Command rm filename
-@c "rm" has both normal and Jim-level versions??
-Unlinks the file @file{filename}.
-@end deffn
-
-@deffn Command trunc filename
-Removes all data in the file @file{filename}.
-@end deffn
-
 @anchor{memoryaccess}
 @section Memory access commands
 @cindex memory access

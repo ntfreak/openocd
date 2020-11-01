@@ -291,10 +291,6 @@ AC_ARG_ENABLE([zy1000],
   AS_HELP_STRING([--enable-zy1000], [Enable ZY1000 interface]),
   [build_zy1000=$enableval], [build_zy1000=no])
 
-AC_ARG_ENABLE([ioutil],
-  AS_HELP_STRING([--enable-ioutil], [Enable ioutil functions - useful for standalone OpenOCD implementations]),
-  [build_ioutil=$enableval], [build_ioutil=no])
-
 AS_CASE(["${host_cpu}"],
   [arm*|aarch64], [
     AC_ARG_ENABLE([bcm2835gpio],
@@ -757,7 +753,6 @@ AM_CONDITIONAL([GIVEIO], [test "x$parport_use_giveio" = "xyes"])
 AM_CONDITIONAL([EP93XX], [test "x$build_ep93xx" = "xyes"])
 AM_CONDITIONAL([ZY1000], [test "x$build_zy1000" = "xyes"])
 AM_CONDITIONAL([ZY1000_MASTER], [test "x$build_zy1000_master" = "xyes"])
-AM_CONDITIONAL([IOUTIL], [test "x$build_ioutil" = "xyes"])
 AM_CONDITIONAL([AT91RM9200], [test "x$build_at91rm9200" = "xyes"])
 AM_CONDITIONAL([BCM2835GPIO], [test "x$build_bcm2835gpio" = "xyes"])
 AM_CONDITIONAL([IMX_GPIO], [test "x$build_imx_gpio" = "xyes"])
@@ -878,13 +873,5 @@ AS_IF([test "x$build_zy1000" = "xyes" -o "x$build_zy1000_master" = "xyes"], [
   echo 'Support for the ZY1000 platform is deprecated and will be removed in the next'
   echo 'release. If you regularly use this platform, please report to the OpenOCD'
   echo 'Mailing List.'
-  echo
-])
-
-AS_IF([test "x$build_ioutil" = "xyes"], [
-  echo 'WARNING! Deprecated configure option (--enable-ioutil)'
-  echo 'Support for the ioutil functions is deprecated and will be removed in the next'
-  echo 'release. If you regularly depend on this functionality, please report to the'
-  echo 'OpenOCD Mailing List.'
   echo
 ])

@@ -30,7 +30,6 @@
 #include <jtag/driver.h>
 #include <jtag/jtag.h>
 #include <transport/transport.h>
-#include <helper/ioutil.h>
 #include <helper/util.h>
 #include <helper/configuration.h>
 #include <flash/nor/core.h>
@@ -333,9 +332,6 @@ int openocd_main(int argc, char *argv[])
 	cmd_ctx = setup_command_handler(NULL);
 
 	if (util_init(cmd_ctx) != ERROR_OK)
-		return EXIT_FAILURE;
-
-	if (ioutil_init(cmd_ctx) != ERROR_OK)
 		return EXIT_FAILURE;
 
 	if (rtt_init() != ERROR_OK)
