@@ -18,7 +18,6 @@ noinst_LTLIBRARIES += %D%/libhelper.la
 	%D%/binarybuffer.h \
 	%D%/bits.h \
 	%D%/configuration.h \
-	%D%/ioutil.h \
 	%D%/list.h \
 	%D%/util.h \
 	%D%/types.h \
@@ -31,12 +30,6 @@ noinst_LTLIBRARIES += %D%/libhelper.la
 	%D%/jep106.h \
 	%D%/jep106.inc \
 	%D%/jim-nvp.h
-
-if IOUTIL
-%C%_libhelper_la_SOURCES += %D%/ioutil.c
-else
-%C%_libhelper_la_SOURCES += %D%/ioutil_stubs.c
-endif
 
 %C%_libhelper_la_CFLAGS = $(AM_CFLAGS)
 if IS_MINGW
