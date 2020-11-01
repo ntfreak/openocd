@@ -27,11 +27,6 @@
 #include "register.h"
 #include "etm_dummy.h"
 
-#if BUILD_OOCD_TRACE == 1
-#include "oocd_trace.h"
-#endif
-
-
 /*
  * ARM "Embedded Trace Macrocell" (ETM) support -- direct JTAG access.
  *
@@ -642,9 +637,6 @@ static int etm_write_reg(struct reg *reg, uint32_t value)
 static struct etm_capture_driver *etm_capture_drivers[] = {
 	&etb_capture_driver,
 	&etm_dummy_capture_driver,
-#if BUILD_OOCD_TRACE == 1
-	&oocd_trace_capture_driver,
-#endif
 	NULL
 };
 
