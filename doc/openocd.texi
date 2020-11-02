@@ -7069,6 +7069,13 @@ Area A for bank 1. The above example set WRP1AR_END=255, WRP1AR_START=0.
 This will effectively write protect all sectors in flash bank 1.
 @end deffn
 
+@deffn Command {stm32l4x wrp_desc} num [device_bank]
+List the protected areas using WRP
+The @var{num} parameter is a value shown by @command{flash banks}.
+@var{device_bank} parameter is optional, possible values 'bank1' or 'bank2',
+if not specified, the command will display the whole flash protected areas.
+@end deffn
+
 @deffn Command {stm32l4x option_load} num
 Forces a re-load of the option byte registers. Will cause a system reset of the device.
 The @var{num} parameter is a value shown by @command{flash banks}.
