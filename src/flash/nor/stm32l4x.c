@@ -168,6 +168,9 @@ struct stm32l4_part_info {
 	const size_t num_revs;
 	const uint16_t max_flash_size_kb;
 	const bool has_dual_bank;
+	/* this field is used for dual bank devices only, it indicates if the
+	 * 4 WRPxx are usable if the device is configured in single-bank mode */
+	const bool use_all_wrpxx;
 	const uint32_t flash_regs_base;
 	const uint32_t *default_flash_regs;
 	const uint32_t fsize_addr;
@@ -186,6 +189,21 @@ struct stm32l4_flash_bank {
 	const struct stm32l4_part_info *part_info;
 	const uint32_t *flash_regs;
 	bool otp_enabled;
+};
+
+enum stm32_bank_id {
+	STM32_BANK1,
+	STM32_BANK2,
+	STM32_ALL_BANKS
+};
+
+struct stm32l4_wrp {
+	enum stm32l4_flash_reg_index reg_idx;
+	uint32_t value;
+	bool used;
+	int first;
+	int last;
+	int offset;
 };
 
 /* human readable list of families this drivers supports (sorted alphabetically) */
@@ -263,6 +281,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32L47/L48xx",
 	  .max_flash_size_kb     = 1024,
 	  .has_dual_bank         = true,
+	  .use_all_wrpxx         = false,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -276,6 +295,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32L43/L44xx",
 	  .max_flash_size_kb     = 256,
 	  .has_dual_bank         = false,
+	  .use_all_wrpxx         = false,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -289,6 +309,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32G07/G08xx",
 	  .max_flash_size_kb     = 128,
 	  .has_dual_bank         = false,
+	  .use_all_wrpxx         = false,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -302,6 +323,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32L49/L4Axx",
 	  .max_flash_size_kb     = 1024,
 	  .has_dual_bank         = true,
+	  .use_all_wrpxx         = false,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -315,6 +337,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32L45/L46xx",
 	  .max_flash_size_kb     = 512,
 	  .has_dual_bank         = false,
+	  .use_all_wrpxx         = false,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -328,6 +351,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32L41/L42xx",
 	  .max_flash_size_kb     = 128,
 	  .has_dual_bank         = false,
+	  .use_all_wrpxx         = false,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -341,6 +365,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32G03/G04xx",
 	  .max_flash_size_kb     = 64,
 	  .has_dual_bank         = false,
+	  .use_all_wrpxx         = false,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -354,6 +379,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32G43/G44xx",
 	  .max_flash_size_kb     = 128,
 	  .has_dual_bank         = false,
+	  .use_all_wrpxx         = false,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -367,6 +393,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32G47/G48xx",
 	  .max_flash_size_kb     = 512,
 	  .has_dual_bank         = true,
+	  .use_all_wrpxx         = true,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -380,6 +407,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32L4R/L4Sxx",
 	  .max_flash_size_kb     = 2048,
 	  .has_dual_bank         = true,
+	  .use_all_wrpxx         = true,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -393,6 +421,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32L4P5/L4Q5x",
 	  .max_flash_size_kb     = 1024,
 	  .has_dual_bank         = true,
+	  .use_all_wrpxx         = true,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -406,6 +435,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32L55/L56xx",
 	  .max_flash_size_kb     = 512,
 	  .has_dual_bank         = true,
+	  .use_all_wrpxx         = true,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l5_ns_flash_regs,
 	  .fsize_addr            = 0x0BFA05E0,
@@ -419,6 +449,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32G49/G4Axx",
 	  .max_flash_size_kb     = 512,
 	  .has_dual_bank         = false,
+	  .use_all_wrpxx         = false,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -432,6 +463,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32WB5x",
 	  .max_flash_size_kb     = 1024,
 	  .has_dual_bank         = false,
+	  .use_all_wrpxx         = false,
 	  .flash_regs_base       = 0x58004000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -445,6 +477,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32WB3x",
 	  .max_flash_size_kb     = 512,
 	  .has_dual_bank         = false,
+	  .use_all_wrpxx         = false,
 	  .flash_regs_base       = 0x58004000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -458,6 +491,7 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32WLEx",
 	  .max_flash_size_kb     = 256,
 	  .has_dual_bank         = false,
+	  .use_all_wrpxx         = false,
 	  .flash_regs_base       = 0x58004000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -493,6 +527,63 @@ FLASH_BANK_COMMAND_HANDLER(stm32l4_flash_bank_command)
 
 	return ERROR_OK;
 }
+
+/* bitmap helper extension */
+struct range {
+	unsigned int start;
+	unsigned int end;
+};
+
+static void bitmap_to_ranges(unsigned long *bitmap, unsigned int nbits,
+		struct range *ranges, unsigned int *ranges_count) {
+	*ranges_count = 0;
+	bool last_bit = 0, cur_bit;
+	for (unsigned int i = 0; i < nbits; i++) {
+		cur_bit = test_bit(i, bitmap);
+
+		if (cur_bit && !last_bit) {
+			(*ranges_count)++;
+			ranges[*ranges_count - 1].start = i;
+			ranges[*ranges_count - 1].end = i;
+		} else if (cur_bit && last_bit) {
+			/* update (increment) the end this range */
+			ranges[*ranges_count - 1].end = i;
+		}
+
+		last_bit = cur_bit;
+	}
+}
+
+static inline int range_print_one(struct range *range, char *str)
+{
+	if (range->start == range->end)
+		return sprintf(str, "[%d]", range->start);
+
+	return sprintf(str, "[%d,%d]", range->start, range->end);
+}
+
+static char *range_print_alloc(struct range *ranges, unsigned int ranges_count)
+{
+	/* each range will be printed like the following: [start,end]
+	 * start and end, both are unsigned int, an unsigned int takes 10 characters max
+	 * plus 3 characters for '[', ',' and ']'
+	 * thus means each range can take maximum 23 character
+	 * after each range we add a ' ' as separator and finally we need the '\0'
+	 * if the ranges_count is zero we reserve one char for '\0' to return an empty string */
+	char *str = calloc(1, ranges_count * (24 * sizeof(char)) + 1);
+	char *ptr = str;
+
+	for (unsigned int i = 0; i < ranges_count; i++) {
+		ptr += range_print_one(&(ranges[i]), ptr);
+
+		if (i < ranges_count - 1)
+			*(ptr++) = ' ';
+	}
+
+	return str;
+}
+
+/* end of bitmap helper extension */
 
 static inline bool stm32l4_is_otp(struct flash_bank *bank)
 {
@@ -706,53 +797,125 @@ err_lock:
 	return retval2;
 }
 
-static int stm32l4_protect_check(struct flash_bank *bank)
+static int stm32l4_get_one_wrpxy(struct flash_bank *bank, struct stm32l4_wrp *wrpxy,
+		enum stm32l4_flash_reg_index reg_idx, int offset)
+{
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+	int ret;
+
+	wrpxy->reg_idx = reg_idx;
+	wrpxy->offset = offset;
+
+	ret = stm32l4_read_flash_reg_by_index(bank, wrpxy->reg_idx , &wrpxy->value);
+	if (ret != ERROR_OK)
+		return ret;
+
+	wrpxy->first = (wrpxy->value & stm32l4_info->wrpxxr_mask) + wrpxy->offset;
+	wrpxy->last = ((wrpxy->value >> 16) & stm32l4_info->wrpxxr_mask) + wrpxy->offset;
+	wrpxy->used = wrpxy->first <= wrpxy->last;
+
+	return ERROR_OK;
+}
+
+static int stm32l4_get_all_wrpxy(struct flash_bank *bank, enum stm32_bank_id dev_bank_id,
+		struct stm32l4_wrp *wrpxy, unsigned int *n_wrp)
+{
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+	int ret;
+
+	*n_wrp = 0;
+
+	/* for single bank devices there is 2 WRP regions.
+	 * for dual bank devices there is 2 WRP regions per bank,
+	 *   if configured as single bank only 2 WRP are usable
+	 *   except for STM32L4R/S/P/Q, G4 cat3, L5 ... all 4 WRP are usable
+	 * note: this should be revised, if a device will have the SWAP banks option
+	 */
+
+	int wrp2y_sectors_offset = -1; /* -1 : unused */
+
+	/* if bank_id is BANK1 or ALL_BANKS */
+	if (dev_bank_id != STM32_BANK2) {
+		/* get FLASH_WRP1AR */
+		ret = stm32l4_get_one_wrpxy(bank, &wrpxy[(*n_wrp)++], STM32_FLASH_WRP1AR_INDEX, 0);
+		if (ret != ERROR_OK)
+			return ret;
+
+		/* get WRP1BR */
+		ret = stm32l4_get_one_wrpxy(bank, &wrpxy[(*n_wrp)++], STM32_FLASH_WRP1BR_INDEX, 0);
+		if (ret != ERROR_OK)
+			return ret;
+
+		/* for some devices (like STM32L4R/S) in single-bank mode, the 4 WRPxx are usable */
+		if (stm32l4_info->part_info->use_all_wrpxx && !stm32l4_info->dual_bank_mode)
+			wrp2y_sectors_offset = 0;
+	}
+
+	/* if bank_id is BANK2 or ALL_BANKS */
+	if (dev_bank_id != STM32_BANK1 && stm32l4_info->dual_bank_mode)
+		wrp2y_sectors_offset = stm32l4_info->bank1_sectors;
+
+	if (wrp2y_sectors_offset > -1) {
+		/* get WRP2AR */
+		ret = stm32l4_get_one_wrpxy(bank, &wrpxy[(*n_wrp)++], STM32_FLASH_WRP2AR_INDEX, wrp2y_sectors_offset);
+		if (ret != ERROR_OK)
+			return ret;
+
+		/* get WRP2BR */
+		ret = stm32l4_get_one_wrpxy(bank, &wrpxy[(*n_wrp)++], STM32_FLASH_WRP2BR_INDEX, wrp2y_sectors_offset);
+		if (ret != ERROR_OK)
+			return ret;
+	}
+
+	return ERROR_OK;
+}
+
+static int stm32l4_write_one_wrpxy(struct flash_bank *bank, struct stm32l4_wrp *wrpxy)
 {
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
 
-	uint32_t wrp1ar, wrp1br, wrp2ar, wrp2br;
-	stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_WRP1AR_INDEX, &wrp1ar);
-	stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_WRP1BR_INDEX, &wrp1br);
-	if (stm32l4_info->part_info->has_dual_bank) {
-		stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_WRP2AR_INDEX, &wrp2ar);
-		stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_WRP2BR_INDEX, &wrp2br);
-	} else {
-		/* prevent uninitialized errors */
-		wrp2ar = 0;
-		wrp2br = 0;
+	int wrp_start = wrpxy->first - wrpxy->offset;
+	int wrp_end = wrpxy->last - wrpxy->offset;
+
+	uint32_t wrp_value = (wrp_start & stm32l4_info->wrpxxr_mask) | ((wrp_end & stm32l4_info->wrpxxr_mask) << 16);
+
+	return stm32l4_write_option(bank, stm32l4_info->flash_regs[wrpxy->reg_idx], wrp_value, 0xffffffff);
+}
+
+static int stm32l4_write_all_wrpxy(struct flash_bank *bank, struct stm32l4_wrp *wrpxy, unsigned int n_wrp)
+{
+	int ret;
+
+	for (unsigned int i = 0; i < n_wrp; i++) {
+		ret = stm32l4_write_one_wrpxy(bank, &wrpxy[i]);
+		if (ret != ERROR_OK)
+			return ret;
 	}
 
-	const uint8_t wrp1a_start = wrp1ar & stm32l4_info->wrpxxr_mask;
-	const uint8_t wrp1a_end = (wrp1ar >> 16) & stm32l4_info->wrpxxr_mask;
-	const uint8_t wrp1b_start = wrp1br & stm32l4_info->wrpxxr_mask;
-	const uint8_t wrp1b_end = (wrp1br >> 16) & stm32l4_info->wrpxxr_mask;
-	const uint8_t wrp2a_start = wrp2ar & stm32l4_info->wrpxxr_mask;
-	const uint8_t wrp2a_end = (wrp2ar >> 16) & stm32l4_info->wrpxxr_mask;
-	const uint8_t wrp2b_start = wrp2br & stm32l4_info->wrpxxr_mask;
-	const uint8_t wrp2b_end = (wrp2br >> 16) & stm32l4_info->wrpxxr_mask;
+	return ERROR_OK;
+}
 
-	for (unsigned int i = 0; i < bank->num_sectors; i++) {
-		if (i < stm32l4_info->bank1_sectors) {
-			if (((i >= wrp1a_start) &&
-				 (i <= wrp1a_end)) ||
-				((i >= wrp1b_start) &&
-				 (i <= wrp1b_end)))
-				bank->sectors[i].is_protected = 1;
-			else
-				bank->sectors[i].is_protected = 0;
-		} else {
-			assert(stm32l4_info->part_info->has_dual_bank == true);
-			uint8_t snb;
-			snb = i - stm32l4_info->bank1_sectors;
-			if (((snb >= wrp2a_start) &&
-				 (snb <= wrp2a_end)) ||
-				((snb >= wrp2b_start) &&
-				 (snb <= wrp2b_end)))
-				bank->sectors[i].is_protected = 1;
-			else
-				bank->sectors[i].is_protected = 0;
+static int stm32l4_protect_check(struct flash_bank *bank)
+{
+	unsigned int n_wrp;
+	struct stm32l4_wrp wrpxy[4];
+
+	int ret = stm32l4_get_all_wrpxy(bank, STM32_ALL_BANKS, wrpxy, &n_wrp);
+	if (ret != ERROR_OK)
+		return ret;
+
+	/* initialize all sectors as unprotected */
+	for (unsigned int i = 0; i < bank->num_sectors; i++)
+		bank->sectors[i].is_protected = 0;
+
+	/* now check WRPxy and mark the protected sectors */
+	for (unsigned int i = 0; i < n_wrp; i++) {
+		if (wrpxy[i].used) {
+			for (int s = wrpxy[i].first; s <= wrpxy[i].last; s++)
+				bank->sectors[s].is_protected = 1;
 		}
 	}
+
 	return ERROR_OK;
 }
 
@@ -819,11 +982,12 @@ err_lock:
 	return retval2;
 }
 
-static int stm32l4_protect(struct flash_bank *bank, int set, unsigned int first,
-		unsigned int last)
+static int stm32l4_protect(struct flash_bank *bank, int set, unsigned int first, unsigned int last)
 {
 	struct target *target = bank->target;
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+	int ret = ERROR_OK;
+	unsigned int i;
 
 	if (stm32l4_is_otp(bank)) {
 		LOG_ERROR("cannot protect/unprotect OTP memory");
@@ -835,29 +999,116 @@ static int stm32l4_protect(struct flash_bank *bank, int set, unsigned int first,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	int ret = ERROR_OK;
-	/* Bank 2 */
-	uint32_t reg_value = 0xFF; /* Default to bank un-protected */
+	/* the requested sectors could be located into bank1 and/or bank2 */
+	bool use_bank2 = false;
 	if (last >= stm32l4_info->bank1_sectors) {
-		if (set == 1) {
-			uint8_t begin = first > stm32l4_info->bank1_sectors ? first : 0x00;
-			reg_value = ((last & 0xFF) << 16) | begin;
+		if (first < stm32l4_info->bank1_sectors) {
+			/* the requested sectors for (un)protection are shared between
+			 * bank 1 and 2, then split the operation */
+
+			/*  1- deal with bank 1 sectors */
+			LOG_DEBUG("The requested sectors for %s are shared between bank 1 and 2",
+					set ? "protection" : "unprotection");
+			ret = stm32l4_protect(bank, set, first, stm32l4_info->bank1_sectors - 1);
+			if (ret != ERROR_OK)
+				return ret;
+
+			/*  2- then continue with bank 2 sectors */
+			first = stm32l4_info->bank1_sectors;
 		}
 
-		ret = stm32l4_write_option(bank, stm32l4_info->flash_regs[STM32_FLASH_WRP2AR_INDEX], reg_value, 0xffffffff);
+		use_bank2 = true;
 	}
-	/* Bank 1 */
-	reg_value = 0xFF; /* Default to bank un-protected */
-	if (first < stm32l4_info->bank1_sectors) {
-		if (set == 1) {
-			uint8_t end = last >= stm32l4_info->bank1_sectors ? 0xFF : last;
-			reg_value = (end << 16) | (first & 0xFF);
+
+	/* refresh the sectors' protection */
+	ret = stm32l4_protect_check(bank);
+	if (ret != ERROR_OK)
+		return ret;
+
+	/* check if the desired protection is already configured */
+	for (i = first; i <= last; i++) {
+		if (bank->sectors[i].is_protected != set)
+			break;
+		else if (i == last) {
+			LOG_INFO("The specified sectors are already %s", set ? "protected" : "unprotected");
+			return ERROR_OK;
 		}
-
-		ret = stm32l4_write_option(bank, stm32l4_info->flash_regs[STM32_FLASH_WRP1AR_INDEX], reg_value, 0xffffffff);
 	}
 
-	return ret;
+	/* all sectors from first to last (or part of them) could have different
+	 * protection other than the requested */
+	unsigned int n_wrp;
+	struct stm32l4_wrp wrpxy[4];
+
+	ret = stm32l4_get_all_wrpxy(bank, use_bank2 ? STM32_BANK2 : STM32_BANK1, wrpxy, &n_wrp);
+	if (ret != ERROR_OK)
+		return ret;
+
+	/* use bitmap and range helpers to optimize the WRP usage */
+	DECLARE_BITMAP(pages, bank->num_sectors);
+	bitmap_zero(pages, bank->num_sectors);
+
+	for (i = 0; i < n_wrp; i++) {
+		if (wrpxy[i].used) {
+			for (int p = wrpxy[i].first; p <= wrpxy[i].last; p++)
+				set_bit(p, pages);
+		}
+	}
+
+	/* we have at most 'n_wrp' WRP areas
+	 * add one range if the user is trying to protect a fifth range */
+	struct range ranges[n_wrp + 1];
+	unsigned int ranges_count = 0;
+
+	bitmap_to_ranges(pages, bank->num_sectors, ranges, &ranges_count);
+
+	/* pretty-print the currently protected ranges */
+	if (ranges_count > 0) {
+		char *ranges_str = range_print_alloc(ranges, ranges_count);
+		LOG_DEBUG("current protected areas: %s", ranges_str);
+		free(ranges_str);
+	} else
+		LOG_DEBUG("current protected areas: none");
+
+	if (set) { /* flash protect */
+		for (i = first; i <= last; i++)
+			set_bit(i, pages);
+	} else { /* flash unprotect */
+		for (i = first; i <= last; i++)
+			clear_bit(i, pages);
+	}
+
+	/* check the ranges_count after the user request */
+	bitmap_to_ranges(pages, bank->num_sectors, ranges, &ranges_count);
+
+	/* pretty-print the requested areas for protection */
+	if (ranges_count > 0) {
+		char *ranges_str = range_print_alloc(ranges, ranges_count);
+		LOG_DEBUG("requested areas for protection: %s", ranges_str);
+		free(ranges_str);
+	} else
+		LOG_DEBUG("requested areas for protection: none");
+
+	if (ranges_count > n_wrp) {
+		LOG_ERROR("cannot set the requested protection "
+				"(only %u write protection areas are available)" , n_wrp);
+		return ERROR_FAIL;
+	}
+
+	/* re-init all WRPxy as disabled (first > last)*/
+	for (i = 0; i < n_wrp; i++) {
+		wrpxy[i].first = wrpxy[i].offset + 1;
+		wrpxy[i].last = wrpxy[i].offset;
+	}
+
+	/* then configure WRPxy areas */
+	for (i = 0; i < ranges_count; i++) {
+		wrpxy[i].first = ranges[i].start;
+		wrpxy[i].last = ranges[i].end;
+	}
+
+	/* finally write WRPxy registers */
+	return stm32l4_write_all_wrpxy(bank, wrpxy, n_wrp);
 }
 
 /* Count is in double-words */
@@ -1580,6 +1831,78 @@ COMMAND_HANDLER(stm32l4_handle_unlock_command)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(stm32l4_handle_wrp_info_command)
+{
+	if (CMD_ARGC < 1 || CMD_ARGC > 2)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	struct flash_bank *bank;
+	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
+	if (ERROR_OK != retval)
+		return retval;
+
+	if (stm32l4_is_otp(bank)) {
+		LOG_ERROR("OTP memory, do not have write protection areas");
+		return ERROR_FLASH_OPER_UNSUPPORTED;
+	}
+
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+	enum stm32_bank_id dev_bank_id = STM32_ALL_BANKS;
+	if (CMD_ARGC == 2) {
+		if (strcmp(CMD_ARGV[1], "bank1") == 0)
+			dev_bank_id = STM32_BANK1;
+		else if (strcmp(CMD_ARGV[1], "bank2") == 0)
+			dev_bank_id = STM32_BANK2;
+		else
+			return ERROR_COMMAND_ARGUMENT_INVALID;
+	}
+
+	if (dev_bank_id == STM32_BANK2) {
+		if (!stm32l4_info->part_info->has_dual_bank) {
+			LOG_ERROR("this device has no second bank");
+			return ERROR_FAIL;
+		} else if (!stm32l4_info->dual_bank_mode) {
+			LOG_ERROR("this device is configured in single bank mode");
+			return ERROR_FAIL;
+		}
+	}
+
+	int ret;
+	unsigned int n_wrp, i;
+	struct stm32l4_wrp wrpxy[4];
+
+	ret = stm32l4_get_all_wrpxy(bank, dev_bank_id, wrpxy, &n_wrp);
+	if (ret != ERROR_OK)
+		return ret;
+
+	/* use bitmap and range helpers to better describe protected areas */
+	DECLARE_BITMAP(pages, bank->num_sectors);
+	bitmap_zero(pages, bank->num_sectors);
+
+	for (i = 0; i < n_wrp; i++) {
+		if (wrpxy[i].used) {
+			for (int p = wrpxy[i].first; p <= wrpxy[i].last; p++)
+				set_bit(p, pages);
+		}
+	}
+
+	/* we have at most 'n_wrp' WRP areas */
+	struct range ranges[n_wrp];
+	unsigned int ranges_count = 0;
+
+	bitmap_to_ranges(pages, bank->num_sectors, ranges, &ranges_count);
+
+	if (ranges_count > 0) {
+		/* pretty-print the protected ranges */
+		char *ranges_str = range_print_alloc(ranges, ranges_count);
+		command_print(CMD, "protected areas: %s", ranges_str);
+		free(ranges_str);
+	} else
+		command_print(CMD, "no protected areas");
+
+	return ERROR_OK;
+}
+
 COMMAND_HANDLER(stm32l4_handle_otp_command)
 {
 	if (CMD_ARGC < 2)
@@ -1642,6 +1965,13 @@ static const struct command_registration stm32l4_exec_command_handlers[] = {
 		.mode = COMMAND_EXEC,
 		.usage = "bank_id reg_offset value mask",
 		.help = "Write device option bit fields with provided value.",
+	},
+	{
+		.name = "wrp_info",
+		.handler = stm32l4_handle_wrp_info_command,
+		.mode = COMMAND_EXEC,
+		.usage = "bank_id [bank1|bank2]",
+		.help = "list the protected areas using WRP",
 	},
 	{
 		.name = "option_load",
