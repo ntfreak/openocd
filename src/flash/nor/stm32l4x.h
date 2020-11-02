@@ -19,18 +19,6 @@
 #ifndef OPENOCD_FLASH_NOR_STM32L4X
 #define OPENOCD_FLASH_NOR_STM32L4X
 
-/* Flash registers offsets */
-#define STM32_FLASH_ACR			0x00
-#define STM32_FLASH_KEYR		0x08
-#define STM32_FLASH_OPTKEYR		0x0c
-#define STM32_FLASH_SR			0x10
-#define STM32_FLASH_CR			0x14
-#define STM32_FLASH_OPTR		0x20
-#define STM32_FLASH_WRP1AR		0x2c
-#define STM32_FLASH_WRP1BR		0x30
-#define STM32_FLASH_WRP2AR		0x4c
-#define STM32_FLASH_WRP2BR		0x50
-
 /* FLASH_CR register bits */
 #define FLASH_PG				(1 << 0)
 #define FLASH_PER				(1 << 1)
