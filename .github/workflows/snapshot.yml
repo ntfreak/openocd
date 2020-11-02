@@ -43,6 +43,16 @@ jobs:
           wget "http://www.intra2net.com/en/developer/libftdi/download/libftdi1-${LIBFTDI_VER}.tar.bz2"
           tar -xjf libftdi1-${LIBFTDI_VER}.tar.bz2
           echo "::set-env name=LIBFTDI_SRC::$PWD/libftdi1-${LIBFTDI_VER}"
+      - name: Prepare capstone
+        env:
+          CAPSTONE_VER: 4.0.2
+        run: |
+          mkdir -p $DL_DIR && cd $DL_DIR
+          CAPSTONE_NAME=${CAPSTONE_VER}
+          CAPSTONE_FOLDER=capstone-${CAPSTONE_VER}
+          wget "https://github.com/aquynh/capstone/archive/${CAPSTONE_VER}.tar.gz"
+          tar -xzf ${CAPSTONE_VER}.tar.gz
+          echo "CAPSTONE_SRC=$PWD/capstone-${CAPSTONE_VER}" >> $GITHUB_ENV
       - name: Package OpenOCD for windows
         env:
           MAKE_JOBS: 2
@@ -50,6 +60,7 @@ jobs:
           LIBUSB1_CONFIG: --enable-shared --enable-static
           HIDAPI_CONFIG: --enable-shared --disable-static --disable-testgui
           LIBFTDI_CONFIG: "-DCMAKE_TOOLCHAIN_FILE='${{ env.LIBFTDI_SRC }}/cmake/Toolchain-i686-w64-mingw32.cmake' -DBUILD_TESTS:BOOL=off -DFTDIPP:BOOL=off -DPYTHON_BINDINGS:BOOL=off -DEXAMPLES:BOOL=off -DDOCUMENTATION:BOOL=off -DFTDI_EEPROM:BOOL=off"
+          CAPSTONE_CONFIG: "CAPSTONE_ARCHS=arm,aarch64 CAPSTONE_BUILD_CORE_ONLY=yes CAPSTONE_STATIC=yes CAPSTONE_SHARED=no"
         run: |
           # set snapshot tag
           OPENOCD_TAG="`git tag --points-at HEAD`"
