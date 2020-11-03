@@ -144,6 +144,13 @@ enum stm32l4_flash_reg_index {
 	STM32_FLASH_REG_INDEX_NUM,
 };
 
+enum stm32l4_rdp {
+	RDP_LEVEL_0   = 0xAA,
+	RDP_LEVEL_0_5 = 0x55, /* for devices with TrustZone enabled */
+	RDP_LEVEL_1   = 0x00,
+	RDP_LEVEL_2   = 0xCC
+};
+
 static const uint32_t stm32l4_flash_regs[STM32_FLASH_REG_INDEX_NUM] = {
 	[STM32_FLASH_ACR_INDEX]      = 0x000,
 	[STM32_FLASH_KEYR_INDEX]     = 0x008,
@@ -200,6 +207,8 @@ struct stm32l4_flash_bank {
 	const struct stm32l4_part_info *part_info;
 	const uint32_t *flash_regs;
 	bool otp_enabled;
+	enum stm32l4_rdp rdp;
+	bool tzen;
 };
 
 enum stm32_bank_id {
@@ -552,6 +561,35 @@ static inline bool stm32l4_otp_is_enabled(struct flash_bank *bank)
 {
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
 	return stm32l4_info->otp_enabled;
+}
+
+static void stm32l4_sync_rdp_tzen(struct flash_bank *bank, uint32_t optr_value)
+{
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+
+	bool tzen = false;
+
+	if (stm32l4_info->part_info->flags & F_HAS_TZ)
+		tzen = (optr_value & FLASH_TZEN) != 0;
+
+	uint32_t rdp = optr_value & FLASH_RDP_MASK;
+
+	/* for devices without TrustZone:
+	 *   RDP level 0 and 2 values are to 0xAA and 0xCC
+	 *   Any other value corresponds to RDP level 1
+	 * for devices with TrusZone:
+	 *   RDP level 0 and 2 values are 0xAA and 0xCC
+	 *   RDP level 0.5 value is 0x55 only if TZEN = 1
+	 *   Any other value corresponds to RDP level 1, including 0x55 if TZEN = 0
+	 */
+
+	if (rdp != RDP_LEVEL_0 && rdp != RDP_LEVEL_2) {
+		if (!tzen || (tzen && rdp != RDP_LEVEL_0_5))
+			rdp = RDP_LEVEL_1;
+	}
+
+	stm32l4_info->tzen = tzen;
+	stm32l4_info->rdp = rdp;
 }
 
 static inline uint32_t stm32l4_get_flash_reg(struct flash_bank *bank, uint32_t reg_offset)
@@ -1238,6 +1276,22 @@ static int stm32l4_probe(struct flash_bank *bank)
 
 	LOG_INFO("device idcode = 0x%08" PRIx32 " (%s)", stm32l4_info->idcode, device_info);
 
+	/* read flash option register */
+	retval = stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_OPTR_INDEX, &options);
+	if (retval != ERROR_OK)
+		return retval;
+
+	stm32l4_sync_rdp_tzen(bank, options);
+
+	if (part_info->flags & F_HAS_TZ)
+		LOG_INFO("TZEN = %d : TrustZone %s by option bytes",
+				stm32l4_info->tzen,
+				stm32l4_info->tzen ? "enabled" : "disabled");
+
+	LOG_INFO("RDP level %s (0x%02X)",
+			stm32l4_info->rdp == RDP_LEVEL_0 ? "0" : stm32l4_info->rdp == RDP_LEVEL_0_5 ? "0.5" : "1",
+			stm32l4_info->rdp);
+
 	if (stm32l4_is_otp(bank)) {
 		bank->size = part_info->otp_size;
 
@@ -1254,7 +1308,6 @@ static int stm32l4_probe(struct flash_bank *bank)
 			LOG_ERROR("failed to allocate bank sectors");
 			return ERROR_FAIL;
 		}
-
 
 		stm32l4_info->probed = true;
 		return ERROR_OK;
@@ -1286,11 +1339,6 @@ static int stm32l4_probe(struct flash_bank *bank)
 
 	/* did we assign a flash size? */
 	assert((flash_size_kb != 0xffff) && flash_size_kb);
-
-	/* read flash option register */
-	retval = stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_OPTR_INDEX, &options);
-	if (retval != ERROR_OK)
-		return retval;
 
 	stm32l4_info->bank1_sectors = 0;
 	stm32l4_info->hole_sectors = 0;
@@ -1693,7 +1741,8 @@ COMMAND_HANDLER(stm32l4_handle_lock_command)
 
 	/* set readout protection level 1 by erasing the RDP option byte */
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
-	if (stm32l4_write_option(bank, stm32l4_info->flash_regs[STM32_FLASH_OPTR_INDEX], 0, 0x000000FF) != ERROR_OK) {
+	if (stm32l4_write_option(bank, stm32l4_info->flash_regs[STM32_FLASH_OPTR_INDEX],
+			RDP_LEVEL_1, FLASH_RDP_MASK) != ERROR_OK) {
 		command_print(CMD, "%s failed to lock device", bank->driver->name);
 		return ERROR_OK;
 	}
@@ -1726,7 +1775,8 @@ COMMAND_HANDLER(stm32l4_handle_unlock_command)
 	}
 
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
-	if (stm32l4_write_option(bank, stm32l4_info->flash_regs[STM32_FLASH_OPTR_INDEX], RDP_LEVEL_0, 0x000000FF) != ERROR_OK) {
+	if (stm32l4_write_option(bank, stm32l4_info->flash_regs[STM32_FLASH_OPTR_INDEX],
+			RDP_LEVEL_0, FLASH_RDP_MASK) != ERROR_OK) {
 		command_print(CMD, "%s failed to unlock device", bank->driver->name);
 		return ERROR_OK;
 	}
