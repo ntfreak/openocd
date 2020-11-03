@@ -3431,7 +3431,6 @@ COMMAND_HANDLER(handle_load_image_command)
 	uint32_t image_size;
 	target_addr_t min_address = 0;
 	target_addr_t max_address = -1;
-	int i;
 	struct image image;
 
 	int retval = CALL_COMMAND_HANDLER(parse_load_image_command_CMD_ARGV,
@@ -3449,7 +3448,7 @@ COMMAND_HANDLER(handle_load_image_command)
 
 	image_size = 0x0;
 	retval = ERROR_OK;
-	for (i = 0; i < image.num_sections; i++) {
+	for (unsigned int i = 0; i < image.num_sections; i++) {
 		buffer = malloc(image.sections[i].size);
 		if (buffer == NULL) {
 			command_print(CMD,
@@ -3582,7 +3581,6 @@ static COMMAND_HELPER(handle_verify_image_command_internal, enum verify_mode ver
 	uint8_t *buffer;
 	size_t buf_cnt;
 	uint32_t image_size;
-	int i;
 	int retval;
 	uint32_t checksum = 0;
 	uint32_t mem_checksum = 0;
@@ -3621,12 +3619,12 @@ static COMMAND_HELPER(handle_verify_image_command_internal, enum verify_mode ver
 	image_size = 0x0;
 	int diffs = 0;
 	retval = ERROR_OK;
-	for (i = 0; i < image.num_sections; i++) {
+	for (unsigned int i = 0; i < image.num_sections; i++) {
 		buffer = malloc(image.sections[i].size);
 		if (buffer == NULL) {
 			command_print(CMD,
-					"error allocating buffer for section (%d bytes)",
-					(int)(image.sections[i].size));
+					"error allocating buffer for section (%" PRIu32 " bytes)",
+					image.sections[i].size);
 			break;
 		}
 		retval = image_read_section(&image, i, 0x0, image.sections[i].size, buffer, &buf_cnt);
@@ -5847,7 +5845,6 @@ COMMAND_HANDLER(handle_fast_load_image_command)
 	uint32_t image_size;
 	target_addr_t min_address = 0;
 	target_addr_t max_address = -1;
-	int i;
 
 	struct image image;
 
@@ -5873,7 +5870,7 @@ COMMAND_HANDLER(handle_fast_load_image_command)
 		return ERROR_FAIL;
 	}
 	memset(fastload, 0, sizeof(struct FastLoad)*image.num_sections);
-	for (i = 0; i < image.num_sections; i++) {
+	for (unsigned int i = 0; i < image.num_sections; i++) {
 		buffer = malloc(image.sections[i].size);
 		if (buffer == NULL) {
 			command_print(CMD, "error allocating buffer for section (%d bytes)",

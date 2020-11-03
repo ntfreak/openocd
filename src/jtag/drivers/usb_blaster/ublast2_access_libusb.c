@@ -162,7 +162,7 @@ static int load_usb_blaster_firmware(struct libusb_device_handle *libusb_dev,
 				     100);
 
 	/* Download all sections in the image to ULINK */
-	for (int i = 0; i < ublast2_firmware_image.num_sections; i++) {
+	for (unsigned int i = 0; i < ublast2_firmware_image.num_sections; i++) {
 		ret = ublast2_write_firmware_section(libusb_dev,
 						     &ublast2_firmware_image, i);
 		if (ret != ERROR_OK) {

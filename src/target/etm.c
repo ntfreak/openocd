@@ -650,7 +650,6 @@ static struct etm_capture_driver *etm_capture_drivers[] = {
 
 static int etm_read_instruction(struct etm_context *ctx, struct arm_instruction *instruction)
 {
-	int i;
 	int section = -1;
 	size_t size_read;
 	uint32_t opcode;
@@ -660,7 +659,7 @@ static int etm_read_instruction(struct etm_context *ctx, struct arm_instruction 
 		return ERROR_TRACE_IMAGE_UNAVAILABLE;
 
 	/* search for the section the current instruction belongs to */
-	for (i = 0; i < ctx->image->num_sections; i++) {
+	for (unsigned int i = 0; i < ctx->image->num_sections; i++) {
 		if ((ctx->image->sections[i].base_address <= ctx->current_pc) &&
 			(ctx->image->sections[i].base_address + ctx->image->sections[i].size >
 			ctx->current_pc)) {

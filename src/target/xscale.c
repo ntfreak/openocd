@@ -2582,7 +2582,6 @@ static int xscale_read_instruction(struct target *target, uint32_t pc,
 	struct arm_instruction *instruction)
 {
 	struct xscale_common *const xscale = target_to_xscale(target);
-	int i;
 	int section = -1;
 	size_t size_read;
 	uint32_t opcode;
@@ -2592,7 +2591,7 @@ static int xscale_read_instruction(struct target *target, uint32_t pc,
 		return ERROR_TRACE_IMAGE_UNAVAILABLE;
 
 	/* search for the section the current instruction belongs to */
-	for (i = 0; i < xscale->trace.image->num_sections; i++) {
+	for (unsigned int i = 0; i < xscale->trace.image->num_sections; i++) {
 		if ((xscale->trace.image->sections[i].base_address <= pc) &&
 			(xscale->trace.image->sections[i].base_address +
 			xscale->trace.image->sections[i].size > pc)) {
