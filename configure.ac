@@ -351,10 +351,6 @@ AS_CASE([$host_os],
     ])
 ])
 
-AC_ARG_ENABLE([minidriver_dummy],
-  AS_HELP_STRING([--enable-minidriver-dummy], [Enable the dummy minidriver.]),
-  [build_minidriver_dummy=$enableval], [build_minidriver_dummy=no])
-
 AC_ARG_ENABLE([internal-jimtcl],
   AS_HELP_STRING([--disable-internal-jimtcl], [Disable building internal jimtcl]),
   [use_internal_jimtcl=$enableval], [use_internal_jimtcl=yes])
@@ -364,32 +360,9 @@ AC_ARG_ENABLE([internal-libjaylink],
   [Disable building internal libjaylink]),
   [use_internal_libjaylink=$enableval], [use_internal_libjaylink=yes])
 
-build_minidriver=no
-
 AC_ARG_ENABLE([remote-bitbang],
   AS_HELP_STRING([--enable-remote-bitbang], [Enable building support for the Remote Bitbang jtag driver]),
   [build_remote_bitbang=$enableval], [build_remote_bitbang=no])
-
-AC_MSG_CHECKING([whether to enable dummy minidriver])
-AS_IF([test "x$build_minidriver_dummy" = "xyes"], [
-  AS_IF([test "x$build_minidriver" = "xyes"], [
-    AC_MSG_ERROR([Multiple minidriver options have been enabled.])
-  ])
-  build_minidriver=yes
-  AC_DEFINE([BUILD_MINIDRIVER_DUMMY], [1], [Use the dummy minidriver.])
-  AC_DEFINE([HAVE_JTAG_MINIDRIVER_H], [1],
-      [Define to 1 if you have the <jtag_minidriver.h> header file.])
-])
-AC_MSG_RESULT([$build_minidriver_dummy])
-
-AC_MSG_CHECKING([whether standard drivers can be built])
-AS_IF([test "x$build_minidriver" = "xyes"], [
-  AC_MSG_RESULT([no])
-  AC_MSG_WARN([Using the minidriver disables all other drivers.])
-  sleep 2
-], [
-  AC_MSG_RESULT([yes])
-])
 
 AS_CASE(["${host_cpu}"],
   [i?86|x86*], [],
@@ -744,9 +717,6 @@ AM_CONDITIONAL([USE_HIDAPI], [test "x$use_hidapi" = "xyes"])
 AM_CONDITIONAL([USE_LIBJAYLINK], [test "x$use_libjaylink" = "xyes"])
 AM_CONDITIONAL([RSHIM], [test "x$build_rshim" = "xyes"])
 AM_CONDITIONAL([HAVE_CAPSTONE], [test "x$enable_capstone" != "xno"])
-
-AM_CONDITIONAL([MINIDRIVER], [test "x$build_minidriver" = "xyes"])
-AM_CONDITIONAL([MINIDRIVER_DUMMY], [test "x$build_minidriver_dummy" = "xyes"])
 
 AM_CONDITIONAL([INTERNAL_JIMTCL], [test "x$use_internal_jimtcl" = "xyes"])
 AM_CONDITIONAL([INTERNAL_LIBJAYLINK], [test "x$use_internal_libjaylink" = "xyes"])

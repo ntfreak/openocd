@@ -3,29 +3,6 @@ noinst_LTLIBRARIES += %D%/libjtag.la
 JTAG_SRCS = %D%/commands.c
 %C%_libjtag_la_LIBADD =
 
-BUILT_SOURCES += %D%/minidriver_imp.h
-CLEANFILES += %D%/minidriver_imp.h
-
-if MINIDRIVER
-
-if MINIDRIVER_DUMMY
-JTAG_SRCS += %D%/minidummy/minidummy.c
-JTAG_MINIDRIVER_DIR = %D%/minidummy
-endif
-
-MINIDRIVER_IMP_DIR = %D%/minidriver
-
-%D%/jtag_minidriver.h: $(JTAG_MINIDRIVER_DIR)/jtag_minidriver.h
-	cp $< $@
-
-BUILT_SOURCES += %D%/jtag_minidriver.h
-
-CLEANFILES += %D%/jtag_minidriver.h
-
-else
-
-MINIDRIVER_IMP_DIR = %D%/drivers
-
 if HLADAPTER
 include %D%/hla/Makefile.am
 %C%_libjtag_la_LIBADD += $(top_builddir)/%D%/hla/libocdhla.la
@@ -38,13 +15,6 @@ endif
 
 include %D%/drivers/Makefile.am
 %C%_libjtag_la_LIBADD += $(top_builddir)/%D%/drivers/libocdjtagdrivers.la
-
-endif
-# endif // MINIDRIVER
-
-%D%/minidriver_imp.h: $(MINIDRIVER_IMP_DIR)/minidriver_imp.h
-	cp $< $@
-
 
 %C%_libjtag_la_SOURCES = \
 	%D%/adapter.c \
@@ -59,8 +29,6 @@ endif
 	%D%/interfaces.h \
 	%D%/minidriver.h \
 	%D%/jtag.h \
-	%D%/minidriver/minidriver_imp.h \
-	%D%/minidummy/jtag_minidriver.h \
 	%D%/swd.h \
 	%D%/swim.h \
 	%D%/tcl.h \

@@ -42,9 +42,6 @@
  * that contain an adapter_driver structure that can added to this list.
  */
 
-#if defined(BUILD_MINIDRIVER_DUMMY)
-extern struct adapter_driver minidummy_adapter_driver;
-#else /* standard drivers */
 #if BUILD_PARPORT == 1
 extern struct adapter_driver parport_adapter_driver;
 #endif
@@ -150,19 +147,12 @@ extern struct adapter_driver stlink_dap_adapter_driver;
 #if BUILD_RSHIM == 1
 extern struct adapter_driver rshim_dap_adapter_driver;
 #endif
-#endif /* standard drivers */
 
 /**
  * The list of built-in JTAG interfaces, containing entries for those
  * drivers that were enabled by the @c configure script.
- *
- * The list should be defined to contain either one minidriver interface
- * or some number of standard driver interfaces, never both.
  */
 struct adapter_driver *adapter_drivers[] = {
-#if defined(BUILD_MINIDRIVER_DUMMY)
-		&minidummy_adapter_driver,
-#else /* standard drivers */
 #if BUILD_PARPORT == 1
 		&parport_adapter_driver,
 #endif
@@ -268,6 +258,5 @@ struct adapter_driver *adapter_drivers[] = {
 #if BUILD_RSHIM == 1
 		&rshim_dap_adapter_driver,
 #endif
-#endif /* standard drivers */
 		NULL,
 	};
