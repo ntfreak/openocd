@@ -624,9 +624,6 @@ bool jtag_poll_get_enabled(void);
  */
 void jtag_poll_set_enabled(bool value);
 
-
-/* The minidriver may have inline versions of some of the low
- * level APIs that are used in inner loops. */
 #include <jtag/minidriver.h>
 
 int jim_jtag_newtap(Jim_Interp *interp, int argc, Jim_Obj *const *argv);

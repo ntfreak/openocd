@@ -562,11 +562,7 @@ static const tap_state_t arm11_MOVE_DRPAUSE_IDLE_DRPAUSE_with_delay[] = {
 	TAP_DRSHIFT
 };
 
-/* This inner loop can be implemented by the minidriver, oftentimes in hardware... The
- * minidriver can call the default implementation as a fallback or implement it
- * from scratch.
- */
-int arm11_run_instr_data_to_core_noack_inner_default(struct jtag_tap *tap,
+static int arm11_run_instr_data_to_core_noack_inner(struct jtag_tap *tap,
 	uint32_t opcode,
 	uint32_t *data,
 	size_t count)
@@ -628,21 +624,6 @@ int arm11_run_instr_data_to_core_noack_inner_default(struct jtag_tap *tap,
 
 	return retval;
 }
-
-int arm11_run_instr_data_to_core_noack_inner(struct jtag_tap *tap,
-					     uint32_t opcode,
-					     uint32_t *data,
-					     size_t count);
-
-#ifndef HAVE_JTAG_MINIDRIVER_H
-int arm11_run_instr_data_to_core_noack_inner(struct jtag_tap *tap,
-	uint32_t opcode,
-	uint32_t *data,
-	size_t count)
-{
-	return arm11_run_instr_data_to_core_noack_inner_default(tap, opcode, data, count);
-}
-#endif
 
 /** Execute one instruction via ITR repeatedly while
  *  passing data to the core via DTR on each execution.

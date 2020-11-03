@@ -426,7 +426,6 @@ static void jtag_add_scan_check(struct jtag_tap *active, void (*jtag_add_scan)(
 
 	for (int i = 0; i < in_num_fields; i++) {
 		if ((in_fields[i].check_value != NULL) && (in_fields[i].in_value != NULL)) {
-			/* this is synchronous for a minidriver */
 			jtag_add_callback4(jtag_check_value_mask_callback,
 				(jtag_callback_data_t)in_fields[i].in_value,
 				(jtag_callback_data_t)in_fields[i].check_value,
@@ -953,12 +952,6 @@ int default_interface_jtag_execute_queue(void)
 
 	int result = jtag->jtag_ops->execute_queue();
 
-#if !HAVE_JTAG_MINIDRIVER_H
-	/* Only build this if we use a regular driver with a command queue.
-	 * Otherwise jtag_command_queue won't be found at compile/link time. Its
-	 * definition is in jtag/commands.c, which is only built/linked by
-	 * jtag/Makefile.am if MINIDRIVER_DUMMY || !MINIDRIVER, but those variables
-	 * aren't accessible here. Use HAVE_JTAG_MINIDRIVER_H */
 	struct jtag_command *cmd = jtag_command_queue;
 	while (debug_level >= LOG_LVL_DEBUG_IO && cmd) {
 		switch (cmd->type) {
@@ -1017,7 +1010,6 @@ int default_interface_jtag_execute_queue(void)
 		}
 		cmd = cmd->next;
 	}
-#endif
 
 	return result;
 }
