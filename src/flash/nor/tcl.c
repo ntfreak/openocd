@@ -441,14 +441,14 @@ COMMAND_HANDLER(handle_flash_write_image_command)
 	duration_start(&bench);
 
 	if (CMD_ARGC >= 2) {
-		image.base_address_set = 1;
+		image.base_address_set = true;
 		COMMAND_PARSE_NUMBER(llong, CMD_ARGV[1], image.base_address);
 	} else {
-		image.base_address_set = 0;
+		image.base_address_set = false;
 		image.base_address = 0x0;
 	}
 
-	image.start_address_set = 0;
+	image.start_address_set = false;
 
 	retval = image_open(&image, CMD_ARGV[0], (CMD_ARGC == 3) ? CMD_ARGV[2] : NULL);
 	if (retval != ERROR_OK)

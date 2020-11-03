@@ -635,9 +635,9 @@ COMMAND_HANDLER(lpc2900_handle_write_custom_command)
 
 	/* The image will always start at offset 0 */
 	struct image image;
-	image.base_address_set = 1;
+	image.base_address_set = true;
 	image.base_address = 0;
-	image.start_address_set = 0;
+	image.start_address_set = false;
 
 	const char *filename = CMD_ARGV[1];
 	const char *type = (CMD_ARGC >= 3) ? CMD_ARGV[2] : NULL;

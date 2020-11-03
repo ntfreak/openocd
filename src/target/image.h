@@ -55,11 +55,11 @@ struct imagesection {
 struct image {
 	enum image_type type;		/* image type (plain, ihex, ...) */
 	void *type_private;		/* type private data */
-	int num_sections;		/* number of sections contained in the image */
+	unsigned int num_sections;		/* number of sections contained in the image */
 	struct imagesection *sections;	/* array of sections */
-	int base_address_set;	/* whether the image has a base address set (for relocation purposes) */
+	bool base_address_set;	/* whether the image has a base address set (for relocation purposes) */
 	long long base_address;		/* base address, if one is set */
-	int start_address_set;	/* whether the image has a start address (entry point) associated */
+	bool start_address_set;	/* whether the image has a start address (entry point) associated */
 	uint32_t start_address;		/* start address, if one is set */
 };
 

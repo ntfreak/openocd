@@ -393,7 +393,7 @@ int ulink_load_firmware_and_renumerate(struct ulink **device,
 int ulink_load_firmware(struct ulink *device, const char *filename)
 {
 	struct image ulink_firmware_image;
-	int ret, i;
+	int ret;
 
 	ret = ulink_cpu_reset(device, CPU_RESET);
 	if (ret != ERROR_OK) {
@@ -402,7 +402,7 @@ int ulink_load_firmware(struct ulink *device, const char *filename)
 	}
 
 	ulink_firmware_image.base_address = 0;
-	ulink_firmware_image.base_address_set = 0;
+	ulink_firmware_image.base_address_set = false;
 
 	ret = image_open(&ulink_firmware_image, filename, "ihex");
 	if (ret != ERROR_OK) {
@@ -411,7 +411,7 @@ int ulink_load_firmware(struct ulink *device, const char *filename)
 	}
 
 	/* Download all sections in the image to ULINK */
-	for (i = 0; i < ulink_firmware_image.num_sections; i++) {
+	for (unsigned int i = 0; i < ulink_firmware_image.num_sections; i++) {
 		ret = ulink_write_firmware_section(device, &ulink_firmware_image, i);
 		if (ret != ERROR_OK)
 			return ret;

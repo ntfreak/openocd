@@ -124,7 +124,6 @@ static int image_ihex_buffer_complete_inner(struct image *image,
 	uint32_t full_address;
 	uint32_t cooked_bytes;
 	bool end_rec = false;
-	int i;
 
 	/* we can't determine the number of sections that we'll have to create ahead of time,
 	 * so we locally hold them until parsing is finished */
@@ -207,7 +206,7 @@ static int image_ihex_buffer_complete_inner(struct image *image,
 
 				/* copy section information */
 				image->sections = malloc(sizeof(struct imagesection) * image->num_sections);
-				for (i = 0; i < image->num_sections; i++) {
+				for (unsigned int i = 0; i < image->num_sections; i++) {
 					image->sections[i].private = section[i].private;
 					image->sections[i].base_address = section[i].base_address;
 					image->sections[i].size = section[i].size;
@@ -294,7 +293,7 @@ static int image_ihex_buffer_complete_inner(struct image *image,
 				cal_checksum += (uint8_t)start_address;
 				bytes_read += 8;
 
-				image->start_address_set = 1;
+				image->start_address_set = true;
 				image->start_address = be_to_h_u32((uint8_t *)&start_address);
 			} else {
 				LOG_ERROR("unhandled IHEX record type: %i", (int)record_type);
@@ -471,7 +470,7 @@ static int image_elf_read_headers(struct image *image)
 		}
 	}
 
-	image->start_address_set = 1;
+	image->start_address_set = true;
 	image->start_address = field32(elf, elf->header->e_entry);
 
 	return ERROR_OK;
@@ -529,7 +528,6 @@ static int image_mot_buffer_complete_inner(struct image *image,
 	uint32_t full_address;
 	uint32_t cooked_bytes;
 	bool end_rec = false;
-	int i;
 
 	/* we can't determine the number of sections that we'll have to create ahead of time,
 	 * so we locally hold them until parsing is finished */
@@ -658,7 +656,7 @@ static int image_mot_buffer_complete_inner(struct image *image,
 
 				/* copy section information */
 				image->sections = malloc(sizeof(struct imagesection) * image->num_sections);
-				for (i = 0; i < image->num_sections; i++) {
+				for (unsigned int i = 0; i < image->num_sections; i++) {
 					image->sections[i].private = section[i].private;
 					image->sections[i].base_address = section[i].base_address;
 					image->sections[i].size = section[i].size;
@@ -821,21 +819,20 @@ int image_open(struct image *image, const char *url, const char *type_string)
 		}
 	} else if (image->type == IMAGE_BUILDER) {
 		image->num_sections = 0;
-		image->base_address_set = 0;
+		image->base_address_set = false;
 		image->sections = NULL;
 		image->type_private = NULL;
 	}
 
 	if (image->base_address_set) {
 		/* relocate */
-		int section;
-		for (section = 0; section < image->num_sections; section++)
+		for (unsigned int section = 0; section < image->num_sections; section++)
 			image->sections[section].base_address += image->base_address;
 											/* we're done relocating. The two statements below are mainly
 											* for documentation purposes: stop anyone from empirically
 											* thinking they should use these values henceforth. */
 		image->base_address = 0;
-		image->base_address_set = 0;
+		image->base_address_set = false;
 	}
 
 	return retval;
@@ -1009,9 +1006,7 @@ void image_close(struct image *image)
 		free(image_mot->buffer);
 		image_mot->buffer = NULL;
 	} else if (image->type == IMAGE_BUILDER) {
-		int i;
-
-		for (i = 0; i < image->num_sections; i++) {
+		for (unsigned int i = 0; i < image->num_sections; i++) {
 			free(image->sections[i].private);
 			image->sections[i].private = NULL;
 		}

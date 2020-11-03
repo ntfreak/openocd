@@ -702,7 +702,7 @@ int flash_write_unlock(struct target *target, struct image *image,
 {
 	int retval = ERROR_OK;
 
-	int section;
+	unsigned int section;
 	uint32_t section_offset;
 	struct flash_bank *c;
 	int *padding;
@@ -727,8 +727,8 @@ int flash_write_unlock(struct target *target, struct image *image,
 	 * whereas an image can have sections out of order. */
 	struct imagesection **sections = malloc(sizeof(struct imagesection *) *
 			image->num_sections);
-	int i;
-	for (i = 0; i < image->num_sections; i++)
+
+	for (unsigned int i = 0; i < image->num_sections; i++)
 		sections[i] = &image->sections[i];
 
 	qsort(sections, image->num_sections, sizeof(struct imagesection *),
@@ -738,7 +738,7 @@ int flash_write_unlock(struct target *target, struct image *image,
 	while (section < image->num_sections) {
 		uint32_t buffer_idx;
 		uint8_t *buffer;
-		int section_last;
+		unsigned int section_last;
 		target_addr_t run_address = sections[section]->base_address + section_offset;
 		uint32_t run_size = sections[section]->size - section_offset;
 		int pad_bytes = 0;

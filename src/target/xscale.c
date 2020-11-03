@@ -2582,7 +2582,6 @@ static int xscale_read_instruction(struct target *target, uint32_t pc,
 	struct arm_instruction *instruction)
 {
 	struct xscale_common *const xscale = target_to_xscale(target);
-	int i;
 	int section = -1;
 	size_t size_read;
 	uint32_t opcode;
@@ -2592,7 +2591,7 @@ static int xscale_read_instruction(struct target *target, uint32_t pc,
 		return ERROR_TRACE_IMAGE_UNAVAILABLE;
 
 	/* search for the section the current instruction belongs to */
-	for (i = 0; i < xscale->trace.image->num_sections; i++) {
+	for (unsigned int i = 0; i < xscale->trace.image->num_sections; i++) {
 		if ((xscale->trace.image->sections[i].base_address <= pc) &&
 			(xscale->trace.image->sections[i].base_address +
 			xscale->trace.image->sections[i].size > pc)) {
@@ -3428,15 +3427,15 @@ COMMAND_HANDLER(xscale_handle_trace_image_command)
 	}
 
 	xscale->trace.image = malloc(sizeof(struct image));
-	xscale->trace.image->base_address_set = 0;
-	xscale->trace.image->start_address_set = 0;
+	xscale->trace.image->base_address_set = false;
+	xscale->trace.image->start_address_set = false;
 
 	/* a base address isn't always necessary, default to 0x0 (i.e. don't relocate) */
 	if (CMD_ARGC >= 2) {
-		xscale->trace.image->base_address_set = 1;
+		xscale->trace.image->base_address_set = true;
 		COMMAND_PARSE_NUMBER(llong, CMD_ARGV[1], xscale->trace.image->base_address);
 	} else
-		xscale->trace.image->base_address_set = 0;
+		xscale->trace.image->base_address_set = false;
 
 	if (image_open(xscale->trace.image, CMD_ARGV[0],
 		(CMD_ARGC >= 3) ? CMD_ARGV[2] : NULL) != ERROR_OK) {

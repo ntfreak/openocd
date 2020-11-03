@@ -650,7 +650,6 @@ static struct etm_capture_driver *etm_capture_drivers[] = {
 
 static int etm_read_instruction(struct etm_context *ctx, struct arm_instruction *instruction)
 {
-	int i;
 	int section = -1;
 	size_t size_read;
 	uint32_t opcode;
@@ -660,7 +659,7 @@ static int etm_read_instruction(struct etm_context *ctx, struct arm_instruction 
 		return ERROR_TRACE_IMAGE_UNAVAILABLE;
 
 	/* search for the section the current instruction belongs to */
-	for (i = 0; i < ctx->image->num_sections; i++) {
+	for (unsigned int i = 0; i < ctx->image->num_sections; i++) {
 		if ((ctx->image->sections[i].base_address <= ctx->current_pc) &&
 			(ctx->image->sections[i].base_address + ctx->image->sections[i].size >
 			ctx->current_pc)) {
@@ -1683,15 +1682,15 @@ COMMAND_HANDLER(handle_etm_image_command)
 	}
 
 	etm_ctx->image = malloc(sizeof(struct image));
-	etm_ctx->image->base_address_set = 0;
-	etm_ctx->image->start_address_set = 0;
+	etm_ctx->image->base_address_set = false;
+	etm_ctx->image->start_address_set = false;
 
 	/* a base address isn't always necessary, default to 0x0 (i.e. don't relocate) */
 	if (CMD_ARGC >= 2) {
-		etm_ctx->image->base_address_set = 1;
+		etm_ctx->image->base_address_set = true;
 		COMMAND_PARSE_NUMBER(llong, CMD_ARGV[1], etm_ctx->image->base_address);
 	} else
-		etm_ctx->image->base_address_set = 0;
+		etm_ctx->image->base_address_set = false;
 
 	if (image_open(etm_ctx->image, CMD_ARGV[0],
 		(CMD_ARGC >= 3) ? CMD_ARGV[2] : NULL) != ERROR_OK) {
