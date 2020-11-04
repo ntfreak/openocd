@@ -64,7 +64,7 @@ static uint16_t cmsis_dap_pid[MAX_USB_IDS + 1] = { 0 };
 static wchar_t *cmsis_dap_serial;
 static bool swd_mode;
 
-#define PACKET_SIZE       (64 + 1)	/* 64 bytes plus report id */
+#define PACKET_SIZE       64
 #define USB_TIMEOUT       1000
 
 /* CMSIS-DAP General Commands */
@@ -168,6 +168,7 @@ struct cmsis_dap {
 	uint16_t packet_size;
 	int packet_count;
 	uint8_t *packet_buffer;
+	uint16_t packet_buffer_size;
 	uint8_t caps;
 	uint8_t mode;
 };
@@ -211,7 +212,7 @@ static int pending_scan_result_count;
 static struct pending_scan_result pending_scan_results[MAX_PENDING_SCAN_RESULTS];
 
 /* queued JTAG sequences that will be executed on the next flush */
-#define QUEUED_SEQ_BUF_LEN (cmsis_dap_handle->packet_size - 3)
+#define QUEUED_SEQ_BUF_LEN (cmsis_dap_handle->packet_buffer_size - 3)
 static int queued_seq_count;
 static int queued_seq_buf_end;
 static int queued_seq_tdo_ptr;
@@ -334,10 +335,11 @@ static int cmsis_dap_usb_open(void)
 	/* TODO: HID report descriptor should be parsed instead of
 	 * hardcoding a match by VID */
 	if (target_vid == 0x03eb && target_pid != 0x2145 && target_pid != 0x2175)
-		packet_size = 512 + 1;
+		packet_size = 512;
 
-	cmsis_dap_handle->packet_buffer = malloc(packet_size);
 	cmsis_dap_handle->packet_size = packet_size;
+	cmsis_dap_handle->packet_buffer_size = packet_size + 1; /* +1 for the leading Report ID */
+	cmsis_dap_handle->packet_buffer = malloc(cmsis_dap_handle->packet_buffer_size);
 
 	if (cmsis_dap_handle->packet_buffer == NULL) {
 		LOG_ERROR("unable to allocate memory");
@@ -370,10 +372,10 @@ static int cmsis_dap_usb_write(struct cmsis_dap *dap, int txlen)
 	LOG_DEBUG("cmsis-dap usb xfer cmd=%02X", dap->packet_buffer[1]);
 #endif
 	/* Pad the rest of the TX buffer with 0's */
-	memset(dap->packet_buffer + txlen, 0, dap->packet_size - txlen);
+	memset(dap->packet_buffer + txlen, 0, dap->packet_buffer_size - txlen);
 
 	/* write data to device */
-	int retval = hid_write(dap->dev_handle, dap->packet_buffer, dap->packet_size);
+	int retval = hid_write(dap->dev_handle, dap->packet_buffer, dap->packet_buffer_size);
 	if (retval == -1) {
 		LOG_ERROR("error writing data: %ls", hid_error(dap->dev_handle));
 		return ERROR_FAIL;
@@ -388,7 +390,7 @@ static int cmsis_dap_usb_xfer(struct cmsis_dap *dap, int txlen)
 	if (pending_fifo_block_count) {
 		LOG_ERROR("pending %d blocks, flushing", pending_fifo_block_count);
 		while (pending_fifo_block_count) {
-			hid_read_timeout(dap->dev_handle, dap->packet_buffer, dap->packet_size, 10);
+			hid_read_timeout(dap->dev_handle, dap->packet_buffer, dap->packet_buffer_size, 10);
 			pending_fifo_block_count--;
 		}
 		pending_fifo_put_idx = 0;
@@ -400,7 +402,7 @@ static int cmsis_dap_usb_xfer(struct cmsis_dap *dap, int txlen)
 		return retval;
 
 	/* get reply */
-	retval = hid_read_timeout(dap->dev_handle, dap->packet_buffer, dap->packet_size, USB_TIMEOUT);
+	retval = hid_read_timeout(dap->dev_handle, dap->packet_buffer, dap->packet_buffer_size, USB_TIMEOUT);
 	if (retval == -1 || retval == 0) {
 		LOG_DEBUG("error reading data: %ls", hid_error(dap->dev_handle));
 		return ERROR_FAIL;
@@ -708,7 +710,7 @@ static void cmsis_dap_swd_read_process(struct cmsis_dap *dap, int timeout_ms)
 		LOG_ERROR("no pending write");
 
 	/* get reply */
-	int retval = hid_read_timeout(dap->dev_handle, dap->packet_buffer, dap->packet_size, timeout_ms);
+	int retval = hid_read_timeout(dap->dev_handle, dap->packet_buffer, dap->packet_buffer_size, timeout_ms);
 	if (retval == 0 && timeout_ms < USB_TIMEOUT)
 		return;
 
@@ -1021,11 +1023,12 @@ static int cmsis_dap_init(void)
 		 * needed per transfer, so this is suboptimal. */
 		pending_queue_len = (pkt_sz - 4) / 5;
 
-		if (cmsis_dap_handle->packet_size != pkt_sz + 1) {
+		if (cmsis_dap_handle->packet_size != pkt_sz) {
 			/* reallocate buffer */
-			cmsis_dap_handle->packet_size = pkt_sz + 1;
+			cmsis_dap_handle->packet_size = pkt_sz;
+			cmsis_dap_handle->packet_buffer_size = pkt_sz + 1; /* +1 for the leading Report ID */
 			cmsis_dap_handle->packet_buffer = realloc(cmsis_dap_handle->packet_buffer,
-					cmsis_dap_handle->packet_size);
+					cmsis_dap_handle->packet_buffer_size);
 			if (cmsis_dap_handle->packet_buffer == NULL) {
 				LOG_ERROR("unable to reallocate memory");
 				return ERROR_FAIL;
