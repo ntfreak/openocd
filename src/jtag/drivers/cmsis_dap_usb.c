@@ -64,7 +64,7 @@ static uint16_t cmsis_dap_pid[MAX_USB_IDS + 1] = { 0 };
 static wchar_t *cmsis_dap_serial;
 static bool swd_mode;
 
-#define PACKET_SIZE       (64 + 1)	/* 64 bytes plus report id */
+#define PACKET_SIZE       64    /* 64 bytes */
 #define USB_TIMEOUT       1000
 
 /* CMSIS-DAP General Commands */
@@ -334,7 +334,7 @@ static int cmsis_dap_usb_open(void)
 	/* TODO: HID report descriptor should be parsed instead of
 	 * hardcoding a match by VID */
 	if (target_vid == 0x03eb && target_pid != 0x2145 && target_pid != 0x2175)
-		packet_size = 512 + 1;
+		packet_size = 512;
 
 	cmsis_dap_handle->packet_buffer = malloc(packet_size);
 	cmsis_dap_handle->packet_size = packet_size;
