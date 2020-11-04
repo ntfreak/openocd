@@ -47,7 +47,7 @@ struct gdb_fileio_info;
 
 /*
  * TARGET_UNKNOWN = 0: we don't know anything about the target yet
- * TARGET_RUNNING = 1: the target is executing user code
+ * TARGET_RUNNING = 1: the target is executing or ready to execute user code
  * TARGET_HALTED  = 2: the target is not executing code, and ready to talk to the
  * debugger. on an xscale it means that the debug handler is executing
  * TARGET_RESET   = 3: the target is being held in reset (only a temporary state,

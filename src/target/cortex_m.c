@@ -656,13 +656,9 @@ static int cortex_m_poll(struct target *target)
 		}
 	}
 
-	/* REVISIT when S_SLEEP is set, it's in a Sleep or DeepSleep state.
-	 * How best to model low power modes?
-	 */
-
 	if (target->state == TARGET_UNKNOWN) {
-		/* check if processor is retiring instructions */
-		if (cortex_m->dcb_dhcsr & S_RETIRE_ST) {
+		/* check if processor is retiring instructions or sleeping */
+		if (cortex_m->dcb_dhcsr & S_RETIRE_ST || cortex_m->dcb_dhcsr & S_SLEEP) {
 			target->state = TARGET_RUNNING;
 			retval = ERROR_OK;
 		}
