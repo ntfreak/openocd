@@ -140,7 +140,7 @@ semihosting_result_t riscv_semihosting(struct target *target, int *retval)
 		if (0 <= semihosting->op && semihosting->op <= 0x31) {
 			*retval = semihosting_common(target);
 			if (*retval != ERROR_OK) {
-				LOG_ERROR("Failed semihosting operation");
+				LOG_ERROR("Failed semihosting operation (0x%02X)", semihosting->op);
 				return SEMI_ERROR;
 			}
 		} else {
