@@ -507,7 +507,9 @@ int semihosting_common(struct target *target)
 				char *arg = semihosting->cmdline != NULL ?
 					semihosting->cmdline : "";
 				uint32_t len = strlen(arg) + 1;
-				if (len > size)
+				if (size > 255) /* libgloss CommandLine size */
+					semihosting->result = -1;
+				else if (len > size)
 					semihosting->result = -1;
 				else {
 					semihosting_set_field(target, len, 1, fields);
