@@ -225,15 +225,11 @@ static int cmsis_dap_open(void)
 {
 	const struct cmsis_dap_backend *backend = NULL;
 
-	struct cmsis_dap *dap = malloc(sizeof(struct cmsis_dap));
+	struct cmsis_dap *dap = calloc(1, sizeof(struct cmsis_dap));
 	if (dap == NULL) {
 		LOG_ERROR("unable to allocate memory");
 		return ERROR_FAIL;
 	}
-
-	dap->caps = 0;
-	dap->mode = 0;
-	dap->packet_size = 0; /* initialized by backend */
 
 	if (cmsis_dap_backend >= 0) {
 		/* Use forced backend */
@@ -257,17 +253,7 @@ static int cmsis_dap_open(void)
 		return ERROR_FAIL;
 	}
 
-	assert(dap->packet_size > 0);
-
 	dap->backend = backend;
-	dap->packet_buffer = malloc(dap->packet_size);
-
-	if (dap->packet_buffer == NULL) {
-		LOG_ERROR("unable to allocate memory");
-		dap->backend->close(dap);
-		free(dap);
-		return ERROR_FAIL;
-	}
 
 	cmsis_dap_handle = dap;
 
@@ -929,24 +915,20 @@ static int cmsis_dap_init(void)
 
 	if (data[0] == 2) {  /* short */
 		uint16_t pkt_sz = data[1] + (data[2] << 8);
+		if (pkt_sz != cmsis_dap_handle->packet_size) {
 
-		/* 4 bytes of command header + 5 bytes per register
-		 * write. For bulk read sequences just 4 bytes are
-		 * needed per transfer, so this is suboptimal. */
-		pending_queue_len = (pkt_sz - 4) / 5;
+			/* 4 bytes of command header + 5 bytes per register
+			 * write. For bulk read sequences just 4 bytes are
+			 * needed per transfer, so this is suboptimal. */
+			pending_queue_len = (pkt_sz - 4) / 5;
 
-		if (cmsis_dap_handle->packet_size != pkt_sz + 1) {
-			/* reallocate buffer */
-			cmsis_dap_handle->packet_size = pkt_sz + 1;
-			cmsis_dap_handle->packet_buffer = realloc(cmsis_dap_handle->packet_buffer,
-					cmsis_dap_handle->packet_size);
-			if (cmsis_dap_handle->packet_buffer == NULL) {
-				LOG_ERROR("unable to reallocate memory");
-				return ERROR_FAIL;
-			}
+			free(cmsis_dap_handle->packet_buffer);
+			retval = cmsis_dap_handle->backend->packet_buffer_alloc(cmsis_dap_handle, pkt_sz);
+			if (retval != ERROR_OK)
+				return retval;
+
+			LOG_DEBUG("CMSIS-DAP: Packet Size = %" PRIu16, pkt_sz);
 		}
-
-		LOG_DEBUG("CMSIS-DAP: Packet Size = %" PRId16, pkt_sz);
 	}
 
 	/* INFO_ID_PKT_CNT - byte */
