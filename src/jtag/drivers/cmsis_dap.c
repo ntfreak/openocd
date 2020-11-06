@@ -246,7 +246,6 @@ static int cmsis_dap_open(void)
 
 	dap->caps = 0;
 	dap->mode = 0;
-	dap->packet_size = 0; /* initialized by backend */
 
 	if (cmsis_dap_backend >= 0) {
 		/* Use forced backend */
@@ -270,17 +269,7 @@ static int cmsis_dap_open(void)
 		return ERROR_FAIL;
 	}
 
-	assert(dap->packet_size > 0);
-
 	dap->backend = backend;
-	dap->packet_buffer = malloc(dap->packet_size);
-
-	if (dap->packet_buffer == NULL) {
-		LOG_ERROR("unable to allocate memory");
-		dap->backend->close(dap);
-		free(dap);
-		return ERROR_FAIL;
-	}
 
 	cmsis_dap_handle = dap;
 
@@ -947,18 +936,9 @@ static int cmsis_dap_init(void)
 		 * write. For bulk read sequences just 4 bytes are
 		 * needed per transfer, so this is suboptimal. */
 		pending_queue_len = (pkt_sz - 4) / 5;
-
-		if (cmsis_dap_handle->packet_size != pkt_sz + 1) {
-			/* reallocate buffer */
-			cmsis_dap_handle->packet_size = pkt_sz + 1;
-			cmsis_dap_handle->packet_buffer = realloc(cmsis_dap_handle->packet_buffer,
-					cmsis_dap_handle->packet_size);
-			if (cmsis_dap_handle->packet_buffer == NULL) {
-				LOG_ERROR("unable to reallocate memory");
-				return ERROR_FAIL;
-			}
-		}
-
+		retval = cmsis_dap_handle->backend->packet_buffer_realloc(cmsis_dap_handle, pkt_sz);
+		if (retval != ERROR_OK)
+			return retval;
 		LOG_DEBUG("CMSIS-DAP: Packet Size = %" PRId16, pkt_sz);
 	}
 

@@ -23,6 +23,7 @@ struct cmsis_dap_backend {
 	void (*close)(struct cmsis_dap *dap);
 	int (*read)(struct cmsis_dap *dap, int timeout_ms);
 	int (*write)(struct cmsis_dap *dap, int len, int timeout_ms);
+	int (*packet_buffer_realloc)(struct cmsis_dap *dap, int pkt_sz);
 };
 
 #endif
