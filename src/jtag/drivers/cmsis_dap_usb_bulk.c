@@ -50,6 +50,8 @@ struct cmsis_dap_backend_data {
 
 static int cmsis_dap_usb_interface = -1;
 
+static void cmsis_dap_usb_close(struct cmsis_dap *dap);
+
 static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t pids[], char *serial)
 {
 	int err;
@@ -356,12 +358,21 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 				return ERROR_FAIL;
 			}
 
-			dap->packet_size = packet_size + 1; /* "+ 1" for compatibility with the HID backend */
+			dap->packet_size = packet_size;
+			dap->packet_buffer_size = packet_size + REPORT_ID_SIZE;
 			dap->bdata->usb_ctx = ctx;
 			dap->bdata->dev_handle = dev_handle;
 			dap->bdata->ep_out = ep_out;
 			dap->bdata->ep_in = ep_in;
 			dap->bdata->interface = interface_num;
+
+			dap->packet_buffer = malloc(dap->packet_buffer_size);
+			if (dap->packet_buffer == NULL) {
+				LOG_ERROR("unable to allocate memory");
+				cmsis_dap_usb_close(dap);
+				return ERROR_FAIL;
+			}
+
 			return ERROR_OK;
 		}
 
@@ -381,6 +392,8 @@ static void cmsis_dap_usb_close(struct cmsis_dap *dap)
 	libusb_exit(dap->bdata->usb_ctx);
 	free(dap->bdata);
 	dap->bdata = NULL;
+	free(dap->packet_buffer);
+	dap->packet_buffer = NULL;
 }
 
 static int cmsis_dap_usb_read(struct cmsis_dap *dap, int timeout_ms)
@@ -399,7 +412,7 @@ static int cmsis_dap_usb_read(struct cmsis_dap *dap, int timeout_ms)
 		}
 	}
 
-	memset(&dap->packet_buffer[transferred], 0, dap->packet_size - transferred);
+	memset(&dap->packet_buffer[transferred], 0, dap->packet_buffer_size - transferred);
 
 	return transferred;
 }
@@ -411,7 +424,7 @@ static int cmsis_dap_usb_write(struct cmsis_dap *dap, int txlen, int timeout_ms)
 
 	/* skip the first byte that is only used by the HID backend */
 	err = libusb_bulk_transfer(dap->bdata->dev_handle, dap->bdata->ep_out,
-							dap->packet_buffer + 1, txlen - 1, &transferred, timeout_ms);
+							dap->packet_buffer + REPORT_ID_SIZE, txlen - REPORT_ID_SIZE, &transferred, timeout_ms);
 	if (err) {
 		if (err == LIBUSB_ERROR_TIMEOUT) {
 			return ERROR_TIMEOUT_REACHED;
@@ -422,6 +435,22 @@ static int cmsis_dap_usb_write(struct cmsis_dap *dap, int txlen, int timeout_ms)
 	}
 
 	return transferred;
+}
+
+static int cmsis_dap_usb_realloc(struct cmsis_dap *dap, int pkt_sz)
+{
+	if (dap->packet_size == pkt_sz)
+		return ERROR_OK;
+
+	dap->packet_buffer_size = pkt_sz + REPORT_ID_SIZE;
+	dap->packet_buffer = realloc(dap->packet_buffer, dap->packet_buffer_size);
+	if (dap->packet_buffer == NULL) {
+		LOG_ERROR("unable to reallocate memory");
+		return ERROR_FAIL;
+	}
+	dap->packet_size = pkt_sz;
+
+	return ERROR_OK;
 }
 
 COMMAND_HANDLER(cmsis_dap_handle_usb_interface_command)
@@ -451,4 +480,5 @@ const struct cmsis_dap_backend cmsis_dap_usb_backend = {
 	.close = cmsis_dap_usb_close,
 	.read = cmsis_dap_usb_read,
 	.write = cmsis_dap_usb_write,
+	.packet_buffer_realloc = cmsis_dap_usb_realloc,
 };
