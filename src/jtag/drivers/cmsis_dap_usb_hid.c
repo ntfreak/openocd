@@ -40,11 +40,11 @@
 
 #include "cmsis_dap.h"
 
-#define PACKET_SIZE       (64 + 1)	/* 64 bytes plus report id */
-
 struct cmsis_dap_backend_data {
 	hid_device *dev_handle;
 };
+
+static void cmsis_dap_hid_close(struct cmsis_dap *dap);
 
 static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t pids[], char *serial)
 {
@@ -145,7 +145,7 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 	 * without this info we cannot communicate with the adapter.
 	 * For the moment we have to hard code the packet size */
 
-	dap->packet_size = PACKET_SIZE;
+	dap->packet_size = 64;
 
 	/* atmel cmsis-dap uses 512 byte reports */
 	/* except when it doesn't e.g. with mEDBG on SAMD10 Xplained
@@ -153,9 +153,17 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 	/* TODO: HID report descriptor should be parsed instead of
 	 * hardcoding a match by VID */
 	if (target_vid == 0x03eb && target_pid != 0x2145 && target_pid != 0x2175)
-		dap->packet_size = 512 + 1;
+		dap->packet_size = 512;
 
 	dap->bdata->dev_handle = dev;
+
+	dap->packet_buffer_size = dap->packet_size + REPORT_ID_SIZE;
+	dap->packet_buffer = malloc(dap->packet_buffer_size);
+	if (dap->packet_buffer == NULL) {
+		LOG_ERROR("unable to allocate memory");
+		cmsis_dap_hid_close(dap);
+		return ERROR_FAIL;
+	}
 
 	return ERROR_OK;
 }
@@ -166,11 +174,13 @@ static void cmsis_dap_hid_close(struct cmsis_dap *dap)
 	hid_exit();
 	free(dap->bdata);
 	dap->bdata = NULL;
+	free(dap->packet_buffer);
+	dap->packet_buffer = NULL;
 }
 
 static int cmsis_dap_hid_read(struct cmsis_dap *dap, int timeout_ms)
 {
-	int retval = hid_read_timeout(dap->bdata->dev_handle, dap->packet_buffer, dap->packet_size, timeout_ms);
+	int retval = hid_read_timeout(dap->bdata->dev_handle, dap->packet_buffer, dap->packet_buffer_size, timeout_ms);
 
 	if (retval == 0) {
 		return ERROR_TIMEOUT_REACHED;
@@ -187,10 +197,10 @@ static int cmsis_dap_hid_write(struct cmsis_dap *dap, int txlen, int timeout_ms)
 	(void) timeout_ms;
 
 	/* Pad the rest of the TX buffer with 0's */
-	memset(dap->packet_buffer + txlen, 0, dap->packet_size - txlen);
+	memset(dap->packet_buffer + txlen, 0, dap->packet_buffer_size - txlen);
 
 	/* write data to device */
-	int retval = hid_write(dap->bdata->dev_handle, dap->packet_buffer, dap->packet_size);
+	int retval = hid_write(dap->bdata->dev_handle, dap->packet_buffer, dap->packet_buffer_size);
 	if (retval == -1) {
 		LOG_ERROR("error writing data: %ls", hid_error(dap->bdata->dev_handle));
 		return ERROR_FAIL;
@@ -199,10 +209,27 @@ static int cmsis_dap_hid_write(struct cmsis_dap *dap, int txlen, int timeout_ms)
 	return retval;
 }
 
+static int cmsis_dap_hid_realloc(struct cmsis_dap *dap, int pkt_sz)
+{
+	if (dap->packet_size == pkt_sz)
+		return ERROR_OK;
+
+	dap->packet_buffer_size = pkt_sz + REPORT_ID_SIZE;
+	dap->packet_buffer = realloc(dap->packet_buffer, dap->packet_buffer_size);
+	if (dap->packet_buffer == NULL) {
+		LOG_ERROR("unable to reallocate memory");
+		return ERROR_FAIL;
+	}
+	dap->packet_size = pkt_sz;
+
+	return ERROR_OK;
+}
+
 const struct cmsis_dap_backend cmsis_dap_hid_backend = {
 	.name = "hid",
 	.open = cmsis_dap_hid_open,
 	.close = cmsis_dap_hid_close,
 	.read = cmsis_dap_hid_read,
 	.write = cmsis_dap_hid_write,
+	.packet_buffer_realloc = cmsis_dap_hid_realloc,
 };
