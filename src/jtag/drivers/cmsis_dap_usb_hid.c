@@ -46,6 +46,8 @@ struct cmsis_dap_backend_data {
 	hid_device *dev_handle;
 };
 
+static void cmsis_dap_hid_close(struct cmsis_dap *dap);
+
 static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t pids[], char *serial)
 {
 	hid_device *dev = NULL;
@@ -157,6 +159,13 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 
 	dap->bdata->dev_handle = dev;
 
+	dap->packet_buffer = malloc(dap->packet_size);
+	if (dap->packet_buffer == NULL) {
+		LOG_ERROR("unable to allocate memory");
+		cmsis_dap_hid_close(dap);
+		return ERROR_FAIL;
+	}
+
 	return ERROR_OK;
 }
 
@@ -166,6 +175,8 @@ static void cmsis_dap_hid_close(struct cmsis_dap *dap)
 	hid_exit();
 	free(dap->bdata);
 	dap->bdata = NULL;
+	free(dap->packet_buffer);
+	dap->packet_buffer = NULL;
 }
 
 static int cmsis_dap_hid_read(struct cmsis_dap *dap, int timeout_ms)
@@ -199,10 +210,26 @@ static int cmsis_dap_hid_write(struct cmsis_dap *dap, int txlen, int timeout_ms)
 	return retval;
 }
 
+static int cmsis_dap_hid_realloc(struct cmsis_dap *dap, int pkt_sz)
+{
+	if (dap->packet_size == pkt_sz + 1)
+		return ERROR_OK;
+
+	dap->packet_buffer = realloc(dap->packet_buffer, pkt_sz + 1);
+	if (dap->packet_buffer == NULL) {
+		LOG_ERROR("unable to reallocate memory");
+		return ERROR_FAIL;
+	}
+	dap->packet_size = pkt_sz + 1;
+
+	return ERROR_OK;
+}
+
 const struct cmsis_dap_backend cmsis_dap_hid_backend = {
 	.name = "hid",
 	.open = cmsis_dap_hid_open,
 	.close = cmsis_dap_hid_close,
 	.read = cmsis_dap_hid_read,
 	.write = cmsis_dap_hid_write,
+	.packet_buffer_realloc = cmsis_dap_hid_realloc,
 };
