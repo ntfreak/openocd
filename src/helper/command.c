@@ -349,7 +349,9 @@ static int register_command_handler(struct command_context *cmd_ctx,
 {
 	Jim_Interp *interp = cmd_ctx->interp;
 
+#if 0
 	LOG_DEBUG("registering '%s'...", c->name);
+#endif
 
 	Jim_CmdProc *func = c->handler ? &script_command : &command_unknown;
 	int retval = Jim_CreateCommand(interp, c->name, func, c, NULL);
