@@ -2430,7 +2430,8 @@ and a specific set of GPIOs is used.
 @end deffn
 
 @deffn {Interface Driver} {cmsis-dap}
-ARM CMSIS-DAP compliant based adapter.
+ARM CMSIS-DAP compliant based adapter v1 (USB HID based)
+or v2 (USB bulk).
 
 @deffn {Config Command} {cmsis_dap_vid_pid} [vid pid]+
 The vendor ID and product ID of the CMSIS-DAP device. If not specified
@@ -2444,6 +2445,23 @@ cmsis_dap_vid_pid 0xc251 0xf001 0x0d28 0x0204
 @deffn {Config Command} {cmsis_dap_serial} [serial]
 Specifies the @var{serial} of the CMSIS-DAP device to use.
 If not specified, serial numbers are not considered.
+@end deffn
+
+@deffn {Config Command} {cmsis_dap_backend} [@option{auto}|@option{usb_bulk}|@option{hid}]
+Specifies how to communicate with the adapter:
+
+@itemize @minus
+@item @option{hid} Use HID generic reports - CMSIS-DAP v1
+@item @option{usb_bulk} Use USB bulk - CMSIS-DAP v2
+@item @option{auto} First try USB bulk CMSIS-DAP v2, if not found try HID CMSIS-DAP v1.
+This is the default if @command{cmsis_dap_backend} is not specified.
+@end itemize
+@end deffn
+
+@deffn {Config Command} {cmsis_dap_usb interface} [number]
+Specifies the @var{number} of the USB interface to use in v2 mode (USB bulk).
+In most cases need not to be specified and interfaces are searched by
+interface string or for user class interface.
 @end deffn
 
 @deffn {Command} {cmsis-dap info}
