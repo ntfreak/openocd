@@ -215,7 +215,7 @@ static int stm32x_check_operation_supported(struct flash_bank *bank)
 	/* if we have a dual flash bank device then
 	 * we need to perform option byte stuff on bank0 only */
 	if (stm32x_info->register_base != FLASH_REG_BASE_B0) {
-		LOG_ERROR("Option Byte Operation's must use bank0");
+		LOG_ERROR("Option byte operations must use bank 0");
 		return ERROR_FLASH_OPERATION_FAILED;
 	}
 
