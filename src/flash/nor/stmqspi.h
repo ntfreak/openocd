@@ -51,7 +51,7 @@
 #define SPI_DMODE_POS		24					/* bit position of DMODE */
 #define QSPI_DCYC_POS		18					/* bit position of DCYC */
 #define QSPI_DCYC_LEN		5					/* width of DCYC field */
-#define QSPI_DCYC_MASK		(((1U<<QSPI_DCYC_LEN) - 1)<<QSPI_DCYC_POS)
+#define QSPI_DCYC_MASK		((BIT(QSPI_DCYC_LEN) - 1) << QSPI_DCYC_POS)
 #define SPI_ADSIZE_POS		12					/* bit position of ADSIZE */
 
 #define QSPI_WRITE_MODE		0x00000000U			/* indirect write mode */
@@ -62,8 +62,8 @@
 #define QSPI_NO_DATA		(~0x03000000U)		/* no data */
 #define QSPI_NO_ALTB		(~QSPI_ALTB_MODE)	/* no alternate */
 #define QSPI_NO_ADDR		(~0x00000C00U)		/* no address */
-#define QSPI_ADDR3			(0x2U<<SPI_ADSIZE_POS)	/* 3 byte address */
-#define QSPI_ADDR4			(0x3U<<SPI_ADSIZE_POS)	/* 4 byte address */
+#define QSPI_ADDR3			(0x2U << SPI_ADSIZE_POS)	/* 3 byte address */
+#define QSPI_ADDR4			(0x3U << SPI_ADSIZE_POS)	/* 4 byte address */
 
 /* OCTOSPI register offsets */
 #define OCTOSPI_CR		(0x000)	/* Control register */
@@ -92,7 +92,7 @@
 /* additional fields in OCTOSPI_DCR1 */
 #define OCTOSPI_MTYP_POS	(24)				/* bit position of MTYP */
 #define OCTOSPI_MTYP_LEN	(3)					/* width of MTYP field */
-#define OCTOSPI_MTYP_MASK	(((1U<<OCTOSPI_MTYP_LEN) - 1)<<OCTOSPI_MTYP_POS)
+#define OCTOSPI_MTYP_MASK	((BIT(OCTOSPI_MTYP_LEN) - 1) << OCTOSPI_MTYP_POS)
 
 /* fields in OCTOSPI_CCR */
 #define OCTOSPI_ALTB_MODE	0x001F0000U				/* alternate byte mode */
@@ -100,17 +100,17 @@
 #define OCTOSPI_NO_DATA		(~0x0F000000U)			/* no data */
 #define OCTOSPI_NO_ALTB		(~OCTOSPI_ALTB_MODE)	/* no alternate */
 #define OCTOSPI_NO_ADDR		(~0x00000F00U)			/* no address */
-#define OCTOSPI_ADDR3		(0x2U<<SPI_ADSIZE_POS)	/* 3 byte address */
-#define OCTOSPI_ADDR4		(0x3U<<SPI_ADSIZE_POS)	/* 4 byte address */
+#define OCTOSPI_ADDR3		(0x2U << SPI_ADSIZE_POS)	/* 3 byte address */
+#define OCTOSPI_ADDR4		(0x3U << SPI_ADSIZE_POS)	/* 4 byte address */
 #define OCTOSPI_DQSEN		29						/* DQS enable */
 #define OCTOSPI_DDTR		27						/* DTR for data */
-#define OCTOSPI_NO_DDTR		(~(1U<<OCTOSPI_DDTR))	/* no DTR for data, but maybe still DQS */
+#define OCTOSPI_NO_DDTR		(~BIT(OCTOSPI_DDTR))	/* no DTR for data, but maybe still DQS */
 #define OCTOSPI_ISIZE_MASK	(0x30)					/* ISIZE field */
 
 /* fields in OCTOSPI_TCR */
 #define OCTOSPI_DCYC_POS	0					/* bit position of DCYC */
 #define OCTOSPI_DCYC_LEN	5					/* width of DCYC field */
-#define OCTOSPI_DCYC_MASK	(((1U<<OCTOSPI_DCYC_LEN) - 1)<<OCTOSPI_DCYC_POS)
+#define OCTOSPI_DCYC_MASK	((BIT(OCTOSPI_DCYC_LEN) - 1) << OCTOSPI_DCYC_POS)
 
 #define IS_OCTOSPI			(stmqspi_info->octo)
 #define SPI_CR				(IS_OCTOSPI ? OCTOSPI_CR : QSPI_CR)

@@ -81,7 +81,7 @@ int spi_sfdp(struct flash_bank *bank, struct flash_device *dev,
 
 	/* retrieve SFDP header */
 	memset(&header, 0, sizeof(header));
-	retval = read_sfdp_block(bank, 0x0, sizeof(header) >> 2, (uint32_t *) &header);
+	retval = read_sfdp_block(bank, 0x0, sizeof(header) >> 2, (uint32_t *)&header);
 	if (retval != ERROR_OK)
 		return retval;
 	LOG_DEBUG("header 0x%08" PRIx32 " 0x%08" PRIx32, header.signature, header.revision);
@@ -105,7 +105,7 @@ int spi_sfdp(struct flash_bank *bank, struct flash_device *dev,
 	}
 	memset(pheaders, 0, sizeof(struct sfdp_phdr) * nph);
 	retval = read_sfdp_block(bank, sizeof(header),
-		(sizeof(struct sfdp_phdr) >> 2) * nph, (uint32_t *) pheaders);
+		(sizeof(struct sfdp_phdr) >> 2) * nph, (uint32_t *)pheaders);
 	if (retval != ERROR_OK)
 		goto err;
 
@@ -132,7 +132,7 @@ int spi_sfdp(struct flash_bank *bank, struct flash_device *dev,
 			LOG_DEBUG("word %02d 0x%08X", j + 1, ptable[j]);
 
 		if (id == SFDP_BASIC_FLASH) {
-			struct sfdp_basic_flash_param *table = (struct sfdp_basic_flash_param *) ptable;
+			struct sfdp_basic_flash_param *table = (struct sfdp_basic_flash_param *)ptable;
 			uint16_t erase;
 
 			if (words < 9) {
@@ -215,7 +215,7 @@ int spi_sfdp(struct flash_bank *bank, struct flash_device *dev,
 					LOG_INFO("device has to be switched to 4-byte addresses");
 			}
 		} else if (id == SFDP_4BYTE_ADDR) {
-			struct sfdp_4byte_addr_param *table = (struct sfdp_4byte_addr_param *) ptable;
+			struct sfdp_4byte_addr_param *table = (struct sfdp_4byte_addr_param *)ptable;
 
 			if (words >= (offsetof(struct sfdp_4byte_addr_param, erase_t1234)
 				+ sizeof(table->erase_t1234)) >> 2) {
