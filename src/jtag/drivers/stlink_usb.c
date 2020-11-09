@@ -413,17 +413,17 @@ static inline int stlink_usb_xfer_noerrcheck(void *handle, const uint8_t *buf, i
  * Map the relevant features, quirks and workaround for specific firmware
  * version of stlink
  */
-#define STLINK_F_HAS_TRACE              BIT(0)
-#define STLINK_F_HAS_SWD_SET_FREQ       BIT(1)
-#define STLINK_F_HAS_JTAG_SET_FREQ      BIT(2)
-#define STLINK_F_HAS_MEM_16BIT          BIT(3)
-#define STLINK_F_HAS_GETLASTRWSTATUS2   BIT(4)
-#define STLINK_F_HAS_DAP_REG            BIT(5)
-#define STLINK_F_QUIRK_JTAG_DP_READ     BIT(6)
-#define STLINK_F_HAS_AP_INIT            BIT(7)
-#define STLINK_F_HAS_DPBANKSEL          BIT(8)
-#define STLINK_F_HAS_RW8_512BYTES       BIT(9)
-#define STLINK_F_FIX_CLOSE_AP           BIT(10)
+#define STLINK_F_HAS_TRACE              BIT(0)  /* v2>=j13 || v3 */
+#define STLINK_F_HAS_SWD_SET_FREQ       BIT(1)  /* v2>=j22 */
+#define STLINK_F_HAS_JTAG_SET_FREQ      BIT(2)  /* v2>=j24 */
+#define STLINK_F_HAS_MEM_16BIT          BIT(3)  /* v2>=j26 || v3 */
+#define STLINK_F_HAS_GETLASTRWSTATUS2   BIT(4)  /* v2>=j15 || v3 */
+#define STLINK_F_HAS_DAP_REG            BIT(5)  /* v2>=j24 || v3 */
+#define STLINK_F_QUIRK_JTAG_DP_READ     BIT(6)  /* v2>=j24 && v2<j32 */
+#define STLINK_F_HAS_AP_INIT            BIT(7)  /* v2>=j28 || v3 */
+#define STLINK_F_HAS_DPBANKSEL          BIT(8)  /* v2>=j32 || v3>=j2 */
+#define STLINK_F_HAS_RW8_512BYTES       BIT(9)  /* v3>=j6 */
+#define STLINK_F_FIX_CLOSE_AP           BIT(10) /* v2>=j29 || v3 */
 
 /* aliases */
 #define STLINK_F_HAS_TARGET_VOLT        STLINK_F_HAS_TRACE
