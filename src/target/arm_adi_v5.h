@@ -372,6 +372,8 @@ static inline int dap_send_sequence(struct adiv5_dap *dap,
 	return dap->ops->send_sequence(dap, seq);
 }
 
+static int dap_check_reconnect(struct adiv5_dap *dap);
+
 /**
  * Queue a DP register read.
  * Note that not all DP registers are readable; also, that JTAG and SWD
@@ -388,6 +390,9 @@ static inline int dap_queue_dp_read(struct adiv5_dap *dap,
 		unsigned reg, uint32_t *data)
 {
 	assert(dap->ops != NULL);
+	int retval = dap_check_reconnect(dap);
+	if (retval != ERROR_OK)
+		return retval;
 	return dap->ops->queue_dp_read(dap, reg, data);
 }
 
@@ -406,6 +411,9 @@ static inline int dap_queue_dp_write(struct adiv5_dap *dap,
 		unsigned reg, uint32_t data)
 {
 	assert(dap->ops != NULL);
+	int retval = dap_check_reconnect(dap);
+	if (retval != ERROR_OK)
+		return retval;
 	return dap->ops->queue_dp_write(dap, reg, data);
 }
 
@@ -423,6 +431,9 @@ static inline int dap_queue_ap_read(struct adiv5_ap *ap,
 		unsigned reg, uint32_t *data)
 {
 	assert(ap->dap->ops != NULL);
+	int retval = dap_check_reconnect(ap->dap);
+	if (retval != ERROR_OK)
+		return retval;
 	return ap->dap->ops->queue_ap_read(ap, reg, data);
 }
 
@@ -439,6 +450,9 @@ static inline int dap_queue_ap_write(struct adiv5_ap *ap,
 		unsigned reg, uint32_t data)
 {
 	assert(ap->dap->ops != NULL);
+	int retval = dap_check_reconnect(ap->dap);
+	if (retval != ERROR_OK)
+		return retval;
 	return ap->dap->ops->queue_ap_write(ap, reg, data);
 }
 
@@ -601,5 +615,21 @@ struct adiv5_private_config {
 
 extern int adiv5_verify_config(struct adiv5_private_config *pc);
 extern int adiv5_jim_configure(struct target *target, Jim_GetOptInfo *goi);
+
+static int dap_check_reconnect(struct adiv5_dap *dap)
+{
+	int retval = ERROR_OK;
+	if (dap->do_reconnect) {
+		retval = dap->ops->connect(dap);
+		if (retval != ERROR_OK)
+			return retval;
+		retval = dap_dp_init(dap);
+		if (retval != ERROR_OK)
+			return retval;
+		dap->do_reconnect = false;
+	}
+	return retval;
+}
+
 
 #endif /* OPENOCD_TARGET_ARM_ADI_V5_H */
