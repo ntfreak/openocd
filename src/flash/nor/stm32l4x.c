@@ -209,6 +209,7 @@ struct stm32l4_flash_bank {
 	bool otp_enabled;
 	enum stm32l4_rdp rdp;
 	bool tzen;
+	uint32_t optr;
 };
 
 enum stm32_bank_id {
@@ -563,16 +564,16 @@ static inline bool stm32l4_otp_is_enabled(struct flash_bank *bank)
 	return stm32l4_info->otp_enabled;
 }
 
-static void stm32l4_sync_rdp_tzen(struct flash_bank *bank, uint32_t optr_value)
+static void stm32l4_sync_rdp_tzen(struct flash_bank *bank)
 {
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
 
 	bool tzen = false;
 
 	if (stm32l4_info->part_info->flags & F_HAS_TZ)
-		tzen = (optr_value & FLASH_TZEN) != 0;
+		tzen = (stm32l4_info->optr & FLASH_TZEN) != 0;
 
-	uint32_t rdp = optr_value & FLASH_RDP_MASK;
+	uint32_t rdp = stm32l4_info->optr & FLASH_RDP_MASK;
 
 	/* for devices without TrustZone:
 	 *   RDP level 0 and 2 values are to 0xAA and 0xCC
@@ -1317,7 +1318,6 @@ static int stm32l4_probe(struct flash_bank *bank)
 	const struct stm32l4_part_info *part_info;
 	uint16_t flash_size_kb = 0xffff;
 	uint32_t device_id;
-	uint32_t options;
 
 	stm32l4_info->probed = false;
 
@@ -1349,11 +1349,11 @@ static int stm32l4_probe(struct flash_bank *bank)
 	LOG_INFO("device idcode = 0x%08" PRIx32 " (%s)", stm32l4_info->idcode, device_info);
 
 	/* read flash option register */
-	retval = stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_OPTR_INDEX, &options);
+	retval = stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_OPTR_INDEX, &stm32l4_info->optr);
 	if (retval != ERROR_OK)
 		return retval;
 
-	stm32l4_sync_rdp_tzen(bank, options);
+	stm32l4_sync_rdp_tzen(bank);
 
 	if (part_info->flags & F_HAS_TZ)
 		LOG_INFO("TZEN = %d : TrustZone %s by option bytes",
@@ -1435,7 +1435,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 		stm32l4_info->bank1_sectors = num_pages;
 
 		/* check DUAL_BANK bit[21] if the flash is less than 1M */
-		if (flash_size_kb == 1024 || (options & BIT(21))) {
+		if (flash_size_kb == 1024 || (stm32l4_info->optr & BIT(21))) {
 			stm32l4_info->dual_bank_mode = true;
 			stm32l4_info->bank1_sectors = num_pages / 2;
 		}
@@ -1461,7 +1461,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 		page_size_kb = 4;
 		num_pages = flash_size_kb / page_size_kb;
 		stm32l4_info->bank1_sectors = num_pages;
-		if (options & BIT(22)) {
+		if (stm32l4_info->optr & BIT(22)) {
 			stm32l4_info->dual_bank_mode = true;
 			page_size_kb = 2;
 			num_pages = flash_size_kb / page_size_kb;
@@ -1485,8 +1485,8 @@ static int stm32l4_probe(struct flash_bank *bank)
 		num_pages = flash_size_kb / page_size_kb;
 		stm32l4_info->bank1_sectors = num_pages;
 		use_dbank_bit = flash_size_kb == part_info->max_flash_size_kb;
-		if ((use_dbank_bit && (options & BIT(22))) ||
-			(!use_dbank_bit && (options & BIT(21)))) {
+		if ((use_dbank_bit && (stm32l4_info->optr & BIT(22))) ||
+			(!use_dbank_bit && (stm32l4_info->optr & BIT(21)))) {
 			stm32l4_info->dual_bank_mode = true;
 			page_size_kb = 4;
 			num_pages = flash_size_kb / page_size_kb;
@@ -1502,8 +1502,8 @@ static int stm32l4_probe(struct flash_bank *bank)
 		num_pages = flash_size_kb / page_size_kb;
 		stm32l4_info->bank1_sectors = num_pages;
 		use_dbank_bit = flash_size_kb == part_info->max_flash_size_kb;
-		if ((use_dbank_bit && (options & BIT(22))) ||
-			(!use_dbank_bit && (options & BIT(21)))) {
+		if ((use_dbank_bit && (stm32l4_info->optr & BIT(22))) ||
+			(!use_dbank_bit && (stm32l4_info->optr & BIT(21)))) {
 			stm32l4_info->dual_bank_mode = true;
 			page_size_kb = 2;
 			num_pages = flash_size_kb / page_size_kb;
@@ -1580,8 +1580,17 @@ static int stm32l4_probe(struct flash_bank *bank)
 static int stm32l4_auto_probe(struct flash_bank *bank)
 {
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
-	if (stm32l4_info->probed)
-		return ERROR_OK;
+	if (stm32l4_info->probed) {
+		uint32_t optr_cur;
+
+		/* read flash option register and re-probe if optr value is changed */
+		int retval = stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_OPTR_INDEX, &optr_cur);
+		if (retval != ERROR_OK)
+			return retval;
+
+		if (stm32l4_info->optr == optr_cur)
+			return ERROR_OK;
+	}
 
 	return stm32l4_probe(bank);
 }
@@ -1766,12 +1775,11 @@ COMMAND_HANDLER(stm32l4_handle_trustzone_command)
 		return ERROR_FAIL;
 	}
 
-	uint32_t optr;
-	retval = stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_OPTR_INDEX, &optr);
+	retval = stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_OPTR_INDEX, &stm32l4_info->optr);
 	if (retval != ERROR_OK)
 		return retval;
 
-	stm32l4_sync_rdp_tzen(bank, optr);
+	stm32l4_sync_rdp_tzen(bank);
 
 	if (CMD_ARGC == 1) {
 		/* only display the TZEN value */
