@@ -126,7 +126,7 @@ static int dap_init_all(void)
 		} else
 			dap->ops = &jtag_dp_ops;
 
-		retval = dap->ops->connect(dap);
+		retval = dap_dp_init(dap);
 		if (retval != ERROR_OK)
 			return retval;
 	}

@@ -81,16 +81,8 @@ static void swd_clear_sticky_errors(struct adiv5_dap *dap)
 static int swd_run_inner(struct adiv5_dap *dap)
 {
 	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
-	int retval;
 
-	retval = swd->run();
-
-	if (retval != ERROR_OK) {
-		/* fault response */
-		dap->do_reconnect = true;
-	}
-
-	return retval;
+	return swd->run();
 }
 
 static int swd_connect(struct adiv5_dap *dap)
@@ -99,35 +91,11 @@ static int swd_connect(struct adiv5_dap *dap)
 	uint32_t dpidr = 0xdeadbeef;
 	int status;
 
-	/* FIXME validate transport config ... is the
-	 * configured DAP present (check IDCODE)?
-	 * Is *only* one DAP configured?
-	 *
-	 * MUST READ DPIDR
-	 */
-
-	/* Check if we should reset srst already when connecting, but not if reconnecting. */
-	if (!dap->do_reconnect) {
-		enum reset_types jtag_reset_config = jtag_get_reset_config();
-
-		if (jtag_reset_config & RESET_CNCT_UNDER_SRST) {
-			if (jtag_reset_config & RESET_SRST_NO_GATING)
-				adapter_assert_reset();
-			else
-				LOG_WARNING("\'srst_nogate\' reset_config option is required");
-		}
-	}
-
-
 	int64_t timeout = timeval_ms() + 500;
 
 	do {
 		/* Note, debugport_init() does setup too */
 		swd->switch_seq(JTAG_TO_SWD);
-
-		/* Clear link state, including the SELECT cache. */
-		dap->do_reconnect = false;
-		dap_invalidate_cache(dap);
 
 		status = swd_queue_dp_read(dap, DP_DPIDR, &dpidr);
 		if (status == ERROR_OK) {
@@ -147,32 +115,10 @@ static int swd_connect(struct adiv5_dap *dap)
 
 	LOG_INFO("SWD DPIDR %#8.8" PRIx32, dpidr);
 
-	do {
-		dap->do_reconnect = false;
+	/* force clear all sticky faults */
+	swd_clear_sticky_errors(dap);
 
-		/* force clear all sticky faults */
-		swd_clear_sticky_errors(dap);
-
-		status = swd_run_inner(dap);
-		if (status != ERROR_WAIT)
-			break;
-
-		alive_sleep(10);
-
-	} while (timeval_ms() < timeout);
-
-	if (status == ERROR_WAIT) {
-		LOG_WARNING("Connecting DP: staled AP operation, issuing ABORT");
-
-		dap->do_reconnect = false;
-
-		swd->write_reg(swd_cmd(false,  false, DP_ABORT),
-			DAPABORT | STKCMPCLR | STKERRCLR | WDERRCLR | ORUNERRCLR, 0);
-		status = swd_run_inner(dap);
-	}
-
-	if (status == ERROR_OK)
-		status = dap_dp_init(dap);
+	status = swd_run_inner(dap);
 
 	return status;
 }
@@ -188,14 +134,6 @@ static int swd_send_sequence(struct adiv5_dap *dap, enum swd_special_seq seq)
 static inline int check_sync(struct adiv5_dap *dap)
 {
 	return do_sync ? swd_run_inner(dap) : ERROR_OK;
-}
-
-static int swd_check_reconnect(struct adiv5_dap *dap)
-{
-	if (dap->do_reconnect)
-		return swd_connect(dap);
-
-	return ERROR_OK;
 }
 
 static int swd_queue_ap_abort(struct adiv5_dap *dap, uint8_t *ack)
@@ -237,11 +175,7 @@ static int swd_queue_dp_read(struct adiv5_dap *dap, unsigned reg,
 	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
 	assert(swd);
 
-	int retval = swd_check_reconnect(dap);
-	if (retval != ERROR_OK)
-		return retval;
-
-	retval = swd_queue_dp_bankselect(dap, reg);
+	int retval = swd_queue_dp_bankselect(dap, reg);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -254,11 +188,8 @@ static int swd_queue_dp_write(struct adiv5_dap *dap, unsigned reg,
 		uint32_t data)
 {
 	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
+	int retval;
 	assert(swd);
-
-	int retval = swd_check_reconnect(dap);
-	if (retval != ERROR_OK)
-		return retval;
 
 	swd_finish_read(dap);
 	if (reg == DP_SELECT) {
@@ -309,11 +240,7 @@ static int swd_queue_ap_read(struct adiv5_ap *ap, unsigned reg,
 	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
 	assert(swd);
 
-	int retval = swd_check_reconnect(dap);
-	if (retval != ERROR_OK)
-		return retval;
-
-	retval = swd_queue_ap_bankselect(ap, reg);
+	int retval = swd_queue_ap_bankselect(ap, reg);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -330,12 +257,9 @@ static int swd_queue_ap_write(struct adiv5_ap *ap, unsigned reg,
 	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
 	assert(swd);
 
-	int retval = swd_check_reconnect(dap);
-	if (retval != ERROR_OK)
-		return retval;
 
 	swd_finish_read(dap);
-	retval = swd_queue_ap_bankselect(ap, reg);
+	int retval = swd_queue_ap_bankselect(ap, reg);
 	if (retval != ERROR_OK)
 		return retval;
 

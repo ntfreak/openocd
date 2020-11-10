@@ -357,6 +357,83 @@ enum ap_type {
 	AP_TYPE_AHB5_AP = 0x5,  /* AHB5 Memory-AP. */
 };
 
+/* Queued MEM-AP memory mapped single word transfers. */
+int mem_ap_read_u32(struct adiv5_ap *ap,
+		uint32_t address, uint32_t *value);
+int mem_ap_write_u32(struct adiv5_ap *ap,
+		uint32_t address, uint32_t value);
+
+/* Synchronous MEM-AP memory mapped single word transfers. */
+int mem_ap_read_atomic_u32(struct adiv5_ap *ap,
+		uint32_t address, uint32_t *value);
+int mem_ap_write_atomic_u32(struct adiv5_ap *ap,
+		uint32_t address, uint32_t value);
+
+/* Synchronous MEM-AP memory mapped bus block transfers. */
+int mem_ap_read_buf(struct adiv5_ap *ap,
+		uint8_t *buffer, uint32_t size, uint32_t count, uint32_t address);
+int mem_ap_write_buf(struct adiv5_ap *ap,
+		const uint8_t *buffer, uint32_t size, uint32_t count, uint32_t address);
+
+/* Synchronous, non-incrementing buffer functions for accessing fifos. */
+int mem_ap_read_buf_noincr(struct adiv5_ap *ap,
+		uint8_t *buffer, uint32_t size, uint32_t count, uint32_t address);
+int mem_ap_write_buf_noincr(struct adiv5_ap *ap,
+		const uint8_t *buffer, uint32_t size, uint32_t count, uint32_t address);
+
+/* Initialisation of the debug system, power domains and registers */
+int dap_dp_init(struct adiv5_dap *dap);
+int mem_ap_init(struct adiv5_ap *ap);
+
+/* Invalidate cached DP select and cached TAR and CSW of all APs */
+void dap_invalidate_cache(struct adiv5_dap *dap);
+
+/* Probe the AP for ROM Table location */
+int dap_get_debugbase(struct adiv5_ap *ap,
+			uint32_t *dbgbase, uint32_t *apid);
+
+/* Probe Access Ports to find a particular type */
+int dap_find_ap(struct adiv5_dap *dap,
+			enum ap_type type_to_find,
+			struct adiv5_ap **ap_out);
+
+static inline struct adiv5_ap *dap_ap(struct adiv5_dap *dap, uint8_t ap_num)
+{
+	return &dap->ap[ap_num];
+}
+
+/* Lookup CoreSight component */
+int dap_lookup_cs_component(struct adiv5_ap *ap,
+			uint32_t dbgbase, uint8_t type, uint32_t *addr, int32_t *idx);
+
+struct target;
+
+/* Put debug link into SWD mode */
+int dap_to_swd(struct adiv5_dap *dap);
+
+/* Put debug link into JTAG mode */
+int dap_to_jtag(struct adiv5_dap *dap);
+
+extern const struct command_registration dap_instance_commands[];
+
+struct arm_dap_object;
+extern struct adiv5_dap *dap_instance_by_jim_obj(Jim_Interp *interp, Jim_Obj *o);
+extern struct adiv5_dap *adiv5_get_dap(struct arm_dap_object *obj);
+extern int dap_info_command(struct command_invocation *cmd,
+					 struct adiv5_ap *ap);
+extern int dap_register_commands(struct command_context *cmd_ctx);
+extern const char *adiv5_dap_name(struct adiv5_dap *self);
+extern const struct swd_driver *adiv5_dap_swd_driver(struct adiv5_dap *self);
+extern int dap_cleanup_all(void);
+
+struct adiv5_private_config {
+	int ap_num;
+	struct adiv5_dap *dap;
+};
+
+extern int adiv5_verify_config(struct adiv5_private_config *pc);
+extern int adiv5_jim_configure(struct target *target, Jim_GetOptInfo *goi);
+
 /**
  * Send an adi-v5 sequence to the DAP.
  *
@@ -370,6 +447,23 @@ static inline int dap_send_sequence(struct adiv5_dap *dap,
 {
 	assert(dap->ops != NULL);
 	return dap->ops->send_sequence(dap, seq);
+}
+
+static int dap_check_reconnect(struct adiv5_dap *dap)
+{
+	int retval = ERROR_OK;
+	if (dap->do_reconnect) {
+		retval = dap->ops->connect(dap);
+		if (retval != ERROR_OK) {
+			return retval;
+		}
+		retval = dap_dp_init(dap);
+		if (retval != ERROR_OK) {
+			return retval;
+		}
+		dap->do_reconnect = false;
+	}
+	return retval;
 }
 
 /**
@@ -388,6 +482,9 @@ static inline int dap_queue_dp_read(struct adiv5_dap *dap,
 		unsigned reg, uint32_t *data)
 {
 	assert(dap->ops != NULL);
+	int retval = dap_check_reconnect(dap);
+	if (retval != ERROR_OK)
+		return retval;
 	return dap->ops->queue_dp_read(dap, reg, data);
 }
 
@@ -406,6 +503,9 @@ static inline int dap_queue_dp_write(struct adiv5_dap *dap,
 		unsigned reg, uint32_t data)
 {
 	assert(dap->ops != NULL);
+	int retval = dap_check_reconnect(dap);
+	if (retval != ERROR_OK)
+		return retval;
 	return dap->ops->queue_dp_write(dap, reg, data);
 }
 
@@ -423,6 +523,9 @@ static inline int dap_queue_ap_read(struct adiv5_ap *ap,
 		unsigned reg, uint32_t *data)
 {
 	assert(ap->dap->ops != NULL);
+	int retval = dap_check_reconnect(ap->dap);
+	if (retval != ERROR_OK)
+		return retval;
 	return ap->dap->ops->queue_ap_read(ap, reg, data);
 }
 
@@ -439,6 +542,9 @@ static inline int dap_queue_ap_write(struct adiv5_ap *ap,
 		unsigned reg, uint32_t data)
 {
 	assert(ap->dap->ops != NULL);
+	int retval = dap_check_reconnect(ap->dap);
+	if (retval != ERROR_OK)
+		return retval;
 	return ap->dap->ops->queue_ap_write(ap, reg, data);
 }
 
@@ -523,82 +629,5 @@ static inline int dap_dp_poll_register(struct adiv5_dap *dap, unsigned reg,
 		return ERROR_OK;
 	}
 }
-
-/* Queued MEM-AP memory mapped single word transfers. */
-int mem_ap_read_u32(struct adiv5_ap *ap,
-		uint32_t address, uint32_t *value);
-int mem_ap_write_u32(struct adiv5_ap *ap,
-		uint32_t address, uint32_t value);
-
-/* Synchronous MEM-AP memory mapped single word transfers. */
-int mem_ap_read_atomic_u32(struct adiv5_ap *ap,
-		uint32_t address, uint32_t *value);
-int mem_ap_write_atomic_u32(struct adiv5_ap *ap,
-		uint32_t address, uint32_t value);
-
-/* Synchronous MEM-AP memory mapped bus block transfers. */
-int mem_ap_read_buf(struct adiv5_ap *ap,
-		uint8_t *buffer, uint32_t size, uint32_t count, uint32_t address);
-int mem_ap_write_buf(struct adiv5_ap *ap,
-		const uint8_t *buffer, uint32_t size, uint32_t count, uint32_t address);
-
-/* Synchronous, non-incrementing buffer functions for accessing fifos. */
-int mem_ap_read_buf_noincr(struct adiv5_ap *ap,
-		uint8_t *buffer, uint32_t size, uint32_t count, uint32_t address);
-int mem_ap_write_buf_noincr(struct adiv5_ap *ap,
-		const uint8_t *buffer, uint32_t size, uint32_t count, uint32_t address);
-
-/* Initialisation of the debug system, power domains and registers */
-int dap_dp_init(struct adiv5_dap *dap);
-int mem_ap_init(struct adiv5_ap *ap);
-
-/* Invalidate cached DP select and cached TAR and CSW of all APs */
-void dap_invalidate_cache(struct adiv5_dap *dap);
-
-/* Probe the AP for ROM Table location */
-int dap_get_debugbase(struct adiv5_ap *ap,
-			uint32_t *dbgbase, uint32_t *apid);
-
-/* Probe Access Ports to find a particular type */
-int dap_find_ap(struct adiv5_dap *dap,
-			enum ap_type type_to_find,
-			struct adiv5_ap **ap_out);
-
-static inline struct adiv5_ap *dap_ap(struct adiv5_dap *dap, uint8_t ap_num)
-{
-	return &dap->ap[ap_num];
-}
-
-/* Lookup CoreSight component */
-int dap_lookup_cs_component(struct adiv5_ap *ap,
-			uint32_t dbgbase, uint8_t type, uint32_t *addr, int32_t *idx);
-
-struct target;
-
-/* Put debug link into SWD mode */
-int dap_to_swd(struct adiv5_dap *dap);
-
-/* Put debug link into JTAG mode */
-int dap_to_jtag(struct adiv5_dap *dap);
-
-extern const struct command_registration dap_instance_commands[];
-
-struct arm_dap_object;
-extern struct adiv5_dap *dap_instance_by_jim_obj(Jim_Interp *interp, Jim_Obj *o);
-extern struct adiv5_dap *adiv5_get_dap(struct arm_dap_object *obj);
-extern int dap_info_command(struct command_invocation *cmd,
-					 struct adiv5_ap *ap);
-extern int dap_register_commands(struct command_context *cmd_ctx);
-extern const char *adiv5_dap_name(struct adiv5_dap *self);
-extern const struct swd_driver *adiv5_dap_swd_driver(struct adiv5_dap *self);
-extern int dap_cleanup_all(void);
-
-struct adiv5_private_config {
-	int ap_num;
-	struct adiv5_dap *dap;
-};
-
-extern int adiv5_verify_config(struct adiv5_private_config *pc);
-extern int adiv5_jim_configure(struct target *target, Jim_GetOptInfo *goi);
 
 #endif /* OPENOCD_TARGET_ARM_ADI_V5_H */
