@@ -177,6 +177,19 @@ static const uint32_t stm32l5_ns_flash_regs[STM32_FLASH_REG_INDEX_NUM] = {
 	[STM32_FLASH_WRP2BR_INDEX]   = 0x06C,
 };
 
+static const uint32_t stm32l5_s_flash_regs[STM32_FLASH_REG_INDEX_NUM] = {
+	[STM32_FLASH_ACR_INDEX]      = 0x000,
+	[STM32_FLASH_KEYR_INDEX]     = 0x00C,
+	[STM32_FLASH_OPTKEYR_INDEX]  = 0x010,
+	[STM32_FLASH_SR_INDEX]       = 0x024,
+	[STM32_FLASH_CR_INDEX]       = 0x02C,
+	[STM32_FLASH_OPTR_INDEX]     = 0x040,
+	[STM32_FLASH_WRP1AR_INDEX]   = 0x058,
+	[STM32_FLASH_WRP1BR_INDEX]   = 0x05C,
+	[STM32_FLASH_WRP2AR_INDEX]   = 0x068,
+	[STM32_FLASH_WRP2BR_INDEX]   = 0x06C,
+};
+
 struct stm32l4_rev {
 	const uint16_t rev;
 	const char *str;
@@ -630,6 +643,22 @@ static inline int stm32l4_write_flash_reg_by_index(struct flash_bank *bank,
 	return stm32l4_write_flash_reg(bank, stm32l4_info->flash_regs[reg_index], value);
 }
 
+static int stm32l4_update_secbb(struct flash_bank *bank, uint32_t value)
+{
+	int retval;
+	const int secbbxry_regs[] = {0x80, 0x84, 0x88, 0x8C, 0xA0, 0xA4, 0xA8, 0xAC};
+
+	/* write SECBBxRy registers */
+	LOG_DEBUG("setting secure block based areas registers (SECBBxRy) to 0x%08x", value);
+	for (unsigned int i = 0; i < ARRAY_SIZE(secbbxry_regs); i++) {
+		retval = stm32l4_write_flash_reg(bank, secbbxry_regs[i], value);
+		if (retval != ERROR_OK)
+			return retval;
+	}
+
+	return ERROR_OK;
+}
+
 static int stm32l4_wait_status_busy(struct flash_bank *bank, int timeout)
 {
 	uint32_t status;
@@ -949,6 +978,9 @@ static int stm32l4_erase(struct flash_bank *bank, unsigned int first,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
+	if (stm32l4_info->part_info->flags & F_HAS_TZ && stm32l4_info->tzen && (stm32l4_info->rdp == RDP_LEVEL_0))
+		stm32l4_update_secbb(bank, 0xffffffff);
+
 	retval = stm32l4_unlock_reg(bank);
 	if (retval != ERROR_OK)
 		goto err_lock;
@@ -987,6 +1019,9 @@ static int stm32l4_erase(struct flash_bank *bank, unsigned int first,
 
 err_lock:
 	retval2 = stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, FLASH_LOCK);
+
+	if (stm32l4_info->part_info->flags & F_HAS_TZ && stm32l4_info->tzen && (stm32l4_info->rdp == RDP_LEVEL_0))
+		stm32l4_update_secbb(bank, 0);
 
 	if (retval != ERROR_OK)
 		return retval;
@@ -1224,6 +1259,7 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 	uint32_t offset, uint32_t count)
 {
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
 	int retval = ERROR_OK, retval2;
 
 	if (stm32l4_is_otp(bank) && !stm32l4_otp_is_enabled(bank)) {
@@ -1278,6 +1314,9 @@ static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 	if (retval != ERROR_OK)
 		return retval;
 
+	if (stm32l4_info->part_info->flags & F_HAS_TZ && stm32l4_info->tzen && (stm32l4_info->rdp == RDP_LEVEL_0))
+		stm32l4_update_secbb(bank, 0xffffffff);
+
 	retval = stm32l4_unlock_reg(bank);
 	if (retval != ERROR_OK)
 		goto err_lock;
@@ -1286,6 +1325,9 @@ static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 
 err_lock:
 	retval2 = stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, FLASH_LOCK);
+
+	if (stm32l4_info->part_info->flags & F_HAS_TZ && stm32l4_info->tzen && (stm32l4_info->rdp == RDP_LEVEL_0))
+		stm32l4_update_secbb(bank, 0);
 
 	if (retval != ERROR_OK) {
 		LOG_ERROR("block write failed");
@@ -1339,7 +1381,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 	}
 
 	part_info = stm32l4_info->part_info;
-	stm32l4_info->flash_regs = stm32l4_info->part_info->default_flash_regs;
+	stm32l4_info->flash_regs = part_info->default_flash_regs;
 
 	char device_info[1024];
 	retval = bank->driver->info(bank, device_info, sizeof(device_info));
@@ -1381,7 +1423,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 
 		stm32l4_info->probed = true;
 		return ERROR_OK;
-	} else if (bank->base != STM32_FLASH_BANK_BASE) {
+	} else if (bank->base != STM32_FLASH_BANK_BASE && bank->base != STM32_FLASH_S_BANK_BASE) {
 		LOG_ERROR("invalid bank base address");
 		return ERROR_FAIL;
 	}
@@ -1509,6 +1551,13 @@ static int stm32l4_probe(struct flash_bank *bank)
 			num_pages = flash_size_kb / page_size_kb;
 			stm32l4_info->bank1_sectors = num_pages / 2;
 		}
+
+		/**
+		 * by default use the non-secure registers,
+		 * switch secure registers if TZ is enabled and RDP is LEVEL_0
+		 */
+		if (stm32l4_info->tzen && (stm32l4_info->rdp == RDP_LEVEL_0))
+			stm32l4_info->flash_regs = stm32l5_s_flash_regs;
 		break;
 	case 0x495: /* STM32WB5x */
 	case 0x496: /* STM32WB3x */
@@ -1648,6 +1697,9 @@ static int stm32l4_mass_erase(struct flash_bank *bank)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
+	if (stm32l4_info->part_info->flags & F_HAS_TZ && stm32l4_info->tzen && (stm32l4_info->rdp == RDP_LEVEL_0))
+		stm32l4_update_secbb(bank, 0xffffffff);
+
 	retval = stm32l4_unlock_reg(bank);
 	if (retval != ERROR_OK)
 		goto err_lock;
@@ -1669,6 +1721,9 @@ static int stm32l4_mass_erase(struct flash_bank *bank)
 
 err_lock:
 	retval2 = stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, FLASH_LOCK);
+
+	if (stm32l4_info->part_info->flags & F_HAS_TZ && stm32l4_info->tzen && (stm32l4_info->rdp == RDP_LEVEL_0))
+		stm32l4_update_secbb(bank, 0);
 
 	if (retval != ERROR_OK)
 		return retval;
