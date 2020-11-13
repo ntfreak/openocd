@@ -78,6 +78,8 @@ struct armv7m_trace_config {
 	bool itm_async_timestamps;
 	/** Enable synchronisation packet transmission (for sync port only) */
 	bool itm_synchro_packets;
+	/** Config ITM after target examine */
+	bool itm_deferred_config;
 
 	/** Current frequency of TRACECLKIN (usually matches HCLK) */
 	unsigned int traceclkin_freq;
