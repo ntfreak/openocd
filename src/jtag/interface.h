@@ -27,7 +27,7 @@
 
 #include <jtag/jtag.h>
 #include <jtag/swim.h>
-#include <target/armv7m_trace.h>
+#include <target/arm_tpiu_swo.h>
 
 /* @file
  * The "Cable Helper API" is what the cable drivers can use to help

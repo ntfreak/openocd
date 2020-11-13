@@ -38,6 +38,12 @@
 #include <transport/transport.h>
 #include "arm_tpiu_swo.h"
 
+/* START_DEPRECATED_TPIU */
+#include <target/cortex_m.h>
+#include <target/target_type.h>
+#define MSG "DEPRECATED \'tpiu config\' command: "
+/* END_DEPRECATED_TPIU */
+
 #define TCP_SERVICE_NAME                "tpiu_swo_trace"
 
 /* default for Cortex-M3 and Cortex-M4 specific TPIU */
@@ -53,9 +59,9 @@
 #define TPIU_DEVID_OFFSET               0xfc8
 
 #define TPIU_ACPR_MAX_PRESCALER         0x1fff
-#define TPIU_SPPR_PROTOCOL_SYNC         0x0 /**< synchronous trace output */
-#define TPIU_SPPR_PROTOCOL_MANCHESTER   0x1 /**< asynchronous output with NRZ coding */
-#define TPIU_SPPR_PROTOCOL_UART         0x2 /**< asynchronous output with Manchester coding */
+#define TPIU_SPPR_PROTOCOL_SYNC         (TPIU_PIN_PROTOCOL_SYNC)
+#define TPIU_SPPR_PROTOCOL_MANCHESTER   (TPIU_PIN_PROTOCOL_ASYNC_MANCHESTER)
+#define TPIU_SPPR_PROTOCOL_UART         (TPIU_PIN_PROTOCOL_ASYNC_UART)
 #define TPIU_DEVID_NOSUPPORT_SYNC       BIT(9)
 #define TPIU_DEVID_SUPPORT_MANCHESTER   BIT(10)
 #define TPIU_DEVID_SUPPORT_UART         BIT(11)
@@ -106,6 +112,9 @@ struct arm_tpiu_swo_object {
 	char *out_filename;
 	/** track TCP connections */
 	struct list_head connections;
+	/* START_DEPRECATED_TPIU */
+	bool recheck_ap_cur_target;
+	/* END_DEPRECATED_TPIU */
 };
 
 struct arm_tpiu_swo_connection {
@@ -612,6 +621,31 @@ static int jim_arm_tpiu_swo_enable(Jim_Interp *interp, int argc, Jim_Obj *const 
 
 	struct target *target = get_current_target(cmd_ctx);
 
+	/* START_DEPRECATED_TPIU */
+	if (obj->recheck_ap_cur_target) {
+		if (strcmp(target->type->name, "cortex_m") &&
+			strcmp(target->type->name, "hla_target")) {
+			LOG_ERROR(MSG "Current target is not a Cortex-M nor a HLA");
+			return JIM_ERR;
+		}
+		if (!target_was_examined(target)) {
+			LOG_ERROR(MSG "Current target not examined yet");
+			return JIM_ERR;
+		}
+		struct cortex_m_common *cm = target_to_cm(target);
+		obj->recheck_ap_cur_target = false;
+		obj->spot.ap_num = cm->armv7m.debug_ap->ap_num;
+		tpiu_ap = dap_ap(obj->spot.dap, obj->spot.ap_num);
+		if (obj->spot.ap_num == 0)
+			LOG_INFO(MSG "Confirmed TPIU %s is on AP 0", obj->name);
+		else
+			LOG_INFO(MSG "Target %s is on AP %d. Revised command is "
+				"\'tpiu create %s -dap %s -ap-num %d\'",
+				target_name(target), obj->spot.ap_num,
+				obj->name, adiv5_dap_name(obj->spot.dap), obj->spot.ap_num);
+	}
+	/* END_DEPRECATED_TPIU */
+
 	/* trigger the event before any attempt to R/W in the TPIU/SWO */
 	arm_tpiu_swo_handle_event(obj, TPIU_SWO_EVENT_PRE_ENABLE);
 
@@ -950,6 +984,163 @@ static int jim_arm_tpiu_swo_init(Jim_Interp *interp, int argc, Jim_Obj *const *a
 	}
 	return retval;
 }
+
+/* START_DEPRECATED_TPIU */
+/* DEPRECATED: emulation of old command 'tpiu config' */
+COMMAND_HANDLER(handle_tpiu_deprecated_config_command)
+{
+	struct target *target = get_current_target(CMD_CTX);
+	struct arm_tpiu_swo_object *obj = NULL;
+	int retval;
+
+	if (strcmp(target->type->name, "cortex_m") &&
+		strcmp(target->type->name, "hla_target")) {
+		LOG_ERROR(MSG "Current target is not a Cortex-M nor a HLA");
+		return ERROR_FAIL;
+	}
+
+	if (!list_empty(&all_tpiu_swo)) {
+		obj = list_first_entry(&all_tpiu_swo, typeof(*obj), lh);
+		LOG_INFO(MSG "Using %s", obj->name);
+	} else {
+		struct cortex_m_common *cm = target_to_cm(target);
+		struct adiv5_private_config *pc = target->private_config;
+		struct adiv5_dap *dap = pc->dap;
+		int ap_num = pc->ap_num;
+		bool set_recheck_ap_cur_target = false;
+
+		LOG_INFO(MSG "Adding a TPIU \'%s.tpiu\' in the configuration", target_name(target));
+
+		if (ap_num == DP_APSEL_INVALID && transport_is_hla())
+			ap_num = 0; /* HLA should only support AP 0 */
+
+		if (ap_num == DP_APSEL_INVALID && target_was_examined(target))
+			ap_num = cm->armv7m.debug_ap->ap_num;
+
+		if (ap_num == DP_APSEL_INVALID) {
+			LOG_INFO(MSG "Target %s uses AP autodetection. Adding TPIU on AP 0; can be revised later",
+				target_name(target));
+			ap_num = 0;
+			set_recheck_ap_cur_target = true;
+		}
+
+		LOG_INFO(MSG "Running: \'tpiu create %s.tpiu -dap %s -ap-num %d\'",
+			target_name(target), adiv5_dap_name(dap), ap_num);
+
+		retval = command_run_linef(CMD_CTX, "tpiu create %s.tpiu -dap %s -ap-num %d",
+			target_name(target), adiv5_dap_name(dap), ap_num);
+		if (retval != ERROR_OK)
+			return retval;
+
+		obj = list_first_entry(&all_tpiu_swo, typeof(*obj), lh);
+		if (set_recheck_ap_cur_target)
+			obj->recheck_ap_cur_target = true;
+	}
+
+	unsigned int cmd_idx = 0;
+	if (CMD_ARGC == cmd_idx)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	if (!strcmp(CMD_ARGV[cmd_idx], "disable")) {
+		if (CMD_ARGC != cmd_idx + 1)
+			return ERROR_COMMAND_SYNTAX_ERROR;
+		LOG_INFO(MSG "Running: \'%s disable\'", obj->name);
+		return command_run_linef(CMD_CTX, "%s disable", obj->name);
+	}
+
+	const char *output = NULL;
+	const char *protocol;
+	const char *formatter = NULL;
+	const char *port_width = NULL;
+	const char *trace_clk;
+	const char *pin_clk = NULL;
+	if (!strcmp(CMD_ARGV[cmd_idx], "internal")) {
+		cmd_idx++;
+		if (CMD_ARGC == cmd_idx)
+			return ERROR_COMMAND_SYNTAX_ERROR;
+		output = CMD_ARGV[cmd_idx];
+	} else if (strcmp(CMD_ARGV[cmd_idx], "external"))
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	cmd_idx++;
+	if (CMD_ARGC == cmd_idx)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	if (!strcmp(CMD_ARGV[cmd_idx], "sync")) {
+		protocol = CMD_ARGV[cmd_idx];
+		cmd_idx++;
+		if (CMD_ARGC == cmd_idx)
+			return ERROR_COMMAND_SYNTAX_ERROR;
+		port_width = CMD_ARGV[cmd_idx];
+	} else {
+		if (strcmp(CMD_ARGV[cmd_idx], "manchester") && strcmp(CMD_ARGV[cmd_idx], "uart"))
+			return ERROR_COMMAND_SYNTAX_ERROR;
+		protocol = CMD_ARGV[cmd_idx];
+		cmd_idx++;
+		if (CMD_ARGC == cmd_idx)
+			return ERROR_COMMAND_SYNTAX_ERROR;
+		formatter = CMD_ARGV[cmd_idx];
+	}
+	cmd_idx++;
+	if (CMD_ARGC == cmd_idx)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	trace_clk = CMD_ARGV[cmd_idx];
+	cmd_idx++;
+	if (CMD_ARGC != cmd_idx) {
+		pin_clk = CMD_ARGV[cmd_idx];
+		cmd_idx++;
+	}
+	if (CMD_ARGC != cmd_idx)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	LOG_INFO(MSG "Running: \'%s configure -protocol %s -traceclk %s" "%s%s" "%s%s" "%s%s" "%s%s\'",
+		obj->name, protocol, trace_clk,
+		pin_clk    ? " -pin-freq "   : "", pin_clk    ? pin_clk    : "",
+		output     ? " -output "     : "", output     ? output     : "",
+		formatter  ? " -formatter "  : "", formatter  ? formatter  : "",
+		port_width ? " -port-width " : "", port_width ? port_width : "");
+
+	retval = command_run_linef(CMD_CTX,
+		"%s configure -protocol %s -traceclk %s" "%s%s" "%s%s" "%s%s" "%s%s",
+		obj->name, protocol, trace_clk,
+		pin_clk    ? " -pin-freq "   : "", pin_clk    ? pin_clk    : "",
+		output     ? " -output "     : "", output     ? output     : "",
+		formatter  ? " -formatter "  : "", formatter  ? formatter  : "",
+		port_width ? " -port-width " : "", port_width ? port_width : "");
+	if (retval != ERROR_OK)
+		return retval;
+
+	LOG_INFO(MSG "Running: \'%s enable\'", obj->name);
+	retval = command_run_linef(CMD_CTX, "%s enable", obj->name);
+	if (retval != ERROR_OK)
+		return retval;
+
+	target_handle_event(target, TARGET_EVENT_TRACE_CONFIG);
+	return ERROR_OK;
+}
+
+static const struct command_registration arm_tpiu_deprecated_subcommand_handlers[] = {
+	{
+		.name = "config",
+		.handler = handle_tpiu_deprecated_config_command,
+		.mode = COMMAND_ANY,
+		.help = "Configure TPIU features, DEPRECATED, use \'tpiu create\'",
+		.usage = "(disable | "
+		"((external | internal (<filename> | <:port> | -)) "
+		"(sync <port width> | ((manchester | uart) <formatter enable>)) "
+		"<TRACECLKIN freq> [<trace freq>]))",
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
+const struct command_registration arm_tpiu_deprecated_command_handlers[] = {
+	{
+		.name = "tpiu",
+		.chain = arm_tpiu_deprecated_subcommand_handlers,
+		.usage = "",
+		.help = "tpiu command group",
+	},
+	COMMAND_REGISTRATION_DONE
+};
+/* END_DEPRECATED_TPIU */
 
 static const struct command_registration arm_tpiu_swo_subcommand_handlers[] = {
 	{

@@ -630,6 +630,11 @@ static const struct command_registration adapter_command_handlers[] = {
 	{
 		.chain = rtt_target_command_handlers,
 	},
+	/* START_DEPRECATED_TPIU */
+	{
+		.chain = arm_tpiu_deprecated_command_handlers,
+	},
+	/* END_DEPRECATED_TPIU */
 	COMMAND_REGISTRATION_DONE
 };
 
