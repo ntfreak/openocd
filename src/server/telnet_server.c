@@ -694,7 +694,7 @@ int telnet_init(char *banner)
 
 	int ret = add_service("telnet", telnet_port, CONNECTION_LIMIT_UNLIMITED,
 		telnet_new_connection, telnet_input, telnet_connection_closed,
-		telnet_service, NULL);
+		telnet_service);
 
 	if (ret != ERROR_OK) {
 		free(telnet_service);

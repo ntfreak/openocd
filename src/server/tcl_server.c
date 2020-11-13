@@ -285,7 +285,7 @@ int tcl_init(void)
 
 	return add_service("tcl", tcl_port, CONNECTION_LIMIT_UNLIMITED,
 		&tcl_new_connection, &tcl_input,
-		&tcl_closed, NULL, NULL);
+		&tcl_closed, NULL);
 }
 
 COMMAND_HANDLER(handle_tcl_port_command)

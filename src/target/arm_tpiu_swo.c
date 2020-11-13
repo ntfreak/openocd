@@ -697,7 +697,7 @@ static int jim_arm_tpiu_swo_enable(Jim_Interp *interp, int argc, Jim_Obj *const 
 			retval = add_service("tpiu_swo_trace", &obj->out_filename[1],
 				CONNECTION_LIMIT_UNLIMITED, arm_tpiu_swo_service_new_connection,
 				arm_tpiu_swo_service_input, arm_tpiu_swo_service_connection_closed,
-				priv, NULL);
+				priv);
 			if (retval != ERROR_OK) {
 				LOG_ERROR("Can't configure trace TCP port %s", &obj->out_filename[1]);
 				return JIM_ERR;

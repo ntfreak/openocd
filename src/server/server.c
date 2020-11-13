@@ -210,8 +210,7 @@ int add_service(char *name,
 	new_connection_handler_t new_connection_handler,
 	input_handler_t input_handler,
 	connection_closed_handler_t connection_closed_handler,
-	void *priv,
-	struct service **new_service)
+	void *priv)
 {
 	struct service *c, **p;
 	struct hostent *hp;
@@ -346,10 +345,6 @@ int add_service(char *name,
 	for (p = &services; *p; p = &(*p)->next)
 		;
 	*p = c;
-
-	/* if new_service is not NULL, return the created service into it */
-	if (new_service)
-		*new_service = c;
 
 	return ERROR_OK;
 }

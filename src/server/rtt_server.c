@@ -126,7 +126,7 @@ COMMAND_HANDLER(handle_rtt_start_command)
 	COMMAND_PARSE_NUMBER(uint, CMD_ARGV[1], service->channel);
 
 	ret = add_service("rtt", CMD_ARGV[0], CONNECTION_LIMIT_UNLIMITED,
-		rtt_new_connection, rtt_input, rtt_connection_closed, service, NULL);
+		rtt_new_connection, rtt_input, rtt_connection_closed, service);
 
 	if (ret != ERROR_OK) {
 		free(service);

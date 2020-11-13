@@ -207,8 +207,7 @@ int jsp_init(struct or1k_jtag *jtag_info, char *banner)
 		jsp_new_connection,
 		jsp_input,
 		jsp_connection_closed,
-		jsp_service,
-		NULL);
+		jsp_service);
 }
 
 COMMAND_HANDLER(handle_jsp_port_command)
