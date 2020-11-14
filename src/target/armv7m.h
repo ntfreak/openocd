@@ -195,8 +195,8 @@ struct armv7m_common {
 	int fp_feature;
 	uint32_t demcr;
 
-	/* stlink is a high level adapter, does not support all functions */
-	bool stlink;
+	/* hla_target uses a high level adapter that does not support all functions */
+	bool is_hla_target;
 
 	struct armv7m_trace_config trace_config;
 
