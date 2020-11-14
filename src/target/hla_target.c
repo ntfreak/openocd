@@ -179,7 +179,7 @@ static int adapter_init_arch_info(struct target *target,
 	armv7m->store_core_reg_u32 = adapter_store_core_reg_u32;
 
 	armv7m->examine_debug_reason = adapter_examine_debug_reason;
-	armv7m->stlink = true;
+	armv7m->is_hla_target = true;
 
 	target_register_timer_callback(hl_handle_target_request, 1,
 		TARGET_TIMER_TYPE_PERIODIC, target);
