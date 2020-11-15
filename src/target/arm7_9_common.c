@@ -1393,7 +1393,7 @@ static int arm7_9_full_context(struct target *target)
 	struct arm *arm = &arm7_9->arm;
 	struct {
 		uint32_t value;
-		void *reg_p;
+		uint8_t *reg_p;
 	} read_cache[6 * (16 + 1)];
 	int read_cache_idx = 0;
 

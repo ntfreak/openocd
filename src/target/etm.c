@@ -279,7 +279,7 @@ static void etm_reg_add(unsigned bcd_vers, struct arm_jtag *jtag_info,
 
 		reg->name = r->name;
 		reg->size = r->size;
-		reg->value = &ereg->value;
+		reg->value = ereg->value;
 		reg->arch_info = ereg;
 		reg->type = &etm_scan6_type;
 		reg++;
