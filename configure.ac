@@ -831,8 +831,9 @@ GCC_WARNINGS="-Wall -Wstrict-prototypes -Wformat-security -Wshadow"
 AS_IF([test "x${gcc_wextra}" = "xyes"], [
   GCC_WARNINGS="${GCC_WARNINGS} -Wextra -Wno-unused-parameter"
   GCC_WARNINGS="${GCC_WARNINGS} -Wbad-function-cast"
-  GCC_WARNINGS="${GCC_WARNINGS} -Wcast-align"
+  GCC_WARNINGS="${GCC_WARNINGS} -Wcast-align=strict"
   GCC_WARNINGS="${GCC_WARNINGS} -Wredundant-decls"
+  GCC_WARNINGS="${GCC_WARNINGS} -Wpointer-arith"
 ])
 AS_IF([test "x${gcc_werror}" = "xyes"], [
   GCC_WARNINGS="${GCC_WARNINGS} -Werror"
