@@ -305,7 +305,7 @@ static int arc_init_reg(struct target *target, struct reg *reg,
 	/* Initialize struct reg */
 	reg->name = reg_desc->name;
 	reg->size = 32; /* All register in ARC are 32-bit */
-	reg->value = &reg_desc->reg_value;
+	reg->value = reg_desc->reg_value;
 	reg->type = &arc_reg_type;
 	reg->arch_info = reg_desc;
 	reg->caller_save = true; /* @todo should be configurable. */
