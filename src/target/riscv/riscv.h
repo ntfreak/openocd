@@ -68,8 +68,8 @@ typedef struct {
 
 	/* OpenOCD's register cache points into here. This is not per-hart because
 	 * we just invalidate the entire cache when we change which hart is
-	 * selected. */
-	uint64_t reg_cache_values[RISCV_MAX_REGISTERS];
+	 * selected. Use an array of 8 uint8_t per register. */
+	uint8_t reg_cache_values[RISCV_MAX_REGISTERS][8];
 
 	/* Single buffer that contains all register names, instead of calling
 	 * malloc for each register. Needs to be freed when reg_list is freed. */
