@@ -30,18 +30,18 @@
 #define IPDBG_MAX_NUM_OF_OPTIONS 14
 
 /* private connection data for IPDBG */
-struct ipdbg_fifo{
+struct ipdbg_fifo {
 	size_t count;
 	size_t rd_idx;
 	char buffer[IPDBG_BUFFER_SIZE];
 };
 
-struct ipdbg_connection{
+struct ipdbg_connection {
 	struct ipdbg_fifo dn_fifo;
 	struct ipdbg_fifo up_fifo;
 };
 
-struct ipdbg_service{
+struct ipdbg_service {
 	struct ipdbg_hub *hub;
 	struct ipdbg_service *next;
 	uint16_t port;
@@ -49,15 +49,13 @@ struct ipdbg_service{
 	uint8_t tool;
 };
 
-struct virtual_ir_info
-{
+struct virtual_ir_info {
 	uint32_t instruction;
 	uint32_t length;
 	uint32_t value;
 };
 
-struct ipdbg_hub
-{
+struct ipdbg_hub {
 	uint32_t user_instruction;
 	uint32_t max_tools;
 	uint32_t active_connections;
@@ -149,11 +147,11 @@ static int move_connection_to_fifo(struct connection *conn, struct ipdbg_fifo *f
 static int max_tools_from_data_register_length(uint8_t data_register_length)
 {
 	int max_tools = 1;
-	data_register_length -= 10; // 8 bit payload, 1 xoff-flag, 1 valid-flag; remaining bits used to select tool
+	data_register_length -= 10; /* 8 bit payload, 1 xoff-flag, 1 valid-flag; remaining bits used to select tool*/
 	while (data_register_length--)
 		max_tools *= 2;
 
-	return max_tools - 1; // last tool is used to reset JtagCDC
+	return max_tools - 1; /* last tool is used to reset JtagCDC */
 }
 
 static struct ipdbg_service *find_ipdbg_service(struct ipdbg_hub *hub, uint8_t tool)
@@ -170,7 +168,8 @@ static void add_ipdbg_service(struct ipdbg_service *service)
 {
 	struct ipdbg_service *iservice;
 	if (ipdbg_first_service != NULL) {
-		for (iservice = ipdbg_first_service ; iservice->next; iservice = iservice->next);
+		for (iservice = ipdbg_first_service ; iservice->next; iservice = iservice->next)
+			;
 		iservice->next = service;
 	} else
 		ipdbg_first_service = service;
@@ -236,7 +235,8 @@ static void add_hub(struct ipdbg_hub *hub)
 		ipdbg_first_hub = hub;
 }
 
-static int create_hub(struct jtag_tap *tap, uint32_t user_instruction, uint8_t data_register_length, struct virtual_ir_info *virtual_ir, struct ipdbg_hub **hub)
+static int create_hub(struct jtag_tap *tap, uint32_t user_instruction, uint8_t data_register_length,
+					  struct virtual_ir_info *virtual_ir, struct ipdbg_hub **hub)
 {
 	*hub = NULL;
 	struct ipdbg_hub *new_hub = malloc(sizeof(struct ipdbg_hub));
@@ -258,13 +258,13 @@ static int create_hub(struct jtag_tap *tap, uint32_t user_instruction, uint8_t d
 	new_hub->active_services      = 0;
 	new_hub->virtual_ir           = virtual_ir;
 	new_hub->next                 = NULL;
-	new_hub->connections          = malloc(new_hub->max_tools * sizeof(struct connection*));
+	new_hub->connections          = malloc(new_hub->max_tools * sizeof(struct connection *));
 	if (new_hub->connections == NULL) {
 		free(virtual_ir);
 		free(new_hub);
 		return -ENOMEM;
 	}
-	memset(new_hub->connections, 0, new_hub->max_tools * sizeof(struct connection*));
+	memset(new_hub->connections, 0, new_hub->max_tools * sizeof(struct connection *));
 
 	*hub = new_hub;
 	return ERROR_OK;
@@ -430,7 +430,7 @@ static int polling_callback(void *priv)
 	if (ret != ERROR_OK)
 		return ret;
 
-	/// transfer dn buffers to jtag-hub
+	/* transfer dn buffers to jtag-hub */
 	unsigned empty_up_transfers = 0;
 	for (size_t tool = 0 ; tool < hub->max_tools ; ++tool) {
 		struct connection *conn = hub->connections[tool];
@@ -452,7 +452,8 @@ static int polling_callback(void *priv)
 
 				if ((up & hub->xoff_mask) && (hub->last_dn_tool != hub->max_tools)) {
 					hub->dn_xoff |= (1ul << hub->last_dn_tool);
-					printf("tool %d sent xoff \n", hub->last_dn_tool);
+					log_printf_lf(LOG_LVL_INFO, __FILE__, __LINE__, __func__,
+								"tool %d sent xoff", hub->last_dn_tool);
 				}
 
 				hub->last_dn_tool = tool;
@@ -460,7 +461,7 @@ static int polling_callback(void *priv)
 		}
 	}
 
-	/// some transfers to get data from jtag-hub in case there is no dn data
+	/* some transfers to get data from jtag-hub in case there is no dn data */
 	while (empty_up_transfers++ < hub->max_tools) {
 		uint32_t dn = 0;
 		uint32_t up = 0;
@@ -505,7 +506,7 @@ static int start_polling(struct ipdbg_service *service, struct connection *conne
 		if (ret != ERROR_OK)
 			return ret;
 
-		log_printf_lf( LOG_LVL_INFO, __FILE__, __LINE__, __func__,
+		log_printf_lf(LOG_LVL_INFO, __FILE__, __LINE__, __func__,
 			"IPDBG start_polling");
 
 		const int time_ms = 20;
@@ -520,9 +521,8 @@ static int stop_polling(struct ipdbg_service *service, struct connection *connec
 	struct ipdbg_hub *hub = service->hub;
 	hub->connections[service->tool] = NULL;
 	hub->active_connections--;
-	if (hub->active_connections == 0)
-	{
-		log_printf_lf( LOG_LVL_INFO, __FILE__, __LINE__, __func__,
+	if (hub->active_connections == 0) {
+		log_printf_lf(LOG_LVL_INFO, __FILE__, __LINE__, __func__,
 			"IPDBG stop_polling");
 
 		return target_unregister_timer_callback(polling_callback, hub);
@@ -541,7 +541,7 @@ static int on_new_connection(struct connection *connection)
 
 	start_polling(service, connection);
 
-	log_printf_lf( LOG_LVL_INFO, __FILE__, __LINE__, __func__,
+	log_printf_lf(LOG_LVL_INFO, __FILE__, __LINE__, __func__,
 		"New IPDBG Connection");
 
 	return ERROR_OK;
@@ -565,7 +565,7 @@ static int on_connection_input(struct connection *connection)
 
 static int on_connection_closed(struct connection *connection)
 {
-	log_printf_lf( LOG_LVL_INFO, __FILE__, __LINE__, __func__,
+	log_printf_lf(LOG_LVL_INFO, __FILE__, __LINE__, __func__,
 		"Closed IPDBG Connection ");
 
 	return stop_polling(connection->service->priv, connection);
@@ -603,7 +603,7 @@ static int ipdbg_start(uint16_t port, struct jtag_tap *tap, uint32_t user_instru
 	char port_str_buffer[6];
 	snprintf(port_str_buffer, 6, "%u", port);
 	retval = add_service("ipdbg", port_str_buffer, 1, &on_new_connection,
-		&on_connection_input, &on_connection_closed, service);
+		&on_connection_input, &on_connection_closed, service, NULL);
 	if (retval == ERROR_OK) {
 		add_ipdbg_service(service);
 		if (hub->active_services == 0 && hub->active_connections == 0)
@@ -709,7 +709,6 @@ COMMAND_HANDLER(handle_ipdbg_command)
 			has_virtual_ir = true;
 		} else if (strcmp(CMD_ARGV[i], "-port") == 0) {
 			if (i+1 < CMD_ARGC && CMD_ARGV[i+1][0] != '-') {
-				/// port = CMD_ARGV[i+1];
 				COMMAND_PARSE_NUMBER(u16, CMD_ARGV[i+1], port);
 				++i;
 			} else {
@@ -751,7 +750,7 @@ COMMAND_HANDLER(handle_ipdbg_command)
 
 	if (has_virtual_ir) {
 		virtual_ir = malloc(sizeof(struct virtual_ir_info));
-		if ( virtual_ir == NULL )
+		if (virtual_ir == NULL)
 			return -ENOMEM;
 		virtual_ir->instruction = virtual_ir_instruction;
 		virtual_ir->length      = virtual_ir_length;
@@ -770,7 +769,8 @@ static const struct command_registration ipdbg_command_handlers[] = {
 		.handler = handle_ipdbg_command,
 		.mode = COMMAND_EXEC,
 		.help = "Starts or stops an IPDBG JTAG-Host server.",
-		.usage = "[-start|-stop] -tap device.tap -hub ir_value [dr_length] [-port number] [-tool number] [-vir [vir_value [length [instr_code]]]]",
+		.usage = "[-start|-stop] -tap device.tap -hub ir_value [dr_length]"
+				 " [-port number] [-tool number] [-vir [vir_value [length [instr_code]]]]",
 	},
 	COMMAND_REGISTRATION_DONE
 };
