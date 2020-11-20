@@ -162,6 +162,33 @@ int armv7m_trace_itm_config(struct target *target)
 	if (retval != ERROR_OK)
 		return retval;
 
+	/* pg315 of CoreSight Components
+	 * It is recommended that the ITMEn bit is cleared and waits for the
+	 * ITMBusy bit to be cleared, before changing any fields in the
+	 * Control Register, otherwise the behavior can be unpredictable.
+	 */
+	uint32_t itm_tcr;
+	retval = target_read_u32(target, ITM_TCR, &itm_tcr);
+	if (retval != ERROR_OK)
+		return retval;
+	retval = target_write_u32(target,
+			ITM_TCR,
+			itm_tcr & ~ITM_TCR_ITMENA_BIT
+			);
+	if (retval != ERROR_OK)
+		return retval;
+
+	int64_t then = timeval_ms() + 1000;
+	do {
+		retval = target_read_u32(target, ITM_TCR, &itm_tcr);
+		if (retval != ERROR_OK)
+			return retval;
+		if (timeval_ms() > then) {
+			LOG_ERROR("timeout waiting for ITM_TCR_BUSY_BIT");
+			return ERROR_FAIL;
+		}
+	} while (itm_tcr & ITM_TCR_BUSY_BIT);
+
 	/* Enable ITM, TXENA, set TraceBusID and other parameters */
 	retval = target_write_u32(target, ITM_TCR, (1 << 0) | (1 << 3) |
 				  (trace_config->itm_diff_timestamps << 1) |
