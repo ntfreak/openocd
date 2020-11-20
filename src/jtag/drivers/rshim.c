@@ -25,6 +25,12 @@
 #include <helper/time_support.h>
 #include <helper/list.h>
 #include <jtag/interface.h>
+#ifdef HAVE_NETINET_TCP_H
+#include <netinet/tcp.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
 #ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
 #endif
@@ -81,6 +87,17 @@ enum {
 	RSH_IOC_WRITE = _IOWR('R', 1, rshim_ioctl_msg),
 };
 #endif
+
+/* Message used to debug remote target or simulator over socket. */
+typedef struct {
+	uint8_t ctrl:1;	/* 0: data, 1: ctrl */
+	uint8_t ack:1;	/* ACK */
+	uint8_t read:1;	/* 0: write, 1: read */
+	uint8_t chan;	/* channel */
+	uint16_t addr;	/* address (network order) */
+	uint32_t len;	/* data length after the header (network order) */
+	uint64_t data;	/* control data (network order) */
+} rshim_sock_msg_hdr_t;
 
 /* Use local variable stub for DP/AP registers. */
 static uint32_t dp_ctrl_stat;
@@ -398,25 +415,185 @@ static int rshim_dp_run(struct adiv5_dap *dap)
 	return retval;
 }
 
-static int rshim_connect(struct adiv5_dap *dap)
+static int rshim_connect_device(char *dest)
 {
-	char *path = rshim_dev_path ? rshim_dev_path : RSHIM_DEV_PATH_DEFAULT;
-
-	rshim_fd = open(path, O_RDWR | O_SYNC);
+	rshim_fd = open(dest, O_RDWR | O_SYNC);
 	if (rshim_fd == -1) {
-		LOG_ERROR("Unable to open %s\n", path);
+		LOG_ERROR("Unable to open %s\n", dest);
 		return ERROR_FAIL;
 	}
 
-	/*
-	 * Set read/write operation via the device file. Function pointers
-	 * are used here so more ways like remote accessing via socket could
-	 * be added later.
-	 */
 	rshim_read = rshim_dev_read;
 	rshim_write = rshim_dev_write;
 
 	return ERROR_OK;
+}
+
+#if defined(HAVE_ARPA_INET_H) && defined(HAVE_NETINET_TCP_H)
+
+static int full_read(int fd, void *data, int len)
+{
+	ssize_t cc;
+	int total = 0;
+	char *buf = (char *)data;
+
+	while (len > 0) {
+		cc = read(fd, buf, len);
+		if (cc < 0) {
+			if (errno == EINTR)
+				continue;
+			return -1;
+		} else if (cc == 0)
+			break;
+
+		buf += cc;
+		total += cc;
+		len -= cc;
+	}
+
+	return total;
+}
+
+static int full_write(int fd, void *data, int len)
+{
+	ssize_t cc;
+	int total = 0;
+	char *buf = (char *)data;
+
+	while (len > 0) {
+		cc = write(fd, buf, len);
+		if (cc < 0) {
+			if (errno == EINTR)
+				continue;
+			return cc;
+		} else if (cc == 0)
+			break;
+		total += cc;
+		buf += cc;
+		len -= cc;
+	}
+
+	return total;
+}
+
+static int rshim_sock_read(int chan, int addr, uint64_t *value)
+{
+	rshim_sock_msg_hdr_t hdr;
+
+	if (rshim_fd == -1)
+		return -1;
+
+	hdr.ctrl = 1;
+	hdr.ack = 0;
+	hdr.read = 1;
+	hdr.chan = chan;
+	hdr.addr = htons(addr);
+	hdr.len = htonl(sizeof(*value));
+
+	/* Write request. */
+	if (full_write(rshim_fd, &hdr, sizeof(hdr)) != sizeof(hdr))
+		return ERROR_FAIL;
+
+	/* Read ACK. */
+	if (full_read(rshim_fd, &hdr, sizeof(hdr)) != sizeof(hdr))
+		return ERROR_FAIL;
+	*value = be64toh(hdr.data);
+
+	return ERROR_OK;
+}
+
+static int rshim_sock_write(int chan, int addr, uint64_t value)
+{
+	rshim_sock_msg_hdr_t hdr;
+
+	if (rshim_fd == -1)
+		return ERROR_FAIL;
+
+	hdr.ctrl = 1;
+	hdr.ack = 0;
+	hdr.read = 0;
+	hdr.chan = chan;
+	hdr.addr = htons(addr);
+	hdr.len = htonl(sizeof(value));
+	hdr.data = htobe64(value);
+
+	/* Write request. */
+	if (full_write(rshim_fd, &hdr, sizeof(hdr)) != sizeof(hdr))
+		return ERROR_FAIL;
+
+	/* Read ACK. */
+	if (full_read(rshim_fd, &hdr, sizeof(hdr)) != sizeof(hdr))
+		return ERROR_FAIL;
+
+	return ERROR_OK;
+}
+
+static int rshim_connect_socket(char *dest)
+{
+	char *ip = "127.0.0.1", *port_str, buf[64] = "", *endptr;
+	struct sockaddr_in addr;
+	uint16_t port_val;
+	int nodelay = 1;
+
+	/* Check if socket is available. */
+	strncpy(buf, dest, sizeof(buf) - 1);
+	port_str = strchr(buf, ':');
+	if (!port_str) {
+		LOG_ERROR("Invalid rshim address %s\n", dest);
+		return ERROR_FAIL;
+	}
+	if (port_str != buf)
+		ip = buf;
+	*port_str++ = '\0';
+	port_val = strtol(port_str, &endptr, 10);
+	if (endptr == port_str || *endptr != '\0') {
+		LOG_ERROR("Invalid port %s\n", port_str);
+		return ERROR_FAIL;
+	}
+
+	rshim_fd = socket(AF_INET, SOCK_STREAM, 0);
+	if (rshim_fd < 0) {
+		perror("Failed to create socket for rshim");
+		return ERROR_FAIL;
+	}
+
+	setsockopt(rshim_fd, SOL_TCP, TCP_NODELAY, &nodelay, sizeof(nodelay));
+
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = inet_addr(ip);
+	if (addr.sin_addr.s_addr == INADDR_NONE) {
+		LOG_ERROR("Invalid IP %s in rshim address\n", ip);
+		return ERROR_FAIL;
+	}
+	addr.sin_port = htons(port_val);
+
+	if (connect(rshim_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+		perror("Unable to connect to the rshim target");
+		return ERROR_FAIL;
+	}
+
+	rshim_read = rshim_sock_read;
+	rshim_write = rshim_sock_write;
+
+	return ERROR_OK;
+}
+
+#endif
+
+static int rshim_connect(struct adiv5_dap *dap)
+{
+	char *dest = rshim_dev_path ? rshim_dev_path : RSHIM_DEV_PATH_DEFAULT;
+
+	if (strncmp(dest, "/dev", 4) == 0)
+		return rshim_connect_device(dest);
+#if defined(HAVE_ARPA_INET_H) && defined(HAVE_NETINET_TCP_H)
+	else
+		return rshim_connect_socket(dest);
+#else
+	else
+		return ERROR_FAIL;
+#endif
 }
 
 static void rshim_disconnect(struct adiv5_dap *dap)
