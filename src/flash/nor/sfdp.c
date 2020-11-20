@@ -90,7 +90,7 @@ int spi_sfdp(struct flash_bank *bank, struct flash_device *dev,
 		return ERROR_FLASH_BANK_NOT_PROBED;
 	}
 	if (((header.revision >> 24) & 0xFF) != SFDP_ACCESS_PROT) {
-		LOG_ERROR("access protocol 0x%02" PRIx8 " not implemented",
+		LOG_ERROR("access protocol 0x%02" PRIx32 " not implemented",
 			(header.revision >> 24) & 0xFF);
 		return ERROR_FLASH_BANK_NOT_PROBED;
 	}
