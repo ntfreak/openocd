@@ -630,6 +630,10 @@ emulation model of target hardware.
 @* A bitbang JTAG driver using Linux legacy sysfs GPIO.
 This is deprecated from Linux v5.3; prefer using @b{linuxgpiod}.
 
+@item @b{rshim}
+@* A JTAG driver accessing the rshim interface of BlueField SoC to support CoreSight debugging.
+It can talk directly to the local rshim device or do remote debugging via TCP/IP network.
+
 @end itemize
 
 @node About Jim-Tcl
