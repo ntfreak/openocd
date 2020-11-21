@@ -856,6 +856,9 @@ COMMAND_HANDLER(handle_armv4_5_reg_command)
 		char *sep = "\n";
 		char *shadow = "";
 
+		if (!arm_mode_data[mode].n_indices)
+			continue;
+
 		/* label this bank of registers (or shadows) */
 		switch (arm_mode_data[mode].psr) {
 			case ARM_MODE_SYS:
