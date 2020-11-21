@@ -869,6 +869,7 @@ COMMAND_HANDLER(handle_armv4_5_reg_command)
 					continue;
 			/* FALLTHROUGH */
 			case ARM_MODE_MON:
+			case ARM_MODE_1176_MON:
 				if (arm->core_type != ARM_CORE_TYPE_SEC_EXT
 					&& arm->core_type != ARM_CORE_TYPE_VIRT_EXT)
 					continue;
