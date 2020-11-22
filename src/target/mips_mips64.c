@@ -62,7 +62,7 @@ static int mips_mips64_debug_entry(struct target *target)
 	mips_mips64_examine_debug_reason(target);
 
 	LOG_DEBUG("entered debug state at PC 0x%" PRIx64 ", target->state: %s",
-		  *(uint64_t *)pc->value, target_state_name(target));
+		  buf_get_u64(pc->value, 0, 64), target_state_name(target));
 
 	return ERROR_OK;
 }
