@@ -220,6 +220,9 @@ void arm_dpm_report_wfar(struct arm_dpm *dpm, uint32_t wfar);
 
 void arm_dpm_report_dscr(struct arm_dpm *dpm, uint32_t dcsr);
 
+/* ECR (Execution Control Register) bits */
+#define ECR_RCE                          (UINT32_C(1) << 1)
+
 /* PRCR (Device Power-down and Reset Control Register) bits */
 #define PRCR_DEBUG_NO_POWER_DOWN         (1 << 0)
 #define PRCR_WARM_RESET                  (1 << 1)

@@ -1677,22 +1677,74 @@ static int aarch64_remove_breakpoint(struct target *target, struct breakpoint *b
  * Cortex-A8 Reset functions
  */
 
+static int aarch64_enable_reset_catch(struct target *target, bool enable)
+{
+	struct armv8_common *armv8 = target_to_armv8(target);
+	uint32_t edecr;
+	int retval;
+
+	retval = mem_ap_read_atomic_u32(armv8->debug_ap,
+			armv8->debug_base + CPUV8_DBG_EDECR, &edecr);
+	LOG_DEBUG("EDECR = 0x%08" PRIx32 ", enable=%d", edecr, enable);
+	if (retval != ERROR_OK)
+		return retval;
+
+	if (enable)
+		edecr |= ECR_RCE;
+	else
+		edecr &= ~ECR_RCE;
+
+	retval = mem_ap_write_atomic_u32(armv8->debug_ap,
+			armv8->debug_base + CPUV8_DBG_EDECR, edecr);
+	return retval;
+}
+
 static int aarch64_assert_reset(struct target *target)
 {
 	struct armv8_common *armv8 = target_to_armv8(target);
+	enum reset_types reset_config = jtag_get_reset_config();
+	int retval;
 
 	LOG_DEBUG(" ");
-
-	/* FIXME when halt is requested, make it work somehow... */
 
 	/* Issue some kind of warm reset. */
 	if (target_has_event_action(target, TARGET_EVENT_RESET_ASSERT))
 		target_handle_event(target, TARGET_EVENT_RESET_ASSERT);
-	else if (jtag_get_reset_config() & RESET_HAS_SRST) {
+	else if (reset_config & RESET_HAS_SRST) {
+		bool srst_asserted = false;
+
+		if (target->reset_halt) {
+			if (target_was_examined(target)) {
+
+				if (reset_config & RESET_SRST_NO_GATING) {
+					/*
+					 * SRST needs to be asserted *before* Reset Catch
+					 * debug event can be set up.
+					 */
+					adapter_assert_reset();
+					srst_asserted = true;
+
+					/* make sure to clear all sticky errors */
+					retval = mem_ap_write_atomic_u32(armv8->debug_ap,
+							armv8->debug_base + CPUV8_DBG_DRCR, DRCR_CSE);
+				}
+
+				/* set up Reset Catch debug event to halt the CPU after reset */
+				retval = aarch64_enable_reset_catch(target, true);
+				if (retval != ERROR_OK)
+					LOG_WARNING("%s: Error enabling Reset Catch debug event; the CPU will not halt immediately after reset!",
+							target_name(target));
+			} else {
+				LOG_WARNING("%s: Target not examined, will not halt immediately after reset!",
+						target_name(target));
+			}
+		}
+
 		/* REVISIT handle "pulls" cases, if there's
 		 * hardware that needs them to work.
 		 */
-		adapter_assert_reset();
+		if (!srst_asserted)
+			adapter_assert_reset();
 	} else {
 		LOG_ERROR("%s: how to reset?", target_name(target));
 		return ERROR_FAIL;
@@ -1721,23 +1773,31 @@ static int aarch64_deassert_reset(struct target *target)
 	if (!target_was_examined(target))
 		return ERROR_OK;
 
-	retval = aarch64_poll(target);
-	if (retval != ERROR_OK)
-		return retval;
-
 	retval = aarch64_init_debug_access(target);
 	if (retval != ERROR_OK)
 		return retval;
 
+	retval = aarch64_poll(target);
+	if (retval != ERROR_OK)
+		return retval;
+
 	if (target->reset_halt) {
+		/* disable Reset Catch debug event */
+		retval = aarch64_enable_reset_catch(target, false);
+		if (retval != ERROR_OK)
+			LOG_WARNING("%s: Disabling Reset Catch debug event failed",
+					target_name(target));
+
 		if (target->state != TARGET_HALTED) {
 			LOG_WARNING("%s: ran after reset and before halt ...",
 				target_name(target));
 			retval = target_halt(target);
+			if (retval != ERROR_OK)
+				return retval;
 		}
 	}
 
-	return retval;
+	return ERROR_OK;
 }
 
 static int aarch64_write_cpu_memory_slow(struct target *target,
