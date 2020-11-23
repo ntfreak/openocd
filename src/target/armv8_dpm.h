@@ -16,6 +16,7 @@
 #define OPENOCD_TARGET_ARMV8_DPM_H
 
 #include "arm_dpm.h"
+#include "helper/bits.h"
 
 /* forward-declare struct armv8_common */
 struct armv8_common;
@@ -95,6 +96,12 @@ void armv8_dpm_report_wfar(struct arm_dpm *dpm, uint64_t wfar);
 #define DRCR_HALT				(1 << 0)
 #define DRCR_RESTART			(1 << 1)
 #define DRCR_CLEAR_EXCEPTIONS	(1 << 2)
+
+/* ECR (Execution Control Register) bits */
+#define ECR_RCE         BIT(1)
+
+/* ESR (Event Status Register) bits */
+#define ESR_RC          BIT(1)
 
 /* PRSR (processor debug status register) bits */
 #define PRSR_PU					(1 << 0)
