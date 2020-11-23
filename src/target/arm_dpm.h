@@ -18,6 +18,8 @@
 #ifndef OPENOCD_TARGET_ARM_DPM_H
 #define OPENOCD_TARGET_ARM_DPM_H
 
+#include "helper/bits.h"
+
 /**
  * @file
  * This is the interface to the Debug Programmers Model for ARMv6 and
@@ -219,6 +221,12 @@ void arm_dpm_report_wfar(struct arm_dpm *dpm, uint32_t wfar);
 #define DRCR_CLEAR_EXCEPTIONS	(1 << 2)
 
 void arm_dpm_report_dscr(struct arm_dpm *dpm, uint32_t dcsr);
+
+/* ECR (Execution Control Register) bits */
+#define ECR_RCE                          BIT(1)
+
+/* ESR (Event Status Register) bits */
+#define ESR_RC                           BIT(1)
 
 /* PRCR (Device Power-down and Reset Control Register) bits */
 #define PRCR_DEBUG_NO_POWER_DOWN         (1 << 0)
