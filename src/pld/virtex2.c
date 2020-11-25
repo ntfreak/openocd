@@ -139,9 +139,11 @@ static int virtex2_load(struct pld_device *pld_device, const char *filename)
 	if (retval != ERROR_OK)
 		return retval;
 
-	virtex2_set_instr(virtex2_info->tap, 0xb);	/* JPROG_B */
-	jtag_execute_queue();
-	jtag_add_sleep(1000);
+	if (!(virtex2_info->no_jprog)) {
+		virtex2_set_instr(virtex2_info->tap, 0xb);	/* JPROG_B */
+		jtag_execute_queue();
+		jtag_add_sleep(1000);
+	}
 
 	virtex2_set_instr(virtex2_info->tap, 0x5);	/* CFG_IN */
 	jtag_execute_queue();
@@ -215,6 +217,10 @@ PLD_DEVICE_COMMAND_HANDLER(virtex2_pld_device_command)
 	virtex2_info->no_jstart = 0;
 	if (CMD_ARGC >= 3)
 		COMMAND_PARSE_NUMBER(int, CMD_ARGV[2], virtex2_info->no_jstart);
+
+	virtex2_info->no_jprog = 0;
+	if (CMD_ARGC >= 4)
+		COMMAND_PARSE_NUMBER(int, CMD_ARGV[3], virtex2_info->no_jprog);
 
 	pld->driver_priv = virtex2_info;
 

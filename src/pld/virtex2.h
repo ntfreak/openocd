@@ -24,6 +24,7 @@
 struct virtex2_pld_device {
 	struct jtag_tap *tap;
 	int no_jstart;
+	int no_jprog;
 };
 
 #endif /* OPENOCD_PLD_VIRTEX2_H */
