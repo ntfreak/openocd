@@ -6648,6 +6648,17 @@ Show information about flash driver.
 
 @end deffn
 
+@deffn {Flash Driver} npcx
+All versions of the NPCX microcontroller families from Nuvoton include internal
+flash. The NPCX flash driver supports the NPCX family of devices. The driver
+automatically recognizes the specific version's flash parameters and
+autoconfigures itself. The flash bank starts at address 0x64000000.
+
+@example
+flash bank $_FLASHNAME npcx 0x64000000 0 0 0 $_TARGETNAME
+@end example
+@end deffn
+
 @deffn {Flash Driver} {nrf5}
 All members of the nRF51 microcontroller families from Nordic Semiconductor
 include internal flash and use ARM Cortex-M0 core.
