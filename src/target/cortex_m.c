@@ -123,25 +123,60 @@ static int cortex_m_store_core_reg_u32(struct target *target,
 	return retval;
 }
 
-static int cortex_m_write_debug_halt_mask(struct target *target,
+static int cortex_m_read_atomic_sticky_dcb_dhcsr(struct target *target)
+{
+	struct cortex_m_common *cortex_m = target_to_cm(target);
+	struct armv7m_common *armv7m = target_to_armv7m(target);
+	uint32_t dhcsr;
+	int retval;
+
+	if (armv7m->is_hla_target)
+		retval = target_read_u32(target, DCB_DHCSR, &dhcsr);
+	else
+		retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DHCSR, &dhcsr);
+
+	if (retval != ERROR_OK)
+		return retval;
+
+	/* preserve the two sticky bits */
+	cortex_m->dcb_dhcsr = (cortex_m->dcb_dhcsr & (S_RESET_ST | S_RETIRE_ST)) | dhcsr;
+	return ERROR_OK;
+}
+
+static void cortex_m_clear_sticky_dcb_dhcsr(struct cortex_m_common *cortex_m, uint32_t mask)
+{
+	/* mask only the two sticky bits */
+	cortex_m->dcb_dhcsr &= ~(mask & (S_RESET_ST | S_RETIRE_ST));
+}
+
+static int cortex_m_write_atomic_dcb_dhcsr_mask(struct target *target,
 	uint32_t mask_on, uint32_t mask_off)
 {
 	struct cortex_m_common *cortex_m = target_to_cm(target);
 	struct armv7m_common *armv7m = &cortex_m->armv7m;
+	uint32_t dhcsr;
 
-	/* mask off status bits */
-	cortex_m->dcb_dhcsr &= ~((0xFFFFul << 16) | mask_off);
-	/* create new register mask */
-	cortex_m->dcb_dhcsr |= DBGKEY | C_DEBUGEN | mask_on;
+	/* only lower bits can be modified */
+	mask_off &= 0x0000ffffUL;
+	mask_on &= 0x0000ffffUL;
 
-	return mem_ap_write_atomic_u32(armv7m->debug_ap, DCB_DHCSR, cortex_m->dcb_dhcsr);
+	dhcsr = cortex_m->dcb_dhcsr;
+	dhcsr &= ~mask_off;
+	dhcsr |= mask_on | C_DEBUGEN;
+	cortex_m->dcb_dhcsr = dhcsr;
+
+	dhcsr = DBGKEY | (dhcsr & 0x0000ffffUL);
+	if (armv7m->is_hla_target)
+		return target_write_u32(target, DCB_DHCSR, dhcsr);
+	else
+		return mem_ap_write_atomic_u32(armv7m->debug_ap, DCB_DHCSR, dhcsr);
 }
 
 static int cortex_m_set_maskints(struct target *target, bool mask)
 {
 	struct cortex_m_common *cortex_m = target_to_cm(target);
 	if (!!(cortex_m->dcb_dhcsr & C_MASKINTS) != mask)
-		return cortex_m_write_debug_halt_mask(target, mask ? C_MASKINTS : 0, mask ? 0 : C_MASKINTS);
+		return cortex_m_write_atomic_dcb_dhcsr_mask(target, mask ? C_MASKINTS : 0, mask ? 0 : C_MASKINTS);
 	else
 		return ERROR_OK;
 }
@@ -221,7 +256,7 @@ static int cortex_m_clear_halt(struct target *target)
 	int retval;
 
 	/* clear step if any */
-	cortex_m_write_debug_halt_mask(target, C_HALT, C_STEP);
+	cortex_m_write_atomic_dcb_dhcsr_mask(target, C_HALT, C_STEP);
 
 	/* Read Debug Fault Status Register */
 	retval = mem_ap_read_atomic_u32(armv7m->debug_ap, NVIC_DFSR, &cortex_m->nvic_dfsr);
@@ -240,7 +275,6 @@ static int cortex_m_clear_halt(struct target *target)
 static int cortex_m_single_step_core(struct target *target)
 {
 	struct cortex_m_common *cortex_m = target_to_cm(target);
-	struct armv7m_common *armv7m = &cortex_m->armv7m;
 	int retval;
 
 	/* Mask interrupts before clearing halt, if not done already.  This avoids
@@ -248,13 +282,11 @@ static int cortex_m_single_step_core(struct target *target)
 	 * HALT can put the core into an unknown state.
 	 */
 	if (!(cortex_m->dcb_dhcsr & C_MASKINTS)) {
-		retval = mem_ap_write_atomic_u32(armv7m->debug_ap, DCB_DHCSR,
-				DBGKEY | C_MASKINTS | C_HALT | C_DEBUGEN);
+		retval = cortex_m_write_atomic_dcb_dhcsr_mask(target, C_MASKINTS, 0);
 		if (retval != ERROR_OK)
 			return retval;
 	}
-	retval = mem_ap_write_atomic_u32(armv7m->debug_ap, DCB_DHCSR,
-			DBGKEY | C_MASKINTS | C_STEP | C_DEBUGEN);
+	retval = cortex_m_write_atomic_dcb_dhcsr_mask(target, C_STEP, C_HALT);
 	if (retval != ERROR_OK)
 		return retval;
 	LOG_DEBUG(" ");
@@ -305,11 +337,11 @@ static int cortex_m_endreset_event(struct target *target)
 		return retval;
 
 	/* Enable debug requests */
-	retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DHCSR, &cortex_m->dcb_dhcsr);
+	retval = cortex_m_read_atomic_sticky_dcb_dhcsr(target);
 	if (retval != ERROR_OK)
 		return retval;
 	if (!(cortex_m->dcb_dhcsr & C_DEBUGEN)) {
-		retval = cortex_m_write_debug_halt_mask(target, 0, C_HALT | C_STEP | C_MASKINTS);
+		retval = cortex_m_write_atomic_dcb_dhcsr_mask(target, 0, C_HALT | C_STEP | C_MASKINTS);
 		if (retval != ERROR_OK)
 			return retval;
 	}
@@ -370,9 +402,7 @@ static int cortex_m_endreset_event(struct target *target)
 	register_cache_invalidate(armv7m->arm.core_cache);
 
 	/* make sure we have latest dhcsr flags */
-	retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DHCSR, &cortex_m->dcb_dhcsr);
-
-	return retval;
+	return cortex_m_read_atomic_sticky_dcb_dhcsr(target);
 }
 
 static int cortex_m_examine_debug_reason(struct target *target)
@@ -494,7 +524,7 @@ static int cortex_m_debug_entry(struct target *target)
 	cortex_m_set_maskints_for_halt(target);
 
 	cortex_m_clear_halt(target);
-	retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DHCSR, &cortex_m->dcb_dhcsr);
+	retval = cortex_m_read_atomic_sticky_dcb_dhcsr(target);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -578,7 +608,7 @@ static int cortex_m_poll(struct target *target)
 	struct armv7m_common *armv7m = &cortex_m->armv7m;
 
 	/* Read from Debug Halting Control and Status Register */
-	retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DHCSR, &cortex_m->dcb_dhcsr);
+	retval = cortex_m_read_atomic_sticky_dcb_dhcsr(target);
 	if (retval != ERROR_OK) {
 		target->state = TARGET_UNKNOWN;
 		return retval;
@@ -590,7 +620,7 @@ static int cortex_m_poll(struct target *target)
 	if (cortex_m->dcb_dhcsr & S_LOCKUP) {
 		LOG_ERROR("%s -- clearing lockup after double fault",
 			target_name(target));
-		cortex_m_write_debug_halt_mask(target, C_HALT, 0);
+		cortex_m_write_atomic_dcb_dhcsr_mask(target, C_HALT, 0);
 		target->debug_reason = DBG_REASON_DBGRQ;
 
 		/* We have to execute the rest (the "finally" equivalent, but
@@ -599,12 +629,13 @@ static int cortex_m_poll(struct target *target)
 		detected_failure = ERROR_FAIL;
 
 		/* refresh status bits */
-		retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DHCSR, &cortex_m->dcb_dhcsr);
+		retval = cortex_m_read_atomic_sticky_dcb_dhcsr(target);
 		if (retval != ERROR_OK)
 			return retval;
 	}
 
 	if (cortex_m->dcb_dhcsr & S_RESET_ST) {
+		cortex_m_clear_sticky_dcb_dhcsr(cortex_m, S_RESET_ST);
 		if (target->state != TARGET_RESET) {
 			target->state = TARGET_RESET;
 			LOG_INFO("%s: external reset detected", target_name(target));
@@ -653,6 +684,7 @@ static int cortex_m_poll(struct target *target)
 	if (target->state == TARGET_UNKNOWN) {
 		/* check if processor is retiring instructions or sleeping */
 		if (cortex_m->dcb_dhcsr & S_RETIRE_ST || cortex_m->dcb_dhcsr & S_SLEEP) {
+			cortex_m_clear_sticky_dcb_dhcsr(cortex_m, S_RETIRE_ST);
 			target->state = TARGET_RUNNING;
 			retval = ERROR_OK;
 		}
@@ -703,7 +735,7 @@ static int cortex_m_halt(struct target *target)
 	}
 
 	/* Write to Debug Halting Control and Status Register */
-	cortex_m_write_debug_halt_mask(target, C_HALT, 0);
+	cortex_m_write_atomic_dcb_dhcsr_mask(target, C_HALT, 0);
 
 	/* Do this really early to minimize the window where the MASKINTS erratum
 	 * can pile up pending interrupts. */
@@ -718,7 +750,6 @@ static int cortex_m_soft_reset_halt(struct target *target)
 {
 	struct cortex_m_common *cortex_m = target_to_cm(target);
 	struct armv7m_common *armv7m = &cortex_m->armv7m;
-	uint32_t dcb_dhcsr = 0;
 	int retval, timeout = 0;
 
 	/* on single cortex_m MCU soft_reset_halt should be avoided as same functionality
@@ -728,7 +759,7 @@ static int cortex_m_soft_reset_halt(struct target *target)
 	LOG_DEBUG("soft_reset_halt is discouraged, please use 'reset halt' instead.");
 
 	/* Set C_DEBUGEN */
-	retval = cortex_m_write_debug_halt_mask(target, 0, C_STEP | C_MASKINTS);
+	retval = cortex_m_write_atomic_dcb_dhcsr_mask(target, 0, C_STEP | C_MASKINTS);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -749,25 +780,22 @@ static int cortex_m_soft_reset_halt(struct target *target)
 	register_cache_invalidate(cortex_m->armv7m.arm.core_cache);
 
 	while (timeout < 100) {
-		retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DHCSR, &dcb_dhcsr);
+		retval = cortex_m_read_atomic_sticky_dcb_dhcsr(target);
 		if (retval == ERROR_OK) {
 			retval = mem_ap_read_atomic_u32(armv7m->debug_ap, NVIC_DFSR,
 					&cortex_m->nvic_dfsr);
 			if (retval != ERROR_OK)
 				return retval;
-			if ((dcb_dhcsr & S_HALT)
+			if ((cortex_m->dcb_dhcsr & S_HALT)
 				&& (cortex_m->nvic_dfsr & DFSR_VCATCH)) {
-				LOG_DEBUG("system reset-halted, DHCSR 0x%08x, "
-					"DFSR 0x%08x",
-					(unsigned) dcb_dhcsr,
-					(unsigned) cortex_m->nvic_dfsr);
+				LOG_DEBUG("system reset-halted, DHCSR 0x%08" PRIx32 ", DFSR 0x%08" PRIx32,
+					cortex_m->dcb_dhcsr, cortex_m->nvic_dfsr);
 				cortex_m_poll(target);
 				/* FIXME restore user's vector catch config */
 				return ERROR_OK;
 			} else
-				LOG_DEBUG("waiting for system reset-halt, "
-					"DHCSR 0x%08x, %d ms",
-					(unsigned) dcb_dhcsr, timeout);
+				LOG_DEBUG("waiting for system reset-halt, DHCSR 0x%08" PRIx32 ", %d ms",
+					cortex_m->dcb_dhcsr, timeout);
 		}
 		timeout++;
 		alive_sleep(1);
@@ -872,7 +900,7 @@ static int cortex_m_resume(struct target *target, int current,
 
 	/* Restart core */
 	cortex_m_set_maskints_for_run(target);
-	cortex_m_write_debug_halt_mask(target, 0, C_HALT);
+	cortex_m_write_atomic_dcb_dhcsr_mask(target, 0, C_HALT);
 
 	target->debug_reason = DBG_REASON_NOTHALTED;
 
@@ -938,7 +966,7 @@ static int cortex_m_step(struct target *target, int current,
 			/* Automatic ISR masking mode off: Just step over the next
 			 * instruction, with interrupts on or off as appropriate. */
 			cortex_m_set_maskints_for_step(target);
-			cortex_m_write_debug_halt_mask(target, C_STEP, C_HALT);
+			cortex_m_write_atomic_dcb_dhcsr_mask(target, C_STEP, C_HALT);
 		} else {
 			/* Process interrupts during stepping in a way they don't interfere
 			 * debugging.
@@ -976,10 +1004,10 @@ static int cortex_m_step(struct target *target, int current,
 			 */
 			if ((pc_value & 0x02) && breakpoint_find(target, pc_value & ~0x03)) {
 				LOG_DEBUG("Stepping over next instruction with interrupts disabled");
-				cortex_m_write_debug_halt_mask(target, C_HALT | C_MASKINTS, 0);
-				cortex_m_write_debug_halt_mask(target, C_STEP, C_HALT);
+				cortex_m_write_atomic_dcb_dhcsr_mask(target, C_HALT | C_MASKINTS, 0);
+				cortex_m_write_atomic_dcb_dhcsr_mask(target, C_STEP, C_HALT);
 				/* Re-enable interrupts if appropriate */
-				cortex_m_write_debug_halt_mask(target, C_HALT, 0);
+				cortex_m_write_atomic_dcb_dhcsr_mask(target, C_HALT, 0);
 				cortex_m_set_maskints_for_halt(target);
 			} else {
 
@@ -1000,22 +1028,20 @@ static int cortex_m_step(struct target *target, int current,
 				/* No more breakpoints left, just do a step */
 				if (!tmp_bp_set) {
 					cortex_m_set_maskints_for_step(target);
-					cortex_m_write_debug_halt_mask(target, C_STEP, C_HALT);
+					cortex_m_write_atomic_dcb_dhcsr_mask(target, C_STEP, C_HALT);
 					/* Re-enable interrupts if appropriate */
-					cortex_m_write_debug_halt_mask(target, C_HALT, 0);
+					cortex_m_write_atomic_dcb_dhcsr_mask(target, C_HALT, 0);
 					cortex_m_set_maskints_for_halt(target);
 				} else {
 					/* Start the core */
 					LOG_DEBUG("Starting core to serve pending interrupts");
 					int64_t t_start = timeval_ms();
 					cortex_m_set_maskints_for_run(target);
-					cortex_m_write_debug_halt_mask(target, 0, C_HALT | C_STEP);
+					cortex_m_write_atomic_dcb_dhcsr_mask(target, 0, C_HALT | C_STEP);
 
 					/* Wait for pending handlers to complete or timeout */
 					do {
-						retval = mem_ap_read_atomic_u32(armv7m->debug_ap,
-								DCB_DHCSR,
-								&cortex_m->dcb_dhcsr);
+						retval = cortex_m_read_atomic_sticky_dcb_dhcsr(target);
 						if (retval != ERROR_OK) {
 							target->state = TARGET_UNKNOWN;
 							return retval;
@@ -1037,12 +1063,12 @@ static int cortex_m_step(struct target *target, int current,
 					} else {
 						/* Step over next instruction with interrupts disabled */
 						cortex_m_set_maskints_for_step(target);
-						cortex_m_write_debug_halt_mask(target,
+						cortex_m_write_atomic_dcb_dhcsr_mask(target,
 							C_HALT | C_MASKINTS,
 							0);
-						cortex_m_write_debug_halt_mask(target, C_STEP, C_HALT);
+						cortex_m_write_atomic_dcb_dhcsr_mask(target, C_STEP, C_HALT);
 						/* Re-enable interrupts if appropriate */
-						cortex_m_write_debug_halt_mask(target, C_HALT, 0);
+						cortex_m_write_atomic_dcb_dhcsr_mask(target, C_HALT, 0);
 						cortex_m_set_maskints_for_halt(target);
 					}
 				}
@@ -1050,7 +1076,7 @@ static int cortex_m_step(struct target *target, int current,
 		}
 	}
 
-	retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DHCSR, &cortex_m->dcb_dhcsr);
+	retval = cortex_m_read_atomic_sticky_dcb_dhcsr(target);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -1128,17 +1154,16 @@ static int cortex_m_assert_reset(struct target *target)
 	}
 
 	/* Enable debug requests */
-	int retval;
-	retval = mem_ap_read_atomic_u32(armv7m->debug_ap, DCB_DHCSR, &cortex_m->dcb_dhcsr);
+	int retval = cortex_m_read_atomic_sticky_dcb_dhcsr(target);
 	/* Store important errors instead of failing and proceed to reset assert */
 
 	if (retval != ERROR_OK || !(cortex_m->dcb_dhcsr & C_DEBUGEN))
-		retval = cortex_m_write_debug_halt_mask(target, 0, C_HALT | C_STEP | C_MASKINTS);
+		retval = cortex_m_write_atomic_dcb_dhcsr_mask(target, 0, C_HALT | C_STEP | C_MASKINTS);
 
 	/* If the processor is sleeping in a WFI or WFE instruction, the
 	 * C_HALT bit must be asserted to regain control */
 	if (retval == ERROR_OK && (cortex_m->dcb_dhcsr & S_SLEEP))
-		retval = cortex_m_write_debug_halt_mask(target, C_HALT, 0);
+		retval = cortex_m_write_atomic_dcb_dhcsr_mask(target, C_HALT, 0);
 
 	mem_ap_write_u32(armv7m->debug_ap, DCB_DCRDR, 0);
 	/* Ignore less important errors */
@@ -1151,7 +1176,7 @@ static int cortex_m_assert_reset(struct target *target)
 		cortex_m_clear_halt(target);
 
 		/* clear C_HALT in dhcsr reg */
-		cortex_m_write_debug_halt_mask(target, 0, C_HALT);
+		cortex_m_write_atomic_dcb_dhcsr_mask(target, 0, C_HALT);
 	} else {
 		/* Halt in debug on reset; endreset_event() restores DEMCR.
 		 *
@@ -2081,16 +2106,13 @@ int cortex_m_examine(struct target *target)
 		}
 
 		/* Enable debug requests */
-		retval = target_read_u32(target, DCB_DHCSR, &cortex_m->dcb_dhcsr);
+		retval = cortex_m_read_atomic_sticky_dcb_dhcsr(target);
 		if (retval != ERROR_OK)
 			return retval;
 		if (!(cortex_m->dcb_dhcsr & C_DEBUGEN)) {
-			uint32_t dhcsr = (cortex_m->dcb_dhcsr | C_DEBUGEN) & ~(C_HALT | C_STEP | C_MASKINTS);
-
-			retval = target_write_u32(target, DCB_DHCSR, DBGKEY | (dhcsr & 0x0000FFFFUL));
+			retval = cortex_m_write_atomic_dcb_dhcsr_mask(target, 0, C_HALT | C_STEP | C_MASKINTS);
 			if (retval != ERROR_OK)
 				return retval;
-			cortex_m->dcb_dhcsr = dhcsr;
 		}
 
 		/* Configure trace modules */
