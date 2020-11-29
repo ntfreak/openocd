@@ -116,6 +116,8 @@ uninstall-hook:
 distclean-local:
 	rm -rf Doxyfile doxygen
 	rm -f $(srcdir)/jimtcl/configure.gnu
+# FIXME: workaround for jimtcl 0.80 only. Remove from jimtcl 0.81
+	rm -f jimtcl/examples.api/Makefile
 
 DISTCLEANFILES = doxygen.log
 
