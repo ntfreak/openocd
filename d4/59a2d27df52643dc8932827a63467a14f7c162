@@ -1,0 +1,9 @@
+Verified+1: jenkins
+Code-Review+1: Antonio Borneo <borneo.antonio@gmail.com>
+Code-Review+2: Tomas Vanek <vanekt@fbl.cz>
+Code-Review+2: Andreas Fritiofson <andreas.fritiofson@gmail.com>
+Submitted-by: Tomas Vanek <vanekt@fbl.cz>
+Submitted-at: Wed, 02 Dec 2020 23:15:16 +0000
+Reviewed-on: http://openocd.zylin.com/5730
+Project: openocd
+Branch: refs/heads/master
