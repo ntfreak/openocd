@@ -1681,10 +1681,10 @@ static int cortex_a_assert_reset(struct target *target)
 		 */
 
 		/*
-		 * FIXME: fix reset when transport is SWD. This is a temporary
+		 * FIXME: fix reset when transport is not JTAG. This is a temporary
 		 * work-around for release v0.10 that is not intended to stay!
 		 */
-		if (transport_is_swd() ||
+		if (!transport_is_jtag() ||
 				(target->reset_halt && (jtag_get_reset_config() & RESET_SRST_NO_GATING)))
 			adapter_assert_reset();
 
