@@ -341,8 +341,6 @@ static int lpc2000_build_sector_list(struct flash_bank *bank)
 	struct lpc2000_flash_bank *lpc2000_info = bank->driver_priv;
 	uint32_t offset = 0;
 
-	/* default to a 4096 write buffer */
-	lpc2000_info->cmd51_max_buffer = 4096;
 
 	if (lpc2000_info->variant == lpc2000_v1) {
 		lpc2000_info->cmd51_dst_boundary = 512;
@@ -588,7 +586,7 @@ static int lpc2000_build_sector_list(struct flash_bank *bank)
 			LOG_ERROR("BUG: unknown bank->size encountered,\nLPC1100 flash size must be a multiple of 4096");
 			exit(-1);
 		}
-		lpc2000_info->cmd51_max_buffer = 512; /* smallest MCU in the series, LPC1110, has 1 kB of SRAM */
+
 		unsigned int large_sectors = 0;
 		unsigned int normal_sectors = bank->size / 4096;
 
@@ -1278,6 +1276,10 @@ static int lpc2000_auto_probe_flash(struct flash_bank *bank)
 		LOG_ERROR("Could not get part ID");
 		return retval;
 	}
+
+	lpc2000_info->cmd51_max_buffer = bank->target->working_area_size / 2;
+	if (lpc2000_info->cmd51_max_buffer > 4096)
+		lpc2000_info->cmd51_max_buffer = 4096;
 
 	switch (part_id) {
 		case LPC1110_1:
