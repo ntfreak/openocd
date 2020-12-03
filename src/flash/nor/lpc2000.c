@@ -210,6 +210,8 @@
 #define LPC11U68_1     0x00007C08
 #define LPC11U68_2     0x00007C00
 
+#define LPC1124        0x00140040
+
 #define LPC1311        0x2C42502B
 #define LPC1311_1      0x1816902B
 #define LPC1313        0x2C40102B
@@ -1344,6 +1346,7 @@ static int lpc2000_auto_probe_flash(struct flash_bank *bank)
 		case LPC1114_301_2:
 		case LPC1114_303_1:
 		case LPC11A04_1:
+		case LPC1124:
 		case LPC11A14_301_1:
 		case LPC11A14_301_2:
 		case LPC11C14_301_1:
