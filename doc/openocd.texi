@@ -623,6 +623,13 @@ emulation model of target hardware.
 @item @b{xlnx_pcie_xvc}
 @* A JTAG driver exposing Xilinx Virtual Cable over PCI Express to OpenOCD as JTAG/SWD interface.
 
+@item @b{linuxgpiod}
+@* A bitbang JTAG driver using Linux GPIO through library libgpiod.
+
+@item @b{sysfsgpio}
+@* A bitbang JTAG driver using Linux legacy sysfs GPIO.
+This is deprecated from Linux v5.3; prefer using @b{linuxgpiod}.
+
 @end itemize
 
 @node About Jim-Tcl
@@ -3237,6 +3244,22 @@ This driver is mostly the same as bcm2835gpio.
 See @file{interface/imx-native.cfg} for a sample config and
 pinout.
 
+@end deffn
+
+
+@deffn {Interface Driver} {linuxgpiod}
+Linux provides userspace access to GPIO through libgpiod since Linux kernel version v4.6.
+The driver emulates either JTAG and SWD transport through bitbanging.
+
+See @file{interface/dln-2-gpiod.cfg} for a sample config.
+@end deffn
+
+
+@deffn {Interface Driver} {sysfsgpio}
+Linux legacy userspace access to GPIO through sysfs is deprecated from Linux kernel version v5.3.
+Prefer using @b{linuxgpiod}, instead.
+
+See @file{interface/sysfsgpio-raspberrypi.cfg} for a sample config.
 @end deffn
 
 
