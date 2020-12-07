@@ -7,6 +7,8 @@ noinst_LTLIBRARIES += %D%/libocdflashnor.la
 	$(NORHEADERS)
 
 NOR_DRIVERS = \
+	%D%/gd32e23x.c \
+	%D%/gd32vf103.c \
 	%D%/aduc702x.c \
 	%D%/aducm360.c \
 	%D%/ambiqmicro.c \
@@ -52,12 +54,10 @@ NOR_DRIVERS = \
 	%D%/psoc5lp.c \
 	%D%/psoc6.c \
 	%D%/renesas_rpchf.c \
-	%D%/sfdp.c \
 	%D%/sh_qspi.c \
 	%D%/sim3x.c \
 	%D%/spi.c \
 	%D%/stmsmi.c \
-	%D%/stmqspi.c \
 	%D%/stellaris.c \
 	%D%/stm32f1x.c \
 	%D%/stm32f2x.c \
@@ -85,8 +85,6 @@ NORHEADERS = \
 	%D%/imp.h \
 	%D%/non_cfi.h \
 	%D%/ocl.h \
-	%D%/sfdp.h \
 	%D%/spi.h \
 	%D%/stm32l4x.h \
-	%D%/stmqspi.h \
 	%D%/msp432.h
