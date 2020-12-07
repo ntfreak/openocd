@@ -15,6 +15,8 @@ struct cmsis_dap {
 	uint8_t *packet_buffer;
 	uint8_t caps;
 	uint8_t mode;
+	uint32_t swo_buf_sz;
+	bool trace_enabled;
 };
 
 struct cmsis_dap_backend {
