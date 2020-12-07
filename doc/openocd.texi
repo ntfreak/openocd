@@ -11837,6 +11837,8 @@ foreach who @{A B C D E@}
 @}
 @end example
 
+@node License
+@appendix The GNU Free Documentation License.
 @include fdl.texi
 
 @node OpenOCD Concept Index
