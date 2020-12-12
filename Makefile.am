@@ -51,6 +51,7 @@ EXTRA_DIST += \
 	README.macOS \
 	$(EXTRA_DIST_NEWS) \
 	Doxyfile.in \
+	LICENSES/license-rules.txt \
 	LICENSES/preferred/BSD-1-Clause \
 	LICENSES/preferred/BSD-2-Clause \
 	LICENSES/preferred/BSD-3-Clause \

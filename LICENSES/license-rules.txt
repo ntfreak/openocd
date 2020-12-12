@@ -1,0 +1,218 @@
+# SPDX-License-Identifier: GPL-2.0-or-later OR GFDL-1.2-no-invariants-or-later
+
+OpenOCD licensing rules
+=======================
+
+The OpenOCD source code is provided under the terms of the GNU General
+Public License version 2 or later (GPL-2.0-or-later), as provided in
+LICENSES/preferred/GPL-2.0.
+
+The OpenOCD documentation is provided under the terms of the GNU Free
+Documentation License version 1.2 or later without Invariant Sections
+(GFDL-1.2-no-invariants-or-later).
+
+Few stand-alone applications coexist in the same code tree of OpenOCD
+and are provided under the terms of the GNU General Public License
+version 3 (GPL-3.0), as provided in LICENSES/stand-alone/GPL-3.0.
+
+This documentation file provides a description of how each source file
+should be annotated to make its license clear and unambiguous.
+It doesn't replace the OpenOCD's license.
+
+The license described in the COPYING file applies to the OpenOCD source
+as a whole, though individual source files can have a different license
+which is required to be compatible with the GPL-2.0:
+
+    GPL-1.0-or-later  : GNU General Public License v1.0 or later
+    GPL-2.0-or-later  : GNU General Public License v2.0 or later
+    LGPL-2.0          : GNU Library General Public License v2 only
+    LGPL-2.0-or-later : GNU Library General Public License v2 or later
+    LGPL-2.1          : GNU Lesser General Public License v2.1 only
+    LGPL-2.1-or-later : GNU Lesser General Public License v2.1 or later
+
+Aside from that, individual files can be provided under a dual license,
+e.g. one of the compatible GPL variants and alternatively under a
+permissive license like BSD, MIT etc.
+
+The common way of expressing the license of a source file is to add the
+matching boilerplate text into the top comment of the file. Due to
+formatting, typos etc. these "boilerplates" are hard to validate for
+tools which are used in the context of license compliance.
+
+An alternative to boilerplate text is the use of Software Package Data
+Exchange (SPDX) license identifiers in each source file. SPDX license
+identifiers are machine parsable and precise shorthands for the license
+under which the content of the file is contributed. SPDX license
+identifiers are managed by the SPDX Workgroup at the Linux Foundation and
+have been agreed on by partners throughout the industry, tool vendors, and
+legal teams. For further information see https://spdx.org/
+
+OpenOCD requires the precise SPDX identifier in all source files.
+The valid identifiers used in OpenOCD are explained in the section
+`License identifiers` and have been retrieved from the official SPDX
+license list at https://spdx.org/licenses/ along with the license texts.
+
+License identifier syntax
+-------------------------
+
+1. Placement:
+
+   The SPDX license identifier in OpenOCD files shall be added at the
+   first possible line in a file which can contain a comment. For the
+   majority of files this is the first line, except for scripts which
+   require the '#!PATH_TO_INTERPRETER' in the first line. For those
+   scripts the SPDX identifier goes into the second line.
+
+2. Style:
+
+   The SPDX license identifier is added in form of a comment. The comment
+   style depends on the file type::
+
+      C source:  // SPDX-License-Identifier: <SPDX License Expression>
+      C header:  /* SPDX-License-Identifier: <SPDX License Expression> */
+      ASM:       /* SPDX-License-Identifier: <SPDX License Expression> */
+      makefiles: # SPDX-License-Identifier: <SPDX License Expression>
+      scripts:   # SPDX-License-Identifier: <SPDX License Expression>
+      texinfo:   @c SPDX-License-Identifier: <SPDX License Expression>
+      text:      # SPDX-License-Identifier: <SPDX License Expression>
+
+   If a specific tool cannot handle the standard comment style, then the
+   appropriate comment mechanism which the tool accepts shall be used. This
+   is the reason for having the "/\* \*/" style comment in C header
+   files. There was build breakage observed with generated .lds files where
+   'ld' failed to parse the C++ comment. This has been fixed by now, but
+   there are still older assembler tools which cannot handle C++ style
+   comments.
+
+3. Syntax:
+
+   A <SPDX License Expression> is either an SPDX short form license
+   identifier found on the SPDX License List, or the combination of two
+   SPDX short form license identifiers separated by "WITH" when a license
+   exception applies. When multiple licenses apply, an expression consists
+   of keywords "AND", "OR" separating sub-expressions and surrounded by
+   "(", ")" .
+
+   License identifiers for licenses like [L]GPL with the 'or later' option
+   are constructed by using a "-or-later":
+
+      // SPDX-License-Identifier: GPL-2.0-or-later
+      // SPDX-License-Identifier: LGPL-2.1-or-later
+
+   WITH should be used when there is a modifier to a license needed.
+   Exceptions can only be used with particular License identifiers. The
+   valid License identifiers are listed in the tags of the exception text
+   file.
+
+   OR should be used if the file is dual licensed and only one license is
+   to be selected. For example, some source files are available under dual
+   licenses:
+
+      // SPDX-License-Identifier: GPL-2.0-or-later OR BSD-1-Clause
+      // SPDX-License-Identifier: GPL-2.0-or-later OR BSD-2-Clause
+      // SPDX-License-Identifier: GPL-2.0-or-later OR BSD-3-Clause
+
+   AND should be used if the file has multiple licenses whose terms all
+   apply to use the file. For example, if code is inherited from another
+   project and permission has been given to put it in OpenOCD, but the
+   original license terms need to remain in effect::
+
+      // SPDX-License-Identifier: GPL-2.0-or-later AND MIT
+
+License identifiers
+-------------------
+
+The licenses currently used, as well as the licenses for code added to
+OpenOCD, can be broken down into:
+
+1. `Preferred licenses`:
+
+   Whenever possible these licenses should be used as they are known to be
+   fully compatible and widely used. These licenses are available from the
+   directory:
+
+      LICENSES/preferred/
+
+   in the OpenOCD source tree.
+
+   The files in this directory contain the full license text and
+   `Metatags`. The file names are identical to the SPDX license
+   identifier which shall be used for the license in source files.
+
+   Examples:
+
+      LICENSES/preferred/GPL-2.0
+
+   Contains the GPL version 2 license text and the required metatags.
+
+   `Metatags`:
+
+   The following meta tags must be available in a license file:
+
+   - Valid-License-Identifier:
+
+     One or more lines which declare which License Identifiers are valid
+     inside the project to reference this particular license text. Usually
+     this is a single valid identifier, but e.g. for licenses with the 'or
+     later' options two identifiers are valid.
+
+   - SPDX-URL:
+
+     The URL of the SPDX page which contains additional information related
+     to the license.
+
+   - Usage-Guidance:
+
+     Freeform text for usage advice. The text must include correct examples
+     for the SPDX license identifiers as they should be put into source
+     files according to the `License identifier syntax` guidelines.
+
+   - License-Text:
+
+     All text after this tag is treated as the original license text
+
+   File format examples::
+
+      Valid-License-Identifier: GPL-2.0
+      Valid-License-Identifier: GPL-2.0-only
+      Valid-License-Identifier: GPL-2.0-or-later
+      SPDX-URL: https://spdx.org/licenses/GPL-2.0.html
+      Usage-Guide:
+        To use this license in source code, put one of the following SPDX
+        tag/value pairs into a comment according to the placement
+        guidelines in the licensing rules documentation.
+        For 'GNU General Public License (GPL) version 2 only' use:
+          SPDX-License-Identifier: GPL-2.0
+        or
+          SPDX-License-Identifier: GPL-2.0-only
+        For 'GNU General Public License (GPL) version 2 or any later version' use:
+          SPDX-License-Identifier: GPL-2.0-or-later
+      License-Text:
+        Full license text
+
+2. Stand-alone licenses:
+
+   These licenses should only be used for stand-alone applications that are
+   distributed with OpenOCD but are not included in the OpenOCD binary.
+   These licenses are available from the directory:
+
+     LICENSES/stand-alone/
+
+   in the OpenOCD source tree.
+
+   Examples:
+
+     SPDX-License-Identifier: GPL-3.0
+
+The format and requirements of the license files in the other sub-directories
+of directory
+
+   LICENSES
+
+have to follow the same format and requirements of the `Preferred licenses`.
+
+All SPDX license identifiers and exceptions must have a corresponding file
+in the LICENSES subdirectories. This is required to allow tool
+verification (e.g. checkpatch.pl) and to have the licenses ready to read
+and extract right from the source, which is recommended by various FOSS
+organizations, e.g. the `FSFE REUSE initiative <https://reuse.software/>`.
