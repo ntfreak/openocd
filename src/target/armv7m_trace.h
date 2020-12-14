@@ -96,6 +96,10 @@ extern const struct command_registration armv7m_trace_command_handlers[];
  */
 int armv7m_trace_tpiu_config(struct target *target);
 /**
+ * Disable TPIU data gathering at exit
+ */
+int armv7m_trace_tpiu_exit(struct target *target);
+/**
  * Configure hardware accordingly to the current ITM target settings
  */
 int armv7m_trace_itm_config(struct target *target);

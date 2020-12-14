@@ -234,6 +234,21 @@ static int trace_connection_closed(struct connection *connection)
 	return ERROR_OK;
 }
 
+extern struct command_context *global_cmd_ctx;
+
+int armv7m_trace_tpiu_exit(struct target *target)
+{
+	struct armv7m_common *armv7m = target_to_armv7m(target);
+
+	if (global_cmd_ctx->mode == COMMAND_CONFIG ||
+		armv7m->trace_config.config_type == TRACE_CONFIG_TYPE_DISABLED)
+		return ERROR_OK;
+
+	close_trace_channel(armv7m);
+	armv7m->trace_config.config_type = TRACE_CONFIG_TYPE_DISABLED;
+	return armv7m_trace_tpiu_config(target);
+}
+
 COMMAND_HANDLER(handle_tpiu_config_command)
 {
 	struct target *target = get_current_target(CMD_CTX);
