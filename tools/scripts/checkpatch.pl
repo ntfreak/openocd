@@ -1631,16 +1631,6 @@ sub process {
 			$rpt_cleaners = 1;
 		}
 
-		if ($rawline =~ /\bwrite to the Free/i ||
-		    $rawline =~ /\b59\s+Temple\s+Pl/i ||
-		    $rawline =~ /\b51\s+Franklin\s+St/i) {
-			my $herevet = "$here\n" . cat_vet($rawline) . "\n";
-			ERROR("FSF_MAILING_ADDRESS",
-			      "Do not include the paragraph about writing to the Free Software Foundation's mailing address " .
-			      "from the sample GPL notice. The FSF has changed addresses in the past, and may do so again. " .
-			      "OpenOCD already includes a copy of the GPL.\n" . $herevet)
-		}
-
 # check for Kconfig help text having a real description
 # Only applies when adding the entry originally, after that we do not have
 # sufficient context to determine whether it is indeed long enough.
