@@ -190,6 +190,8 @@ if XDS110
 DRIVERFILES += %D%/xds110.c
 endif
 
+DRIVERFILES += %D%/kernel_jtag.c
+
 DRIVERHEADERS = \
 	%D%/bitbang.h \
 	%D%/bitq.h \

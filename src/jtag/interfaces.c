@@ -152,6 +152,7 @@ extern struct adapter_driver stlink_dap_adapter_driver;
 #if BUILD_RSHIM == 1
 extern struct adapter_driver rshim_dap_adapter_driver;
 #endif
+extern struct adapter_driver kernel_jtag_adapter_driver;
 #endif /* standard drivers */
 
 /**
@@ -272,6 +273,7 @@ struct adapter_driver *adapter_drivers[] = {
 #if BUILD_RSHIM == 1
 		&rshim_dap_adapter_driver,
 #endif
+		&kernel_jtag_adapter_driver,
 #endif /* standard drivers */
 		NULL,
 	};
