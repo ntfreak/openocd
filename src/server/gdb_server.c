@@ -969,15 +969,6 @@ static int gdb_new_connection(struct connection *connection)
 	breakpoint_clear_target(target);
 	watchpoint_clear_target(target);
 
-	if (target->rtos) {
-		/* clean previous rtos session if supported*/
-		if (target->rtos->type->clean)
-			target->rtos->type->clean(target);
-
-		/* update threads */
-		rtos_update_threads(target);
-	}
-
 	/* remove the initial ACK from the incoming buffer */
 	retval = gdb_get_char(connection, &initial_ack);
 	if (retval != ERROR_OK)
@@ -989,6 +980,15 @@ static int gdb_new_connection(struct connection *connection)
 	if (initial_ack != '+')
 		gdb_putback_char(connection, initial_ack);
 	target_call_event_callbacks(target, TARGET_EVENT_GDB_ATTACH);
+
+	if (target->rtos) {
+		/* clean previous rtos session if supported*/
+		if (target->rtos->type->clean)
+			target->rtos->type->clean(target);
+
+		/* update threads */
+		rtos_update_threads(target);
+	}
 
 	if (gdb_use_memory_map) {
 		/* Connect must fail if the memory map can't be set up correctly.
