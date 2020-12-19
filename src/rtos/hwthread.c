@@ -237,23 +237,35 @@ static int hwthread_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	if (!target_was_examined(curr))
 		return ERROR_FAIL;
 
+	int reg_list_size;
 	struct reg **reg_list;
-	int retval = target_get_gdb_reg_list(curr, &reg_list, rtos_reg_list_size,
+	int retval = target_get_gdb_reg_list(curr, &reg_list, &reg_list_size,
 			REG_CLASS_GENERAL);
 	if (retval != ERROR_OK)
 		return retval;
 
+	int j = 0;
+	for (int i = 0; i < reg_list_size; i++) {
+		if (reg_list[i] == NULL || reg_list[i]->exist == false || reg_list[i]->hidden)
+			continue;
+		j++;
+	}
+	*rtos_reg_list_size = j;
 	*rtos_reg_list = calloc(*rtos_reg_list_size, sizeof(struct rtos_reg));
 	if (*rtos_reg_list == NULL) {
 		free(reg_list);
 		return ERROR_FAIL;
 	}
 
-	for (int i = 0; i < *rtos_reg_list_size; i++) {
-		(*rtos_reg_list)[i].number = (*reg_list)[i].number;
-		(*rtos_reg_list)[i].size = (*reg_list)[i].size;
-		memcpy((*rtos_reg_list)[i].value, (*reg_list)[i].value,
+	j = 0;
+	for (int i = 0; i < reg_list_size; i++) {
+		if (reg_list[i] == NULL || reg_list[i]->exist == false || reg_list[i]->hidden)
+			continue;
+		(*rtos_reg_list)[j].number = (*reg_list)[i].number;
+		(*rtos_reg_list)[j].size = (*reg_list)[i].size;
+		memcpy((*rtos_reg_list)[j].value, (*reg_list)[i].value,
 				((*reg_list)[i].size + 7) / 8);
+		j++;
 	}
 	free(reg_list);
 
