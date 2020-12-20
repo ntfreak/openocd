@@ -4509,7 +4509,13 @@ The current implementation supports eSi-32xx cores.
 @item @code{hla_target} -- a Cortex-M alternative to work with HL adapters like ST-Link.
 @item @code{ls1_sap} -- this is the SAP on NXP LS102x CPUs,
 allowing access to physical memory addresses independently of CPU cores.
-@item @code{mem_ap} -- this is an ARM debug infrastructure Access Port without a CPU, through which bus read and write cycles can be generated; it may be useful for working with non-CPU hardware behind an AP or during development of support for new CPUs.
+@item @code{mem_ap} -- this is an ARM debug infrastructure Access Port without
+a CPU, through which bus read and write cycles can be generated; it may be
+useful for working with non-CPU hardware behind an AP or during development of
+support for new CPUs.
+It's possible to connect a GDB client to this target (the GDB port has to be
+specified, @xref{gdbportoverride,,option -gdb-port}), and a fake ARM core will
+be emulated to comply to GDB remote protocol.
 @item @code{mips_m4k} -- a MIPS core.
 @item @code{mips_mips64} -- a MIPS64 core.
 @item @code{nds32_v2} -- this is an Andes NDS32 v2 core.
