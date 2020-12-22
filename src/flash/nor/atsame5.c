@@ -113,7 +113,7 @@ struct samd_part {
 };
 
 /* See SAM D5x/E5x Family Silicon Errata and Data Sheet Clarification
- * DS80000748B */
+ * DS80000748K */
 /* Known SAMD51 parts. */
 static const struct samd_part samd51_parts[] = {
 	{ 0x00, "SAMD51P20A", 1024, 256 },
@@ -134,6 +134,8 @@ static const struct samd_part same51_parts[] = {
 	{ 0x02, "SAME51J19A", 512, 192 },
 	{ 0x03, "SAME51J18A", 256, 128 },
 	{ 0x04, "SAME51J20A", 1024, 256 },
+	{ 0x05, "SAME51G19A", 512, 192 },	/* New in rev D */
+	{ 0x06, "SAME51G18A", 256, 128 },	/* New in rev D */
 };
 
 /* Known SAME53 parts. */
