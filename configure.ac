@@ -150,6 +150,8 @@ m4_define([LIBJAYLINK_ADAPTERS],
 m4_define([PCIE_ADAPTERS],
 	[[[xlnx_pcie_xvc], [Xilinx XVC/PCIe], [XLNX_PCIE_XVC]]])
 
+m4_define([CAPSTONE],
+	[[[capstone], [Use Capstone disassembly framework], []]])
 
 AC_ARG_ENABLE([doxygen-html],
   AS_HELP_STRING([--disable-doxygen-html],
@@ -653,13 +655,25 @@ PKG_CHECK_MODULES([LIBUSB1], [libusb-1.0], [
 
 PKG_CHECK_MODULES([LIBUSB0], [libusb], [use_libusb0=yes], [use_libusb0=no])
 
-PKG_CHECK_MODULES([CAPSTONE], [capstone], [have_capstone=yes],
-	[have_capstone=no])
+AC_ARG_WITH([capstone], [
+		AS_HELP_STRING([--with-capstone],
+			[use Capstone disassembly library (default=auto)])
+	], [
+		enable_capstone=$withval
+	], [
+		enable_capstone=auto
+])
 
-AS_IF([test "x$have_capstone" = "xyes"], [
-  AC_DEFINE([HAVE_CAPSTONE], [1], [1 if you have captone disassembly framework.])
-], [
-  AC_DEFINE([HAVE_CAPSTONE], [0], [0 if you don't have captone disassembly framework.])
+AS_IF([test "x$enable_capstone" != xno], [
+	PKG_CHECK_MODULES([Capstone], [capstone], [
+		AC_DEFINE([HAVE_CAPSTONE], [1], [1 if you have Capstone disassembly framework.])
+	], [
+		AC_DEFINE([HAVE_CAPSTONE], [0], [0 if you don't have Capstone disassembly framework.])
+		if test "x$enable_capstone" != xauto; then
+			AC_MSG_ERROR([--with-capstone was given, but test for Capstone failed])
+		fi
+		enable_capstone=no
+	])
 ])
 
 for hidapi_lib in hidapi hidapi-hidraw hidapi-libusb; do
@@ -785,7 +799,7 @@ AM_CONDITIONAL([USE_LIBGPIOD], [test "x$use_libgpiod" = "xyes"])
 AM_CONDITIONAL([USE_HIDAPI], [test "x$use_hidapi" = "xyes"])
 AM_CONDITIONAL([USE_LIBJAYLINK], [test "x$use_libjaylink" = "xyes"])
 AM_CONDITIONAL([RSHIM], [test "x$build_rshim" = "xyes"])
-AM_CONDITIONAL([HAVE_CAPSTONE], [test "x$have_capstone" = "xyes"])
+AM_CONDITIONAL([HAVE_CAPSTONE], [test "x$enable_capstone" != "xno"])
 
 AM_CONDITIONAL([MINIDRIVER], [test "x$build_minidriver" = "xyes"])
 AM_CONDITIONAL([MINIDRIVER_DUMMY], [test "x$build_minidriver_dummy" = "xyes"])
@@ -856,7 +870,8 @@ echo --------------------------------------------------
 m4_foreach([adapter], [USB1_ADAPTERS, USB0_ADAPTERS,
 	HIDAPI_ADAPTERS, HIDAPI_USB1_ADAPTERS, LIBFTDI_ADAPTERS,
 	LIBGPIOD_ADAPTERS,
-	LIBJAYLINK_ADAPTERS, PCIE_ADAPTERS],
+	LIBJAYLINK_ADAPTERS, PCIE_ADAPTERS,
+	CAPSTONE],
 	[s=m4_format(["%-40s"], ADAPTER_DESC([adapter]))
 	AS_CASE([$ADAPTER_VAR([adapter])],
 		[auto], [
