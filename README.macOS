@@ -27,14 +27,14 @@ With Homebrew you can either run:
   brew install [--HEAD] openocd (where optional --HEAD asks brew to
                                  install the current git version)
     or
-  brew install libtool automake libusb [libusb-compat] [hidapi] [libftdi]
+  brew install libtool automake libusb [hidapi] [libftdi]
     (to install the needed dependencies and then proceed with the
      manual building procedure)
 
 
 For building with MacPorts you need to run:
   sudo port install libtool automake autoconf pkgconfig \
-    libusb [libusb-compat] [libftdi1]
+    libusb [libftdi1]
 
 You should also specify LDFLAGS and CPPFLAGS to allow configure to use
 MacPorts' libraries, so run configure like this:
