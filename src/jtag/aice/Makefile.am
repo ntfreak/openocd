@@ -1,6 +1,6 @@
 noinst_LTLIBRARIES += %D%/libocdaice.la
 
-%C%_libocdaice_la_CPPFLAGS = -I$(top_srcdir)/src/jtag/drivers $(AM_CPPFLAGS) $(LIBUSB1_CFLAGS) $(LIBUSB0_CFLAGS)
+%C%_libocdaice_la_CPPFLAGS = -I$(top_srcdir)/src/jtag/drivers $(AM_CPPFLAGS) $(LIBUSB1_CFLAGS)
 %C%_libocdaice_la_SOURCES = \
 	%D%/aice_transport.c \
 	%D%/aice_interface.c \
