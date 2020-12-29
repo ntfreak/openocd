@@ -27,12 +27,6 @@ DRIVERFILES += %D%/libusb_helper.c
 %C%_libocdjtagdrivers_la_LIBADD += $(LIBUSB1_LIBS)
 endif
 
-if USE_LIBUSB0
-DRIVERFILES += %D%/usb_common.c
-%C%_libocdjtagdrivers_la_CPPFLAGS += $(LIBUSB0_CFLAGS)
-%C%_libocdjtagdrivers_la_LIBADD += $(LIBUSB0_LIBS)
-endif
-
 if USE_LIBFTDI
 %C%_libocdjtagdrivers_la_CPPFLAGS += $(LIBFTDI_CFLAGS)
 %C%_libocdjtagdrivers_la_LIBADD += $(LIBFTDI_LIBS)
@@ -203,7 +197,6 @@ DRIVERHEADERS = \
 	%D%/rlink_dtc_cmd.h \
 	%D%/rlink_ep1_cmd.h \
 	%D%/rlink_st7.h \
-	%D%/usb_common.h \
 	%D%/versaloon/usbtoxxx/usbtoxxx.h \
 	%D%/versaloon/usbtoxxx/usbtoxxx_internal.h \
 	%D%/versaloon/versaloon.h \
