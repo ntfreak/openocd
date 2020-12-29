@@ -34,7 +34,7 @@
 
 #include <jtag/interface.h>
 #include <jtag/commands.h>
-#include "usb_common.h"
+#include "libusb_helper.h"
 
 #define VID 0x1781
 #define PID 0x0c63
@@ -64,7 +64,7 @@ static void usbprog_scan(bool ir_scan, enum scan_type type, uint8_t *buffer, int
 #define WRITE_TMS_CHAIN 0x0A
 
 struct usbprog_jtag {
-	struct usb_dev_handle *usb_handle;
+	struct libusb_device_handle *usb_handle;
 };
 
 static struct usbprog_jtag *usbprog_jtag_handle;
@@ -350,21 +350,19 @@ struct usb_bus *busses;
 
 struct usbprog_jtag *usbprog_jtag_open(void)
 {
-	usb_set_debug(10);
-	usb_init();
-
 	const uint16_t vids[] = { VID, 0 };
 	const uint16_t pids[] = { PID, 0 };
-	struct usb_dev_handle *dev;
-	if (jtag_usb_open(vids, pids, &dev) != ERROR_OK)
+	struct libusb_device_handle *dev;
+
+	if (jtag_libusb_open(vids, pids, NULL, &dev, NULL) != ERROR_OK)
 		return NULL;
 
 	struct usbprog_jtag *tmp = malloc(sizeof(struct usbprog_jtag));
 	tmp->usb_handle = dev;
 
-	usb_set_configuration(dev, 1);
-	usb_claim_interface(dev, 0);
-	usb_set_altinterface(dev, 0);
+	libusb_set_configuration(dev, 1);
+	libusb_claim_interface(dev, 0);
+	libusb_set_interface_alt_setting(dev, 0, 0);
 
 	return tmp;
 }
@@ -372,21 +370,23 @@ struct usbprog_jtag *usbprog_jtag_open(void)
 #if 0
 static void usbprog_jtag_close(struct usbprog_jtag *usbprog_jtag)
 {
-	usb_close(usbprog_jtag->usb_handle);
+	libusb_close(usbprog_jtag->usb_handle);
 	free(usbprog_jtag);
 }
 #endif
 
 static unsigned char usbprog_jtag_message(struct usbprog_jtag *usbprog_jtag, char *msg, int msglen)
 {
-	int res = usb_bulk_write(usbprog_jtag->usb_handle, 3, msg, msglen, 100);
+	int transferred;
+
+	int res = jtag_libusb_bulk_write(usbprog_jtag->usb_handle, 3, msg, msglen, 100, &transferred);
 	if ((msg[0] == 2) || (msg[0] == 1) || (msg[0] == 4) || (msg[0] == 0) ||
 	    (msg[0] == 6) || (msg[0] == 0x0A) || (msg[0] == 9))
 		return 1;
-	if (res == msglen) {
+	if (res == ERROR_OK && transferred == msglen) {
 		/* LOG_INFO("HALLLLOOO %i",(int)msg[0]); */
-		res = usb_bulk_read(usbprog_jtag->usb_handle, 0x82, msg, 2, 100);
-		if (res > 0)
+		res = jtag_libusb_bulk_read(usbprog_jtag->usb_handle, 0x82, msg, 2, 100, &transferred);
+		if (res == ERROR_OK && transferred > 0)
 			return (unsigned char)msg[1];
 		else
 			return -1;
@@ -428,11 +428,13 @@ static void usbprog_jtag_write_and_read(struct usbprog_jtag *usbprog_jtag, char 
 			bufindex++;
 		}
 
-		if (usb_bulk_write(usbprog_jtag->usb_handle, 3, tmp, 64, 1000) == 64) {
+		int transferred;
+		int res = jtag_libusb_bulk_write(usbprog_jtag->usb_handle, 3, tmp, 64, 1000, &transferred);
+		if (res == ERROR_OK && transferred == 64) {
 			/* LOG_INFO("HALLLLOOO2 %i",(int)tmp[0]); */
 			usleep(1);
 			int timeout = 0;
-			while (usb_bulk_read(usbprog_jtag->usb_handle, 0x82, tmp, 64, 1000) < 1) {
+			while (jtag_libusb_bulk_read(usbprog_jtag->usb_handle, 0x82, tmp, 64, 1000, &transferred) != ERROR_OK) {
 				timeout++;
 				if (timeout > 10)
 					break;
@@ -469,12 +471,13 @@ static void usbprog_jtag_read_tdo(struct usbprog_jtag *usbprog_jtag, char *buffe
 		tmp[1] = (char)(send_bits >> 8);	/* high */
 		tmp[2] = (char)(send_bits);			/* low */
 
-		usb_bulk_write(usbprog_jtag->usb_handle, 3, tmp, 3, 1000);
+		int transferred;
+		jtag_libusb_bulk_write(usbprog_jtag->usb_handle, 3, tmp, 3, 1000, &transferred);
 
 		/* LOG_INFO("HALLLLOOO3 %i",(int)tmp[0]); */
 		int timeout = 0;
 		usleep(1);
-		while (usb_bulk_read(usbprog_jtag->usb_handle, 0x82, tmp, 64, 10) < 1) {
+		while (jtag_libusb_bulk_read(usbprog_jtag->usb_handle, 0x82, tmp, 64, 10, &transferred) != ERROR_OK) {
 			timeout++;
 			if (timeout > 10)
 				break;
@@ -513,7 +516,8 @@ static void usbprog_jtag_write_tdi(struct usbprog_jtag *usbprog_jtag, char *buff
 			tmp[3 + i] = buffer[bufindex];
 			bufindex++;
 		}
-		usb_bulk_write(usbprog_jtag->usb_handle, 3, tmp, 64, 1000);
+		int transferred;
+		jtag_libusb_bulk_write(usbprog_jtag->usb_handle, 3, tmp, 64, 1000, &transferred);
 	}
 }
 
@@ -582,15 +586,15 @@ static void usbprog_jtag_tms_collect(char tms_scan)
 
 static void usbprog_jtag_tms_send(struct usbprog_jtag *usbprog_jtag)
 {
-	int i;
 	/* LOG_INFO("TMS SEND"); */
 	if (tms_chain_index > 0) {
 		char tmp[tms_chain_index + 2];
 		tmp[0] = WRITE_TMS_CHAIN;
 		tmp[1] = (char)(tms_chain_index);
-		for (i = 0; i < tms_chain_index + 1; i++)
+		for (int i = 0; i < tms_chain_index + 1; i++)
 			tmp[2 + i] = tms_chain[i];
-		usb_bulk_write(usbprog_jtag->usb_handle, 3, tmp, tms_chain_index + 2, 1000);
+		int transferred;
+		jtag_libusb_bulk_write(usbprog_jtag->usb_handle, 3, tmp, tms_chain_index + 2, 1000, &transferred);
 		tms_chain_index = 0;
 	}
 }
