@@ -224,8 +224,7 @@ Additionally, for building from git:
 - automake >= 1.14
 - texinfo >= 5.0
 
-USB-based adapters depend on libusb-1.0 and some older drivers require
-libusb-0.1 or libusb-compat-0.1. A compatible implementation, such as
+USB-based adapters depend on libusb-1.0. A compatible implementation, such as
 FreeBSD's, additionally needs the corresponding .pc files.
 
 USB-Blaster, ASIX Presto and OpenJTAG interface adapter
