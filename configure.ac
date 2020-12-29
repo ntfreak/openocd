@@ -123,11 +123,11 @@ m4_define([USB1_ADAPTERS],
 	[[osbdm], [OSBDM (JTAG only) Programmer], [OSBDM]],
 	[[opendous], [eStick/opendous JTAG Programmer], [OPENDOUS]],
 	[[rlink], [Raisonance RLink JTAG Programmer], [RLINK]],
+	[[usbprog], [USBProg JTAG Programmer], [USBPROG]],
 	[[aice], [Andes JTAG Programmer], [AICE]]])
 
 m4_define([USB0_ADAPTERS],
-	[[[usbprog], [USBProg JTAG Programmer], [USBPROG]],
-	[[armjtagew], [Olimex ARM-JTAG-EW Programmer], [ARMJTAGEW]]])
+	[[[armjtagew], [Olimex ARM-JTAG-EW Programmer], [ARMJTAGEW]]])
 
 m4_define([HIDAPI_ADAPTERS],
 	[[[cmsis_dap], [CMSIS-DAP Compliant Debugger], [CMSIS_DAP_HID]],
