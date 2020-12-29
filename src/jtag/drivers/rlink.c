@@ -33,7 +33,7 @@
 #include "rlink_st7.h"
 #include "rlink_ep1_cmd.h"
 #include "rlink_dtc_cmd.h"
-#include "usb_common.h"
+#include "libusb_helper.h"
 
 /* This feature is made useless by running the DTC all the time.  When automatic, the LED is on
  *whenever the DTC is running.  Otherwise, USB messages are sent to turn it on and off. */
@@ -96,19 +96,20 @@
 #define ST7_PC_TDO      ST7_PC_IO9
 #define ST7_PA_DBGACK   ST7_PA_IO10
 
-static usb_dev_handle *pHDev;
+static libusb_device_handle *pHDev;
 
 /*
  * ep1 commands are up to USB_EP1OUT_SIZE bytes in length.
  * This function takes care of zeroing the unused bytes before sending the packet.
  * Any reply packet is not handled by this function.
  */
-static int ep1_generic_commandl(usb_dev_handle *pHDev_param, size_t length, ...)
+static int ep1_generic_commandl(libusb_device_handle *pHDev_param, size_t length, ...)
 {
 	uint8_t usb_buffer[USB_EP1OUT_SIZE];
 	uint8_t *usb_buffer_p;
 	va_list ap;
 	int usb_ret;
+	int transferred;
 
 	if (length > sizeof(usb_buffer))
 		length = sizeof(usb_buffer);
@@ -127,25 +128,29 @@ static int ep1_generic_commandl(usb_dev_handle *pHDev_param, size_t length, ...)
 		sizeof(usb_buffer) - (usb_buffer_p - usb_buffer)
 		);
 
-	usb_ret = usb_bulk_write(
+	usb_ret = jtag_libusb_bulk_write(
 			pHDev_param,
 			USB_EP1OUT_ADDR,
 			(char *)usb_buffer, sizeof(usb_buffer),
-			USB_TIMEOUT_MS
+			USB_TIMEOUT_MS,
+			&transferred
 			);
 
-	return usb_ret;
+	if (usb_ret != ERROR_OK)
+		return usb_ret;
+	return transferred;
 }
 
 #if 0
 static ssize_t ep1_memory_read(
-	usb_dev_handle *pHDev, uint16_t addr,
+	libusb_device_handle *pHDev_param, uint16_t addr,
 	size_t length, uint8_t *buffer)
 {
 	uint8_t usb_buffer[USB_EP1OUT_SIZE];
 	int usb_ret;
 	size_t remain;
 	ssize_t count;
+	int transferred;
 
 	usb_buffer[0] = EP1_CMD_MEMORY_READ;
 	memset(
@@ -167,22 +172,24 @@ static ssize_t ep1_memory_read(
 		usb_buffer[2] = addr;
 		usb_buffer[3] = length;
 
-		usb_ret = usb_bulk_write(
-				pHDev, USB_EP1OUT_ADDR,
-				usb_buffer, sizeof(usb_buffer),
-				USB_TIMEOUT_MS
+		usb_ret = jtag_libusb_bulk_write(
+				pHDev_param, USB_EP1OUT_ADDR,
+				(char *)usb_buffer, sizeof(usb_buffer),
+				USB_TIMEOUT_MS,
+				&transferred
 				);
 
-		if (usb_ret < sizeof(usb_buffer))
+		if (usb_ret != ERROR_OK || transferred < (int)sizeof(usb_buffer))
 			break;
 
-		usb_ret = usb_bulk_read(
-				pHDev, USB_EP1IN_ADDR,
-				buffer, length,
-				USB_TIMEOUT_MS
+		usb_ret = jtag_libusb_bulk_read(
+				pHDev_param, USB_EP1IN_ADDR,
+				(char *)buffer, length,
+				USB_TIMEOUT_MS,
+				&transferred
 				);
 
-		if (usb_ret < length)
+		if (usb_ret != ERROR_OK || transferred < (int)length)
 			break;
 
 		addr += length;
@@ -195,7 +202,7 @@ static ssize_t ep1_memory_read(
 }
 #endif
 
-static ssize_t ep1_memory_write(usb_dev_handle *pHDev_param, uint16_t addr,
+static ssize_t ep1_memory_write(libusb_device_handle *pHDev_param, uint16_t addr,
 	size_t length, uint8_t const *buffer)
 {
 	uint8_t usb_buffer[USB_EP1OUT_SIZE];
@@ -228,13 +235,16 @@ static ssize_t ep1_memory_write(usb_dev_handle *pHDev_param, uint16_t addr,
 			sizeof(usb_buffer) - 4 - length
 			);
 
-		usb_ret = usb_bulk_write(
+		int transferred;
+
+		usb_ret = jtag_libusb_bulk_write(
 				pHDev_param, USB_EP1OUT_ADDR,
 				(char *)usb_buffer, sizeof(usb_buffer),
-				USB_TIMEOUT_MS
+				USB_TIMEOUT_MS,
+				&transferred
 				);
 
-		if ((size_t)usb_ret < sizeof(usb_buffer))
+		if (usb_ret != ERROR_OK || transferred < (int)sizeof(usb_buffer))
 			break;
 
 		addr += length;
@@ -248,7 +258,7 @@ static ssize_t ep1_memory_write(usb_dev_handle *pHDev_param, uint16_t addr,
 
 
 #if 0
-static ssize_t ep1_memory_writel(usb_dev_handle *pHDev, uint16_t addr,
+static ssize_t ep1_memory_writel(libusb_device_handle *pHDev_param, uint16_t addr,
 	size_t length, ...)
 {
 	uint8_t buffer[USB_EP1OUT_SIZE - 4];
@@ -268,7 +278,7 @@ static ssize_t ep1_memory_writel(usb_dev_handle *pHDev, uint16_t addr,
 		remain--;
 	}
 
-	return ep1_memory_write(pHDev, addr, length, buffer);
+	return ep1_memory_write(pHDev_param, addr, length, buffer);
 }
 #endif
 
@@ -285,7 +295,7 @@ static ssize_t ep1_memory_writel(usb_dev_handle *pHDev, uint16_t addr,
 static uint8_t dtc_entry_download;
 
 /* The buffer is specially formatted to represent a valid image to load into the DTC. */
-static int dtc_load_from_buffer(usb_dev_handle *pHDev_param, const uint8_t *buffer,
+static int dtc_load_from_buffer(libusb_device_handle *pHDev_param, const uint8_t *buffer,
 		size_t length)
 {
 	struct header_s {
@@ -400,6 +410,7 @@ static int dtc_start_download(void)
 {
 	int usb_err;
 	uint8_t ep2txr;
+	int transferred;
 
 	/* set up for download mode and make sure EP2 is set up to transmit */
 	usb_err = ep1_generic_commandl(
@@ -417,12 +428,13 @@ static int dtc_start_download(void)
 		return usb_err;
 
 	/* read back ep2txr */
-	usb_err = usb_bulk_read(
+	usb_err = jtag_libusb_bulk_read(
 			pHDev, USB_EP1IN_ADDR,
 			(char *)&ep2txr, 1,
-			USB_TIMEOUT_MS
+			USB_TIMEOUT_MS,
+			&transferred
 			);
-	if (usb_err < 0)
+	if (usb_err != ERROR_OK)
 		return usb_err;
 
 	usb_err = ep1_generic_commandl(
@@ -446,17 +458,18 @@ static int dtc_start_download(void)
 		return usb_err;
 
 	/* wait for completion */
-	usb_err = usb_bulk_read(
+	usb_err = jtag_libusb_bulk_read(
 			pHDev, USB_EP1IN_ADDR,
 			(char *)&ep2txr, 1,
-			USB_TIMEOUT_MS
+			USB_TIMEOUT_MS,
+			&transferred
 			);
 
 	return usb_err;
 }
 
 static int dtc_run_download(
-	usb_dev_handle *pHDev_param,
+	libusb_device_handle *pHDev_param,
 	uint8_t *command_buffer,
 	int command_buffer_size,
 	uint8_t *reply_buffer,
@@ -466,14 +479,16 @@ static int dtc_run_download(
 	char dtc_status;
 	int usb_err;
 	int i;
+	int transferred;
 
 	LOG_DEBUG("%d/%d", command_buffer_size, reply_buffer_size);
 
-	usb_err = usb_bulk_write(
+	usb_err = jtag_libusb_bulk_write(
 			pHDev_param,
 			USB_EP2OUT_ADDR,
 			(char *)command_buffer, USB_EP2BANK_SIZE,
-			USB_TIMEOUT_MS
+			USB_TIMEOUT_MS,
+			&transferred
 			);
 	if (usb_err < 0)
 		return usb_err;
@@ -492,11 +507,12 @@ static int dtc_run_download(
 		if (usb_err < 0)
 			return usb_err;
 
-		usb_err = usb_bulk_read(
+		usb_err = jtag_libusb_bulk_read(
 				pHDev_param,
 				USB_EP1IN_ADDR,
 				&dtc_status, 1,
-				USB_TIMEOUT_MS
+				USB_TIMEOUT_MS,
+				&transferred
 				);
 		if (usb_err < 0)
 			return usb_err;
@@ -506,20 +522,21 @@ static int dtc_run_download(
 
 		if (!--i) {
 			LOG_ERROR("too many retries waiting for DTC status");
-			return -ETIMEDOUT;
+			return LIBUSB_ERROR_TIMEOUT;
 		}
 	}
 
 
 	if (reply_buffer && reply_buffer_size) {
-		usb_err = usb_bulk_read(
+		usb_err = jtag_libusb_bulk_read(
 				pHDev_param,
 				USB_EP2IN_ADDR,
 				(char *)reply_buffer, reply_buffer_size,
-				USB_TIMEOUT_MS
+				USB_TIMEOUT_MS,
+				&transferred
 				);
 
-		if (usb_err < reply_buffer_size) {
+		if (usb_err != ERROR_OK || transferred < reply_buffer_size) {
 			LOG_ERROR("Read of endpoint 2 returned %d, expected %d",
 				usb_err, reply_buffer_size
 				);
@@ -643,7 +660,7 @@ static int dtc_queue_run(void)
 			reply_buffer, sizeof(reply_buffer)
 			);
 	if (usb_err < 0) {
-		LOG_ERROR("dtc_run_download: %s", usb_strerror());
+		LOG_ERROR("dtc_run_download: %s", libusb_error_name(usb_err));
 		exit(1);
 	}
 
@@ -918,6 +935,7 @@ static void rlink_reset(int trst, int srst)
 {
 	uint8_t bitmap;
 	int usb_err;
+	int transferred;
 
 	/* Read port A for bit op */
 	usb_err = ep1_generic_commandl(
@@ -928,17 +946,18 @@ static void rlink_reset(int trst, int srst)
 			1
 			);
 	if (usb_err < 0) {
-		LOG_ERROR("%s", usb_strerror());
+		LOG_ERROR("%s", libusb_error_name(usb_err));
 		exit(1);
 	}
 
-	usb_err = usb_bulk_read(
+	usb_err = jtag_libusb_bulk_read(
 			pHDev, USB_EP1IN_ADDR,
 			(char *)&bitmap, 1,
-			USB_TIMEOUT_MS
+			USB_TIMEOUT_MS,
+			&transferred
 			);
-	if (usb_err < 1) {
-		LOG_ERROR("%s", usb_strerror());
+	if (usb_err != ERROR_OK || transferred < 1) {
+		LOG_ERROR("%s", libusb_error_name(usb_err));
 		exit(1);
 	}
 
@@ -963,17 +982,18 @@ static void rlink_reset(int trst, int srst)
 			1
 			);
 	if (usb_err < 0) {
-		LOG_ERROR("%s", usb_strerror());
+		LOG_ERROR("%s", libusb_error_name(usb_err));
 		exit(1);
 	}
 
-	usb_err = usb_bulk_read(
+	usb_err = jtag_libusb_bulk_read(
 			pHDev, USB_EP1IN_ADDR,
 			(char *)&bitmap, 1,
-			USB_TIMEOUT_MS
+			USB_TIMEOUT_MS,
+			&transferred
 			);
-	if (usb_err < 1) {
-		LOG_ERROR("%s", usb_strerror());
+	if (usb_err != ERROR_OK || transferred < 1) {
+		LOG_ERROR("%s", libusb_error_name(usb_err));
 		exit(1);
 	}
 
@@ -993,17 +1013,18 @@ static void rlink_reset(int trst, int srst)
 			EP1_CMD_DTC_GET_CACHED_STATUS
 			);
 	if (usb_err < 0) {
-		LOG_ERROR("%s", usb_strerror());
+		LOG_ERROR("%s", libusb_error_name(usb_err));
 		exit(1);
 	}
 
-	usb_err = usb_bulk_read(
+	usb_err = jtag_libusb_bulk_read(
 			pHDev, USB_EP1IN_ADDR,
 			(char *)&bitmap, 1,
-			USB_TIMEOUT_MS
+			USB_TIMEOUT_MS,
+			&transferred
 			);
-	if (usb_err < 1) {
-		LOG_ERROR("%s", usb_strerror());
+	if (usb_err != ERROR_OK || transferred < 1) {
+		LOG_ERROR("%s", libusb_error_name(usb_err));
 		exit(1);
 	}
 }
@@ -1390,8 +1411,9 @@ static int rlink_speed(int speed)
 				exit(1);
 			}
 
-			if (dtc_start_download() < 0) {
-				LOG_ERROR("starting DTC: %s", usb_strerror());
+			int ret = dtc_start_download();
+			if (ret < 0) {
+				LOG_ERROR("starting DTC: %s", libusb_error_name(ret));
 				exit(1);
 			}
 
@@ -1443,19 +1465,28 @@ static int rlink_init(void)
 {
 	int i, j, retries;
 	uint8_t reply_buffer[USB_EP1IN_SIZE];
+	int transferred;
 
-	usb_init();
 	const uint16_t vids[] = { USB_IDVENDOR, 0 };
 	const uint16_t pids[] = { USB_IDPRODUCT, 0 };
-	if (jtag_usb_open(vids, pids, &pHDev) != ERROR_OK)
+	if (jtag_libusb_open(vids, pids, NULL, &pHDev, NULL) != ERROR_OK)
 		return ERROR_FAIL;
 
-	struct usb_device *dev = usb_device(pHDev);
-	if (dev->descriptor.bNumConfigurations > 1) {
+	struct libusb_device_descriptor descriptor;
+	struct libusb_device *usb_dev = libusb_get_device(pHDev);
+	int r = libusb_get_device_descriptor(usb_dev, &descriptor);
+	if (r < 0) {
+		LOG_ERROR("error %d getting device descriptor", r);
+		return ERROR_FAIL;
+	}
+
+	if (descriptor.bNumConfigurations > 1) {
 		LOG_ERROR("Whoops! NumConfigurations is not 1, don't know what to do...");
 		return ERROR_FAIL;
 	}
-	if (dev->config->bNumInterfaces > 1) {
+	struct libusb_config_descriptor *config;
+	libusb_get_config_descriptor(usb_dev, 0, &config);
+	if (config->bNumInterfaces > 1) {
 		LOG_ERROR("Whoops! NumInterfaces is not 1, don't know what to do...");
 		return ERROR_FAIL;
 	}
@@ -1463,29 +1494,27 @@ static int rlink_init(void)
 	LOG_DEBUG("Opened device, pHDev = %p", pHDev);
 
 	/* usb_set_configuration required under win32 */
-	usb_set_configuration(pHDev, dev->config[0].bConfigurationValue);
+	libusb_set_configuration(pHDev, config->bConfigurationValue);
 
 	retries = 3;
 	do {
-		i = usb_claim_interface(pHDev, 0);
-		if (i) {
-			LOG_ERROR("usb_claim_interface: %s", usb_strerror());
-#ifdef LIBUSB_HAS_DETACH_KERNEL_DRIVER_NP
-			j = usb_detach_kernel_driver_np(pHDev, 0);
-			if (j)
-				LOG_ERROR("detach kernel driver: %s", usb_strerror());
-#endif
+		i = libusb_claim_interface(pHDev, 0);
+		if (i != LIBUSB_SUCCESS) {
+			LOG_ERROR("usb_claim_interface: %s", libusb_error_name(i));
+			j = libusb_detach_kernel_driver(pHDev, 0);
+			if (j != LIBUSB_SUCCESS)
+				LOG_ERROR("detach kernel driver: %s", libusb_error_name(j));
 		} else {
 			LOG_DEBUG("interface claimed!");
 			break;
 		}
 	} while (--retries);
 
-	if (i) {
+	if (i != LIBUSB_SUCCESS) {
 		LOG_ERROR("Initialisation failed.");
 		return ERROR_FAIL;
 	}
-	if (usb_set_altinterface(pHDev, 0) != 0) {
+	if (libusb_set_interface_alt_setting(pHDev, 0, 0) != LIBUSB_SUCCESS) {
 		LOG_ERROR("Failed to set interface.");
 		return ERROR_FAIL;
 	}
@@ -1505,20 +1534,21 @@ static int rlink_init(void)
 				EP1_CMD_GET_FWREV
 				);
 		if (j < USB_EP1OUT_SIZE) {
-			LOG_ERROR("USB write error: %s", usb_strerror());
+			LOG_ERROR("USB write error: %s", libusb_error_name(j));
 			return ERROR_FAIL;
 		}
-		j = usb_bulk_read(
+		j = jtag_libusb_bulk_read(
 				pHDev, USB_EP1IN_ADDR,
 				(char *)reply_buffer, sizeof(reply_buffer),
-				200
+				200,
+				&transferred
 				);
-		if (j != -ETIMEDOUT)
+		if (j != LIBUSB_ERROR_TIMEOUT)
 			break;
 	}
 
-	if (j < (int)sizeof(reply_buffer)) {
-		LOG_ERROR("USB read error: %s", usb_strerror());
+	if (j != ERROR_OK || transferred != (int)sizeof(reply_buffer)) {
+		LOG_ERROR("USB read error: %s", libusb_error_name(j));
 		return ERROR_FAIL;
 	}
 	LOG_DEBUG(INTERFACE_NAME " firmware version: %d.%d.%d",
@@ -1551,10 +1581,11 @@ static int rlink_init(void)
 		ST7_PE_ADAPTER_SENSE_OUT
 		);
 
-	usb_bulk_read(
+	jtag_libusb_bulk_read(
 		pHDev, USB_EP1IN_ADDR,
 		(char *)reply_buffer, 1,
-		USB_TIMEOUT_MS
+		USB_TIMEOUT_MS,
+		&transferred
 		);
 
 	if ((reply_buffer[0] & ST7_PE_ADAPTER_SENSE_IN) != 0)
@@ -1575,10 +1606,11 @@ static int rlink_init(void)
 		0x00		/* OR */
 		);
 
-	usb_bulk_read(
+	jtag_libusb_bulk_read(
 		pHDev, USB_EP1IN_ADDR,
 		(char *)reply_buffer, 1,
-		USB_TIMEOUT_MS
+		USB_TIMEOUT_MS,
+		&transferred
 		);
 
 
@@ -1654,8 +1686,8 @@ static int rlink_quit(void)
 		~0
 		);
 
-	usb_release_interface(pHDev, 0);
-	usb_close(pHDev);
+	libusb_release_interface(pHDev, 0);
+	libusb_close(pHDev);
 
 	return ERROR_OK;
 }
