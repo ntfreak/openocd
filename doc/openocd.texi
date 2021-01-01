@@ -4547,8 +4547,10 @@ The current implementation supports three JTAG TAP cores:
 @end itemize
 And two debug interfaces cores:
 @itemize @minus
-@item @code{Advanced debug interface} (See: @url{http://opencores.org/project@comma{}adv_debug_sys})
-@item @code{SoC Debug Interface} (See: @url{http://opencores.org/project@comma{}dbg_interface})
+@item @code{Advanced debug interface}
+@*(See: @url{http://opencores.org/project@comma{}adv_debug_sys})
+@item @code{SoC Debug Interface}
+@*(See: @url{http://opencores.org/project@comma{}dbg_interface})
 @end itemize
 @item @code{quark_d20xx} -- an Intel Quark D20xx core.
 @item @code{quark_x10xx} -- an Intel Quark X10xx core.
@@ -5616,8 +5618,10 @@ is attempted. If this fails or gives inappropriate results, manual setting is
 required (see 'set' command).
 
 @example
-flash bank $_FLASHNAME stmqspi 0x90000000 0 0 0 $_TARGETNAME 0xA0001000
-flash bank $_FLASHNAME stmqspi 0x70000000 0 0 0 $_TARGETNAME 0xA0001400
+flash bank $_FLASHNAME stmqspi 0x90000000 0 0 0 \
+           $_TARGETNAME 0xA0001000
+flash bank $_FLASHNAME stmqspi 0x70000000 0 0 0 \
+           $_TARGETNAME 0xA0001400
 @end example
 
 There are three specific commands
@@ -5655,11 +5659,13 @@ Note the hardware dictated subtle difference of those two cases in dual-flash mo
 
 To check basic communication settings, issue
 @example
-stmqspi cmd bank_id 0 0x04; stmqspi cmd bank_id 1 0x05; stmqspi cmd bank_id 0 0x06; stmqspi cmd bank_id 1 0x05
+stmqspi cmd bank_id 0 0x04; stmqspi cmd bank_id 1 0x05
+stmqspi cmd bank_id 0 0x06; stmqspi cmd bank_id 1 0x05
 @end example
 for single flash mode or
 @example
-stmqspi cmd bank_id 0 0x04; stmqspi cmd bank_id 2 0x05; stmqspi cmd bank_id 0 0x06; stmqspi cmd bank_id 2 0x05
+stmqspi cmd bank_id 0 0x04; stmqspi cmd bank_id 2 0x05
+stmqspi cmd bank_id 0 0x06; stmqspi cmd bank_id 2 0x05
 @end example
 for dual flash mode. This should return the status register contents.
 
@@ -5717,9 +5723,9 @@ CS1/CS2 is routed to on the given SoC.
 @example
 flash bank $_FLASHNAME ath79 0xbf000000 0 0 0 $_TARGETNAME
 
-# When using multiple chipselects the base should be different for each,
-# otherwise the write_image command is not able to distinguish the
-# banks.
+# When using multiple chipselects the base should be different
+# for each, otherwise the write_image command is not able to
+# distinguish the banks.
 flash bank flash0 ath79 0xbf000000 0 0 0 $_TARGETNAME cs0
 flash bank flash1 ath79 0x10000000 0 0 0 $_TARGETNAME cs1
 flash bank flash2 ath79 0x20000000 0 0 0 $_TARGETNAME cs2
@@ -5880,7 +5886,8 @@ reserved-bits are masked out and cannot be changed.
 NVMUSERROW: 0xFFFFFC5DD8E0C788
 # Write 0xFFFFFC5DD8E0C788 to user row
 >at91samd nvmuserrow 0xFFFFFC5DD8E0C788
-# Write 0x12300 to user row but leave other bits and low byte unchanged
+# Write 0x12300 to user row but leave other bits and low
+# byte unchanged
 >at91samd nvmuserrow 0x12345 0xFFF00
 @end example
 @end deffn
@@ -6028,8 +6035,9 @@ The reserved fields are always masked out and cannot be changed.
 USER PAGE: 0xAEECFF80FE9A9239
 # Write
 >atsame5 userpage 0xAEECFF80FE9A9239
-# Write 2 to SEESBLK and 4 to SEEPSZ fields but leave other bits unchanged
-# (setup SmartEEPROM of virtual size 8192 bytes)
+# Write 2 to SEESBLK and 4 to SEEPSZ fields but leave other
+# bits unchanged (setup SmartEEPROM of virtual size 8192
+# bytes)
 >atsame5 userpage 0x4200000000 0x7f00000000
 @end example
 @end deffn
@@ -6788,7 +6796,8 @@ The driver probes for a number of these chips and autoconfigures itself,
 apart from the base address.
 
 @example
-flash bank $_CHIPNAME.eeprom psoc5lp_eeprom 0x40008000 0 0 0 $_TARGETNAME
+flash bank $_CHIPNAME.eeprom psoc5lp_eeprom 0x40008000 0 0 0 \
+           $_TARGETNAME
 @end example
 @end deffn
 
@@ -6842,19 +6851,31 @@ automatically by parsing data in SPCIF_GEOMETRY register.
 PSoC6 is equipped with NOR Flash so erased Flash reads as 0x00.
 
 @example
-flash bank main_flash_cm0 psoc6 0x10000000 0 0 0 $@{TARGET@}.cm0
-flash bank work_flash_cm0 psoc6 0x14000000 0 0 0 $@{TARGET@}.cm0
-flash bank super_flash_user_cm0 psoc6 0x16000800 0 0 0 $@{TARGET@}.cm0
-flash bank super_flash_nar_cm0 psoc6 0x16001A00 0 0 0 $@{TARGET@}.cm0
-flash bank super_flash_key_cm0 psoc6 0x16005A00 0 0 0 $@{TARGET@}.cm0
-flash bank super_flash_toc2_cm0 psoc6 0x16007C00 0 0 0 $@{TARGET@}.cm0
+flash bank main_flash_cm0 psoc6 0x10000000 0 0 0 \
+           $@{TARGET@}.cm0
+flash bank work_flash_cm0 psoc6 0x14000000 0 0 0 \
+           $@{TARGET@}.cm0
+flash bank super_flash_user_cm0 psoc6 0x16000800 0 0 0 \
+           $@{TARGET@}.cm0
+flash bank super_flash_nar_cm0 psoc6 0x16001A00 0 0 0 \
+           $@{TARGET@}.cm0
+flash bank super_flash_key_cm0 psoc6 0x16005A00 0 0 0 \
+           $@{TARGET@}.cm0
+flash bank super_flash_toc2_cm0 psoc6 0x16007C00 0 0 0 \
+           $@{TARGET@}.cm0
 
-flash bank main_flash_cm4 psoc6 0x10000000 0 0 0 $@{TARGET@}.cm4
-flash bank work_flash_cm4 psoc6 0x14000000 0 0 0 $@{TARGET@}.cm4
-flash bank super_flash_user_cm4 psoc6 0x16000800 0 0 0 $@{TARGET@}.cm4
-flash bank super_flash_nar_cm4 psoc6 0x16001A00 0 0 0 $@{TARGET@}.cm4
-flash bank super_flash_key_cm4 psoc6 0x16005A00 0 0 0 $@{TARGET@}.cm4
-flash bank super_flash_toc2_cm4 psoc6 0x16007C00 0 0 0 $@{TARGET@}.cm4
+flash bank main_flash_cm4 psoc6 0x10000000 0 0 0 \
+           $@{TARGET@}.cm4
+flash bank work_flash_cm4 psoc6 0x14000000 0 0 0 \
+           $@{TARGET@}.cm4
+flash bank super_flash_user_cm4 psoc6 0x16000800 0 0 0 \
+           $@{TARGET@}.cm4
+flash bank super_flash_nar_cm4 psoc6 0x16001A00 0 0 0 \
+           $@{TARGET@}.cm4
+flash bank super_flash_key_cm4 psoc6 0x16005A00 0 0 0 \
+           $@{TARGET@}.cm4
+flash bank super_flash_toc2_cm4 psoc6 0x16007C00 0 0 0 \
+           $@{TARGET@}.cm4
 @end example
 
 psoc6-specific commands
@@ -7110,7 +7131,8 @@ will be touched).
 
 Example usage:
 @example
-# swap bank 1 and bank 2 in dual bank devices, by setting SWAP_BANK_OPT bit in OPTSR_PRG
+# swap bank 1 and bank 2 in dual bank devices
+# by setting SWAP_BANK_OPT bit in OPTSR_PRG
 stm32h7x option_write 0 0x20 0x8000000 0x8000000
 @end example
 @end deffn
@@ -10069,7 +10091,7 @@ Perform a 32-bit DMI write of value at address.
 Synopsys DesignWare ARC Processors are a family of 32-bit CPUs that SoC
 designers can optimize for a wide range of uses, from deeply embedded to
 high-performance host applications in a variety of market segments. See more
-at: http://www.synopsys.com/IP/ProcessorIP/ARCProcessors/Pages/default.aspx.
+at: @url{http://www.synopsys.com/IP/ProcessorIP/ARCProcessors/Pages/default.aspx}.
 OpenOCD currently supports ARC EM processors.
 There is a set ARC-specific OpenOCD commands that allow low-level
 access to the core and provide necessary support for ARC extensibility and
@@ -10681,7 +10703,8 @@ target remote localhost:3333
 @item
 A pipe connection is typically started as follows:
 @example
-target extended-remote | openocd -c "gdb_port pipe; log_output openocd.log"
+target extended-remote | \
+       openocd -c "gdb_port pipe; log_output openocd.log"
 @end example
 This would cause GDB to run OpenOCD and communicate using pipes (stdin/stdout).
 Using this method has the advantage of GDB starting/stopping OpenOCD for the debug
@@ -10895,17 +10918,11 @@ Cyg_Thread::thread_list, Cyg_Scheduler_Base::current_thread.
 @item ThreadX symbols
 _tx_thread_current_ptr, _tx_thread_created_ptr, _tx_thread_created_count.
 @item FreeRTOS symbols
-@c The following is taken from recent texinfo to provide compatibility
-@c with ancient versions that do not support @raggedright
-@tex
-\begingroup
-\rightskip0pt plus2em \spaceskip.3333em \xspaceskip.5em\relax
+@raggedright
 pxCurrentTCB, pxReadyTasksLists, xDelayedTaskList1, xDelayedTaskList2,
 pxDelayedTaskList, pxOverflowDelayedTaskList, xPendingReadyList,
 uxCurrentNumberOfTasks, uxTopUsedPriority.
-\par
-\endgroup
-@end tex
+@end raggedright
 @item linux symbols
 init_task.
 @item ChibiOS symbols
@@ -10916,11 +10933,14 @@ Rtos::sListSuspended, Rtos::sMaxPriorities, Rtos::sCurrentTaskCount.
 @item mqx symbols
 _mqx_kernel_data, MQX_init_struct.
 @item uC/OS-III symbols
-OSRunning, OSTCBCurPtr, OSTaskDbgListPtr, OSTaskQty
+OSRunning, OSTCBCurPtr, OSTaskDbgListPtr, OSTaskQty.
 @item nuttx symbols
-g_readytorun, g_tasklisttable
+g_readytorun, g_tasklisttable.
 @item RIOT symbols
-sched_threads, sched_num_threads, sched_active_pid, max_threads, _tcb_name_offset
+@raggedright
+sched_threads, sched_num_threads, sched_active_pid, max_threads,
+_tcb_name_offset.
+@end raggedright
 @end table
 
 For most RTOS supported the above symbols will be exported by default. However for

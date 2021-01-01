@@ -216,7 +216,7 @@ Additionally, for building from git:
 
 - autoconf >= 2.64
 - automake >= 1.14
-- texinfo
+- texinfo >= 5.0
 
 USB-based adapters depend on libusb-1.0 and some older drivers require
 libusb-0.1 or libusb-compat-0.1. A compatible implementation, such as
