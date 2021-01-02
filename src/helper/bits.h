@@ -36,8 +36,8 @@
 
 /**
  * bitmap_zero - Clears all the bits in memory
- * @dst: the address of the bitmap
- * @nbits: the number of bits to clear
+ * @param dst the address of the bitmap
+ * @param nbits the number of bits to clear
  */
 static inline void bitmap_zero(unsigned long *dst, unsigned int nbits)
 {
@@ -47,8 +47,8 @@ static inline void bitmap_zero(unsigned long *dst, unsigned int nbits)
 
 /**
  * clear_bit - Clear a bit in memory
- * @nr: the bit to set
- * @addr: the address to start counting from
+ * @param nr the bit to set
+ * @param addr the address to start counting from
  */
 static inline void clear_bit(unsigned int nr, volatile unsigned long *addr)
 {
@@ -60,8 +60,8 @@ static inline void clear_bit(unsigned int nr, volatile unsigned long *addr)
 
 /**
  * set_bit - Set a bit in memory
- * @nr: the bit to set
- * @addr: the address to start counting from
+ * @param nr the bit to set
+ * @param addr the address to start counting from
  */
 static inline void set_bit(unsigned int nr, volatile unsigned long *addr)
 {
@@ -73,8 +73,8 @@ static inline void set_bit(unsigned int nr, volatile unsigned long *addr)
 
 /**
  * test_bit - Determine whether a bit is set
- * @nr: bit number to test
- * @addr: Address to start counting from
+ * @param nr bit number to test
+ * @param addr Address to start counting from
  */
 static inline int test_bit(unsigned int nr, const volatile unsigned long *addr)
 {

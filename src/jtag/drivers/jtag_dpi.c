@@ -79,8 +79,8 @@ static int read_sock(char *buf, size_t len)
 
 /**
  * jtag_dpi_reset - ask to reset the JTAG device
- * @trst: 1 if TRST is to be asserted
- * @srst: 1 if SRST is to be asserted
+ * @param trst 1 if TRST is to be asserted
+ * @param srst 1 if SRST is to be asserted
  */
 static int jtag_dpi_reset(int trst, int srst)
 {
@@ -109,11 +109,11 @@ static int jtag_dpi_reset(int trst, int srst)
 
 /**
  * jtag_dpi_scan - launches a DR-scan or IR-scan
- * @cmd: the command to launch
+ * @param cmd the command to launch
  *
  * Launch a JTAG IR-scan or DR-scan
  *
- * Returns ERROR_OK if OK, ERROR_xxx if a read/write error occured.
+ * Returns ERROR_OK if OK, ERROR_xxx if a read/write error occurred.
  */
 static int jtag_dpi_scan(struct scan_command *cmd)
 {

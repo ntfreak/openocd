@@ -193,8 +193,8 @@ static int dsp5680xx_probe(struct flash_bank *bank)
 /**
  * The flash module (FM) on the dsp5680xx supports both individual sector
  * and mass erase of the flash memory.
- * If this function is called with @first == @last == 0 or if @first is the
- * first sector (#0) and @last is the last sector then the mass erase command
+ * If this function is called with @a first == @a last == 0 or if @a first is the
+ * first sector (#0) and @a last is the last sector then the mass erase command
  * is executed (much faster than erasing each sector individually).
  *
  * @param bank
