@@ -15,9 +15,6 @@ autotools in the correct sequence.
 
 When run after a fresh checkout, this script generates the build files
 required to compile the project, producing the project configure script.
-After running @c configure, the @ref primermaintainermode settings will
-handle most situations that require running these tools again.  In some
-cases, a fresh bootstrap may be still required.
 
 @subsection primerbootstrapcures Problems Solved By Bootstrap
 
