@@ -1709,6 +1709,9 @@ static int FLASHD_EraseEntireBank(struct sam4_bank_private *pPrivate)
 /**
  * Erases the entire flash.
  * @param pPrivate - the info about the bank.
+ * @param firstPage
+ * @param numPages
+ * @param status
  */
 static int FLASHD_ErasePages(struct sam4_bank_private *pPrivate,
 							 int firstPage,

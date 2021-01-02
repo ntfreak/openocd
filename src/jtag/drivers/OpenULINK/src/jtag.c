@@ -48,6 +48,7 @@ uint8_t delay_tms;
  * Maximum achievable TCK frequency is 182 kHz for ULINK clocked at 24 MHz.
  *
  * @param out_offset offset in OUT2BUF where payload data starts
+ * @param in_offset
  */
 void jtag_scan_in(uint8_t out_offset, uint8_t in_offset)
 {
@@ -125,6 +126,7 @@ void jtag_scan_in(uint8_t out_offset, uint8_t in_offset)
  * Maximum achievable TCK frequency is 113 kHz for ULINK clocked at 24 MHz.
  *
  * @param out_offset offset in OUT2BUF where payload data starts
+ * @param in_offset
  */
 void jtag_slow_scan_in(uint8_t out_offset, uint8_t in_offset)
 {
@@ -373,6 +375,7 @@ void jtag_slow_scan_out(uint8_t out_offset)
  * Maximum achievable TCK frequency is 100 kHz for ULINK clocked at 24 MHz.
  *
  * @param out_offset offset in OUT2BUF where payload data starts
+ * @param in_offset
  */
 void jtag_scan_io(uint8_t out_offset, uint8_t in_offset)
 {
@@ -465,6 +468,7 @@ void jtag_scan_io(uint8_t out_offset, uint8_t in_offset)
  * Maximum achievable TCK frequency is 78 kHz for ULINK clocked at 24 MHz.
  *
  * @param out_offset offset in OUT2BUF where payload data starts
+ * @param in_offset
  */
 void jtag_slow_scan_io(uint8_t out_offset, uint8_t in_offset)
 {

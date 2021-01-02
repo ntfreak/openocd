@@ -696,6 +696,7 @@ static int ulink_append_queue(struct ulink *device, struct ulink_cmd *ulink_cmd)
  * Sends all queued OpenULINK commands to the ULINK for execution.
  *
  * @param device pointer to struct ulink identifying ULINK driver instance.
+ * @param timeout
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL
  */
@@ -1682,6 +1683,7 @@ static int ulink_queue_runtest(struct ulink *device, struct jtag_command *cmd)
 /**
  * Execute a JTAG_RESET command
  *
+ * @param device
  * @param cmd pointer to the command that shall be executed.
  * @return on success: ERROR_OK
  * @return on failure: ERROR_FAIL

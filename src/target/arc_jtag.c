@@ -237,7 +237,7 @@ static void arc_jtag_enque_register_rw(struct arc_jtag *jtag_info, uint32_t *add
  * @param type		Type of registers to write: core or aux.
  * @param addr		Array of registers numbers.
  * @param count		Amount of registers in arrays.
- * @param values	Array of register values.
+ * @param buffer	Array of register values.
  */
 static int arc_jtag_write_registers(struct arc_jtag *jtag_info, uint32_t type,
 	uint32_t *addr, uint32_t count, const uint32_t *buffer)
@@ -272,7 +272,7 @@ static int arc_jtag_write_registers(struct arc_jtag *jtag_info, uint32_t type,
  * @param type		Type of registers to read: core or aux.
  * @param addr		Array of registers numbers.
  * @param count		Amount of registers in arrays.
- * @param values	Array of register values.
+ * @param buffer	Array of register values.
  */
 static int arc_jtag_read_registers(struct arc_jtag *jtag_info, uint32_t type,
 		uint32_t *addr, uint32_t count, uint32_t *buffer)
@@ -337,7 +337,7 @@ int arc_jtag_write_core_reg_one(struct arc_jtag *jtag_info, uint32_t addr,
  * @param jtag_info
  * @param addr		Array of registers numbers.
  * @param count		Amount of registers in arrays.
- * @param values	Array of register values.
+ * @param buffer	Array of register values.
  */
 int arc_jtag_write_core_reg(struct arc_jtag *jtag_info, uint32_t *addr,
 	uint32_t count, const uint32_t *buffer)
@@ -361,7 +361,7 @@ int arc_jtag_read_core_reg_one(struct arc_jtag *jtag_info, uint32_t addr,
  * @param jtag_info
  * @param addr		Array of core register numbers.
  * @param count		Amount of registers in arrays.
- * @param values	Array of register values.
+ * @param buffer	Array of register values.
  */
 int arc_jtag_read_core_reg(struct arc_jtag *jtag_info, uint32_t *addr,
 	uint32_t count, uint32_t *buffer)
@@ -385,7 +385,7 @@ int arc_jtag_write_aux_reg_one(struct arc_jtag *jtag_info, uint32_t addr,
  * @param jtag_info
  * @param addr		Array of registers numbers.
  * @param count		Amount of registers in arrays.
- * @param values	Array of register values.
+ * @param buffer	Array of register values.
  */
 int arc_jtag_write_aux_reg(struct arc_jtag *jtag_info, uint32_t *addr,
 	uint32_t count, const uint32_t *buffer)
@@ -409,7 +409,7 @@ int arc_jtag_read_aux_reg_one(struct arc_jtag *jtag_info, uint32_t addr,
  * @param jtag_info
  * @param addr		Array of AUX register numbers.
  * @param count		Amount of registers in arrays.
- * @param values	Array of register values.
+ * @param buffer	Array of register values.
  */
 int arc_jtag_read_aux_reg(struct arc_jtag *jtag_info, uint32_t *addr,
 	uint32_t count, uint32_t *buffer)

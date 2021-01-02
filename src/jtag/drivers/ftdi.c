@@ -1062,7 +1062,6 @@ static void ftdi_swd_swdio_en(bool enable)
 
 /**
  * Flush the MPSSE queue and process the SWD transaction queue
- * @param dap
  * @return
  */
 static int ftdi_swd_run_queue(void)

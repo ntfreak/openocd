@@ -89,6 +89,8 @@ extern int gdb_actual_connections;
  * Initialize common semihosting support.
  *
  * @param target Pointer to the target to initialize.
+ * @param setup
+ * @param post_result
  * @return An error status if there is a problem during initialization.
  */
 int semihosting_common_init(struct target *target, void *setup,

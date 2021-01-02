@@ -924,6 +924,7 @@ exit:
  * Finds an actionpoint that triggered last actionpoint event, as specified by
  * DEBUG.ASR.
  *
+ * @param target
  * @param actionpoint Pointer to be set to last active actionpoint. Pointer
  *                    will be set to NULL if DEBUG.AH is 0.
  */

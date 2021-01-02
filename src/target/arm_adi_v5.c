@@ -450,7 +450,7 @@ static int mem_ap_write(struct adiv5_ap *ap, const uint8_t *buffer, uint32_t siz
  * @param buffer The data buffer to receive the data. No particular alignment is assumed.
  * @param size Which access size to use, in bytes. 1, 2 or 4.
  * @param count The number of reads to do (in size units, not bytes).
- * @param address Address to be read; it must be readable by the currently selected MEM-AP.
+ * @param adr Address to be read; it must be readable by the currently selected MEM-AP.
  * @param addrinc Whether the target address should be increased after each read or not. This
  *  should normally be true, except when reading from e.g. a FIFO.
  * @return ERROR_OK on success, otherwise an error code.

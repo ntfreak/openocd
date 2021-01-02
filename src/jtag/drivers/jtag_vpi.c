@@ -227,8 +227,8 @@ static int jtag_vpi_reset(int trst, int srst)
  * @param nb_bits number of TMS bits (between 1 and 8)
  *
  * Write a series of TMS transitions, where each transition consists in :
- *  - writing out TCK=0, TMS=<new_state>, TDI=<???>
- *  - writing out TCK=1, TMS=<new_state>, TDI=<???> which triggers the transition
+ *  - writing out TCK=0, TMS=\<new_state>, TDI=\<???>
+ *  - writing out TCK=1, TMS=\<new_state>, TDI=\<???> which triggers the transition
  * The function ensures that at the end of the sequence, the clock (TCK) is put
  * low.
  */
@@ -253,8 +253,8 @@ static int jtag_vpi_tms_seq(const uint8_t *bits, int nb_bits)
  * @param cmd path transition
  *
  * Write a series of TMS transitions, where each transition consists in :
- *  - writing out TCK=0, TMS=<new_state>, TDI=<???>
- *  - writing out TCK=1, TMS=<new_state>, TDI=<???> which triggers the transition
+ *  - writing out TCK=0, TMS=\<new_state>, TDI=\<???>
+ *  - writing out TCK=1, TMS=\<new_state>, TDI=\<???> which triggers the transition
  * The function ensures that at the end of the sequence, the clock (TCK) is put
  * low.
  */
@@ -344,6 +344,7 @@ static int jtag_vpi_queue_tdi_xfer(uint8_t *bits, int nb_bits, int tap_shift)
  * jtag_vpi_queue_tdi - short description
  * @param bits bits to be queued on TDI (or NULL if 0 are to be queued)
  * @param nb_bits number of bits
+ * @param tap_shift
  */
 static int jtag_vpi_queue_tdi(uint8_t *bits, int nb_bits, int tap_shift)
 {

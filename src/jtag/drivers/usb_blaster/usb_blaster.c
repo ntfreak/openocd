@@ -364,8 +364,8 @@ static void ublast_idle_clock(void)
  * @param type scan type (ie. does a readback of TDO is required)
  *
  * Output a TDI bit and assert clock to push it into the JTAG device :
- *  - writing out TCK=0, TMS=<old_state>=0, TDI=<tdi>
- * - writing out TCK=1, TMS=<new_state>, TDI=<tdi> which triggers the JTAG
+ *  - writing out TCK=0, TMS=\<old_state>=0, TDI=\<tdi>
+ *  - writing out TCK=1, TMS=\<new_state>, TDI=\<tdi> which triggers the JTAG
  *    device acquiring the data.
  *
  * If a TDO is to be read back, the required read is requested (bitbang mode),
@@ -448,8 +448,8 @@ static void ublast_queue_bytes(uint8_t *bytes, int nb_bytes)
  * @param skip number of TMS bits to skip at the beginning of the series
  *
  * Write a series of TMS transitions, where each transition consists in :
- *  - writing out TCK=0, TMS=<new_state>, TDI=<???>
- *  - writing out TCK=1, TMS=<new_state>, TDI=<???> which triggers the transition
+ *  - writing out TCK=0, TMS=\<new_state>, TDI=\<???>
+ *  - writing out TCK=1, TMS=\<new_state>, TDI=\<???> which triggers the transition
  * The function ensures that at the end of the sequence, the clock (TCK) is put
  * low.
  */
@@ -478,8 +478,8 @@ static void ublast_tms(struct tms_command *cmd)
  * @param cmd path transition
  *
  * Write a series of TMS transitions, where each transition consists in :
- *  - writing out TCK=0, TMS=<new_state>, TDI=<???>
- *  - writing out TCK=1, TMS=<new_state>, TDI=<???> which triggers the transition
+ *  - writing out TCK=0, TMS=\<new_state>, TDI=\<???>
+ *  - writing out TCK=1, TMS=\<new_state>, TDI=\<???> which triggers the transition
  * The function ensures that at the end of the sequence, the clock (TCK) is put
  * low.
  */
@@ -525,7 +525,7 @@ static void ublast_state_move(tap_state_t state, int skip)
 /**
  * ublast_read_byteshifted_tdos - read TDO of byteshift writes
  * @param buf the buffer to store the bits
- * @param nb_bits the number of bits
+ * @param nb_bytes the number of bytes
  *
  * Reads back from USB Blaster TDO bits, triggered by a 'byteshift write', ie. eight
  * bits per received byte from USB interface, and store them in buffer.

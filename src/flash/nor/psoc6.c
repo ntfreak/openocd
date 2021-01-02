@@ -873,7 +873,6 @@ exit:
 
 /** ***********************************************************************************************
  * @brief Performs Mass Erase operation
- * @param bank flash bank index to erase
  * @return ERROR_OK in case of success, ERROR_XXX code otherwise
  *************************************************************************************************/
 COMMAND_HANDLER(psoc6_handle_mass_erase_command)

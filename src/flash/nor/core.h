@@ -276,7 +276,8 @@ struct flash_bank *get_flash_bank_by_num_noprobe(unsigned int num);
  * @param target The target, presumed to contain one or more banks.
  * @param addr An address that is within the range of the bank.
  * @param check return ERROR_OK and result_bank NULL if the bank does not exist
- * @returns The struct flash_bank located at @a addr, or NULL.
+ * @param result_bank The struct flash_bank located at @a addr, or NULL.
+ * @returns ERROR_OK on success, or an error indicating the problem.
  */
 int get_flash_bank_by_addr(struct target *target, target_addr_t addr, bool check,
 		struct flash_bank **result_bank);

@@ -237,7 +237,7 @@ const struct rtt_control *rtt_get_control(void);
  * Read channel information.
  *
  * @param[in] channel_index Channel index.
- * @param[in] channel_type Channel type.
+ * @param[in] type Channel type.
  * @param[out] info Channel information.
  *
  * @returns ERROR_OK on success, an error code on failure.

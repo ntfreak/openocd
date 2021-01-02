@@ -547,13 +547,15 @@ static dmi_status_t dmi_scan(struct target *target, uint32_t *address_in,
 }
 
 /**
+ * @param target
  * @param data_in  The data we received from the target.
- * @param dmi_op   The operation to perform (read/write/nop).
  * @param dmi_busy_encountered
  *                 If non-NULL, will be updated to reflect whether DMI busy was
  *                 encountered while executing this operation or not.
+ * @param dmi_op   The operation to perform (read/write/nop).
  * @param address  The address argument to that operation.
  * @param data_out The data to send to the target.
+ * @param timeout_sec
  * @param exec     When true, this scan will execute something, so extra RTI
  *                 cycles may be added.
  * @param ensure_success

@@ -453,8 +453,8 @@ static int lpc2900_write_index_page(struct flash_bank *bank,
 /**
  * Calculate FPTR.TR register value for desired program/erase time.
  *
- * @param clock System clock in Hz
- * @param time Program/erase time in µs
+ * @param clock_var System clock in Hz
+ * @param time_var Program/erase time in µs
  */
 static uint32_t lpc2900_calc_tr(uint32_t clock_var, uint32_t time_var)
 {

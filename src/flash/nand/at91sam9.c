@@ -105,7 +105,7 @@ static int at91sam9_init(struct nand_device *nand)
 /**
  * Enable NAND device attached to a controller.
  *
- * @param info NAND controller information for controlling NAND device.
+ * @param nand NAND controller information for controlling NAND device.
  * @return Success or failure of the enabling.
  */
 static int at91sam9_enable(struct nand_device *nand)
@@ -119,7 +119,7 @@ static int at91sam9_enable(struct nand_device *nand)
 /**
  * Disable NAND device attached to a controller.
  *
- * @param info NAND controller information for controlling NAND device.
+ * @param nand NAND controller information for controlling NAND device.
  * @return Success or failure of the disabling.
  */
 static int at91sam9_disable(struct nand_device *nand)

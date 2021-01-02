@@ -803,6 +803,13 @@ static int target_soft_reset_halt(struct target *target)
  * algorithm.
  *
  * @param target used to run the algorithm
+ * @param num_mem_params
+ * @param mem_params
+ * @param num_reg_params
+ * @param reg_param
+ * @param entry_point
+ * @param exit_point
+ * @param timeout_ms
  * @param arch_info target-specific description of the algorithm.
  */
 int target_run_algorithm(struct target *target,
@@ -838,6 +845,12 @@ done:
  * Executes a target-specific native code algorithm and leaves it running.
  *
  * @param target used to run the algorithm
+ * @param num_mem_params
+ * @param mem_params
+ * @param num_reg_params
+ * @param reg_params
+ * @param entry_point
+ * @param exit_point
  * @param arch_info target-specific description of the algorithm.
  */
 int target_start_algorithm(struct target *target,
@@ -876,6 +889,12 @@ done:
  * Waits for an algorithm started with target_start_algorithm() to complete.
  *
  * @param target used to run the algorithm
+ * @param num_mem_params
+ * @param mem_params
+ * @param num_reg_params
+ * @param reg_params
+ * @param exit_point
+ * @param timeout_ms
  * @param arch_info target-specific description of the algorithm.
  */
 int target_wait_algorithm(struct target *target,
@@ -947,6 +966,7 @@ done:
  * @param entry_point address on the target to execute to start the algorithm
  * @param exit_point address at which to set a breakpoint to catch the
  *     end of the algorithm; can be 0 if target triggers a breakpoint itself
+ * @param arch_info
  */
 
 int target_run_flash_async_algorithm(struct target *target,
