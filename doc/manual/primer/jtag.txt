@@ -104,7 +104,7 @@ target chips and work out what the various instruction registers/data
 registers do, so you can actually do something useful.  That's where it
 gets interesting.  But in and of itself, JTAG is actually very simple.
 
-@section primerjtag More Reading
+@section primerjtagmore More Reading
 
 A separate primer contains information about @subpage primerjtagbs for
 developers that want to extend OpenOCD for such purposes.
