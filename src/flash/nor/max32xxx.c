@@ -82,7 +82,7 @@ struct max32xxx_flash_bank {
 
 /* see contrib/loaders/flash/max32xxx/max32xxx.s for src */
 static const uint8_t write_code[] = {
-#include "../../contrib/loaders/flash/max32xxx/max32xxx.inc"
+#include "../../../contrib/loaders/flash/max32xxx/max32xxx.inc"
 };
 
 /*		Config Command: flash bank name driver base size chip_width bus_width target [driver_option]
