@@ -186,9 +186,9 @@ comments.
       "empty" lines should be removed from the block.
   -# Only single spaces should be used; do @b not add mid-line indentation.
 -# If the total line length will be less than 72-80 columns, then
-  - The @c /**< form can be used on the same line.
+  - The @c /\**< form can be used on the same line.
   - This style should be used sparingly; the best use is for fields:
-    @code int field; /**< field description */ @endcode
+    @verbatim int field; /**< field description */ @endverbatim
 
 @section styledoxyall Doxygen Style Guide
 
