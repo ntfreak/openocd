@@ -158,9 +158,9 @@ ATTRS{idVendor}=="1cbe", ATTRS{idProduct}=="02a5", MODE="660", GROUP="plugdev", 
 ATTRS{idVendor}=="1cbe", ATTRS{idProduct}=="00ff", MODE="660", GROUP="plugdev", TAG+="uaccess"
 
 # Ambiq Micro EVK and Debug boards.
-ATTRS{idVendor}=="2aec", ATTRS{idProduct}=="6010", MODE="664", GROUP="plugdev", TAG+="uaccess"
-ATTRS{idVendor}=="2aec", ATTRS{idProduct}=="6011", MODE="664", GROUP="plugdev", TAG+="uaccess"
-ATTRS{idVendor}=="2aec", ATTRS{idProduct}=="1106", MODE="664", GROUP="plugdev", TAG+="uaccess"
+ATTRS{idVendor}=="2aec", ATTRS{idProduct}=="6010", MODE="660", GROUP="plugdev", TAG+="uaccess"
+ATTRS{idVendor}=="2aec", ATTRS{idProduct}=="6011", MODE="660", GROUP="plugdev", TAG+="uaccess"
+ATTRS{idVendor}=="2aec", ATTRS{idProduct}=="1106", MODE="660", GROUP="plugdev", TAG+="uaccess"
 
 # Marvell Sheevaplug
 ATTRS{idVendor}=="9e88", ATTRS{idProduct}=="9e8f", MODE="660", GROUP="plugdev", TAG+="uaccess"
