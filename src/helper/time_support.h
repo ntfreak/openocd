@@ -25,15 +25,10 @@
 #ifndef OPENOCD_HELPER_TIME_SUPPORT_H
 #define OPENOCD_HELPER_TIME_SUPPORT_H
 
-#ifdef TIME_WITH_SYS_TIME
-# include <sys/time.h>
-# include <time.h>
-#else
-# ifdef HAVE_SYS_TIME_H
-#  include <sys/time.h>
-# else
-#  include <time.h>
-# endif
+#include <time.h>
+
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
 #endif
 
 int timeval_subtract(struct timeval *result, struct timeval *x, struct timeval *y);
