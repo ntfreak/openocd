@@ -27,8 +27,7 @@ set -x
 aclocal --warnings=all
 # Apparently, not all versions of libtoolize support option --warnings=all .
 ${libtoolize} --automake --copy
-# autoconf 2.70 triggers warnings on obsolete macros
-autoconf --warnings=all,no-obsolete
+autoconf --warnings=all
 autoheader --warnings=all
 automake --warnings=all --gnu --add-missing --copy
 )
