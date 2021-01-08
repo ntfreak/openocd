@@ -79,7 +79,6 @@ AC_CHECK_HEADERS([arpa/inet.h ifaddrs.h netinet/in.h netinet/tcp.h net/if.h], []
 
 AC_HEADER_ASSERT
 AC_HEADER_STDBOOL
-AC_HEADER_TIME
 
 AC_C_BIGENDIAN
 
