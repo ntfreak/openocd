@@ -607,6 +607,12 @@ produced, PDF schematics are easily found and it is easy to make.
 @item @b{bcm2835gpio}
 @* A BCM2835-based board (e.g. Raspberry Pi) using the GPIO pins of the expansion header.
 
+@item @b{allwinner_gpio}
+@* A Allwinner-based board (e.g. Orange Pi) using the GPIO pins of the expansion header.
+
+@item @b{mt7688gpio}
+@* A MT7688-based board (e.g. Onion Omega2) using the GPIO pins of the expansion header.
+
 @item @b{imx_gpio}
 @* A NXP i.MX-based board (e.g. Wandboard) using the GPIO pins (should work on any i.MX processor).
 
@@ -3231,6 +3237,38 @@ peripherals' kernel drivers. The driver restores the previous
 configuration on exit.
 
 See @file{interface/raspberrypi-native.cfg} for a sample config and
+pinout.
+
+@end deffn
+
+@deffn {Interface Driver} {allwinner_gpio}
+This SoC is present in Orange Pi which is a cheap single-board computer
+exposing some GPIOs on its expansion header.
+
+The driver accesses memory-mapped GPIO peripheral registers directly
+for maximum performance, but the only possible race condition is for
+the pins' modes/muxing (which is highly unlikely), so it should be
+able to coexist nicely with both sysfs bitbanging and various
+peripherals' kernel drivers. The driver restores the previous
+configuration on exit.
+
+See @file{interface/orangepi-native.cfg} for a sample config and
+pinout.
+
+@end deffn
+
+@deffn {Interface Driver} {mt7688gpio}
+This SoC is present in Onion Omega2 which is a cheap single-board computer
+exposing some GPIOs on its expansion header.
+
+The driver accesses memory-mapped GPIO peripheral registers directly
+for maximum performance, but the only possible race condition is for
+the pins' modes/muxing (which is highly unlikely), so it should be
+able to coexist nicely with both sysfs bitbanging and various
+peripherals' kernel drivers. The driver restores the previous
+configuration on exit.
+
+See @file{interface/omega2-native.cfg} for a sample config and
 pinout.
 
 @end deffn

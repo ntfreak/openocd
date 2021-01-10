@@ -303,10 +303,14 @@ AS_CASE(["${host_cpu}"],
     AC_ARG_ENABLE([imx_gpio],
       AS_HELP_STRING([--enable-imx_gpio], [Enable building support for bitbanging on NXP IMX processors]),
       [build_imx_gpio=$enableval], [build_imx_gpio=no])
+    AC_ARG_ENABLE([allwinner_gpio],
+      AS_HELP_STRING([--enable-allwinner-gpio], [Enable building support for bitbanging on BCM2835 (as found in Raspberry Pi)]),
+      [build_allwinner_gpio=$enableval], [build_allwinner_gpio=no])
   ],
   [
     build_bcm2835gpio=no
     build_imx_gpio=no
+    build_allwinner_gpio=no
 ])
 
 AS_CASE(["${host_cpu}"],
@@ -322,6 +326,16 @@ AS_CASE(["${host_cpu}"],
   [
     build_ep93xx=no
     build_at91rm9200=no
+])
+
+AS_CASE(["${host_cpu}"],
+  [mips*], [
+    AC_ARG_ENABLE([mt7688gpio],
+      AS_HELP_STRING([--enable-mt7688gpio], [Enable building support for bitbanging on BCM2835 (as found in Raspberry Pi)]),
+      [build_mt7688gpio=$enableval], [build_mt7688gpio=no])
+  ],
+    build_mt7688gpio=no
+  [
 ])
 
 AC_ARG_ENABLE([gw16012],
@@ -556,6 +570,20 @@ AS_IF([test "x$build_bcm2835gpio" = "xyes"], [
   AC_DEFINE([BUILD_BCM2835GPIO], [0], [0 if you don't want bcm2835gpio.])
 ])
 
+AS_IF([test "x$build_allwinner_gpio" = "xyes"], [
+  build_bitbang=yes
+  AC_DEFINE([BUILD_ALLWINNERGPIO], [1], [1 if you want allwinner_gpio.])
+], [
+  AC_DEFINE([BUILD_ALLWINNERGPIO], [0], [0 if you don't want allwinner_gpio.])
+])
+
+AS_IF([test "x$build_mt7688gpio" = "xyes"], [
+  build_bitbang=yes
+  AC_DEFINE([BUILD_MT7688GPIO], [1], [1 if you want mt7688gpio.])
+], [
+  AC_DEFINE([BUILD_MT7688GPIO], [0], [0 if you don't want mt7688gpio.])
+])
+
 AS_IF([test "x$build_imx_gpio" = "xyes"], [
   build_bitbang=yes
   AC_DEFINE([BUILD_IMX_GPIO], [1], [1 if you want imx_gpio.])
@@ -771,6 +799,8 @@ AM_CONDITIONAL([ZY1000_MASTER], [test "x$build_zy1000_master" = "xyes"])
 AM_CONDITIONAL([IOUTIL], [test "x$build_ioutil" = "xyes"])
 AM_CONDITIONAL([AT91RM9200], [test "x$build_at91rm9200" = "xyes"])
 AM_CONDITIONAL([BCM2835GPIO], [test "x$build_bcm2835gpio" = "xyes"])
+AM_CONDITIONAL([ALLWINNERGPIO], [test "x$build_allwinner_gpio" = "xyes"])
+AM_CONDITIONAL([MT7688GPIO], [test "x$build_mt7688gpio" = "xyes"])
 AM_CONDITIONAL([IMX_GPIO], [test "x$build_imx_gpio" = "xyes"])
 AM_CONDITIONAL([BITBANG], [test "x$build_bitbang" = "xyes"])
 AM_CONDITIONAL([JTAG_VPI], [test "x$build_jtag_vpi" = "xyes" -o "x$build_jtag_vpi" = "xyes"])
