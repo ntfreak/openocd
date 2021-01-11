@@ -1945,7 +1945,7 @@ static int read_flash_id(struct flash_bank *bank, uint32_t *id1, uint32_t *id2)
 	uint32_t io_base = stmqspi_info->io_base;
 	uint8_t byte;
 	unsigned int type, count, len1, len2;
-	int retval;
+	int retval = ERROR_OK;
 
 	/* invalidate both ids */
 	*id1 = 0;
