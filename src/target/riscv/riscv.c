@@ -1446,7 +1446,7 @@ static int riscv_address_translate(struct target *target,
 	uint64_t ppn_value;
 	target_addr_t table_address;
 	virt2phys_info_t *info;
-	uint64_t pte;
+	uint64_t pte = 0;
 	int i;
 
 	if (riscv_rtos_enabled(target))
