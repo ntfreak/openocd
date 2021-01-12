@@ -3126,6 +3126,15 @@ Specifies the adapter layout to use.
 Pairs of vendor IDs and product IDs of the device.
 @end deffn
 
+@deffn {Config Command} {hla_stlink_backend} (usb | tcp [port])
+@emph{ST-Link only:} Choose between 'exclusive' USB communication (the default backend) or
+'shared' mode using ST-Link TCP server (the default port is 7184).
+
+@emph{Note:} ST-Link TCP server is a binary application provided by ST
+available from @url{https://www.st.com/en/development-tools/st-link-server.html,
+ST-LINK server software module}.
+@end deffn
+
 @deffn {Command} {hla_command} command
 Execute a custom adapter-specific command. The @var{command} string is
 passed as is to the underlying adapter layout handler.
@@ -3142,9 +3151,19 @@ The new API provide access to multiple AP on the same DAP, but the
 maximum number of the AP port is limited by the specific firmware version
 (e.g. firmware V2J29 has 3 as maximum AP number, while V2J32 has 8).
 An error is returned for any AP number above the maximum allowed value.
-
 @emph{Note:} Either these same adapters and their older versions are
 also supported by @ref{hla_interface, the hla interface driver}.
+
+@deffn {Config Command} {st-link backend} (usb | tcp [port])
+Choose between 'exclusive' USB communication (the default backend) or
+'shared' mode using ST-Link TCP server (the default port is 7184).
+
+@emph{Note:} ST-Link TCP server is a binary application provided by ST
+available from @url{https://www.st.com/en/development-tools/st-link-server.html,
+ST-LINK server software module}.
+
+@emph{Note:} ST-Link TCP server does not support the SWIM transport.
+@end deffn
 
 @deffn {Config Command} {st-link serial} serial
 Specifies the serial number of the adapter.
