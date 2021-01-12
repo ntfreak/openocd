@@ -35,7 +35,7 @@
 
 #include <target/target.h>
 
-static struct hl_interface_s hl_if = { {0, 0, { 0 }, { 0 }, HL_TRANSPORT_UNKNOWN, false, -1}, 0, 0 };
+static struct hl_interface_s hl_if = { {0, 0, { 0 }, { 0 }, HL_TRANSPORT_UNKNOWN, false, -1, false, 7184}, 0, 0 };
 
 int hl_interface_open(enum hl_transports tr)
 {
@@ -292,6 +292,31 @@ COMMAND_HANDLER(hl_interface_handle_vid_pid_command)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(hl_interface_handle_stlink_backend_command)
+{
+	/* default values */
+	bool use_stlink_tcp = false;
+	uint16_t stlink_tcp_port = 7184;
+
+	if (CMD_ARGC == 0 || CMD_ARGC > 2)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	else if (strcmp(CMD_ARGV[0], "usb") == 0) {
+		if (CMD_ARGC > 1)
+			return ERROR_COMMAND_SYNTAX_ERROR;
+		/* else use_stlink_tcp = false (already the case ) */
+	} else if (strcmp(CMD_ARGV[0], "tcp") == 0) {
+		use_stlink_tcp = true;
+		if (CMD_ARGC == 2)
+			COMMAND_PARSE_NUMBER(u16, CMD_ARGV[1], stlink_tcp_port);
+	} else
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	hl_if.param.use_stlink_tcp = use_stlink_tcp;
+	hl_if.param.stlink_tcp_port = stlink_tcp_port;
+
+	return ERROR_OK;
+}
+
 COMMAND_HANDLER(interface_handle_hla_command)
 {
 	if (CMD_ARGC != 1)
@@ -336,6 +361,13 @@ static const struct command_registration hl_interface_command_handlers[] = {
 	 .help = "the vendor and product ID of the adapter",
 	 .usage = "(vid pid)* ",
 	 },
+	{
+	 .name = "hla_stlink_backend",
+	 .handler = &hl_interface_handle_stlink_backend_command,
+	 .mode = COMMAND_CONFIG,
+	 .help = "select which ST-Link backend to use",
+	 .usage = "usb | tcp [port]",
+	},
 	 {
 	 .name = "hla_command",
 	 .handler = &interface_handle_hla_command,
