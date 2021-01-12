@@ -60,7 +60,18 @@ enum {
 	ARMV7M_REGSEL_MSP,
 	ARMV7M_REGSEL_PSP,
 
+	ARMV8M_REGSEL_MSP_NS = 0x18,
+	ARMV8M_REGSEL_PSP_NS,
+	ARMV8M_REGSEL_MSP_S,
+	ARMV8M_REGSEL_PSP_S,
+	ARMV8M_REGSEL_MSPLIM_S,
+	ARMV8M_REGSEL_PSPLIM_S,
+	ARMV8M_REGSEL_MSPLIM_NS,
+	ARMV8M_REGSEL_PSPLIM_NS,
+
 	ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL = 0x14,
+	ARMV8M_REGSEL_PMSK_BPRI_FLTMSK_CTRL_S = 0x22,
+	ARMV8M_REGSEL_PMSK_BPRI_FLTMSK_CTRL_NS = 0x23,
 	ARMV7M_REGSEL_FPSCR = 0x21,
 
 	/* 32bit Floating-point registers */
@@ -129,6 +140,8 @@ enum {
 
 	/* following indices are arbitrary, do not match DCRSR.REGSEL selectors */
 
+	/* A block of container and contained registers follows:
+	 * THE ORDER IS IMPORTANT to the end of the block ! */
 	/* working register for packing/unpacking special regs, hidden from gdb */
 	ARMV7M_PMSK_BPRI_FLTMSK_CTRL,
 
@@ -142,6 +155,35 @@ enum {
 	ARMV7M_BASEPRI,
 	ARMV7M_FAULTMASK,
 	ARMV7M_CONTROL,
+	/* The end of block of container and contained registers */
+
+	/* ARMv8-M specific registers */
+	ARMV8M_MSP_NS,
+	ARMV8M_PSP_NS,
+	ARMV8M_MSP_S,
+	ARMV8M_PSP_S,
+	ARMV8M_MSPLIM_S,
+	ARMV8M_PSPLIM_S,
+	ARMV8M_MSPLIM_NS,
+	ARMV8M_PSPLIM_NS,
+
+	/* A block of container and contained registers follows:
+	 * THE ORDER IS IMPORTANT to the end of the block ! */
+	ARMV8M_PMSK_BPRI_FLTMSK_CTRL_S,
+	ARMV8M_PRIMASK_S,
+	ARMV8M_BASEPRI_S,
+	ARMV8M_FAULTMASK_S,
+	ARMV8M_CONTROL_S,
+	/* The end of block of container and contained registers */
+
+	/* A block of container and contained registers follows:
+	 * THE ORDER IS IMPORTANT to the end of the block ! */
+	ARMV8M_PMSK_BPRI_FLTMSK_CTRL_NS,
+	ARMV8M_PRIMASK_NS,
+	ARMV8M_BASEPRI_NS,
+	ARMV8M_FAULTMASK_NS,
+	ARMV8M_CONTROL_NS,
+	/* The end of block of container and contained registers */
 
 	/* 64bit Floating-point registers */
 	ARMV7M_D0,
@@ -170,6 +212,8 @@ enum {
 	ARMV7M_CORE_LAST_REG = ARMV7M_xPSR,
 	ARMV7M_FPU_FIRST_REG = ARMV7M_D0,
 	ARMV7M_FPU_LAST_REG = ARMV7M_FPSCR,
+	ARMV8M_FIRST_REG = ARMV8M_MSP_NS,
+	ARMV8M_LAST_REG = ARMV8M_CONTROL_NS,
 };
 
 enum {
