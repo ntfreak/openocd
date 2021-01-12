@@ -125,6 +125,29 @@ static const struct {
 	{ ARMV7M_FAULTMASK, "faultmask", 1, REG_TYPE_INT8, "system", "org.gnu.gdb.arm.m-system" },
 	{ ARMV7M_CONTROL, "control", 3, REG_TYPE_INT8, "system", "org.gnu.gdb.arm.m-system" },
 
+	/* ARMv8-M specific registers */
+	{ ARMV8M_MSP_NS, "msp_ns", 32, REG_TYPE_DATA_PTR, "stack", "v8-m.sp" },
+	{ ARMV8M_PSP_NS, "psp_ns", 32, REG_TYPE_DATA_PTR, "stack", "v8-m.sp" },
+	{ ARMV8M_MSP_S, "msp_s", 32, REG_TYPE_DATA_PTR, "stack", "v8-m.sp" },
+	{ ARMV8M_PSP_S, "psp_s", 32, REG_TYPE_DATA_PTR, "stack", "v8-m.sp" },
+	{ ARMV8M_MSPLIM_S, "msplim_s", 32, REG_TYPE_DATA_PTR, "stack", "v8-m.sp" },
+	{ ARMV8M_PSPLIM_S, "psplim_s", 32, REG_TYPE_DATA_PTR, "stack", "v8-m.sp" },
+	{ ARMV8M_MSPLIM_NS, "msplim_ns", 32, REG_TYPE_DATA_PTR, "stack", "v8-m.sp" },
+	{ ARMV8M_PSPLIM_NS, "psplim_ns", 32, REG_TYPE_DATA_PTR, "stack", "v8-m.sp" },
+
+	{ ARMV8M_PMSK_BPRI_FLTMSK_CTRL_S, "pmsk_bpri_fltmsk_ctrl_s", 32, REG_TYPE_INT, NULL, NULL },
+	{ ARMV8M_PRIMASK_S, "primask_s", 1, REG_TYPE_INT8, "system", "org.gnu.gdb.arm.m-system" },
+	{ ARMV8M_BASEPRI_S, "basepri_s", 8, REG_TYPE_INT8, "system", "org.gnu.gdb.arm.m-system" },
+	{ ARMV8M_FAULTMASK_S, "faultmask_s", 1, REG_TYPE_INT8, "system", "org.gnu.gdb.arm.m-system" },
+	{ ARMV8M_CONTROL_S, "control_s", 3, REG_TYPE_INT8, "system", "org.gnu.gdb.arm.m-system" },
+
+	{ ARMV8M_PMSK_BPRI_FLTMSK_CTRL_NS, "pmsk_bpri_fltmsk_ctrl_ns", 32, REG_TYPE_INT, NULL, NULL },
+	{ ARMV8M_PRIMASK_NS, "primask_ns", 1, REG_TYPE_INT8, "system", "org.gnu.gdb.arm.m-system" },
+	{ ARMV8M_BASEPRI_NS, "basepri_ns", 8, REG_TYPE_INT8, "system", "org.gnu.gdb.arm.m-system" },
+	{ ARMV8M_FAULTMASK_NS, "faultmask_ns", 1, REG_TYPE_INT8, "system", "org.gnu.gdb.arm.m-system" },
+	{ ARMV8M_CONTROL_NS, "control_ns", 3, REG_TYPE_INT8, "system", "org.gnu.gdb.arm.m-system" },
+
+	/* FPU registers */
 	{ ARMV7M_D0, "d0", 64, REG_TYPE_IEEE_DOUBLE, "float", "org.gnu.gdb.arm.vfp" },
 	{ ARMV7M_D1, "d1", 64, REG_TYPE_IEEE_DOUBLE, "float", "org.gnu.gdb.arm.vfp" },
 	{ ARMV7M_D2, "d2", 64, REG_TYPE_IEEE_DOUBLE, "float", "org.gnu.gdb.arm.vfp" },
@@ -243,6 +266,15 @@ static uint32_t armv7m_map_id_to_regsel(unsigned int arm_reg_id)
 	case ARMV7M_PMSK_BPRI_FLTMSK_CTRL:
 		return ARMV7M_REGSEL_PMSK_BPRI_FLTMSK_CTRL;
 
+	case ARMV8M_MSP_NS...ARMV8M_PSPLIM_NS:
+		return arm_reg_id - ARMV8M_MSP_NS + ARMV8M_REGSEL_MSP_NS;
+
+	case ARMV8M_PMSK_BPRI_FLTMSK_CTRL_S:
+		return ARMV8M_REGSEL_PMSK_BPRI_FLTMSK_CTRL_S;
+
+	case ARMV8M_PMSK_BPRI_FLTMSK_CTRL_NS:
+		return ARMV8M_REGSEL_PMSK_BPRI_FLTMSK_CTRL_NS;
+
 	case ARMV7M_FPSCR:
 		return ARMV7M_REGSEL_FPSCR;
 
@@ -258,28 +290,26 @@ static uint32_t armv7m_map_id_to_regsel(unsigned int arm_reg_id)
 static bool armv7m_map_reg_packing(unsigned int arm_reg_id,
 					unsigned int *reg32_id, uint32_t *offset)
 {
+
 	switch (arm_reg_id) {
 
-	case ARMV7M_PRIMASK:
+	case ARMV7M_PRIMASK...ARMV7M_CONTROL:
 		*reg32_id = ARMV7M_PMSK_BPRI_FLTMSK_CTRL;
-		*offset = 0;
+		*offset = arm_reg_id - ARMV7M_PRIMASK;
 		return true;
-	case ARMV7M_BASEPRI:
-		*reg32_id = ARMV7M_PMSK_BPRI_FLTMSK_CTRL;
-		*offset = 1;
+	case ARMV8M_PRIMASK_S...ARMV8M_CONTROL_S:
+		*reg32_id = ARMV8M_PMSK_BPRI_FLTMSK_CTRL_S;
+		*offset = arm_reg_id - ARMV8M_PRIMASK_S;
 		return true;
-	case ARMV7M_FAULTMASK:
-		*reg32_id = ARMV7M_PMSK_BPRI_FLTMSK_CTRL;
-		*offset = 2;
-		return true;
-	case ARMV7M_CONTROL:
-		*reg32_id = ARMV7M_PMSK_BPRI_FLTMSK_CTRL;
-		*offset = 3;
+	case ARMV8M_PRIMASK_NS...ARMV8M_CONTROL_NS:
+		*reg32_id = ARMV8M_PMSK_BPRI_FLTMSK_CTRL_NS;
+		*offset = arm_reg_id - ARMV8M_PRIMASK_NS;
 		return true;
 
 	default:
 		return false;
 	}
+
 }
 
 static int armv7m_read_core_reg(struct target *target, struct reg *r,
@@ -743,7 +773,8 @@ struct reg_cache *armv7m_build_reg_cache(struct target *target)
 		reg_list[i].value = arch_info[i].value;
 		reg_list[i].dirty = false;
 		reg_list[i].valid = false;
-		reg_list[i].hidden = i == ARMV7M_PMSK_BPRI_FLTMSK_CTRL;
+		reg_list[i].hidden = (i == ARMV7M_PMSK_BPRI_FLTMSK_CTRL ||
+				i == ARMV8M_PMSK_BPRI_FLTMSK_CTRL_NS || i == ARMV8M_PMSK_BPRI_FLTMSK_CTRL_S);
 		reg_list[i].type = &armv7m_reg_type;
 		reg_list[i].arch_info = &arch_info[i];
 
