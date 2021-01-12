@@ -46,6 +46,10 @@ struct hl_interface_param_s {
 	bool connect_under_reset;
 	/** Initial interface clock clock speed */
 	int initial_interface_speed;
+	/** */
+	bool use_stlink_tcp;
+	/** */
+	uint16_t stlink_tcp_port;
 };
 
 struct hl_interface_s {
