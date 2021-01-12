@@ -164,7 +164,12 @@ enum {
 	/* Floating-point status register */
 	ARMV7M_FPSCR,
 
+	/* for convenience add registers' block delimiters */
 	ARMV7M_LAST_REG,
+	ARMV7M_CORE_FIRST_REG = ARMV7M_R0,
+	ARMV7M_CORE_LAST_REG = ARMV7M_xPSR,
+	ARMV7M_FPU_FIRST_REG = ARMV7M_D0,
+	ARMV7M_FPU_LAST_REG = ARMV7M_FPSCR,
 };
 
 enum {
@@ -174,8 +179,7 @@ enum {
 	FPv5_DP,
 };
 
-#define ARMV7M_NUM_CORE_REGS (ARMV7M_xPSR + 1)
-#define ARMV7M_NUM_CORE_REGS_NOFP (ARMV7M_CONTROL + 1)
+#define ARMV7M_NUM_CORE_REGS (ARMV7M_CORE_LAST_REG - ARMV7M_CORE_FIRST_REG + 1)
 
 #define ARMV7M_COMMON_MAGIC 0x2A452A45
 

@@ -2040,19 +2040,11 @@ int cortex_m_examine(struct target *target)
 			armv7m->arm.is_armv6m = true;
 		}
 
-		if (armv7m->fp_feature == FP_NONE &&
-		    armv7m->arm.core_cache->num_regs > ARMV7M_NUM_CORE_REGS_NOFP) {
-			/* free unavailable FPU registers */
-			size_t idx;
+		/* Check for FPU, otherwise mark FPU register as non-existent */
+		if (armv7m->fp_feature == FP_NONE)
+			for (size_t idx = ARMV7M_FPU_FIRST_REG; idx <= ARMV7M_FPU_LAST_REG; idx++)
+				armv7m->arm.core_cache->reg_list[idx].exist = false;
 
-			for (idx = ARMV7M_NUM_CORE_REGS_NOFP;
-			     idx < armv7m->arm.core_cache->num_regs;
-			     idx++) {
-				free(armv7m->arm.core_cache->reg_list[idx].feature);
-				free(armv7m->arm.core_cache->reg_list[idx].reg_data_type);
-			}
-			armv7m->arm.core_cache->num_regs = ARMV7M_NUM_CORE_REGS_NOFP;
-		}
 
 		if (!armv7m->stlink) {
 			if (i == 3 || i == 4)
