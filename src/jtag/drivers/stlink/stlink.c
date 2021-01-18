@@ -55,7 +55,7 @@
 #include <netinet/tcp.h>
 #endif
 
-#include "libusb_helper.h"
+#include "../libusb_helper.h"
 
 #ifdef HAVE_LIBUSB1
 #define USE_LIBUSB_ASYNCIO
