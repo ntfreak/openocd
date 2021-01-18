@@ -62,7 +62,7 @@ static const struct hl_layout hl_layouts[] = {
 	 .name = "stlink",
 	 .open = hl_layout_open,
 	 .close = hl_layout_close,
-	 .api = &stlink_usb_layout_api,
+	 .api = &stlink_layout_api,
 	 },
 #endif
 #if BUILD_HLADAPTER_ICDI
