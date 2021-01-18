@@ -29,7 +29,7 @@ struct hl_interface_s;
 struct hl_interface_param_s;
 
 /** */
-extern struct hl_layout_api_s stlink_usb_layout_api;
+extern struct hl_layout_api_s stlink_layout_api;
 extern struct hl_layout_api_s icdi_usb_layout_api;
 extern struct hl_layout_api_s nulink_usb_layout_api;
 
