@@ -142,6 +142,8 @@ DRIVERFILES += %D%/remote_bitbang.c
 endif
 if HLADAPTER_STLINK
 DRIVERFILES += %D%/stlink/stlink.c
+DRIVERFILES += %D%/stlink/stlink_usb.c
+DRIVERFILES += %D%/stlink/stlink_tcp.c
 endif
 if HLADAPTER_ICDI
 DRIVERFILES += %D%/ti_icdi_usb.c
