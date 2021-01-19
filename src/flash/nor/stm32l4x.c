@@ -128,6 +128,8 @@
 #define F_USE_ALL_WRPXX     BIT(1)
 /* this flag indicates if the device embeds a TrustZone security feature */
 #define F_HAS_TZ            BIT(2)
+/* this flag indicates if FLASH_CR:BKER is bit 13 like the G0 family */
+#define F_HAS_G0_BKER       BIT(3)
 /* end of STM32L4 flags ******************************************************/
 
 
@@ -272,6 +274,10 @@ static const struct stm32l4_rev stm32_466_revs[] = {
 	{ 0x1000, "A" }, { 0x1001, "Z" }, { 0x2000, "B" },
 };
 
+static const struct stm32l4_rev stm32_467_revs[] = {
+	{ 0x1000, "A" },
+};
+
 static const struct stm32l4_rev stm32_468_revs[] = {
 	{ 0x1000, "A" }, { 0x2000, "B" }, { 0x2001, "Z" },
 };
@@ -394,6 +400,19 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32G03/G04xx",
 	  .max_flash_size_kb     = 64,
 	  .flags                 = F_NONE,
+	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
+	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
+	},
+	{
+	  .id                    = 0x467,
+	  .revs                  = stm32_467_revs,
+	  .num_revs              = ARRAY_SIZE(stm32_467_revs),
+	  .device_str            = "STM32G0Bx/G0Cx",
+	  .max_flash_size_kb     = 512,
+	  .flags                 = F_HAS_DUAL_BANK | F_HAS_G0_BKER,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -1016,6 +1035,9 @@ static int stm32l4_erase(struct flash_bank *bank, unsigned int first,
 	4. Wait for the BSY bit to be cleared
 	 */
 
+	const uint32_t flash_cr_bker = (stm32l4_info->part_info->flags & F_HAS_G0_BKER) ?
+			FLASH_CR_BKER_G0 : FLASH_CR_BKER;
+
 	for (unsigned int i = first; i <= last; i++) {
 		uint32_t erase_flags;
 		erase_flags = FLASH_PER | FLASH_STRT;
@@ -1023,7 +1045,7 @@ static int stm32l4_erase(struct flash_bank *bank, unsigned int first,
 		if (i >= stm32l4_info->bank1_sectors) {
 			uint8_t snb;
 			snb = i - stm32l4_info->bank1_sectors;
-			erase_flags |= snb << FLASH_PAGE_SHIFT | FLASH_CR_BKER;
+			erase_flags |= snb << FLASH_PAGE_SHIFT | flash_cr_bker;
 		} else
 			erase_flags |= i << FLASH_PAGE_SHIFT;
 		retval = stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, erase_flags);
@@ -1579,6 +1601,18 @@ static int stm32l4_probe(struct flash_bank *bank)
 		page_size_kb = 2;
 		num_pages = flash_size_kb / page_size_kb;
 		stm32l4_info->bank1_sectors = num_pages;
+		break;
+	case 0x467: /* STM32G0B/G0Cxx */
+		/* single/dual bank depending on bit(21) */
+		page_size_kb = 2;
+		num_pages = flash_size_kb / page_size_kb;
+		stm32l4_info->bank1_sectors = num_pages;
+
+		/* check DUAL_BANK bit */
+		if (stm32l4_info->optr & BIT(21)) {
+			stm32l4_info->dual_bank_mode = true;
+			stm32l4_info->bank1_sectors = num_pages / 2;
+		}
 		break;
 	case 0x469: /* STM32G47/G48xx */
 		/* STM32G47/8 can be single/dual bank:
