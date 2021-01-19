@@ -272,6 +272,10 @@ static const struct stm32l4_rev stm32_466_revs[] = {
 	{ 0x1000, "A" }, { 0x1001, "Z" }, { 0x2000, "B" },
 };
 
+static const struct stm32l4_rev stm32_467_revs[] = {
+	{ 0x1000, "A" },
+};
+
 static const struct stm32l4_rev stm32_468_revs[] = {
 	{ 0x1000, "A" }, { 0x2000, "B" }, { 0x2001, "Z" },
 };
@@ -394,6 +398,19 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .device_str            = "STM32G03/G04xx",
 	  .max_flash_size_kb     = 64,
 	  .flags                 = F_NONE,
+	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
+	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
+	},
+	{
+	  .id                    = 0x467,
+	  .revs                  = stm32_467_revs,
+	  .num_revs              = ARRAY_SIZE(stm32_467_revs),
+	  .device_str            = "STM32G0Bx/G0Cx",
+	  .max_flash_size_kb     = 512,
+	  .flags                 = F_HAS_DUAL_BANK,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
 	  .fsize_addr            = 0x1FFF75E0,
@@ -1579,6 +1596,18 @@ static int stm32l4_probe(struct flash_bank *bank)
 		page_size_kb = 2;
 		num_pages = flash_size_kb / page_size_kb;
 		stm32l4_info->bank1_sectors = num_pages;
+		break;
+	case 0x467: /* STM32G0B/G0Cxx */
+		/* single/dual bank depending on bit(21) */
+		page_size_kb = 2;
+		num_pages = flash_size_kb / page_size_kb;
+		stm32l4_info->bank1_sectors = num_pages;
+
+		/* check DUAL_BANK bit */
+		if (stm32l4_info->optr & BIT(21)) {
+			stm32l4_info->dual_bank_mode = true;
+			stm32l4_info->bank1_sectors = num_pages / 2;
+		}
 		break;
 	case 0x469: /* STM32G47/G48xx */
 		/* STM32G47/8 can be single/dual bank:
