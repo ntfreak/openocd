@@ -25,6 +25,7 @@
 #define FLASH_MER1				(1 << 2)
 #define FLASH_PAGE_SHIFT		3
 #define FLASH_CR_BKER			(1 << 11)
+#define FLASH_CR_BKER_G0		(1 << 13)
 #define FLASH_MER2				(1 << 15)
 #define FLASH_STRT				(1 << 16)
 #define FLASH_OPTSTRT			(1 << 17)
