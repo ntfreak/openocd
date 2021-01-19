@@ -24,7 +24,8 @@
 #define FLASH_PER				(1 << 1)
 #define FLASH_MER1				(1 << 2)
 #define FLASH_PAGE_SHIFT		3
-#define FLASH_CR_BKER			(1 << 11)
+#define FLASH_BKER				(1 << 11)
+#define FLASH_BKER_G0			(1 << 13)
 #define FLASH_MER2				(1 << 15)
 #define FLASH_STRT				(1 << 16)
 #define FLASH_OPTSTRT			(1 << 17)
@@ -36,6 +37,7 @@
 
 /* FLASH_SR register bits */
 #define FLASH_BSY				(1 << 16)
+#define FLASH_BSY2				(1 << 17)
 
 /* Fast programming not used => related errors not used*/
 #define FLASH_PGSERR			(1 << 7) /* Programming sequence error */
