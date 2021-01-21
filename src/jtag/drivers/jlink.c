@@ -566,7 +566,6 @@ static int jlink_init(void)
 	enum jaylink_usb_address address;
 	size_t length;
 	size_t num_devices;
-	uint32_t host_interfaces;
 
 	LOG_DEBUG("Using libjaylink %s (compiled with %s).",
 		jaylink_version_package_get_string(), JAYLINK_VERSION_PACKAGE_STRING);
@@ -592,14 +591,13 @@ static int jlink_init(void)
 		return ERROR_JTAG_INIT_FAILED;
 	}
 
-	host_interfaces = JAYLINK_HIF_USB;
+	ret = jaylink_discovery_scan(jayctx, JAYLINK_HIF_USB);
 
+	int ret1 = JAYLINK_ERR;
 	if (use_serial_number)
-		host_interfaces |= JAYLINK_HIF_TCP;
+		ret1 = jaylink_discovery_scan(jayctx, JAYLINK_HIF_TCP);
 
-	ret = jaylink_discovery_scan(jayctx, host_interfaces);
-
-	if (ret != JAYLINK_OK) {
+	if (ret != JAYLINK_OK && ret1 != JAYLINK_OK) {
 		LOG_ERROR("jaylink_discovery_scan() failed: %s.",
 			jaylink_strerror(ret));
 		jaylink_exit(jayctx);
