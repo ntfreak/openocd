@@ -116,6 +116,7 @@
 /* Erase time can be as high as 25ms, 10x this and assume it's toast... */
 
 #define FLASH_ERASE_TIMEOUT 250
+#define FLASH_WRITE_TIMEOUT 50
 
 
 /* relevant STM32L4 flags ****************************************************/
@@ -1278,6 +1279,49 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	return retval;
 }
 
+/* Count is in double-words */
+static int stm32l4_write_block_without_loader(struct flash_bank *bank, const uint8_t *buffer,
+				uint32_t offset, uint32_t count)
+{
+	struct target *target = bank->target;
+	uint32_t address = bank->base + offset;
+	int retval = ERROR_OK;
+
+	/* wait for BSY bit */
+	retval = stm32l4_wait_status_busy(bank, FLASH_WRITE_TIMEOUT);
+	if (retval != ERROR_OK)
+		return retval;
+
+	/* set PG in FLASH_CR */
+	retval = stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, flash_cr | FLASH_PG);
+	if (retval != ERROR_OK)
+		return retval;
+
+
+	/* write directly to flash memory */
+	const uint8_t *src = buffer;
+	while (count--) {
+		retval = target_write_memory(target, address, 4, 2, src);
+		if (retval != ERROR_OK)
+			return retval;
+
+		/* wait for BSY bit */
+		retval = stm32l4_wait_status_busy(bank, FLASH_WRITE_TIMEOUT);
+		if (retval != ERROR_OK)
+			return retval;
+
+		src += 8;
+		address += 8;
+	}
+
+	/* reset PG in FLASH_CR */
+	retval = stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, 0);
+	if (retval != ERROR_OK)
+		return retval;
+
+	return retval;
+}
+
 static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 	uint32_t offset, uint32_t count)
 {
@@ -1349,7 +1393,12 @@ static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 	if (retval != ERROR_OK)
 		goto err_lock;
 
-	retval = stm32l4_write_block(bank, buffer, offset, count / 8);
+	if (stm32l4_info->tzen && (stm32l4_info->rdp == RDP_LEVEL_0_5)) {
+		LOG_INFO("RDP level 0.5, couldn't use the flash loader (since the specified work-area could be secure)");
+		LOG_INFO("falling back to single memory accesses");
+		retval = stm32l4_write_block_without_loader(bank, buffer, offset, count / 8);
+	} else
+		retval = stm32l4_write_block(bank, buffer, offset, count / 8);
 
 err_lock:
 	retval2 = stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, FLASH_LOCK);
