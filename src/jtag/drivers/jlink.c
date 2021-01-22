@@ -553,20 +553,96 @@ static bool jlink_usb_location_equal(struct jaylink_device *dev)
 }
 
 
+static int jlink_open_device(uint32_t ifaces, bool *found_device)
+{
+	int ret = jaylink_discovery_scan(jayctx, ifaces);
+	if (ret != JAYLINK_OK) {
+		LOG_ERROR("jaylink_discovery_scan() failed: %s.", jaylink_strerror(ret));
+		jaylink_exit(jayctx);
+		return ERROR_JTAG_INIT_FAILED;
+	}
+
+	size_t num_devices;
+	struct jaylink_device **devs;
+	ret = jaylink_get_devices(jayctx, &devs, &num_devices);
+
+	if (ret != JAYLINK_OK) {
+		LOG_ERROR("jaylink_get_devices() failed: %s.", jaylink_strerror(ret));
+		jaylink_exit(jayctx);
+		return ERROR_JTAG_INIT_FAILED;
+	}
+
+	use_usb_location = (jtag_usb_get_location() != NULL);
+
+	if (!use_serial_number && !use_usb_address && !use_usb_location && num_devices > 1) {
+		LOG_ERROR("Multiple devices found, specify the desired device.");
+		jaylink_free_devices(devs, true);
+		jaylink_exit(jayctx);
+		return ERROR_JTAG_INIT_FAILED;
+	}
+
+	*found_device = false;
+
+	for (size_t i = 0; devs[i]; i++) {
+		struct jaylink_device *dev = devs[i];
+
+		if (use_serial_number) {
+			uint32_t tmp;
+			ret = jaylink_device_get_serial_number(dev, &tmp);
+
+			if (ret == JAYLINK_ERR_NOT_AVAILABLE) {
+				continue;
+			} else if (ret != JAYLINK_OK) {
+				LOG_WARNING("jaylink_device_get_serial_number() failed: %s.",
+					jaylink_strerror(ret));
+				continue;
+			}
+
+			if (serial_number != tmp)
+				continue;
+		}
+
+		if (use_usb_address) {
+			enum jaylink_usb_address address;
+			ret = jaylink_device_get_usb_address(dev, &address);
+
+			if (ret == JAYLINK_ERR_NOT_SUPPORTED) {
+				continue;
+			} else if (ret != JAYLINK_OK) {
+				LOG_WARNING("jaylink_device_get_usb_address() failed: %s.",
+					jaylink_strerror(ret));
+				continue;
+			}
+
+			if (usb_address != address)
+				continue;
+		}
+
+		if (use_usb_location && !jlink_usb_location_equal(dev))
+			continue;
+
+		ret = jaylink_open(dev, &devh);
+
+		if (ret == JAYLINK_OK) {
+			*found_device = true;
+			break;
+		}
+
+		LOG_ERROR("Failed to open device: %s.", jaylink_strerror(ret));
+	}
+
+	jaylink_free_devices(devs, true);
+	return ERROR_OK;
+}
+
+
 static int jlink_init(void)
 {
 	int ret;
-	struct jaylink_device **devs;
-	unsigned int i;
-	bool found_device;
-	uint32_t tmp;
 	char *firmware_version;
 	struct jaylink_hardware_version hwver;
 	struct jaylink_hardware_status hwstatus;
-	enum jaylink_usb_address address;
 	size_t length;
-	size_t num_devices;
-	uint32_t host_interfaces;
 
 	LOG_DEBUG("Using libjaylink %s (compiled with %s).",
 		jaylink_version_package_get_string(), JAYLINK_VERSION_PACKAGE_STRING);
@@ -592,86 +668,16 @@ static int jlink_init(void)
 		return ERROR_JTAG_INIT_FAILED;
 	}
 
-	host_interfaces = JAYLINK_HIF_USB;
+	bool found_device;
+	ret = jlink_open_device(JAYLINK_HIF_USB, &found_device);
+	if (ret != ERROR_OK)
+		return ret;
 
-	if (use_serial_number)
-		host_interfaces |= JAYLINK_HIF_TCP;
-
-	ret = jaylink_discovery_scan(jayctx, host_interfaces);
-
-	if (ret != JAYLINK_OK) {
-		LOG_ERROR("jaylink_discovery_scan() failed: %s.",
-			jaylink_strerror(ret));
-		jaylink_exit(jayctx);
-		return ERROR_JTAG_INIT_FAILED;
+	if (!found_device && use_serial_number) {
+		ret = jlink_open_device(JAYLINK_HIF_TCP, &found_device);
+		if (ret != ERROR_OK)
+			return ret;
 	}
-
-	ret = jaylink_get_devices(jayctx, &devs, &num_devices);
-
-	if (ret != JAYLINK_OK) {
-		LOG_ERROR("jaylink_get_devices() failed: %s.", jaylink_strerror(ret));
-		jaylink_exit(jayctx);
-		return ERROR_JTAG_INIT_FAILED;
-	}
-
-	use_usb_location = (jtag_usb_get_location() != NULL);
-
-	if (!use_serial_number && !use_usb_address && !use_usb_location && num_devices > 1) {
-		LOG_ERROR("Multiple devices found, specify the desired device.");
-		jaylink_free_devices(devs, true);
-		jaylink_exit(jayctx);
-		return ERROR_JTAG_INIT_FAILED;
-	}
-
-	found_device = false;
-
-	for (i = 0; devs[i]; i++) {
-		struct jaylink_device *dev = devs[i];
-
-		if (use_serial_number) {
-			ret = jaylink_device_get_serial_number(dev, &tmp);
-
-			if (ret == JAYLINK_ERR_NOT_AVAILABLE) {
-				continue;
-			} else if (ret != JAYLINK_OK) {
-				LOG_WARNING("jaylink_device_get_serial_number() failed: %s.",
-					jaylink_strerror(ret));
-				continue;
-			}
-
-			if (serial_number != tmp)
-				continue;
-		}
-
-		if (use_usb_address) {
-			ret = jaylink_device_get_usb_address(dev, &address);
-
-			if (ret == JAYLINK_ERR_NOT_SUPPORTED) {
-				continue;
-			} else if (ret != JAYLINK_OK) {
-				LOG_WARNING("jaylink_device_get_usb_address() failed: %s.",
-					jaylink_strerror(ret));
-				continue;
-			}
-
-			if (usb_address != address)
-				continue;
-		}
-
-		if (use_usb_location && !jlink_usb_location_equal(dev))
-			continue;
-
-		ret = jaylink_open(dev, &devh);
-
-		if (ret == JAYLINK_OK) {
-			found_device = true;
-			break;
-		}
-
-		LOG_ERROR("Failed to open device: %s.", jaylink_strerror(ret));
-	}
-
-	jaylink_free_devices(devs, true);
 
 	if (!found_device) {
 		LOG_ERROR("No J-Link device found.");
