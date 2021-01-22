@@ -1411,6 +1411,13 @@ static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 	if (retval != ERROR_OK)
 		goto err_lock;
 
+	/* For TrustZone enabled devices, when TZEN is set and RDP level is 0.5,
+	 * the debug is possible only in non-secure state.
+	 * Thus means the flashloader will run in non-secure mode,
+	 * and the workarea need to be in non-secure RAM */
+	if (stm32l4_info->tzen && (stm32l4_info->rdp == RDP_LEVEL_0_5))
+		LOG_INFO("RDP level is 0.5, the work-area should reside in non-secure RAM");
+
 	retval = stm32l4_write_block(bank, buffer, offset, count / 8);
 
 err_lock:
