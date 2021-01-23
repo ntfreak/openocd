@@ -1,15 +1,20 @@
-Building OpenOCD for OSX
-------------------------
+Building OpenOCD for macOS
+--------------------------
 
 There are a few prerequisites you will need first:
 
-- Xcode 5 (install from the AppStore)
-- Command Line Tools (install from Xcode 5 -> Preferences -> Downloads)
+- Xcode (install from the AppStore)
+- Command Line Tools (install from Xcode -> Preferences -> Downloads)
 - Gentoo Prefix (http://www.gentoo.org/proj/en/gentoo-alt/prefix/bootstrap.xml)
   or
 - Homebrew (http://mxcl.github.io/homebrew/)
   or
 - MacPorts (http://www.macports.org/install.php)
+
+
+If you're building manually you need Texinfo version 5.0 or later. The
+simplest way to get it is to use Homebrew (brew install texinfo) and
+then ``export PATH=/usr/local/opt/texinfo/bin:$PATH``.
 
 
 With Gentoo Prefix you can build the release version or the latest
