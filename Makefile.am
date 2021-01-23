@@ -48,7 +48,7 @@ EXTRA_DIST += \
 	HACKING \
 	NEWTAPS \
 	README.Windows \
-	README.OSX \
+	README.macOS \
 	$(EXTRA_DIST_NEWS) \
 	Doxyfile.in \
 	tools/logger.pl \
