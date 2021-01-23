@@ -101,17 +101,18 @@ Supported hardware
 JTAG adapters
 -------------
 
-AICE, ARM-JTAG-EW, ARM-USB-OCD, ARM-USB-TINY, AT91RM9200, axm0432,
-BCM2835, Bus Blaster, Buspirate, Chameleon, CMSIS-DAP, Cortino, DENX,
-Digilent JTAG-SMT2, DLC 5, DLP-USB1232H, embedded projects, eStick,
-FlashLINK, FlossJTAG, Flyswatter, Flyswatter2, Gateworks, Hoegl, ICDI,
-ICEBear, J-Link, JTAG VPI, JTAGkey, JTAGkey2, JTAG-lock-pick, KT-Link,
-Lisa/L, LPC1768-Stick, MiniModule, NGX, NXHX, OOCDLink, Opendous,
-OpenJTAG, Openmoko, OpenRD, OSBDM, Presto, Redbee, RLink, SheevaPlug
-devkit, Stellaris evkits, ST-LINK (SWO tracing supported),
-STM32-PerformanceStick, STR9-comStick, sysfsgpio, TUMPA, Turtelizer,
-ULINK, USB-A9260, USB-Blaster, USB-JTAG, USBprog, VPACLink, VSLLink,
-Wiggler, XDS100v2, Xverve.
+AICE, ARM-JTAG-EW, ARM-USB-OCD, ARM-USB-TINY, AT91RM9200, axm0432, BCM2835,
+Bus Blaster, Buspirate, Cadence DPI, Chameleon, CMSIS-DAP, Cortino,
+Cypress KitProg, DENX, Digilent JTAG-SMT2, DLC 5, DLP-USB1232H,
+embedded projects, eStick, FlashLINK, FlossJTAG, Flyswatter, Flyswatter2,
+FTDI FT232R, Gateworks, Hoegl, ICDI, ICEBear, J-Link, JTAG VPI, JTAGkey,
+JTAGkey2, JTAG-lock-pick, KT-Link, Linux GPIOD, Lisa/L, LPC1768-Stick,
+Mellanox rshim, MiniModule, NGX, Nuvoton Nu-Link, Nu-Link2, NXHX, NXP IMX GPIO,
+OOCDLink, Opendous, OpenJTAG, Openmoko, OpenRD, OSBDM, Presto, Redbee, RLink,
+SheevaPlug devkit, Stellaris evkits, ST-LINK (SWO tracing supported),
+STM32-PerformanceStick, STR9-comStick, sysfsgpio, TI XDS110, TUMPA, Turtelizer,
+ULINK, USB-A9260, USB-Blaster, USB-JTAG, USBprog, VPACLink, VSLLink, Wiggler,
+XDS100v2, Xilinx XVC/PCIe, Xverve.
 
 Debug targets
 -------------
