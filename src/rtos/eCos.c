@@ -31,7 +31,7 @@ static bool eCos_detect_rtos(struct target *target);
 static int eCos_create(struct target *target);
 static int eCos_update_threads(struct rtos *rtos);
 static int eCos_get_thread_reg_list(struct rtos *rtos, int64_t thread_id, struct rtos_reg **reg_list, int *num_regs);
-static int eCos_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[]);
+static int eCos_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[]);
 
 struct eCos_thread_state {
 	int value;
@@ -351,11 +351,11 @@ static int eCos_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	return -1;
 }
 
-static int eCos_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
+static int eCos_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
 	unsigned int i;
 	*symbol_list = calloc(
-			ARRAY_SIZE(eCos_symbol_list), sizeof(symbol_table_elem_t));
+			ARRAY_SIZE(eCos_symbol_list), sizeof(struct symbol_table_elem));
 
 	for (i = 0; i < ARRAY_SIZE(eCos_symbol_list); i++)
 		(*symbol_list)[i].symbol_name = eCos_symbol_list[i];

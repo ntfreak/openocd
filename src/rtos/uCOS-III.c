@@ -508,9 +508,9 @@ static int uCOS_III_get_thread_reg_list(struct rtos *rtos, threadid_t threadid,
 			num_regs);
 }
 
-static int uCOS_III_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
+static int uCOS_III_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
-	*symbol_list = calloc(ARRAY_SIZE(uCOS_III_symbol_list), sizeof(symbol_table_elem_t));
+	*symbol_list = calloc(ARRAY_SIZE(uCOS_III_symbol_list), sizeof(struct symbol_table_elem));
 	if (*symbol_list == NULL) {
 		LOG_ERROR("uCOS-III: out of memory");
 		return ERROR_FAIL;

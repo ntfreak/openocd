@@ -540,9 +540,9 @@ static int mqx_get_thread_reg_list(
 }
 
 /* API function, export list of required symbols */
-static int mqx_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
+static int mqx_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
-	*symbol_list = calloc(ARRAY_SIZE(mqx_symbol_list), sizeof(symbol_table_elem_t));
+	*symbol_list = calloc(ARRAY_SIZE(mqx_symbol_list), sizeof(struct symbol_table_elem));
 	if (NULL == *symbol_list)
 		return ERROR_FAIL;
 	/* export required symbols */

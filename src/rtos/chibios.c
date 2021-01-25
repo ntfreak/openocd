@@ -107,7 +107,7 @@ static int chibios_create(struct target *target);
 static int chibios_update_threads(struct rtos *rtos);
 static int chibios_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 		struct rtos_reg **reg_list, int *num_regs);
-static int chibios_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[]);
+static int chibios_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[]);
 
 struct rtos_type chibios_rtos = {
 	.name = "chibios",
@@ -131,7 +131,7 @@ enum chibios_symbol_values {
 	CHIBIOS_VAL_CH_DEBUG = 2
 };
 
-static symbol_table_elem_t chibios_symbol_list[] = {
+static struct symbol_table_elem chibios_symbol_list[] = {
 	{ "rlist", 0, true},		/* Thread ready list */
 	{ "ch", 0, true},			/* System data structure */
 	{ "ch_debug", 0, false},	/* Memory Signature containing offsets of fields in rlist */
@@ -497,7 +497,7 @@ static int chibios_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	return rtos_generic_stack_read(rtos->target, param->stacking_info, stack_ptr, reg_list, num_regs);
 }
 
-static int chibios_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
+static int chibios_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
 	*symbol_list = malloc(sizeof(chibios_symbol_list));
 

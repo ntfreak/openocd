@@ -31,11 +31,11 @@ struct reg;
 /**
  * Table should be terminated by an element with NULL in symbol_name
  */
-typedef struct symbol_table_elem_struct {
+struct symbol_table_elem {
 	const char *symbol_name;
 	symbol_address_t address;
 	bool optional;
-} symbol_table_elem_t;
+};
 
 struct thread_detail {
 	threadid_t threadid;
@@ -47,7 +47,7 @@ struct thread_detail {
 struct rtos {
 	const struct rtos_type *type;
 
-	symbol_table_elem_t *symbols;
+	struct symbol_table_elem *symbols;
 	struct target *target;
 	/*  add a context variable instead of global variable */
 	/* The thread currently selected by gdb. */
@@ -78,7 +78,7 @@ struct rtos_type {
 			struct rtos_reg **reg_list, int *num_regs);
 	int (*get_thread_reg)(struct rtos *rtos, int64_t thread_id,
 			uint32_t reg_num, struct rtos_reg *reg);
-	int (*get_symbol_list_to_lookup)(symbol_table_elem_t *symbol_list[]);
+	int (*get_symbol_list_to_lookup)(struct symbol_table_elem *symbol_list[]);
 	int (*clean)(struct target *target);
 	char * (*ps_command)(struct target *target);
 	int (*set_reg)(struct rtos *rtos, uint32_t reg_num, uint8_t *reg_value);

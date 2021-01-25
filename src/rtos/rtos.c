@@ -176,9 +176,9 @@ int gdb_thread_packet(struct connection *connection, char const *packet, int pac
 	return target->rtos->gdb_thread_packet(connection, packet, packet_size);
 }
 
-static symbol_table_elem_t *next_symbol(struct rtos *os, char *cur_symbol, uint64_t cur_addr)
+static struct symbol_table_elem *next_symbol(struct rtos *os, char *cur_symbol, uint64_t cur_addr)
 {
-	symbol_table_elem_t *s;
+	struct symbol_table_elem *s;
 
 	if (!os->symbols)
 		os->type->get_symbol_list_to_lookup(&os->symbols);
@@ -200,7 +200,7 @@ static symbol_table_elem_t *next_symbol(struct rtos *os, char *cur_symbol, uint6
  * if 'symbol' is not declared optional */
 static bool is_symbol_mandatory(const struct rtos *os, const char *symbol)
 {
-	for (symbol_table_elem_t *s = os->symbols; s->symbol_name; ++s) {
+	for (struct symbol_table_elem *s = os->symbols; s->symbol_name; ++s) {
 		if (!strcmp(s->symbol_name, symbol))
 			return !s->optional;
 	}
@@ -232,7 +232,7 @@ int rtos_qsymbol(struct connection *connection, char const *packet, int packet_s
 	uint64_t addr = 0;
 	size_t reply_len;
 	char reply[GDB_BUFFER_SIZE + 1], cur_sym[GDB_BUFFER_SIZE / 2 + 1] = ""; /* Extra byte for null-termination */
-	symbol_table_elem_t *next_sym = NULL;
+	struct symbol_table_elem *next_sym = NULL;
 	struct target *target = get_target_from_connection(connection);
 	struct rtos *os = target->rtos;
 

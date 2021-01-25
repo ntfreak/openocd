@@ -246,11 +246,11 @@ static const char * const linux_symbol_list[] = {
 	NULL
 };
 
-static int linux_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
+static int linux_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
 	unsigned int i;
-	*symbol_list = (symbol_table_elem_t *)
-		calloc(ARRAY_SIZE(linux_symbol_list), sizeof(symbol_table_elem_t));
+	*symbol_list = (struct symbol_table_elem *)
+		calloc(ARRAY_SIZE(linux_symbol_list), sizeof(struct symbol_table_elem));
 
 	for (i = 0; i < ARRAY_SIZE(linux_symbol_list); i++)
 		(*symbol_list)[i].symbol_name = linux_symbol_list[i];

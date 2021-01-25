@@ -35,7 +35,7 @@ static int riot_create(struct target *target);
 static int riot_update_threads(struct rtos *rtos);
 static int riot_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	struct rtos_reg **reg_list, int *num_regs);
-static int riot_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[]);
+static int riot_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[]);
 
 struct riot_thread_state {
 	int value;
@@ -360,9 +360,9 @@ static int riot_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 			num_regs);
 }
 
-static int riot_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
+static int riot_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
-	*symbol_list = calloc(ARRAY_SIZE(riot_symbol_list), sizeof(symbol_table_elem_t));
+	*symbol_list = calloc(ARRAY_SIZE(riot_symbol_list), sizeof(struct symbol_table_elem));
 
 	if (*symbol_list == NULL) {
 		LOG_ERROR("RIOT: out of memory");

@@ -360,12 +360,12 @@ static int chromium_ec_get_thread_reg_list(struct rtos *rtos,
 				       stack_ptr, reg_list, num_regs);
 }
 
-static int chromium_ec_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
+static int chromium_ec_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
 	size_t s;
 
 	*symbol_list = calloc(ARRAY_SIZE(chromium_ec_symbol_list),
-			      sizeof(symbol_table_elem_t));
+			      sizeof(struct symbol_table_elem));
 	if (!(*symbol_list)) {
 		LOG_ERROR("Chromium-EC: out of memory");
 		return ERROR_FAIL;

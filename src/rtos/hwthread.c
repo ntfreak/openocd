@@ -35,7 +35,7 @@ static int hwthread_get_thread_reg(struct rtos *rtos, int64_t thread_id,
 		uint32_t reg_num, struct rtos_reg *rtos_reg);
 static int hwthread_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 		struct rtos_reg **reg_list, int *num_regs);
-static int hwthread_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[]);
+static int hwthread_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[]);
 static int hwthread_smp_init(struct target *target);
 static int hwthread_set_reg(struct rtos *rtos, uint32_t reg_num, uint8_t *reg_value);
 
@@ -328,10 +328,10 @@ static int hwthread_set_reg(struct rtos *rtos, uint32_t reg_num, uint8_t *reg_va
 	return reg->type->set(reg, reg_value);
 }
 
-static int hwthread_get_symbol_list_to_lookup(symbol_table_elem_t *symbol_list[])
+static int hwthread_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
 	/* return an empty list, we don't have any symbols to look up */
-	*symbol_list = calloc(1, sizeof(symbol_table_elem_t));
+	*symbol_list = calloc(1, sizeof(struct symbol_table_elem));
 	(*symbol_list)[0].symbol_name = NULL;
 	return 0;
 }
