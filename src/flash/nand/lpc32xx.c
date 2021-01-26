@@ -60,14 +60,14 @@ static const int lp_ooblayout[] = {
 	58, 59, 60, 61, 62, 63
 };
 
-typedef struct {
+struct dmac_ll {
 	volatile uint32_t dma_src;
 	volatile uint32_t dma_dest;
 	volatile uint32_t next_lli;
 	volatile uint32_t next_ctrl;
-} dmac_ll_t;
+};
 
-static dmac_ll_t dmalist[(2048/256) * 2 + 1];
+static struct dmac_ll dmalist[(2048/256) * 2 + 1];
 
 /* nand device lpc32xx <target#> <oscillator_frequency>
  */
@@ -867,14 +867,14 @@ static int lpc32xx_make_dma_list(uint32_t target_mem_base, uint32_t page_size,
 		dmalist[i*2].dma_src = (do_read ? dmasrc : (dmasrc + i * 256));
 		dmalist[i*2].dma_dest = (do_read ? (dmadst + i * 256) : dmadst);
 		dmalist[i*2].next_lli =
-			target_mem_base + (i*2 + 1) * sizeof(dmac_ll_t);
+			target_mem_base + (i*2 + 1) * sizeof(struct dmac_ll);
 		dmalist[i*2].next_ctrl = ctrl;
 
 		dmalist[(i*2) + 1].dma_src = 0x20020034;/* SLC_ECC */
 		dmalist[(i*2) + 1].dma_dest =
 			target_mem_base + ECC_OFFS + i * 4;
 		dmalist[(i*2) + 1].next_lli =
-			target_mem_base + (i*2 + 2) * sizeof(dmac_ll_t);
+			target_mem_base + (i*2 + 2) * sizeof(struct dmac_ll);
 		dmalist[(i*2) + 1].next_ctrl = ecc_ctrl;
 
 	}
@@ -1063,7 +1063,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 	   XXX: Assumes host and target have same byte sex.
 	*/
 	retval = target_write_memory(target, target_mem_base, 4,
-			nll * sizeof(dmac_ll_t) / 4,
+			nll * sizeof(struct dmac_ll) / 4,
 			(uint8_t *)dmalist);
 	if (ERROR_OK != retval) {
 		LOG_ERROR("Could not write DMA descriptors to IRAM");
@@ -1104,7 +1104,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 
 		/* Write first descriptor to DMA controller */
 		retval = target_write_memory(target, 0x31000100, 4,
-				sizeof(dmac_ll_t) / 4,
+				sizeof(struct dmac_ll) / 4,
 				(uint8_t *)dmalist);
 		if (ERROR_OK != retval) {
 			LOG_ERROR("Could not write DMA descriptor to DMAC");
@@ -1161,7 +1161,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 
 	/* Write OOB descriptor to DMA controller */
 	retval = target_write_memory(target, 0x31000100, 4,
-			sizeof(dmac_ll_t) / 4,
+			sizeof(struct dmac_ll) / 4,
 			(uint8_t *)(&dmalist[nll-1]));
 	if (ERROR_OK != retval) {
 		LOG_ERROR("Could not write OOB DMA descriptor to DMAC");
@@ -1460,7 +1460,7 @@ static int lpc32xx_read_page_slc(struct nand_device *nand,
 	   XXX: Assumes host and target have same byte sex.
 	*/
 	retval = target_write_memory(target, target_mem_base, 4,
-			nll * sizeof(dmac_ll_t) / 4,
+			nll * sizeof(struct dmac_ll) / 4,
 			(uint8_t *)dmalist);
 	if (ERROR_OK != retval) {
 		LOG_ERROR("Could not write DMA descriptors to IRAM");
@@ -1489,7 +1489,7 @@ static int lpc32xx_read_page_slc(struct nand_device *nand,
 
 	/* Write first descriptor to DMA controller */
 	retval = target_write_memory(target, 0x31000100, 4,
-			sizeof(dmac_ll_t) / 4, (uint8_t *)dmalist);
+			sizeof(struct dmac_ll) / 4, (uint8_t *)dmalist);
 	if (ERROR_OK != retval) {
 		LOG_ERROR("Could not write DMA descriptor to DMAC");
 		return retval;
