@@ -47,10 +47,10 @@
 
 #define PRACC_BLOCK	128	/* 1 Kbyte */
 
-typedef struct {
+struct pa_list {
 	uint32_t instr;
 	uint32_t addr;
-} pa_list;
+};
 
 struct pracc_queue_info {
 	struct mips_ejtag *ejtag_info;
@@ -59,7 +59,7 @@ struct pracc_queue_info {
 	int code_count;
 	int store_count;
 	int max_code;		/* max instructions with currently allocated memory */
-	pa_list *pracc_list;	/* Code and store addresses at dmseg */
+	struct pa_list *pracc_list;	/* Code and store addresses at dmseg */
 };
 
 void pracc_queue_init(struct pracc_queue_info *ctx);

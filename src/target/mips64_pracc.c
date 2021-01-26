@@ -24,7 +24,7 @@
 
 #define STACK_DEPTH	32
 
-typedef struct {
+struct mips64_pracc_context {
 	uint64_t *local_iparam;
 	unsigned num_iparam;
 	uint64_t *local_oparam;
@@ -34,7 +34,7 @@ typedef struct {
 	uint64_t stack[STACK_DEPTH];
 	unsigned stack_offset;
 	struct mips_ejtag *ejtag_info;
-} mips64_pracc_context;
+};
 
 static int wait_for_pracc_rw(struct mips_ejtag *ejtag_info, uint32_t *ctrl)
 {
@@ -61,7 +61,7 @@ static int wait_for_pracc_rw(struct mips_ejtag *ejtag_info, uint32_t *ctrl)
 	return ERROR_OK;
 }
 
-static int mips64_pracc_exec_read(mips64_pracc_context *ctx, uint64_t address)
+static int mips64_pracc_exec_read(struct mips64_pracc_context *ctx, uint64_t address)
 {
 	struct mips_ejtag *ejtag_info = ctx->ejtag_info;
 	unsigned offset;
@@ -149,7 +149,7 @@ static int mips64_pracc_exec_read(mips64_pracc_context *ctx, uint64_t address)
 	return jtag_execute_queue();
 }
 
-static int mips64_pracc_exec_write(mips64_pracc_context *ctx, uint64_t address)
+static int mips64_pracc_exec_write(struct mips64_pracc_context *ctx, uint64_t address)
 {
 	uint32_t ejtag_ctrl;
 	uint64_t data;
@@ -214,7 +214,7 @@ int mips64_pracc_exec(struct mips_ejtag *ejtag_info,
 {
 	uint32_t ejtag_ctrl;
 	uint64_t address = 0, address_prev = 0, data;
-	mips64_pracc_context ctx;
+	struct mips64_pracc_context ctx;
 	int retval;
 	int pass = 0;
 	bool first_time_call = true;

@@ -317,7 +317,7 @@ void pracc_add(struct pracc_queue_info *ctx, uint32_t addr, uint32_t instr)
 	if (ctx->retval != ERROR_OK)	/* On previous out of memory, return */
 		return;
 	if (ctx->code_count == ctx->max_code) {
-		void *p = realloc(ctx->pracc_list, sizeof(pa_list) * (ctx->max_code + PRACC_BLOCK));
+		void *p = realloc(ctx->pracc_list, sizeof(struct pa_list) * (ctx->max_code + PRACC_BLOCK));
 		if (p) {
 			ctx->max_code += PRACC_BLOCK;
 			ctx->pracc_list = p;
