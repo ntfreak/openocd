@@ -1963,13 +1963,8 @@ static int aarch64_read_cpu_memory_slow(struct target *target,
 		if (retval != ERROR_OK)
 			return retval;
 
-		if (size == 1)
-			*buffer = (uint8_t)data;
-		else if (size == 2)
-			target_buffer_set_u16(target, buffer, (uint16_t)data);
-		else
-			target_buffer_set_u32(target, buffer, data);
-
+		retval = mem_ap_read_buf_noincr(armv8->debug_ap,
+						buffer, size, 1, armv8->debug_base + CPUV8_DBG_DTRTX);
 		/* Advance */
 		buffer += size;
 		--count;
@@ -2038,13 +2033,8 @@ static int aarch64_read_cpu_memory_fast(struct target *target,
 		return retval;
 
 	/* Step 3.b - read DBGDTRTX for the final value */
-	retval = mem_ap_read_atomic_u32(armv8->debug_ap,
-			armv8->debug_base + CPUV8_DBG_DTRTX, &value);
-	if (retval != ERROR_OK)
-		return retval;
-
-	target_buffer_set_u32(target, buffer + count * 4, value);
-	return retval;
+	return mem_ap_read_buf_noincr(armv8->debug_ap,
+				      buffer + count * 4, 4, 1, armv8->debug_base + CPUV8_DBG_DTRTX);
 }
 
 static int aarch64_read_cpu_memory(struct target *target,
