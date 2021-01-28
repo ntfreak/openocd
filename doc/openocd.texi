@@ -834,7 +834,7 @@ using Eclipse or some other GUI.
 Today's most common case is a dongle with a JTAG cable on one side
 (such as a ribbon cable with a 10-pin or 20-pin IDC connector)
 and a USB cable on the other.
-Instead of USB, some cables use Ethernet;
+Instead of USB, some dongles use Ethernet;
 older ones may use a PC parallel port, or even a serial port.
 
 @enumerate
