@@ -37,7 +37,7 @@
 #define QSPI_W_EN (0x1)
 #define QSPI_SS_DISABLE (0x0)
 #define QSPI_SS_ENABLE (0x1)
-#define WRITE_DISBALE (0x0)
+#define WRITE_DISABLE (0x0)
 #define WRITE_ENABLE (0x1)
 
 #define QSPI_TIMEOUT (1000)

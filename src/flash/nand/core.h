@@ -100,7 +100,7 @@ struct nand_info {
 	const char *name;
 };
 
-/* Option constants for bizarre disfunctionality and real features
+/* Option constants for bizarre dysfunctionality and real features
  */
 enum {
 	/* Chip can not auto increment pages */

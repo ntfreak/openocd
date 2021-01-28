@@ -2803,7 +2803,7 @@ static int kinetis_blank_check(struct flash_bank *bank)
 	struct kinetis_chip *k_chip = k_bank->k_chip;
 	int result;
 
-	/* suprisingly blank check does not work in VLPR and HSRUN modes */
+	/* surprisingly blank check does not work in VLPR and HSRUN modes */
 	result = kinetis_check_run_mode(k_chip);
 	if (result != ERROR_OK)
 		return result;

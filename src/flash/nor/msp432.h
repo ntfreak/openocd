@@ -43,7 +43,7 @@
 #define P4_SECTOR_LENGTH   0x1000
 #define P4_ALGO_ENTRY_ADDR 0x01000110
 
-/* MSP432E4 flash paramters */
+/* MSP432E4 flash parameters */
 #define E4_FLASH_BASE      FLASH_BASE
 #define E4_FLASH_SIZE      0x100000
 #define E4_SECTOR_LENGTH   0x4000

@@ -175,7 +175,7 @@ struct stmqspi_flash_bank {
 	bool octo;
 	struct flash_device dev;
 	uint32_t io_base;
-	uint32_t saved_cr;	/* in particalar FSEL, DFM bit mask in QUADSPI_CR *AND* OCTOSPI_CR */
+	uint32_t saved_cr;	/* in particular FSEL, DFM bit mask in QUADSPI_CR *AND* OCTOSPI_CR */
 	uint32_t saved_ccr; /* different meaning for QUADSPI and OCTOSPI */
 	uint32_t saved_tcr;	/* only for OCTOSPI */
 	uint32_t saved_ir;	/* only for OCTOSPI */

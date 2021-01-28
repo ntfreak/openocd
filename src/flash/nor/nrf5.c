@@ -1038,7 +1038,7 @@ static int nrf5_write(struct flash_bank *bank, const uint8_t *buffer,
 	 * RM reads: Code running from code region 1 will not be able to write
 	 * to code region 0.
 	 * Unfortunately the flash loader running from RAM can write to both
-	 * code regions whithout any hint the protection is violated.
+	 * code regions without any hint the protection is violated.
 	 *
 	 * Update protection state and check if any flash sector to be written
 	 * is protected. */
