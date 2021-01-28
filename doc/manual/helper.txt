@@ -89,7 +89,7 @@ mode(s) of execution, and strings that provide usage and help text.
 A single handler may be registered using multiple names, but any name
 may have only one handler associated with it.
 
-The @c register_commands() and @c register_commands() functions provide
+The @c register_command() and @c register_commands() functions provide
 registration, while the @c unregister_command() and
 @c unregister_all_commands() functions will remove existing commands.
 These may be called at any time, allowing the command set to change in
