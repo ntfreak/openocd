@@ -13,16 +13,16 @@ proc helpC100 {} {
     echo "10) showArmClk:        will show current config registers for Arm Bus Clock"
     echo "11) setupArmClk:       will setup Amba Bus Clock=450MHz"
     echo "12) ooma_board_detect: will show which version of Telo you have"
-    echo "13) setupDDR2:         will configure DDR2 controller, you must have PLLs configureg"
+    echo "13) setupDDR2:         will configure DDR2 controller, you must have PLLs configured"
     echo "14) showDDR2:          will show DDR2 config registers"
     echo "15) showWatchdog:      will show current register config for watchdog"
     echo "16) reboot:            will trigger watchdog and reboot Telo (hw reset)"
     echo "17) bootNOR:           will boot Telo from NOR"
-    echo "18) setupUART0:        will configure UART0 for 115200 8N1, PLLs have to be confiured"
+    echo "18) setupUART0:        will configure UART0 for 115200 8N1, PLLs have to be configured"
     echo "19) putcUART0:         will print a character on UART0"
     echo "20) putsUART0:         will print a string on UART0"
-    echo "21) trainDDR2:          will run DDR2 training program"
-    echo "22) flashUBOOT:        will prgram NOR sectors 0-3 with u-boot.bin"
+    echo "21) trainDDR2:         will run DDR2 training program"
+    echo "22) flashUBOOT:        will program NOR sectors 0-3 with u-boot.bin"
 }
 
 source [find mem_helper.tcl]

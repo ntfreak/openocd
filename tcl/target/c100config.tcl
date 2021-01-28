@@ -43,7 +43,7 @@ proc setupTelo {} {
 
     # setup GPIO used as control signals for C100
     setupGPIO
-    # This will allow acces to lower 8MB or NOR
+    # This will allow access to lower 8MB or NOR
     lowGPIO5
     # setup NOR size,timing,etc.
     setupNOR
@@ -79,7 +79,7 @@ proc setupNOR {} {
     #mww $EX_CS0_TMG3_REG
     # set EBUS clock 165/5=33MHz
     mww $EX_CLOCK_DIV_REG 0x5
-    # everthing else is OK with default
+    # everything else is OK with default
 }
 
 proc bootNOR {} {
@@ -159,7 +159,7 @@ proc boardID {id} {
 proc ooma_board_detect {} {
     set GPIO_BOOTSTRAP_REG	[regs GPIO_BOOTSTRAP_REG]
 
-    # read the current value of the BOOTSRAP pins
+    # read the current value of the BOOTSTRAP pins
     set tmp [mrw $GPIO_BOOTSTRAP_REG]
     echo [format "GPIO_BOOTSTRAP_REG  (0x%x): 0x%x" $GPIO_BOOTSTRAP_REG $tmp]
     # extract the GPBP bits
