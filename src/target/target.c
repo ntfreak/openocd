@@ -5173,7 +5173,7 @@ no_params:
 			if (goi->isconfigure) {
 				struct command_context *cmd_ctx = current_command_context(goi->interp);
 				if (cmd_ctx->mode != COMMAND_CONFIG) {
-					Jim_SetResultString(goi->interp, "-gdb-max-conenctions must be configured before 'init'", -1);
+					Jim_SetResultString(goi->interp, "-gdb-max-connections must be configured before 'init'", -1);
 					return JIM_ERR;
 				}
 

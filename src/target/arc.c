@@ -1467,7 +1467,7 @@ static int arc_configure_actionpoint(struct target *target, uint32_t ap_num,
 	if (control_tt != AP_AC_TT_DISABLE) {
 
 		if (arc->actionpoints_num_avail < 1) {
-			LOG_ERROR("No free actionpoints, maximim amount is %u",
+			LOG_ERROR("No free actionpoints, maximum amount is %u",
 					arc->actionpoints_num);
 			return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 		}

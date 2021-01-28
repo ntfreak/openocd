@@ -32,7 +32,7 @@
  * This file implements support for the ARM Debug Interface version 5 (ADIv5)
  * debugging architecture.  Compared with previous versions, this includes
  * a low pin-count Serial Wire Debug (SWD) alternative to JTAG for message
- * transport, and focusses on memory mapped resources as defined by the
+ * transport, and focuses on memory mapped resources as defined by the
  * CoreSight architecture.
  *
  * A key concept in ADIv5 is the Debug Access Port, or DAP.  A DAP has two

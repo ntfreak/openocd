@@ -106,7 +106,7 @@ int embeddedice_send(struct arm_jtag *jtag_info, uint32_t *data, uint32_t size);
 
 int embeddedice_handshake(struct arm_jtag *jtag_info, int hsbit, uint32_t timeout);
 
-/* If many embeddedice_write_reg() follow eachother, then the >1 invocations can be
+/* If many embeddedice_write_reg() follow each other, then the >1 invocations can be
  * this faster version of embeddedice_write_reg
  */
 static inline void embeddedice_write_reg_inner(struct jtag_tap *tap, int reg_addr, uint32_t value)

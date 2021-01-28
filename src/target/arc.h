@@ -206,7 +206,7 @@ struct arc_common {
 	bool dcache_invalidated;
 	bool l2cache_invalidated;
 
-	/* Indicate if cach was built (for deinit function) */
+	/* Indicate if cache was built (for deinit function) */
 	bool core_aux_cache_built;
 	bool bcr_cache_built;
 	/* Closely Coupled memory(CCM) regions for performance-critical

@@ -176,7 +176,7 @@ int avr32_jtag_write_memory16(struct avr32_jtag *jtag_info,
 	 */
 	if (addr & 3) {
 		/*
-		 * mwa_read will read whole world, no nead to fiddle
+		 * mwa_read will read whole world, no need to fiddle
 		 * with address. It will be truncated in set_addr
 		 */
 		retval = avr32_jtag_mwa_read(jtag_info, SLAVE_HSB_UNCACHED,
@@ -248,7 +248,7 @@ int avr32_jtag_write_memory8(struct avr32_jtag *jtag_info,
 	 */
 	if (addr & 3) {
 		/*
-		 * mwa_read will read whole world, no nead to fiddle
+		 * mwa_read will read whole world, no need to fiddle
 		 * with address. It will be truncated in set_addr
 		 */
 		retval = avr32_jtag_mwa_read(jtag_info, SLAVE_HSB_UNCACHED,

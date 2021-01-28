@@ -79,7 +79,7 @@ struct target_type {
 	 * state correctly.
 	 *
 	 * Otherwise the following would fail, as there will not
-	 * be any "poll" invoked inbetween the "reset run" and
+	 * be any "poll" invoked between the "reset run" and
 	 * "halt".
 	 *
 	 * reset run; halt
