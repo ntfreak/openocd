@@ -5710,9 +5710,6 @@ static int target_create(Jim_GetOptInfo *goi)
 
 	memcpy(target->type, target_types[x], sizeof(struct target_type));
 
-	/* will be set by "-endian" */
-	target->endianness = TARGET_ENDIAN_UNKNOWN;
-
 	/* default to first core, override with -coreid */
 	target->coreid = 0;
 
