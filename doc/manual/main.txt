@@ -9,7 +9,7 @@ and processes that have been developed by and for the OpenOCD community.
 Developers that want to contribute to OpenOCD should read the following
 sections before starting work:
 
-- The List of @subpage thelist enumerates opportunities for improving or
+- @subpage thelist enumerates opportunities for improving or
 extending the OpenOCD platform.  If your ideas are on The List, you might
 check the mailing list archives to find the status of your feature (or bug).
 - The @subpage styleguide provides rules that developers should
