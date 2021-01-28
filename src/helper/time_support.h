@@ -46,7 +46,7 @@ struct duration {
 
 /** Update the duration->start field to start the @a duration measurement. */
 int duration_start(struct duration *duration);
-/** Update the duration->elapsed field to finish the @a duration measurment. */
+/** Update the duration->elapsed field to finish the @a duration measurement. */
 int duration_measure(struct duration *duration);
 
 /** @returns Elapsed time in seconds. */

@@ -222,7 +222,7 @@ static int mqx_is_scheduler_running(
 		return ERROR_FAIL;
 	}
 	/* check first member, the '_mqx_kernel_data->ADDRESSING_CAPABILITY'.
-	   it supose to be set to value 8 */
+	   it suppose to be set to value 8 */
 	if (capability_value != 8) {
 		LOG_WARNING("MQX RTOS - value of '_mqx_kernel_data->ADDRESSING_CAPABILITY' contains invalid value");
 		return ERROR_FAIL;

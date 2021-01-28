@@ -315,7 +315,7 @@ There are several things you should keep in mind when choosing a dongle.
 
 @enumerate
 @item @b{Transport} Does it support the kind of communication that you need?
-OpenOCD focusses mostly on JTAG. Your version may also support
+OpenOCD focuses mostly on JTAG. Your version may also support
 other ways to communicate with target devices.
 @item @b{Voltage} What voltage is your target - 1.8, 2.8, 3.3, or 5V?
 Does your dongle support it? You might need a level converter.
@@ -5577,7 +5577,7 @@ flash driver infers all parameters from current controller register values when
 'flash probe @var{bank_id}' is executed.
 
 Normal OpenOCD commands like @command{mdw} can be used to display the flash content,
-but only after proper controller initialization as decribed above. However,
+but only after proper controller initialization as described above. However,
 due to a silicon bug in some devices, attempting to access the very last word
 should be avoided.
 
@@ -11386,7 +11386,7 @@ your C code, do the same - artificially push some zeros onto the stack,
 remember to pop them off when the ISR is done.
 
 @b{Also note:} If you have a multi-threaded operating system, they
-often do not @b{in the intrest of saving memory} waste these few
+often do not @b{in the interest of saving memory} waste these few
 bytes. Painful...
 
 

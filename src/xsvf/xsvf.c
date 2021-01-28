@@ -1057,7 +1057,7 @@ int xsvf_register_commands(struct command_context *cmd_ctx)
 
 /*
 
-PSUEDO-Code from Xilinx Appnote XAPP067.pdf :
+PSEUDO-Code from Xilinx Appnote XAPP067.pdf :
 
 the following pseudo code clarifies the intent of the xrepeat support.The
 flow given is for the entire processing of an SVF file, not an XSVF file.

@@ -406,7 +406,7 @@ For technical reference material:
      vice versa.
 - Alphabetize the \@defn declarations for all commands in each
   section.
-- Keep the per-command documentation focussed on exactly what that
+- Keep the per-command documentation focused on exactly what that
   command does, not motivation, advice, suggestions, or big examples.
   When commands deserve such expanded text, it belongs elsewhere.
   Solutions might be using a \@section explaining a cluster of related
