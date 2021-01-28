@@ -301,7 +301,7 @@ static int jtag_dpi_init(void)
 	serv_addr.sin_addr.s_addr = inet_addr(server_address);
 
 	if (serv_addr.sin_addr.s_addr == INADDR_NONE) {
-		LOG_ERROR("inet_addr error occured");
+		LOG_ERROR("inet_addr error occurred");
 		return ERROR_FAIL;
 	}
 

@@ -844,11 +844,11 @@ static int nulink_usb_read_mem(void *handle, uint32_t addr, uint32_t size,
 		/* the nulink only supports 8/32bit memory read/writes
 		 * honour 32bit, all others will be handled as 8bit access */
 		if (size == 4) {
-			/* When in jtag mode the nulink uses the auto-increment functinality.
+			/* When in jtag mode the nulink uses the auto-increment functionality.
 			 * However it expects us to pass the data correctly, this includes
 			 * alignment and any page boundaries. We already do this as part of the
 			 * adi_v5 implementation, but the nulink is a hla adapter and so this
-			 * needs implementiong manually.
+			 * needs implementing manually.
 			 * currently this only affects jtag mode, they do single
 			 * access in SWD mode - but this may change and so we do it for both modes */
 
@@ -909,11 +909,11 @@ static int nulink_usb_write_mem(void *handle, uint32_t addr, uint32_t size,
 		/* the nulink only supports 8/32bit memory read/writes
 		 * honour 32bit, all others will be handled as 8bit access */
 		if (size == 4) {
-			/* When in jtag mode the nulink uses the auto-increment functinality.
+			/* When in jtag mode the nulink uses the auto-increment functionality.
 			 * However it expects us to pass the data correctly, this includes
 			 * alignment and any page boundaries. We already do this as part of the
 			 * adi_v5 implementation, but the nulink is a hla adapter and so this
-			 * needs implementiong manually.
+			 * needs implementing manually.
 			 * currently this only affects jtag mode, do single
 			 * access in SWD mode - but this may change and so we do it for both modes */
 

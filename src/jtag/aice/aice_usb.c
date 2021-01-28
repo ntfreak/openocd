@@ -2627,7 +2627,7 @@ static int aice_usb_halt(uint32_t coreid)
 
 	if (core_info[coreid].debug_under_dex_on) {
 		if (core_info[coreid].dex_use_psw_on == false) {
-			/* under debug 'debug mode', force $psw to 'debug mode' bahavior */
+			/* under debug 'debug mode', force $psw to 'debug mode' behavior */
 			/* !!!NOTICE!!! this is workaround for debug 'debug mode'.
 			 * it is only for debugging 'debug exception handler' purpose.
 			 * after openocd detaches from target, target behavior is

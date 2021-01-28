@@ -490,7 +490,7 @@ void jtag_add_tlr(void)
 
 /**
  * If supported by the underlying adapter, this clocks a raw bit sequence
- * onto TMS for switching betwen JTAG and SWD modes.
+ * onto TMS for switching between JTAG and SWD modes.
  *
  * DO NOT use this to bypass the integrity checks and logging provided
  * by the jtag_add_pathmove() and jtag_add_statemove() calls.
@@ -1343,7 +1343,7 @@ static int jtag_validate_ircapture(void)
 	int chain_pos = 0;
 	int retval;
 
-	/* when autoprobing, accomodate huge IR lengths */
+	/* when autoprobing, accommodate huge IR lengths */
 	for (tap = NULL, total_ir_length = 0;
 			(tap = jtag_tap_next_enabled(tap)) != NULL;
 			total_ir_length += tap->ir_length) {

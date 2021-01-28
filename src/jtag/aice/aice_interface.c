@@ -436,7 +436,7 @@ static const struct command_registration aice_subcommand_handlers[] = {
 		.handler = &aice_handle_aice_desc_command,
 		.mode = COMMAND_CONFIG,
 		.help = "set the aice device description",
-		.usage = "[desciption string]",
+		.usage = "[description string]",
 	},
 	{
 		.name = "serial",

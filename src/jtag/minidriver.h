@@ -32,7 +32,7 @@
  * interface functions, instead of the built-in asynchronous driver
  * module that is used by the standard JTAG interface drivers.
  *
- * In addtion to the functions defined in the @c minidriver.h file, the
+ * In addition to the functions defined in the @c minidriver.h file, the
  * @c jtag_minidriver.h file must declare the following functions (or
  * define static inline versions of them):
  * - jtag_add_callback

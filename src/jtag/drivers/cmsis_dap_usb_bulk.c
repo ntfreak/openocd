@@ -262,7 +262,7 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 				 * - config asked explicitly for an interface number
 				 * - the device has only one interface
 				 * The later two cases should be honored only if we know
-				 * we are on the rigt device */
+				 * we are on the right device */
 				bool intf_identified_reliably = cmsis_dap_in_interface_str
 							|| (device_identified_reliably &&
 									(cmsis_dap_usb_interface != -1
