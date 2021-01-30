@@ -1,14 +1,18 @@
 /** @remote_bitbangpage OpenOCD Developer's Guide
 
-The remote_bitbang JTAG driver is used to drive JTAG from a remote process. The
-remote_bitbang driver communicates via TCP or UNIX sockets with some remote
-process using an ASCII encoding of the bitbang interface. The remote process
-presumably then drives the JTAG however it pleases. The remote process should
-act as a server, listening for connections from the openocd remote_bitbang
-driver.
+The remote_bitbang JTAG+SWD driver is used to drive JTAG and/or SWD from a
+remote process. The remote_bitbang driver communicates via TCP or UNIX
+sockets with some remote process using an ASCII encoding of the bitbang
+interface. The remote process presumably then drives the JTAG/SWD however
+it pleases. The remote process should act as a server, listening for
+connections from the openocd remote_bitbang driver.
 
 The remote bitbang driver is useful for debugging software running on
 processors which are being simulated.
+
+There also is an implementation of the server-side protocol for the
+Glasgow Debug Tool (https://github.com/glasgowEmbedded/Glasgow) through
+the jtag-openocd applet.
 
 The bitbang interface consists of the following functions.
 
@@ -24,11 +28,20 @@ write tck tms tdi
 reset trst srst
 	Set the value of trst, srst.
 
+swdio_drive
+	Set the output enable of the bidirectional swdio (tms) pin
+
+swdio_read
+	Sample the value of swdio (tms).
+
+swd_write
+	Set the value of swclk (tck) and swdio (tms).
+
 An additional function, quit, is added to the remote_bitbang interface to
 indicate there will be no more requests and the connection with the remote
 driver should be closed.
 
-These five functions are encoded in ASCII by assigning a single character to
+These eight functions are encoded in ASCII by assigning a single character to
 each possible request. The assignments are:
 
 	B - Blink on
@@ -47,7 +60,14 @@ each possible request. The assignments are:
 	s - Reset 0 1
 	t - Reset 1 0
 	u - Reset 1 1
+	O - SWDIO drive 1
+	o - SWDIO drive 0
+	c - SWDIO read request
+	d - SWD write 0 0
+	e - SWD write 0 1
+	f - SWD write 1 0
+	g - SWD write 1 1
 
-The read response is encoded in ASCII as either digit 0 or 1.
+The read responses are encoded in ASCII as either digit 0 or 1.
 
  */
