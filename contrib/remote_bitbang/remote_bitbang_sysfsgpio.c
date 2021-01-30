@@ -1,4 +1,5 @@
 /***************************************************************************
+ *   Copyright (C) 2021 by Manuel Wick <manuel@matronix.de>                *
  *   Copyright (C) 2013 Paul Fertser <fercerpav@gmail.com>                 *
  *   Copyright (C) 2012 by Creative Product Design, marc @ cpdesign.com.au *
  *                                                                         *
@@ -30,12 +31,12 @@
   socat TCP6-LISTEN:7777,fork EXEC:"sudo ./remote_bitbang_sysfsgpio tck 11 tms 25 tdo 9 tdi 10"
 
   On host run:
-  openocd -c "interface remote_bitbang; remote_bitbang_host raspberrypi; remote_bitbang_port 7777" \
+  openocd -c "adapter driver remote_bitbang; remote_bitbang_host raspberrypi; remote_bitbang_port 7777" \
 	  -f target/stm32f1x.cfg
 
   Or if you want to test UNIX sockets, run both on Raspberry Pi:
   socat UNIX-LISTEN:/tmp/remotebitbang-socket,fork EXEC:"sudo ./remote_bitbang_sysfsgpio tck 11 tms 25 tdo 9 tdi 10"
-  openocd -c "interface remote_bitbang; remote_bitbang_host /tmp/remotebitbang-socket" -f target/stm32f1x.cfg
+  openocd -c "adapter driver remote_bitbang; remote_bitbang_host /tmp/remotebitbang-socket" -f target/stm32f1x.cfg
 */
 
 #include <sys/types.h>
@@ -108,11 +109,14 @@ static void unexport_sysfs_gpio(int gpio)
  * If the gpio is an output, it is initialized according to init_high,
  * otherwise it is ignored.
  *
+ * When open_rw is set, the file descriptor will be open as read and write,
+ * e.g. for SWDIO (TMS) that is used as input and output.
+ *
  * If the gpio is already exported we just show a warning and continue; if
  * openocd happened to crash (or was killed by user) then the gpios will not
  * have been cleaned up.
  */
-static int setup_sysfs_gpio(int gpio, int is_output, int init_high)
+static int setup_sysfs_gpio(int gpio, int is_output, int init_high, int open_rw)
 {
 	char buf[40];
 	char gpiostr[4];
@@ -143,7 +147,9 @@ static int setup_sysfs_gpio(int gpio, int is_output, int init_high)
 	}
 
 	snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/value", gpio);
-	if (is_output)
+	if (open_rw)
+		ret = open(buf, O_RDWR | O_NONBLOCK | O_SYNC);
+	else if (is_output)
 		ret = open(buf, O_WRONLY | O_NONBLOCK | O_SYNC);
 	else
 		ret = open(buf, O_RDONLY | O_NONBLOCK | O_SYNC);
@@ -155,6 +161,37 @@ static int setup_sysfs_gpio(int gpio, int is_output, int init_high)
 }
 
 /*
+ * Change direction for gpio.
+ */
+static int change_dir_sysfs_gpio(int gpio, int is_output, int init_high)
+{
+	char buf[40];
+	int ret;
+
+	if (!is_gpio_valid(gpio))
+		return ERROR_OK;
+
+	snprintf(buf, sizeof(buf), "/sys/class/gpio/gpio%d/direction", gpio);
+	ret = open_write_close(buf, is_output ? (init_high ? "high" : "low") : "in");
+	if (ret < 0) {
+		LOG_ERROR("Couldn't set direction for gpio %d", gpio);
+		perror("sysfsgpio: ");
+		unexport_sysfs_gpio(gpio);
+		return ERROR_FAIL;
+	}
+
+	return ERROR_OK;
+}
+
+/* gpio numbers for each gpio. Negative values are invalid */
+static int tck_gpio = -1;
+static int tms_gpio = -1;
+static int tdi_gpio = -1;
+static int tdo_gpio = -1;
+static int trst_gpio = -1;
+static int srst_gpio = -1;
+
+/*
  * file descriptors for /sys/class/gpio/gpioXX/value
  * Set up during init.
  */
@@ -164,6 +201,15 @@ static int tdi_fd = -1;
 static int tdo_fd = -1;
 static int trst_fd = -1;
 static int srst_fd = -1;
+
+/*
+ * GPIO state of /sys/class/gpio/gpioXX/value
+ */
+static int last_tck = -1;
+static int last_tms = -1;
+static int last_tms_drive = -1;
+static int last_tdi = -1;
+static int last_initialized = 0;
 
 /*
  * Bitbang interface read of TDO
@@ -190,26 +236,22 @@ static int sysfsgpio_read(void)
 /*
  * Bitbang interface write of TCK, TMS, TDI
  *
- * Seeing as this is the only function where the outputs are changed,
- * we can cache the old value to avoid needlessly writing it.
+ * Output states are changed here and in sysfsgpio_write_swd,
+ * which are not used simultaneously, so we can cache the old
+ * value to avoid needlessly writing it.
  */
 static void sysfsgpio_write(int tck, int tms, int tdi)
 {
 	const char one[] = "1";
 	const char zero[] = "0";
 
-	static int last_tck;
-	static int last_tms;
-	static int last_tdi;
-
-	static int first_time;
 	size_t bytes_written;
 
-	if (!first_time) {
+	if (!last_initialized) {
 		last_tck = !tck;
 		last_tms = !tms;
 		last_tdi = !tdi;
-		first_time = 1;
+		last_initialized = 1;
 	}
 
 	if (tdi != last_tdi) {
@@ -262,13 +304,81 @@ static void sysfsgpio_reset(int trst, int srst)
 	}
 }
 
-/* gpio numbers for each gpio. Negative values are invalid */
-static int tck_gpio = -1;
-static int tms_gpio = -1;
-static int tdi_gpio = -1;
-static int tdo_gpio = -1;
-static int trst_gpio = -1;
-static int srst_gpio = -1;
+/*
+ * Bitbang interface set direction of SWDIO (TMS)
+ */
+static void sysfsgpio_swdio_drive(int is_output)
+{
+	int ret;
+
+	if ((is_output != 0) && (last_tms == -1))
+		last_tms = 0;
+
+	ret = change_dir_sysfs_gpio(tms_gpio, (is_output != 0) ? 1 : 0, last_tms);
+	if (ret != ERROR_OK)
+		LOG_WARNING("Failed to change SWDIO (TMS) direction to output");
+	else
+		last_tms_drive = (is_output != 0) ? 1 : 0;
+}
+
+/*
+ * Bitbang interface read of SWDIO (TMS)
+ *
+ * The sysfs value will read back either '0' or '1'. The trick here is to call
+ * lseek to bypass buffering in the sysfs kernel driver.
+ */
+static int sysfsgpio_swdio_read(void)
+{
+	char buf[1];
+
+	/* important to seek to signal sysfs of new read */
+	lseek(tms_fd, 0, SEEK_SET);
+	int ret = read(tms_fd, &buf, sizeof(buf));
+
+	if (ret < 0) {
+		LOG_WARNING("reading tdo failed");
+		return 0;
+	}
+
+	return buf[0];
+}
+
+/*
+ * Bitbang interface write of SWCLK (TCK) and SWDIO (TMS)
+ *
+ * Output states are changed here and in sysfsgpio_write, which
+ * are not used simultaneously, so we can cache the old value
+ * to avoid needlessly writing it.
+ */
+static void sysfsgpio_swd_write(int swclk, int swdio)
+{
+	const char one[] = "1";
+	const char zero[] = "0";
+
+	size_t bytes_written;
+
+	if (!last_initialized) {
+		last_tck = !swclk;
+		last_tms = !swdio;
+		last_initialized = 1;
+	}
+
+	if ((last_tms_drive == 1) && (swdio != last_tms)) {
+		bytes_written = write(tms_fd, swdio ? &one : &zero, 1);
+		if (bytes_written != 1)
+			LOG_WARNING("writing swdio (tms) failed");
+	}
+
+	/* write clk last */
+	if (swclk != last_tck) {
+		bytes_written = write(tck_fd, swclk ? &one : &zero, 1);
+		if (bytes_written != 1)
+			LOG_WARNING("writing swclk (tck) failed");
+	}
+
+	last_tms = swdio;
+	last_tck = swclk;
+}
 
 /* helper func to close and cleanup files only if they were valid/ used */
 static void cleanup_fd(int fd, int gpio)
@@ -304,13 +414,21 @@ static void process_remote_protocol(void)
 			char d = c - 'r';
 			sysfsgpio_reset(!!(d & 2),
 					(d & 1));
-		} else if (c >= '0' && c <= '0' + 7) {/* Write */
+		} else if (c >= '0' && c <= '0' + 7) { /* Write */
 			char d = c - '0';
 			sysfsgpio_write(!!(d & 4),
 					!!(d & 2),
 					(d & 1));
 		} else if (c == 'R')
 			putchar(sysfsgpio_read());
+		else if (c == 'c') /* SWDIO read */
+			putchar(sysfsgpio_swdio_read());
+		else if (c == 'o' || c == 'O') /* SWDIO drive */
+			sysfsgpio_swdio_drive(c == 'o' ? 0 : 1);
+		else if (c >= 'd' && c <= 'g') { /* SWD write */
+			char d = c - 'd';
+			sysfsgpio_swd_write((d & 2), (d & 1));
+		}
 		else
 			LOG_ERROR("Unknown command '%c' received", c);
 	}
@@ -318,7 +436,7 @@ static void process_remote_protocol(void)
 
 int main(int argc, char *argv[])
 {
-	LOG_WARNING("SysfsGPIO remote_bitbang JTAG driver\n");
+	LOG_WARNING("SysfsGPIO remote_bitbang JTAG+SWD driver\n");
 
 	for (int i = 1; i < argc; i++) {
 		if (!strcmp(argv[i], "tck"))
@@ -360,32 +478,33 @@ int main(int argc, char *argv[])
 	 * Configure TDO as an input, and TDI, TCK, TMS, TRST, SRST
 	 * as outputs.  Drive TDI and TCK low, and TMS/TRST/SRST high.
 	 */
-	tck_fd = setup_sysfs_gpio(tck_gpio, 1, 0);
+	tck_fd = setup_sysfs_gpio(tck_gpio, 1, 0, 0);
 	if (tck_fd < 0)
 		goto out_error;
 
-	tms_fd = setup_sysfs_gpio(tms_gpio, 1, 1);
+	tms_fd = setup_sysfs_gpio(tms_gpio, 1, 1, 1);
 	if (tms_fd < 0)
 		goto out_error;
+	last_tms_drive = 0;
 
-	tdi_fd = setup_sysfs_gpio(tdi_gpio, 1, 0);
+	tdi_fd = setup_sysfs_gpio(tdi_gpio, 1, 0, 0);
 	if (tdi_fd < 0)
 		goto out_error;
 
-	tdo_fd = setup_sysfs_gpio(tdo_gpio, 0, 0);
+	tdo_fd = setup_sysfs_gpio(tdo_gpio, 0, 0, 0);
 	if (tdo_fd < 0)
 		goto out_error;
 
 	/* assume active low */
 	if (trst_gpio > 0) {
-		trst_fd = setup_sysfs_gpio(trst_gpio, 1, 1);
+		trst_fd = setup_sysfs_gpio(trst_gpio, 1, 1, 0);
 		if (trst_fd < 0)
 			goto out_error;
 	}
 
 	/* assume active low */
 	if (srst_gpio > 0) {
-		srst_fd = setup_sysfs_gpio(srst_gpio, 1, 1);
+		srst_fd = setup_sysfs_gpio(srst_gpio, 1, 1, 0);
 		if (srst_fd < 0)
 			goto out_error;
 	}

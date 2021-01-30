@@ -2,6 +2,8 @@
  *   Copyright (C) 2011 by Richard Uhler                                   *
  *   ruhler@mit.edu                                                        *
  *                                                                         *
+ *   Copyright (C) 2021 by Manuel Wick <manuel@matronix.de>                *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -194,11 +196,35 @@ static int remote_bitbang_blink(int on)
 	return remote_bitbang_putc(c);
 }
 
+static void remote_bitbang_swdio_drive(bool is_output)
+{
+	char c = is_output ? 'O' : 'o';
+	if (0 != remote_bitbang_putc(c))
+		LOG_ERROR("Error setting direction for swdio");
+}
+
+static int remote_bitbang_swdio_read(void)
+{
+	if (BB_ERROR != remote_bitbang_putc('c'))
+		return remote_bitbang_rread();
+	else
+		return BB_ERROR;
+}
+
+static int remote_bitbang_swd_write(int swclk, int swdio)
+{
+	char c = 'd' + ((swclk ? 0x2 : 0x0) | (swdio ? 0x1 : 0x0));
+	return remote_bitbang_putc(c);
+}
+
 static struct bitbang_interface remote_bitbang_bitbang = {
 	.buf_size = sizeof(remote_bitbang_buf) - 1,
 	.sample = &remote_bitbang_sample,
 	.read_sample = &remote_bitbang_read_sample,
 	.write = &remote_bitbang_write,
+	.swdio_read = &remote_bitbang_swdio_read,
+	.swdio_drive = &remote_bitbang_swdio_drive,
+	.swd_write = &remote_bitbang_swd_write,
 	.blink = &remote_bitbang_blink,
 };
 
@@ -321,6 +347,8 @@ COMMAND_HANDLER(remote_bitbang_handle_remote_bitbang_host_command)
 	return ERROR_COMMAND_SYNTAX_ERROR;
 }
 
+static const char * const remote_bitbang_transports[] = { "jtag", "swd", NULL };
+
 static const struct command_registration remote_bitbang_command_handlers[] = {
 	{
 		.name = "remote_bitbang_port",
@@ -347,7 +375,7 @@ static struct jtag_interface remote_bitbang_interface = {
 
 struct adapter_driver remote_bitbang_adapter_driver = {
 	.name = "remote_bitbang",
-	.transports = jtag_only,
+	.transports = remote_bitbang_transports,
 	.commands = remote_bitbang_command_handlers,
 
 	.init = &remote_bitbang_init,
@@ -355,4 +383,5 @@ struct adapter_driver remote_bitbang_adapter_driver = {
 	.reset = &remote_bitbang_reset,
 
 	.jtag_ops = &remote_bitbang_interface,
+	.swd_ops = &bitbang_swd,
 };
