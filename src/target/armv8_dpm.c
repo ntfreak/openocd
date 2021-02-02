@@ -802,6 +802,10 @@ int armv8_dpm_read_current_registers(struct arm_dpm *dpm)
 		if (r->number == ARMV8_SPSR_EL1 && arm->core_mode == ARM_MODE_SYS)
 			continue;
 
+		/* Skip reading ESR_EL3 in AArch32 state */
+		if (r->number == ARMV8_ESR_EL3 && (arm->core_state != ARM_STATE_AARCH64))
+			continue;
+
 		retval = dpmv8_read_reg(dpm, r, i);
 		if (retval != ERROR_OK)
 			goto fail;
