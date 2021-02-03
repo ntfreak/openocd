@@ -50,7 +50,7 @@ bool jtag_usb_location_equal(uint8_t dev_bus, uint8_t *port_path,
 		goto done;
 	}
 
-	string_length -= 1;
+	string_length -= strnlen(ptr, string_length);
 	/* check bus mismatch */
 	if (atoi(ptr) != dev_bus)
 		goto done;
@@ -68,7 +68,7 @@ bool jtag_usb_location_equal(uint8_t dev_bus, uint8_t *port_path,
 			break;
 
 		path_step++;
-		string_length -= 2;
+		string_length -= strnlen(ptr, string_length) + 1;
 	};
 
 	/* walked the full path, all elements match */
