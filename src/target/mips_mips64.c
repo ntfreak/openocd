@@ -277,6 +277,8 @@ static int mips_mips64_set_hwbp(struct target *target, struct breakpoint *bp)
 	LOG_DEBUG("bpid: %" PRIu32 ", bp_num %i bp_value 0x%" PRIx64, bp->unique_id,
 		  bp_num, c->bp_value);
 
+	bp->set = 1 + bp_num;
+
 	return ERROR_OK;
 }
 
@@ -306,6 +308,9 @@ static int mips_mips64_set_sdbbp(struct target *target, struct breakpoint *bp)
 			  bp->address);
 		retval = ERROR_FAIL;
 	}
+
+	if (retval == ERROR_OK)
+		bp->set = 1;
 
 	return retval;
 }
@@ -337,6 +342,9 @@ static int mips_mips16_set_sdbbp(struct target *target, struct breakpoint *bp)
 			  bp->address);
 		retval = ERROR_FAIL;
 	}
+
+	if (retval == ERROR_OK)
+		bp->set = 1;
 
 	return retval;
 }
@@ -372,8 +380,6 @@ static int mips_mips64_set_breakpoint(struct target *target,
 		LOG_ERROR("can't unset breakpoint. Some thing wrong happened");
 		return retval;
 	}
-
-	bp->set = true;
 
 	return ERROR_OK;
 }
