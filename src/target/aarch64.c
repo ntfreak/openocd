@@ -184,9 +184,16 @@ static int aarch64_mmu_modify(struct target *target, int enable)
 		LOG_DEBUG("unknown cpu state 0x%x", armv8->arm.core_mode);
 		break;
 	}
-
+	if (armv8->arm.core_mode == ARMV8_64_EL0T) {
+		LOG_DEBUG("Switch to EL1 to manipulate MMU");
+		armv8_dpm_modeswitch(&armv8->dpm, ARMV8_64_EL1H);
+	}
 	retval = armv8->dpm.instr_write_data_r0(&armv8->dpm, instr,
 				aarch64->system_control_reg_curr);
+	if (armv8->arm.core_mode == ARMV8_64_EL0T) {
+		LOG_DEBUG("Switch back to EL0");
+		armv8_dpm_modeswitch(&armv8->dpm, ARM_MODE_ANY);
+	}
 	return retval;
 }
 
