@@ -1,6 +1,8 @@
 /***************************************************************************
  *   Copyright (C) 2016 by Matthias Welwarsky                              *
  *                                                                         *
+ *   Copyright (C) 2020-2021, Ampere Computing LLC                         *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -36,8 +38,6 @@ extern const struct dap_ops swd_dap_ops;
 extern const struct dap_ops jtag_dp_ops;
 extern struct adapter_driver *adapter_driver;
 
-#define ADI_BAD_CFG 0xBAD00000
-
 /* DAP command support */
 struct arm_dap_object {
 	struct list_head lh;
@@ -53,6 +53,8 @@ static void dap_instance_init(struct adiv5_dap *dap)
 	for (i = 0; i <= DP_APSEL_MAX; i++) {
 		dap->ap[i].dap = dap;
 		dap->ap[i].ap_num = i;
+		/* by default init base address used for adiv6 at 16-bit granularity */
+		dap->ap[i].base_addr = i << 16;
 		/* memaccess_tck max is 255 */
 		dap->ap[i].memaccess_tck = 255;
 		/* Number of bits for tar autoincrement, impl. dep. at least 10 */
@@ -105,6 +107,7 @@ static int dap_init_all(void)
 {
 	struct arm_dap_object *obj;
 	int retval;
+	uint32_t dpidr;
 
 	LOG_DEBUG("Initializing all DAPs ...");
 
@@ -129,9 +132,77 @@ static int dap_init_all(void)
 		} else
 			dap->ops = &jtag_dp_ops;
 
-		retval = dap->ops->connect(dap);
-		if (retval != ERROR_OK)
-			return retval;
+		dap_instance_init(dap);
+
+		if (dap->adi_version == 6) {
+			dap->adi_ap_reg_offset = ADIV6_REG_DELTA;
+			LOG_INFO("DAP %s configured to use ADIv6 protocol by user cfg file", jtag_tap_name(dap->tap));
+			retval = dap->ops->connect(dap);
+			if (retval != ERROR_OK)
+				return retval;
+		} else if (dap->adi_version != 5) {
+			/***************************************************/
+			/* User did not specify ADIv5 or ADIv6 override    */
+			/* so read DPIDR and switch ADI version if need be.*/
+			/* Note the initial read is via an ADIv6 connection*/
+			/* since that connection can handle all ADIv5 ACK  */
+			/* responses. An ADIv5 connection will not         */
+			/* recognize an ADIv6 ACK response of '4' (OK)     */
+			/***************************************************/
+			dap->adi_ap_reg_offset = ADIV6_REG_DELTA;
+			dap->adi_version = 6;
+			retval = dap->ops->connect(dap);
+			if (retval != ERROR_OK)
+				return retval;
+			retval = dap->ops->queue_dp_read(dap, DP_DPIDR, &dpidr);
+			if (retval != ERROR_OK) {
+				LOG_ERROR("DAP read of DPIDR failed...");
+				return retval;
+			}
+			retval = dap_run(dap);
+			if (retval != ERROR_OK) {
+				LOG_ERROR("DAP read of DPIDR failed...");
+				return retval;
+			}
+
+			if (((dpidr & 0x0000F000) >> 12) < 3) {
+				LOG_INFO("DAP %s DPIDR indicates ADIv5 protocol is being used", jtag_tap_name(dap->tap));
+				dap->adi_version = 5;
+				dap->adi_ap_reg_offset = ADIV5_REG_DELTA;	/* MEM AP register address delta to apply */
+				retval = dap->ops->connect(dap);
+				if (retval != ERROR_OK)
+					return retval;
+			} else {
+				/* target is using an ADI v6 DAP which has already been set up */
+				LOG_INFO("DAP %s DPIDR indicates ADIv6 protocol is being used", jtag_tap_name(dap->tap));
+			}
+		} else {
+			/**************************************************/
+			/* User configuration wants to force use of ADI-v5*/
+			/* This may be required on DPv0 parts that do not */
+			/* have a DPIDR register value indicating ADI-v5  */
+			/**************************************************/
+			LOG_INFO("DAP %s configured to use ADIv5 protocol by user cfg file", jtag_tap_name(dap->tap));
+			dap->adi_ap_reg_offset = ADIV5_REG_DELTA;	/* MEM AP register address delta to apply */
+			retval = dap->ops->connect(dap);
+			if (retval != ERROR_OK)
+				return retval;
+		}
+		/* see if address size of ROM Table is greater than 32-bits */
+		if (dap->adi_version == 6) {
+			retval = dap->ops->queue_dp_read(dap, DP_DPIDR1, &dpidr);
+			if (retval != ERROR_OK) {
+				LOG_ERROR("DAP read of DPIDR1 failed...");
+				return retval;
+			}
+			retval = dap_run(dap);
+			if (retval != ERROR_OK) {
+				LOG_ERROR("DAP read of DPIDR1 failed...");
+				return retval;
+			}
+			dap->asize = dpidr & 0x0000007F;
+		} else
+			dap->asize = 32;  /* ADIv5 only supports one select reg */
 	}
 
 	return ERROR_OK;
@@ -157,11 +228,15 @@ int dap_cleanup_all(void)
 enum dap_cfg_param {
 	CFG_CHAIN_POSITION,
 	CFG_IGNORE_SYSPWRUPACK,
+	CFG_ADIV6,
+	CFG_ADIV5,
 };
 
 static const Jim_Nvp nvp_config_opts[] = {
 	{ .name = "-chain-position",   .value = CFG_CHAIN_POSITION },
 	{ .name = "-ignore-syspwrupack", .value = CFG_IGNORE_SYSPWRUPACK },
+	{ .name = "-adiv6",   .value = CFG_ADIV6 },
+	{ .name = "-adiv5",   .value = CFG_ADIV5 },
 	{ .name = NULL, .value = -1 }
 };
 
@@ -196,6 +271,12 @@ static int dap_configure(Jim_GetOptInfo *goi, struct arm_dap_object *dap)
 		}
 		case CFG_IGNORE_SYSPWRUPACK:
 			dap->dap.ignore_syspwrupack = true;
+			break;
+		case CFG_ADIV6:
+			dap->dap.adi_version = 6;
+			break;
+		case CFG_ADIV5:
+			dap->dap.adi_version = 5;
 			break;
 		default:
 			break;
