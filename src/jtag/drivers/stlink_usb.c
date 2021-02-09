@@ -3964,7 +3964,7 @@ static int stlink_dap_op_queue_ap_read(struct adiv5_ap *ap, unsigned reg,
 	if (retval != ERROR_OK)
 		return retval;
 
-	if (reg != AP_REG_IDR) {
+	if (reg != AP_REG_IDR(dap)) {
 		retval = stlink_dap_open_ap(ap->ap_num);
 		if (retval != ERROR_OK)
 			return retval;
