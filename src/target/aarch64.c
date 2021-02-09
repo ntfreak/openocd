@@ -2579,7 +2579,16 @@ static int aarch64_examine_first(struct target *target)
 		return retval;
 	}
 
-	armv8->debug_ap->memaccess_tck = 10;
+	/****************************************************/
+	/* Force the tck cycle count to 10 only if the      */
+	/* current setting is zero. This allows the default */
+	/* settings to be used which may be required in     */
+	/* emulation environments. Users can execute the dap*/
+	/* memaccess command to change the current setting  */
+	/* for each access port.                            */
+	/****************************************************/
+	if (!armv8->debug_ap->memaccess_tck)
+		armv8->debug_ap->memaccess_tck = 10;
 
 	if (!target->dbgbase_set) {
 		uint32_t dbgbase;
