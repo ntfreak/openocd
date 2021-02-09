@@ -5,6 +5,8 @@
  *   Copyright (C) 2008 by Spencer Oliver                                  *
  *   spen@spen-soft.co.uk                                                  *
  *                                                                         *
+ *   Copyright (C) 2019-2021, Ampere Computing LLC                         *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -50,10 +52,14 @@
 #define DP_DPIDR        BANK_REG(0x0, 0x0) /* DPv1+: ro */
 #define DP_ABORT        BANK_REG(0x0, 0x0) /* DPv1+: SWD: wo */
 #define DP_CTRL_STAT    BANK_REG(0x0, 0x4) /* DPv0+: rw */
+#define DP_DPIDR1       BANK_REG(0x1, 0x0) /* DPv3: ro */
 #define DP_DLCR         BANK_REG(0x1, 0x4) /* DPv1+: SWD: rw */
+#define DP_BASEPTR0     BANK_REG(0x2, 0x0) /* DPv3: ro */
 #define DP_TARGETID     BANK_REG(0x2, 0x4) /* DPv2: ro */
+#define DP_BASEPTR1     BANK_REG(0x3, 0x0) /* DPv3: ro */
 #define DP_DLPIDR       BANK_REG(0x3, 0x4) /* DPv2: ro */
 #define DP_EVENTSTAT    BANK_REG(0x4, 0x4) /* DPv2: ro */
+#define DP_SELECT1      BANK_REG(0x5, 0x4) /* DPv3: ro */
 #define DP_RESEND       BANK_REG(0x0, 0x8) /* DPv1+: SWD: ro */
 #define DP_SELECT       BANK_REG(0x0, 0x8) /* DPv0+: JTAG: rw; SWD: wo */
 #define DP_RDBUFF       BANK_REG(0x0, 0xC) /* DPv0+: ro */
@@ -85,6 +91,12 @@
 #define CSYSPWRUPREQ    (1UL << 30)
 #define CSYSPWRUPACK    (1UL << 31)
 
+/****************************************************************/
+/* The MEM_AP_REG ADIv5 addresses from 0x00 (CSW) to 0xFC (IDR) */
+/* must all be incremented by 0xD00 if ADIV6 is being used      */
+/****************************************************************/
+#define ADIV6_REG_DELTA		0xD00		/* Value to add to MEM_AP_REG if using ADIV6 */
+#define ADIV5_REG_DELTA		0x000		/* Value to add to MEM_AP_REG if using ADIV5 */
 /* MEM-AP register addresses */
 #define MEM_AP_REG_CSW		0x00
 #define MEM_AP_REG_TAR		0x04
@@ -100,6 +112,13 @@
 #define MEM_AP_REG_BASE		0xF8		/* RO: Debug Base Address register */
 /* Generic AP register address */
 #define AP_REG_IDR			0xFC		/* RO: Identification Register */
+
+#define AP_REG_DEVARCH		0xFBC		/* RO: Present bit 20 should be on and ARCHID (bits 15:0) */
+#define AP_REG_DEVID		0xFC8		/* RO: Device ID Format (bits 3:0) indicates ROM table entry size  */
+#define AP_REG_CIDR0		0xFF0		/* RO: Component ID0 */
+#define AP_REG_CIDR1		0xFF4		/* RO: Component ID1 with Class identification */
+#define AP_REG_CIDR2		0xFF8		/* RO: Component ID2 */
+#define AP_REG_CIDR3		0xFFC		/* RO: Component ID3 */
 
 /* Fields of the MEM-AP's CSW register */
 #define CSW_SIZE_MASK		7
@@ -157,6 +176,9 @@
 
 #define DP_APSEL_MAX        (255)
 #define DP_APSEL_INVALID    (-1)
+
+/* default configuration register setting indicating a read must be performed */
+#define ADI_BAD_CFG 0xBAD00000
 
 /* FIXME: not SWD specific; should be renamed, e.g. adiv5_special_seq */
 enum swd_special_seq {
@@ -219,6 +241,9 @@ struct adiv5_ap {
 	/* true if tar_value is in sync with TAR register */
 	bool tar_valid;
 
+	/* Base address for ADIv6 APs */
+	uint64_t base_addr;
+
 	/* MEM AP configuration register indicating LPAE support */
 	uint32_t cfg_reg;
 };
@@ -265,7 +290,7 @@ struct adiv5_dap {
 	 * Cache for DP_SELECT register. A value of DP_SELECT_INVALID
 	 * indicates no cached value and forces rewrite of the register.
 	 */
-	uint32_t select;
+	uint64_t select;
 
 	/* information about current pending SWjDP-AHBAP transaction */
 	uint8_t  ack;
@@ -297,6 +322,15 @@ struct adiv5_dap {
 	/** Flag saying whether to ignore the syspwrupack flag in DAP. Some devices
 	 *  do not set this bit until later in the bringup sequence */
 	bool ignore_syspwrupack;
+
+	/* Indicates ADI version (5, 6 or 0 for unknown) being used */
+	uint32_t adi_version;
+
+	/* Indicates ADI AP register address delta (0 for adiv5, 0xD00 for adiv6) */
+	uint32_t adi_ap_reg_offset;
+
+	/* ADI-v6 only field indicating ROM Table address size */
+	uint32_t asize;
 };
 
 /**
@@ -358,6 +392,7 @@ enum ap_type {
 	AP_TYPE_APB_AP  = 0x2,  /* APB Memory-AP */
 	AP_TYPE_AXI_AP  = 0x4,  /* AXI Memory-AP */
 	AP_TYPE_AHB5_AP = 0x5,  /* AHB5 Memory-AP. */
+	AP_TYPE_APB4_AP = 0x6,  /* APB4 Memory-AP */
 };
 
 /**
