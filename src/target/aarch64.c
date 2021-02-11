@@ -2648,6 +2648,97 @@ COMMAND_HANDLER(aarch64_mask_interrupts_command)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(aarch64_sctlr_command)
+{
+	struct target *target = get_current_target(CMD_CTX);
+	struct aarch64_common *aarch64 = target_to_aarch64(target);
+	struct armv8_common *armv8 = &aarch64->armv8_common;
+	enum arm_mode target_mode = ARM_MODE_ANY;
+	static const Jim_Nvp nvp_sctlr_modes[] = {
+		{ .name = "read", .value = 1 },
+		{ .name = "write", .value = 0 },
+		{ .name = NULL, .value = -1 },
+	};
+	const Jim_Nvp *n;
+	uint32_t sctlr = 0;
+	uint32_t instr;
+	int ret;
+
+	if (!CMD_ARGC) {
+		LOG_ERROR("Missing parameter: - should be read or write");
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	}
+
+	n = Jim_Nvp_name2value_simple(nvp_sctlr_modes, CMD_ARGV[0]);
+	if (n->name == NULL) {
+		LOG_ERROR("Unknown parameter: %s - should be read or write",
+			  CMD_ARGV[0]);
+		return ERROR_COMMAND_SYNTAX_ERROR;
+	}
+
+	if (CMD_ARGC > 1)
+		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[1], sctlr);
+
+	switch (armv8->arm.core_mode) {
+	case ARMV8_64_EL0T:
+		target_mode = ARMV8_64_EL1H;
+		/* fall through */
+	case ARMV8_64_EL1T:
+	case ARMV8_64_EL1H:
+		instr = n->value ? ARMV8_MRS(SYSTEM_SCTLR_EL1, 0) :
+				   ARMV8_MSR_GP(SYSTEM_SCTLR_EL1, 0);
+		break;
+	case ARMV8_64_EL2T:
+	case ARMV8_64_EL2H:
+		instr = n->value ? ARMV8_MRS(SYSTEM_SCTLR_EL2, 0) :
+				   ARMV8_MSR_GP(SYSTEM_SCTLR_EL2, 0);
+		break;
+	case ARMV8_64_EL3H:
+	case ARMV8_64_EL3T:
+		instr = n->value ? ARMV8_MRS(SYSTEM_SCTLR_EL3, 0) :
+				   ARMV8_MSR_GP(SYSTEM_SCTLR_EL3, 0);
+		break;
+
+	default:
+		LOG_ERROR("cannot %s system control register in this mode: (%s : 0x%x)",
+			  CMD_ARGV[0], armv8_mode_name(armv8->arm.core_mode),
+			  armv8->arm.core_mode);
+		return ERROR_FAIL;
+	}
+
+	if (target_mode != ARM_MODE_ANY)
+		armv8_dpm_modeswitch(&armv8->dpm, target_mode);
+
+	if (!n->value)
+		aarch64->system_control_reg = sctlr;
+
+	ret = n->value ?
+		armv8->dpm.instr_read_data_r0(&armv8->dpm, instr, &sctlr) :
+		armv8->dpm.instr_write_data_r0(&armv8->dpm, instr, sctlr);
+	if (ret != ERROR_OK)
+		return ret;
+
+	if (n->value)
+		aarch64->system_control_reg = sctlr;
+
+	if (target_mode != ARM_MODE_ANY)
+		armv8_dpm_modeswitch(&armv8->dpm, ARM_MODE_ANY);
+
+	LOG_DEBUG("System_register: %8.8" PRIx32, sctlr);
+	aarch64->system_control_reg_curr = sctlr;
+
+	command_print(CMD, "aarch64 sctlr %08x", sctlr);
+
+	armv8->armv8_mmu.mmu_enabled =
+			(aarch64->system_control_reg & 0x1U) ? 1 : 0;
+	armv8->armv8_mmu.armv8_cache.d_u_cache_enabled =
+		(aarch64->system_control_reg & 0x4U) ? 1 : 0;
+	armv8->armv8_mmu.armv8_cache.i_cache_enabled =
+		(aarch64->system_control_reg & 0x1000U) ? 1 : 0;
+
+	return ERROR_OK;
+}
+
 static int jim_mcrmrc(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 {
 	struct command_context *context;
@@ -2827,6 +2918,13 @@ static const struct command_registration aarch64_exec_command_handlers[] = {
 		.jim_handler = jim_mcrmrc,
 		.help = "read coprocessor register",
 		.usage = "cpnum op1 CRn CRm op2",
+	},
+	{
+		.name = "sctlr",
+		.handler = aarch64_sctlr_command,
+		.mode = COMMAND_ANY,
+		.help = "read/write aarch64 sctlr register",
+		.usage = "['read'|'write <value>']",
 	},
 	{
 		.chain = smp_command_handlers,
