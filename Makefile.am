@@ -42,14 +42,13 @@ if INTERNAL_JIMTCL
 AM_CPPFLAGS += -I$(top_srcdir)/jimtcl \
 			   -I$(top_builddir)/jimtcl
 endif
-EXTRA_DIST_NEWS != ls $(srcdir)/NEWS-*
 EXTRA_DIST += \
 	BUGS \
 	HACKING \
 	NEWTAPS \
 	README.Windows \
 	README.macOS \
-	$(EXTRA_DIST_NEWS) \
+	$(srcdir)/NEWS-* \
 	Doxyfile.in \
 	tools/logger.pl \
 	tools/rlink_make_speed_table \
