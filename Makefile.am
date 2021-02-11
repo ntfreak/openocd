@@ -42,7 +42,6 @@ if INTERNAL_JIMTCL
 AM_CPPFLAGS += -I$(top_srcdir)/jimtcl \
 			   -I$(top_builddir)/jimtcl
 endif
-EXTRA_DIST_NEWS != ls $(srcdir)/NEWS-*
 EXTRA_DIST += \
 	BUGS \
 	HACKING \
