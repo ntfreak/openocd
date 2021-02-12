@@ -166,10 +166,10 @@ int armv7m_restore_context(struct target *target)
 	 * packing of ARMV7M_PMSK_BPRI_FLTMSK_CTRL!
 	 * See also comments in the register table above */
 	for (i = cache->num_regs - 1; i >= 0; i--) {
-		if (cache->reg_list[i].dirty) {
-			armv7m->arm.write_core_reg(target, &cache->reg_list[i], i,
-						   ARM_MODE_ANY, cache->reg_list[i].value);
-		}
+		struct reg *reg = &cache->reg_list[i];
+
+		if (reg->exist && reg->dirty)
+			armv7m->arm.write_core_reg(target, reg, i, ARM_MODE_ANY, reg->value);
 	}
 
 	return ERROR_OK;

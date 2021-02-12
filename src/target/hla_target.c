@@ -226,7 +226,7 @@ static int adapter_load_context(struct target *target)
 	for (int i = 0; i < num_regs; i++) {
 
 		struct reg *r = &armv7m->arm.core_cache->reg_list[i];
-		if (!r->valid)
+		if (r->exist && !r->valid)
 			armv7m->arm.read_core_reg(target, r, i, ARM_MODE_ANY);
 	}
 
