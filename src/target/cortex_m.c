@@ -521,7 +521,7 @@ static int cortex_m_debug_entry(struct target *target)
 
 	for (i = 0; i < num_regs; i++) {
 		r = &armv7m->arm.core_cache->reg_list[i];
-		if (!r->valid)
+		if (r->exist && !r->valid)
 			arm->read_core_reg(target, r, i, ARM_MODE_ANY);
 	}
 
