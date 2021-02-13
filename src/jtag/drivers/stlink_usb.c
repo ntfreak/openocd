@@ -1748,7 +1748,7 @@ static int stlink_usb_trace_read(void *handle, uint8_t *buf, size_t *size)
 			return res;
 
 		size_t bytes_avail = le_to_h_u16(h->databuf);
-		*size = bytes_avail < *size ? bytes_avail : *size - 1;
+		*size = bytes_avail < *size ? bytes_avail : *size;
 
 		if (*size > 0) {
 			res = stlink_usb_read_trace(handle, buf, *size);
