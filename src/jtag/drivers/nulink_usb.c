@@ -253,7 +253,7 @@ static int nulink_usb_write_debug_reg(void *handle, uint32_t addr, uint32_t val)
 {
 	struct nulink_usb_handle_s *h = handle;
 
-	LOG_DEBUG("nulink_usb_write_debug_reg 0x%08" PRIX32 "0x%08" PRIX32, addr, val);
+	LOG_DEBUG("nulink_usb_write_debug_reg 0x%08" PRIX32 " 0x%08" PRIX32, addr, val);
 
 	nulink_usb_init_buffer(handle, 8 + 12 * 1);
 	/* set command ID */
@@ -503,7 +503,7 @@ static int nulink_usb_read_mem8(void *handle, uint32_t addr, uint16_t len,
 		aligned_addr = aligned_addr * 4;
 		offset = addr - aligned_addr;
 		LOG_DEBUG("nulink_usb_read_mem8: unaligned address addr 0x%08" PRIx32
-				"/aligned addr 0x%08" PRIx32 "offset %" PRIu32,
+				"/aligned addr 0x%08" PRIx32 " offset %" PRIu32,
 				addr, aligned_addr, offset);
 
 		addr = aligned_addr;
