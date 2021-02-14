@@ -7222,6 +7222,12 @@ the chip identification register, and autoconfigures itself.
 flash bank $_FLASHNAME stm32l4x 0 0 0 0 $_TARGETNAME
 @end example
 
+An optional parameter could be used force the DBGMCU_IDCODE value.
+@example
+# STM32WL55 first revisions does not allow reading the DBGMCU_IDCODE via AP1/CPU1 (CM0+)
+flash bank $_CHIPNAME.flash.cpu1 stm32l4x 0 0 0 0 $_CHIPNAME.cpu1 0xffff6497
+@end example
+
 If you use OTP (One-Time Programmable) memory define it as a second bank
 as per the following example.
 @example
