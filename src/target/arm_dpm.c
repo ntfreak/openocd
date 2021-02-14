@@ -514,7 +514,7 @@ int arm_dpm_write_dirty_registers(struct arm_dpm *dpm, bool bpwp)
 				continue;
 			if (arm->cpsr == cache->reg_list + i)
 				continue;
-			if (!cache->reg_list[i].dirty)
+			if (!cache->reg_list[i].exist || !cache->reg_list[i].dirty)
 				continue;
 
 			r = cache->reg_list[i].arch_info;
@@ -763,7 +763,7 @@ static int arm_dpm_full_context(struct target *target)
 		for (unsigned i = 0; i < cache->num_regs; i++) {
 			struct arm_reg *r;
 
-			if (cache->reg_list[i].valid)
+			if (!cache->reg_list[i].exist || cache->reg_list[i].valid)
 				continue;
 			r = cache->reg_list[i].arch_info;
 
