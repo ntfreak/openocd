@@ -1681,7 +1681,7 @@ static int arm_full_context(struct target *target)
 	int retval = ERROR_OK;
 
 	for (; num_regs && retval == ERROR_OK; num_regs--, reg++) {
-		if (reg->valid)
+		if (!reg->exist || reg->valid)
 			continue;
 		retval = armv4_5_get_core_reg(reg);
 	}
