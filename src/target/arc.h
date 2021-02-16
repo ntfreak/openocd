@@ -49,6 +49,12 @@
 #define CORE_R61_NUM			(61)
 #define CORE_R62_NUM			(62)
 
+/* Core reg nums for used in Zephyr rtos */
+#define CORE_PC_NUM			(64)
+#define CORE_SP_NUM			(28)
+#define CORE_BLINK_NUM			(31)
+
+
 #define CORE_REG_MAX_NUMBER		(63)
 
 /* Limit reg_type/reg_type_field  name to 20 symbols */
