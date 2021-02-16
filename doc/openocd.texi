@@ -4689,7 +4689,7 @@ The value should normally correspond to a static mapping for the
 @var{rtos_type} can be one of @option{auto}, @option{eCos},
 @option{ThreadX}, @option{FreeRTOS}, @option{linux}, @option{ChibiOS},
 @option{embKernel}, @option{mqx}, @option{uCOS-III}, @option{nuttx},
-@option{RIOT}
+@option{RIOT}, @option{Zephyr}
 @xref{gdbrtossupport,,RTOS Support}.
 
 @item @code{-defer-examine} -- skip target examination at initial JTAG chain
@@ -10878,6 +10878,7 @@ Currently supported rtos's include:
 @item @option{nuttx}
 @item @option{RIOT}
 @item @option{hwthread} (This is not an actual RTOS. @xref{usingopenocdsmpwithgdb,,Using OpenOCD SMP with GDB}.)
+@item @option{Zephyr}
 @end itemize
 
 Before an RTOS can be detected, it must export certain symbols; otherwise, it cannot
@@ -10912,6 +10913,8 @@ g_readytorun, g_tasklisttable.
 sched_threads, sched_num_threads, sched_active_pid, max_threads,
 _tcb_name_offset.
 @end raggedright
+@item Zephyr symbols
+_kernel, _kernel_openocd_offsets, _kernel_openocd_size_t_size
 @end table
 
 For most RTOS supported the above symbols will be exported by default. However for
