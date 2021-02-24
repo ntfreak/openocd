@@ -23,7 +23,7 @@
 # export HIDAPI_SRC=/path/to/hidapi
 # export OPENOCD_CONFIG="--enable-..."
 # cd /work/dir
-# /path/to/openocd/contrib/cross-build.sh <host-triplet>
+# .../path/to/openocd/contrib/cross-build.sh <host-triplet>
 #
 # For static linking, a workaround is to
 # export LIBUSB1_CONFIG="--enable-static --disable-shared"
