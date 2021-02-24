@@ -832,7 +832,7 @@ int cfi_flash_bank_cmd(struct flash_bank *bank, unsigned int argc, const char **
 		return ERROR_FLASH_BANK_INVALID;
 	}
 
-	cfi_info = malloc(sizeof(struct cfi_flash_bank));
+	cfi_info = calloc(sizeof(struct cfi_flash_bank));
 	cfi_info->probed = false;
 	cfi_info->erase_region_info = NULL;
 	cfi_info->pri_ext = NULL;
