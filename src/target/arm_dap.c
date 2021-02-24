@@ -60,7 +60,8 @@ static void dap_instance_init(struct adiv5_dap *dap)
 		/* Number of bits for tar autoincrement, impl. dep. at least 10 */
 		dap->ap[i].tar_autoincr_block = (1<<10);
 		/* default CSW value */
-		dap->ap[i].csw_default = CSW_AHB_DEFAULT;
+		if (!dap->ap[i].csw_default)
+			dap->ap[i].csw_default = CSW_AHB_DEFAULT;
 		dap->ap[i].cfg_reg = ADI_BAD_CFG; /* mem_ap configuration reg (large physical addr, etc. */
 	}
 	INIT_LIST_HEAD(&dap->cmd_journal);
