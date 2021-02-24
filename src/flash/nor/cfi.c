@@ -832,16 +832,12 @@ int cfi_flash_bank_cmd(struct flash_bank *bank, unsigned int argc, const char **
 		return ERROR_FLASH_BANK_INVALID;
 	}
 
-	cfi_info = malloc(sizeof(struct cfi_flash_bank));
-	cfi_info->probed = false;
-	cfi_info->erase_region_info = NULL;
-	cfi_info->pri_ext = NULL;
+	cfi_info = calloc(1, sizeof(struct cfi_flash_bank));
+	if (cfi_info == NULL) {
+		LOG_ERROR("No memory for flash bank info");
+		return ERROR_FAIL;
+	}
 	bank->driver_priv = cfi_info;
-
-	cfi_info->x16_as_x8 = false;
-	cfi_info->jedec_probe = false;
-	cfi_info->not_cfi = false;
-	cfi_info->data_swap = false;
 
 	for (unsigned i = 6; i < argc; i++) {
 		if (strcmp(argv[i], "x16_as_x8") == 0)
