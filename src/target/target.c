@@ -637,7 +637,18 @@ int target_resume(struct target *target, int current, target_addr_t address,
 	 * we poll. The CPU can even halt at the current PC as a result of
 	 * a software breakpoint being inserted by (a bug?) the application.
 	 */
+	/*
+	 * resume() triggers the event 'resumed'. The execution of TCL commands
+	 * in the event handler causes the polling of targets. If the target has
+	 * already halted for a breakpoint, polling will run the 'halted' event
+	 * handler before the pending 'resumed' handler.
+	 * Disable polling during resume() to guarantee the execution of handlers
+	 * in the correct order.
+	 */
+	bool save_poll = jtag_poll_get_enabled();
+	jtag_poll_set_enabled(false);
 	retval = target->type->resume(target, current, address, handle_breakpoints, debug_execution);
+	jtag_poll_set_enabled(save_poll);
 	if (retval != ERROR_OK)
 		return retval;
 

@@ -5035,6 +5035,19 @@ when reset disables PLLs needed to use a fast clock.
 @* After target hardware trace configuration was changed
 @end itemize
 
+@quotation Note
+OpenOCD events are not supposed to be preempt by another event, but this
+is not enforced in current code. Only the target event @b{resumed} is
+executed with polling disabled; this avoids polling to trigger the event
+@b{halted}, reversing the logical order of execution of their handlers.
+Future versions of OpenOCD will prevent the event preemption and will
+disable the schedule of polling during the event execution. Do not rely
+on polling in any event handler; this means, don't expect the status of
+a core to change during the execution of the handler. The event handler
+will have to enable polling or use @command{$target_name arp_poll} to
+check if the core has changed status.
+@end quotation
+
 @node Flash Commands
 @chapter Flash Commands
 
