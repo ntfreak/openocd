@@ -2743,7 +2743,17 @@ static bool gdb_handle_vcont_packet(struct connection *connection, const char *p
 		gdb_running_type = 'c';
 		LOG_DEBUG("target %s continue", target_name(target));
 		log_add_callback(gdb_log_callback, connection);
+		/*
+		 * target_resume() triggers the event 'resumed'. The execution of TCL
+		 * commands in the event handler causes the polling of targets.
+		 * We need to complete all the internal openocd steps before allowing
+		 * polling to change target's state.
+		 * Disable polling during target_resume().
+		 */
+		bool save_poll = jtag_poll_get_enabled();
+		jtag_poll_set_enabled(false);
 		retval = target_resume(target, 1, 0, 0, 0);
+		jtag_poll_set_enabled(save_poll);
 		if (retval == ERROR_TARGET_NOT_HALTED)
 			LOG_INFO("target %s was not halted when resume was requested", target_name(target));
 
