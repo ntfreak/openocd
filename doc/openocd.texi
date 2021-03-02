@@ -6890,6 +6890,17 @@ Note: only Main and Work flash regions support Erase operation.
 @end deffn
 @end deffn
 
+@deffn {Flash Driver} rp2040
+Supports RP2040 "Raspberry Pi Pico" microcontroller.
+RP2040 is a dual-core device with two CM0+ cores. Both cores share the same
+Flash/RAM/MMIO address space.  Non-volatile storage is achieved with an
+external QSPI flash; a Boot ROM provides helper functions.
+
+@example
+flash bank $_FLASHNAME rp2040_flash $_FLASHBASE $_FLASHSIZE 1 32 $_TARGETNAME
+@end example
+@end deffn
+
 @deffn {Flash Driver} sim3x
 All members of the SiM3 microcontroller family from Silicon Laboratories
 include internal flash and use ARM Cortex-M3 cores. It supports both JTAG
