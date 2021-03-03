@@ -1853,7 +1853,86 @@ static int riscv_checksum_memory(struct target *target,
 		target_addr_t address, uint32_t count,
 		uint32_t *checksum)
 {
-	return ERROR_FAIL;
+	struct working_area *crc_algorithm;
+	struct reg_param reg_params[2];
+	int retval;
+
+	LOG_DEBUG("address=0x%" TARGET_PRIxADDR "; count=0x%" PRIx32, address, count);
+
+	static const uint8_t riscv32_crc_code[] = {
+#include "../../contrib/loaders/checksum/riscv32_crc.inc"
+	};
+	static const uint8_t riscv64_crc_code[] = {
+#include "../../contrib/loaders/checksum/riscv64_crc.inc"
+	};
+
+	static const uint8_t *crc_code;
+
+	unsigned xlen = riscv_xlen(target);
+	unsigned crc_code_size;
+	if (xlen == 32) {
+		crc_code = riscv32_crc_code;
+		crc_code_size = sizeof(riscv32_crc_code);
+	} else {
+		crc_code = riscv64_crc_code;
+		crc_code_size = sizeof(riscv64_crc_code);
+	}
+
+	if (count < crc_code_size * 4) {
+		/* Don't use the algorithm for relatively small buffers. It's faster
+		 * just to read the memory.  target_checksum_memory() will take care of
+		 * that if we fail. */
+		return ERROR_FAIL;
+	}
+
+	retval = target_alloc_working_area(target, crc_code_size, &crc_algorithm);
+	if (retval != ERROR_OK)
+		return retval;
+
+	if (crc_algorithm->address + crc_algorithm->size > address &&
+			crc_algorithm->address < address + count) {
+		/* Region to checksum overlaps with the work area we've been assigned.
+		 * Bail. (Would be better to manually checksum what we read there, and
+		 * use the algorithm for the rest.) */
+		target_free_working_area(target, crc_algorithm);
+		return ERROR_FAIL;
+	}
+
+	retval = target_write_buffer(target, crc_algorithm->address, crc_code_size,
+			crc_code);
+	if (retval != ERROR_OK) {
+		LOG_ERROR("Failed to write code to " TARGET_ADDR_FMT ": %d",
+				crc_algorithm->address, retval);
+		target_free_working_area(target, crc_algorithm);
+		return retval;
+	}
+
+	init_reg_param(&reg_params[0], "a0", xlen, PARAM_IN_OUT);
+	init_reg_param(&reg_params[1], "a1", xlen, PARAM_OUT);
+	buf_set_u64(reg_params[0].value, 0, xlen, address);
+	buf_set_u64(reg_params[1].value, 0, xlen, count);
+
+	/* 20 second timeout/megabyte */
+	int timeout = 20000 * (1 + (count / (1024 * 1024)));
+
+	retval = target_run_algorithm(target, 0, NULL, 2, reg_params,
+			crc_algorithm->address,
+			0,	/* Leave exit point unspecified because we don't know. */
+			timeout, NULL);
+
+	if (retval == ERROR_OK)
+		*checksum = buf_get_u32(reg_params[0].value, 0, 32);
+	else
+		LOG_ERROR("error executing RISC-V CRC algorithm");
+
+	destroy_reg_param(&reg_params[0]);
+	destroy_reg_param(&reg_params[1]);
+
+	target_free_working_area(target, crc_algorithm);
+
+	LOG_DEBUG("checksum=0x%" PRIx32 ", result=%d", *checksum, retval);
+
+	return retval;
 }
 
 /*** OpenOCD Helper Functions ***/
