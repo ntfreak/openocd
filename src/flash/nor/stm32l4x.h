@@ -70,4 +70,29 @@
 #define STM32_FLASH_BANK_BASE	0x08000000
 #define STM32_FLASH_S_BANK_BASE	0x0C000000
 
+/* defines shared between the flash loader and the flash driver */
+#define LDR_STACK_SIZE        40
+
+#define LDR_SR_OFFSET         0
+#define LDR_CR_OFFSET         (LDR_SR_OFFSET + 4)
+#define LDR_WORD_SIZE_OFFSET  (LDR_CR_OFFSET + 4)
+#define LDR_SR_BSY_OFFSET     (LDR_WORD_SIZE_OFFSET + 4)
+#define LDR_STACK_OFFSET      (LDR_SR_BSY_OFFSET + 4)
+#define LDR_FIFO_OFFSET       (LDR_STACK_OFFSET + LDR_STACK_SIZE)
+
+#define LDR_WORK_AREA_SIZE    (LDR_FIFO_OFFSET + 12)
+
+struct stm32l4_work_area {
+	volatile uint32_t *flash_sr;
+	volatile uint32_t *flash_cr;
+	uint32_t flash_word_size;
+	uint32_t flash_sr_bsy;
+	uint8_t stack[LDR_STACK_SIZE];
+	struct flash_async_algorithm_circbuf {
+		uint8_t *wp;
+		uint8_t *rp;
+		uint8_t *buf;
+	} fifo;
+};
+
 #endif
