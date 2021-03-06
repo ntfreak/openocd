@@ -1311,9 +1311,11 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
 	uint32_t buffer_size;
 	struct working_area *write_algorithm;
+	struct working_area *write_algorithm_sp;
 	struct working_area *source;
 	uint32_t address = bank->base + offset;
-	struct reg_param reg_params[6];
+	struct reg_param reg_params[5];
+	struct mem_param mem_params[3];
 	struct armv7m_algorithm armv7m_info;
 	int retval = ERROR_OK;
 
@@ -1335,16 +1337,27 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 		return retval;
 	}
 
+	/* write algorithm stack area */
+	if (target_alloc_working_area(target, 48 + 4,  &write_algorithm_sp) != ERROR_OK) {
+		LOG_WARNING("no working area for write code stack pointer");
+		target_free_working_area(target, write_algorithm);
+		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
+	}
+
 	/* memory buffer, size *must* be multiple of stm32l4_info->data_width
-	 * plus one dword for rp and one for wp */ /* FIXME */
-	buffer_size = target_get_working_area_avail(target) & ~(2 * sizeof(uint32_t) - 1);
+	 * plus one dword for rp and one for wp */
+	assert(stm32l4_info->data_width % 8 == 0); /* data_width should be multiple of dword */
+	buffer_size = target_get_working_area_avail(target) & ~(stm32l4_info->data_width - 1);
+	buffer_size = buffer_size - stm32l4_info->data_width + 8;
+
 	if (buffer_size < 256) {
 		LOG_WARNING("large enough working area not available, can't do block memory writes");
 		target_free_working_area(target, write_algorithm);
+		target_free_working_area(target, write_algorithm_sp);
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
-	} else if (buffer_size > 16384) {
-		/* probably won't benefit from more than 16k ... */
-		buffer_size = 16384;
+	} else if (buffer_size > 16392) {
+		/* probably won't benefit from more than 16k + 8 ... */
+		buffer_size = 16392;
 	}
 
 	if (target_alloc_working_area_try(target, buffer_size, &source) != ERROR_OK) {
@@ -1358,19 +1371,35 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	init_reg_param(&reg_params[0], "r0", 32, PARAM_IN_OUT);	/* buffer start, status (out) */
 	init_reg_param(&reg_params[1], "r1", 32, PARAM_OUT);	/* buffer end */
 	init_reg_param(&reg_params[2], "r2", 32, PARAM_OUT);	/* target address */
-	init_reg_param(&reg_params[3], "r3", 32, PARAM_OUT);	/* count (double word-64bit) */
-	init_reg_param(&reg_params[4], "r4", 32, PARAM_OUT);	/* flash status register */
-	init_reg_param(&reg_params[5], "r5", 32, PARAM_OUT);	/* flash control register */
+	init_reg_param(&reg_params[3], "r3", 32, PARAM_OUT);	/* count (of stm32l4_info->data_width) */
+	init_reg_param(&reg_params[4], "sp", 32, PARAM_OUT);	/* write algo stack pointer */
+
+	/* check the loader generated assembly to get where the first stack argument is stored */
+	uint32_t mem_param_addr = write_algorithm_sp->address + write_algorithm_sp->size;
+
+	/* important: loader exceeding arguments in the reversed order */
+	/* flash word_len */
+	mem_param_addr -= 4;
+	init_mem_param(&mem_params[2], mem_param_addr, 4, PARAM_OUT);
+	/* flash control register */
+	mem_param_addr -= 4;
+	init_mem_param(&mem_params[1], mem_param_addr, 4, PARAM_OUT);
+	/* flash status register */
+	mem_param_addr -= 4;
+	init_mem_param(&mem_params[0], mem_param_addr, 4, PARAM_OUT);
 
 	buf_set_u32(reg_params[0].value, 0, 32, source->address);
 	buf_set_u32(reg_params[1].value, 0, 32, source->address + source->size);
 	buf_set_u32(reg_params[2].value, 0, 32, address);
 	buf_set_u32(reg_params[3].value, 0, 32, count);
-	buf_set_u32(reg_params[4].value, 0, 32, stm32l4_get_flash_reg_by_index(bank, STM32_FLASH_SR_INDEX));
-	buf_set_u32(reg_params[5].value, 0, 32, stm32l4_get_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX));
+	buf_set_u32(reg_params[4].value, 0, 32, write_algorithm_sp->address);
+
+	buf_set_u32(mem_params[0].value, 0, 32, stm32l4_get_flash_reg_by_index(bank, STM32_FLASH_SR_INDEX));
+	buf_set_u32(mem_params[1].value, 0, 32, stm32l4_get_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX));
+	buf_set_u32(mem_params[2].value, 0, 32, stm32l4_info->data_width);
 
 	retval = target_run_flash_async_algorithm(target, buffer, count, stm32l4_info->data_width,
-			0, NULL,
+			ARRAY_SIZE(mem_params), mem_params,
 			ARRAY_SIZE(reg_params), reg_params,
 			source->address, source->size,
 			write_algorithm->address, 0,
@@ -1379,7 +1408,9 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	if (retval == ERROR_FLASH_OPERATION_FAILED) {
 		LOG_ERROR("error executing stm32l4 flash write algorithm");
 
-		uint32_t error = buf_get_u32(reg_params[0].value, 0, 32) & FLASH_ERROR;
+		uint32_t error;
+		stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_SR_INDEX, &error);
+		error &= FLASH_ERROR;
 
 		if (error & FLASH_WRPERR)
 			LOG_ERROR("flash memory write protected");
@@ -1393,6 +1424,7 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	target_free_working_area(target, source);
+	target_free_working_area(target, write_algorithm_sp);
 	target_free_working_area(target, write_algorithm);
 
 	destroy_reg_param(&reg_params[0]);
@@ -1400,7 +1432,10 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	destroy_reg_param(&reg_params[2]);
 	destroy_reg_param(&reg_params[3]);
 	destroy_reg_param(&reg_params[4]);
-	destroy_reg_param(&reg_params[5]);
+
+	destroy_mem_param(&mem_params[0]);
+	destroy_mem_param(&mem_params[1]);
+	destroy_mem_param(&mem_params[2]);
 
 	return retval;
 }
@@ -1536,12 +1571,6 @@ static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 		 * as the flash loader does not use the SR_BSY2
 		 */
 		LOG_INFO("Couldn't use the flash loader in dual-bank mode");
-		use_loader = false;
-	} else if (stm32l4_info->part_info->id == 0x482) {
-		/**
-		 * FIXME for STM32U5 device we get this error and random pointer
-		 * Error: corrupted fifo read pointer 0x200006ec
-		 */
 		use_loader = false;
 	}
 
