@@ -237,6 +237,17 @@ static int cortex_m_clear_halt(struct target *target)
 	return ERROR_OK;
 }
 
+static int cortex_m_clear_debug_halt_enable(struct target *target)
+{
+	struct cortex_m_common *cortex_m = target_to_cm(target);
+	struct armv7m_common *armv7m = &cortex_m->armv7m;
+
+	/* Exit debug state by clearing the Halt Debug Enable bit in DHCSR */
+	cortex_m->dcb_dhcsr = DBGKEY;
+
+	return mem_ap_write_atomic_u32(armv7m->debug_ap, DCB_DHCSR, cortex_m->dcb_dhcsr);
+}
+
 static int cortex_m_single_step_core(struct target *target)
 {
 	struct cortex_m_common *cortex_m = target_to_cm(target);
@@ -1653,6 +1664,7 @@ void cortex_m_deinit_target(struct target *target)
 	free(cortex_m->fp_comparator_list);
 
 	cortex_m_dwt_free(target);
+	cortex_m_clear_debug_halt_enable(target);
 	armv7m_free_reg_cache(target);
 
 	free(target->private_config);
