@@ -596,6 +596,25 @@ static int telnet_input(struct connection *connection)
 						telnet_history_up(connection);
 					} else if (*buf_p == 'B') {	/* cursor down */
 						telnet_history_down(connection);
+					} else if (*buf_p == 'F') { /* end key */
+						/* go to line end */
+						if (t_con->line_cursor < t_con->line_size) {
+							telnet_write(connection,
+									t_con->line + t_con->line_cursor,
+									t_con->line_size - t_con->line_cursor
+							);
+							t_con->line_cursor = t_con->line_size;
+							t_con->state = TELNET_STATE_DATA;
+						}
+					} else if (*buf_p == 'H') { /* home key */
+						/* go to line start */
+						if (t_con->line_cursor > 0) {
+							telnet_write(connection, "\r", 1);
+							telnet_prompt(connection);
+
+							t_con->line_cursor = 0;
+							t_con->state = TELNET_STATE_DATA;
+						}
 					} else if (*buf_p == '3')
 						t_con->last_escape = *buf_p;
 					else
