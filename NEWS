@@ -2,14 +2,32 @@ This file includes highlights of the changes made in the OpenOCD
 source archive release.
 
 JTAG Layer:
+	* CMSIS-DAP support for SWD multidrop
+	* Remote bitbang support for Windows host
+	* ST-LINK add TCP server support to adapter driver
 
 Boundary Scan:
 
 Target Layer:
+	* aarch64: support watchpoints
+	* arm: support independent TPIU and SWO for trace
 
 Flash Layer:
+	* Atmel SAM E51G18A, E51G19A  support
+	* ST STM32 G0, G4, L4, L4+, L5, WB, WL OTP support
 
 Board, Target, and Interface Configuration Scripts:
+	* Ampere Computing eMAG8180 board config
+	* Olimex H405 board config
+	* TI AM654 EVM and AM642 EVM board config
+	* TI J721E EVM and J7200 EVM board config
+	* Ampere Computing eMAG target config
+	* Broadcom BCM2711, BCM2835, BCM2836 and BCM2837 target config
+	* NXP IMX8QM target config
+	* Rockchip RK3399 target config
+	* TI AM654 and J721E target config
+	* Infineon DAP miniWiggler V3 interface config
+	* PLS SPC5 interface config
 
 Server Layer:
 
@@ -18,13 +36,16 @@ RTOS:
 Documentation:
 
 Build and Release:
+	* Drop dependency from libusb0
+	* Require autoconf 2.69 or newer
+	* Update jimtcl to version 0.80
 
 
 This release also contains a number of other important functional and
 cosmetic bugfixes. For more details about what has changed since the
 last release, see the git repository history:
 
-http://sourceforge.net/p/openocd/code/ci/v0.x.0/log/?path=
+http://sourceforge.net/p/openocd/code/ci/v0.12.0-rc1/log/?path=
 
 
 For older NEWS, see the NEWS files associated with each release
