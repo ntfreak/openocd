@@ -41,6 +41,8 @@ static char *negotiate =
 #define CTRL(c) (c - '@')
 #define TELNET_HISTORY	".openocd_history"
 
+
+
 /* The only way we can detect that the socket is closed is the first time
  * we write to it, we will fail. Subsequent write operations will
  * succeed. Shudder!
@@ -56,6 +58,13 @@ static int telnet_write(struct connection *connection, const void *data,
 		return ERROR_OK;
 	t_con->closed = true;
 	return ERROR_SERVER_REMOTE_CLOSED;
+}
+
+/* output an audible bell */
+static int telnet_bell(struct connection *connection)
+{
+	/* ("\a" does not work, at least on windows) */
+	return telnet_write(connection, "\x07", 1);
 }
 
 static int telnet_prompt(struct connection *connection)
@@ -366,6 +375,239 @@ static void telnet_move_cursor(struct connection *connection, size_t pos)
 	tc->line_cursor = pos;
 }
 
+/* write to telnet console, and update the telnet_connection members
+ * this function is capable of inserting in the middle of a line
+ * please ensure that data does not contain special characters (\n, \r, \t, \b ...)
+ */
+static void telnet_insert(struct connection *connection, const void *data, size_t len)
+{
+	struct telnet_connection *t_con = connection->priv;
+
+	/* watch buffer size leaving one spare character for \0 */
+	if (t_con->line_size + len >= TELNET_LINE_MAX_SIZE-1) {
+		telnet_bell(connection);
+	} else {
+		if (t_con->line_cursor < t_con->line_size) {
+			/* we have some content after the cursor */
+			memmove(t_con->line + t_con->line_cursor + len,
+					t_con->line + t_con->line_cursor,
+					t_con->line_size - t_con->line_cursor);
+		}
+
+		strncpy(t_con->line + t_con->line_cursor, data, len);
+
+		telnet_write(connection,
+				t_con->line + t_con->line_cursor,
+				t_con->line_size + len - t_con->line_cursor);
+
+		t_con->line_size += len;
+		t_con->line_cursor += len;
+
+		for (size_t i = t_con->line_cursor; i < t_con->line_size; i++)
+			telnet_write(connection, "\b", 1);
+	}
+}
+
+static void telnet_auto_complete(struct connection *connection)
+{
+	struct telnet_connection *t_con = connection->priv;
+	struct command_context *command_context = connection->cmd_ctx;
+
+	if (t_con->line_cursor == 0) {
+		telnet_bell(connection);
+		return;
+	}
+
+	struct command_list {
+		char *cmd;
+		struct command_list *next;
+	} *matches = NULL;
+
+	int matches_count = 0;
+
+	/* user command sequence, either at line beginning
+	 * or we start over after these characters ';' '(' '[' '{' */
+	size_t seq_start = t_con->line_cursor - 1;
+	while (seq_start > 0) {
+		char c = t_con->line[seq_start];
+		if (c == ';' || c == '(' || c == '[' || c == '{') {
+			seq_start++;
+			break;
+		}
+
+		seq_start--;
+	}
+
+	/* user command position in the line, ignore leading spaces */
+	size_t usr_cmd_pos = seq_start;
+	while ((usr_cmd_pos < t_con->line_cursor) && isspace(t_con->line[usr_cmd_pos]))
+		usr_cmd_pos++;
+
+	/* cursor index in the user command */
+	size_t usr_cmd_len = t_con->line_cursor - usr_cmd_pos;
+	if (usr_cmd_len == 0) {
+		telnet_bell(connection);
+		return;
+	}
+
+	/* filter commands */
+	/* optimize multiple spaces in between,
+	 * because info commands does not tolerate multiple spaces */
+	size_t optimized_spaces = 0;
+	char query[usr_cmd_len + 1];
+	for (size_t i = 0; i < usr_cmd_len; i++) {
+		if (isspace(t_con->line[usr_cmd_pos + i]) && isspace(t_con->line[usr_cmd_pos + i + 1])) {
+			optimized_spaces++;
+			continue;
+		}
+
+		query[i - optimized_spaces] = t_con->line[usr_cmd_pos + i];
+	}
+
+	usr_cmd_len -= optimized_spaces;
+	query[usr_cmd_len] = '\0';
+
+	char *query_cmd = alloc_printf("info commands {%s*}", query);
+
+	if (!query_cmd)
+		return;
+
+	int retval = Jim_EvalSource(command_context->interp, __FILE__, __LINE__, query_cmd);
+	free(query_cmd);
+	if (retval != JIM_OK)
+		return;
+
+	Jim_Obj *list = Jim_GetResult(command_context->interp);
+	Jim_IncrRefCount(list);
+
+	int len = Jim_ListLength(command_context->interp, list);
+	for (int i = 0; i < len; i++) {
+		Jim_Obj *elem = Jim_ListGetIndex(command_context->interp, list, i);
+		Jim_IncrRefCount(elem);
+
+		char *name = (char *)Jim_GetString(elem, NULL);
+
+		/* validate the command */
+		bool ignore_cmd = false;
+		Jim_Obj *jim_name = Jim_NewStringObj(command_context->interp, name, -1);
+		Jim_IncrRefCount(jim_name);
+		Jim_Cmd *jim_cmd = Jim_GetCommand(command_context->interp, jim_name, JIM_NONE);
+		Jim_DecrRefCount(command_context->interp, jim_name);
+
+		if (!jim_cmd)
+			ignore_cmd = true;
+		else {
+			if (!jim_cmd->isproc) {
+				/* ignore commands without handler
+				 * and those with COMMAND_CONFIG mode */
+				/* FIXME it's better to use jimcmd_is_ocd_command(jim_cmd)
+				 * or command_find_from_name(command_context->interp, name) */
+				struct command *cmd = jim_cmd->u.native.privData;
+				if (!cmd)
+					ignore_cmd = true;
+				else if (!cmd->handler && !cmd->jim_handler)
+					ignore_cmd = true;
+				else if (cmd->mode == COMMAND_CONFIG)
+					ignore_cmd = true;
+			}
+		}
+
+		/* save the command in the prediction list */
+		if (!ignore_cmd) {
+			/* consume the leading :: */
+			while (*name == ':')
+				name++;
+
+			if (!matches) {
+				matches = calloc(1, sizeof(struct command_list));
+				matches->cmd = name;
+			} else {
+				struct command_list *last = matches;
+				while (last->next)
+					last = last->next;
+
+				last->next = calloc(1, sizeof(struct command_list));
+				last->next->cmd = name;
+
+				last = last->next;
+			}
+
+			matches_count++;
+		}
+
+		Jim_DecrRefCount(command_context->interp, elem);
+	}
+
+	Jim_DecrRefCount(command_context->interp, list);
+	/* end of command filtering */
+
+	if (matches_count == 1) {
+		int completion_size = strlen(matches->cmd) - usr_cmd_len;
+		if (completion_size) {
+			/* watch buffer size leaving one spare character for \0 */
+			if (t_con->line_size + completion_size >= TELNET_LINE_MAX_SIZE-1)
+				telnet_bell(connection);
+			else
+				telnet_insert(connection, matches->cmd + usr_cmd_len, completion_size);
+		}
+	} else if (matches_count > 1) {
+		struct command_list *matched_cmd = matches;
+
+		/* get the common prefix of the matched commands */
+		size_t prefix_len = usr_cmd_len; /* save some loops */
+		char c = 0;
+
+		while (matched_cmd) {
+			if (strlen(matched_cmd->cmd) == prefix_len)
+				break;
+
+			if (c == 0)
+				c = matched_cmd->cmd[prefix_len];
+			else if (matched_cmd->cmd[prefix_len] != c)
+				break;
+			/* else : it's equal */
+
+			matched_cmd = matched_cmd->next;
+
+			/* wrap around if we reach the end */
+			if (!matched_cmd) {
+				prefix_len++;
+				c = 0;
+				matched_cmd = matches;
+			}
+		}
+
+		/* if the common part is bigger than user type characters
+		 * then auto-complete the common prefix
+		 * else list the possible commands */
+		if (prefix_len > usr_cmd_len) {
+			telnet_insert(connection, matches->cmd + usr_cmd_len, prefix_len - usr_cmd_len);
+		} else {
+			telnet_write(connection, "\n\r", 2);
+
+			matched_cmd = matches;
+			while (matched_cmd) {
+				telnet_write(connection, matched_cmd->cmd, strlen(matched_cmd->cmd));
+				telnet_write(connection, "\n\r", 2);
+
+				matched_cmd = matched_cmd->next;
+			}
+
+			telnet_prompt(connection);
+			telnet_write(connection, t_con->line, t_con->line_size);
+		}
+	} else
+		telnet_bell(connection);
+
+	/* destroy the command_list */
+	struct command_list *head = matches, *tmp;
+	while (head) {
+		tmp = head;
+		head = head->next;
+		free(tmp);
+	}
+}
+
 static int telnet_input(struct connection *connection)
 {
 	int bytes_read;
@@ -394,27 +636,10 @@ static int telnet_input(struct connection *connection)
 						/* watch buffer size leaving one spare character for
 						 * string null termination */
 						if (t_con->line_size == TELNET_LINE_MAX_SIZE-1) {
-							/* output audible bell if buffer is full
-							 * "\a" does not work, at least on windows */
-							telnet_write(connection, "\x07", 1);
-						} else if (t_con->line_cursor == t_con->line_size) {
-							telnet_write(connection, buf_p, 1);
-							t_con->line[t_con->line_size++] = *buf_p;
-							t_con->line_cursor++;
-						} else {
-							size_t i;
-							memmove(t_con->line + t_con->line_cursor + 1,
-									t_con->line + t_con->line_cursor,
-									t_con->line_size - t_con->line_cursor);
-							t_con->line[t_con->line_cursor] = *buf_p;
-							t_con->line_size++;
-							telnet_write(connection,
-									t_con->line + t_con->line_cursor,
-									t_con->line_size - t_con->line_cursor);
-							t_con->line_cursor++;
-							for (i = t_con->line_cursor; i < t_con->line_size; i++)
-								telnet_write(connection, "\b", 1);
-						}
+							/* output audible bell if buffer is full */
+							telnet_bell(connection);
+						} else
+							telnet_insert(connection, buf_p, 1);
 					} else {	/* non-printable */
 						if (*buf_p == 0x1b) {	/* escape */
 							t_con->state = TELNET_STATE_ESCAPE;
@@ -548,7 +773,9 @@ static int telnet_input(struct connection *connection)
 								t_con->line[t_con->line_cursor] = '\0';
 								t_con->line_size = t_con->line_cursor;
 							}
-						} else
+						} else if (*buf_p == '\t')
+							telnet_auto_complete(connection);
+						else
 							LOG_DEBUG("unhandled nonprintable: %2.2x", *buf_p);
 					}
 				}
