@@ -548,6 +548,91 @@ static int telnet_input(struct connection *connection)
 								t_con->line[t_con->line_cursor] = '\0';
 								t_con->line_size = t_con->line_cursor;
 							}
+						} else if (*buf_p == '\t') {
+							/* TODO this should be moved to another function */
+							if (t_con->line_size) {
+								/* TODO cursor should 0 and should not be on whitespace */
+								int offset = 0;
+								/* TODO ignore leading white spaces and update offset
+								 * evaluated command start from the first printable
+								 * character to cursor
+								 */
+								struct command_list {
+									struct command *cmd;
+									struct command_list *next;
+								};
+
+
+								struct command_list *matched_cmds = NULL;
+								int matched_cmd_count = 0;
+
+								struct command *cmd = command_context->commands;
+								while (cmd) {
+									if (strncmp(t_con->line, cmd->name, t_con->line_cursor) == 0) {
+										if (!matched_cmds) {
+											matched_cmds = calloc(1, sizeof(struct command_list));
+											matched_cmds->cmd = cmd;
+										} else {
+											struct command_list *last = matched_cmds;
+											while (last->next)
+												last = last->next;
+
+											last->next = calloc(1, sizeof(struct command_list));
+											last->next->cmd = cmd;
+
+											last = last->next;
+										}
+
+										matched_cmd_count++;
+									}
+
+									cmd = cmd->next;
+								}
+
+								if (matched_cmd_count) {
+									if (matched_cmd_count == 1) {
+										telnet_move_cursor(connection, offset);
+
+										int completion_size = strlen(matched_cmds->cmd->name);
+										telnet_write(connection,
+												matched_cmds->cmd->name,
+												completion_size);
+
+										strncpy(t_con->line + offset,
+												matched_cmds->cmd->name,
+												completion_size);
+
+										t_con->line_cursor += completion_size;
+										t_con->line_size = t_con->line_cursor;
+									} else {
+
+										/* TODO common completion, after another tab list possibilities */
+										telnet_write(connection, "\n\r", 2);
+
+										struct command_list *matched_cmd = matched_cmds;
+										while (matched_cmd) {
+											telnet_write(connection, matched_cmd->cmd->name,
+													strlen(matched_cmd->cmd->name));
+
+											telnet_write(connection, "\n\r", 2);
+											matched_cmd = matched_cmd->next;
+										}
+
+										telnet_prompt(connection);
+										telnet_write(connection, t_con->line, t_con->line_size);
+									}
+
+									struct command_list *head = matched_cmds, *tmp;
+
+									while (head) {
+										tmp = head;
+										head = head->next;
+										free(tmp);
+									}
+
+								}
+
+							}
 						} else
 							LOG_DEBUG("unhandled nonprintable: %2.2x", *buf_p);
 					}
