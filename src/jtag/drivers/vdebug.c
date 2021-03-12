@@ -3,35 +3,35 @@
 //#
 //# Redistribution and use in source and binary forms, with or without modification,
 //# are permitted provided that the following conditions are met:
-//# 1. Redistributions of source code must retain the above copyright notice, 
+//# 1. Redistributions of source code must retain the above copyright notice,
 //# this list of conditions and the following disclaimer.
 //# 2. Redistributions in binary form must reproduce the above copyright notice,
-//# this list of conditions and the following disclaimer in the documentation 
+//# this list of conditions and the following disclaimer in the documentation
 //# and/or other materials provided with the distribution.
 //#----------------------------------------------------------------------------
-//# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
-//# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, 
+//# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+//# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
 //# THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
 //# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
 //# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 //# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-//# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED 
+//# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
 //# AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 //# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 //# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#----------------------------------------------------------------------------
 //# Revisions   :
-//# 41 10.12.20 : based on vd_client and vd_test 
+//# 41 10.12.20 : based on vd_client and vd_test
 //# 42 16.02.21 : shift_tap fix
 //#----------------------------------------------------------------------------
 
 /*!
  * @file
- *  
- * @brief the virtual debug interface provides a connection between a sw debugger 
+ *
+ * @brief the virtual debug interface provides a connection between a sw debugger
  * and the simulated, emulated core over a soft connection, implemented by DPI
  * It implements an interface and JTAG, DAP and AMBA transports
- * 
+ *
 */
 
 #ifdef HAVE_CONFIG_H
@@ -75,7 +75,7 @@
 #include "helper/log.h"
 
 #define VD_VERSION 42
-#define VD_BUILD "16.02.21"
+#define VD_BUILD "08.03.21"
 #define VD_BUFFER_LEN 4024
 #define VD_CHEADER_LEN 24
 #define VD_SHEADER_LEN 16
