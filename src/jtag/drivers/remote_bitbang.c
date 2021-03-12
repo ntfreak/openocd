@@ -33,7 +33,6 @@
 static char *remote_bitbang_host;
 static char *remote_bitbang_port;
 
-static FILE *remote_bitbang_file;
 static int remote_bitbang_fd;
 
 /* Circular buffer. When start == end, the buffer is empty. */
@@ -63,7 +62,7 @@ static int remote_bitbang_fill_buf(void)
 			contiguous_available_space = remote_bitbang_start -
 				remote_bitbang_end - 1;
 		}
-		ssize_t count = read(remote_bitbang_fd,
+		ssize_t count = read_socket(remote_bitbang_fd,
 				remote_bitbang_buf + remote_bitbang_end,
 				contiguous_available_space);
 		if (count > 0) {
@@ -73,11 +72,14 @@ static int remote_bitbang_fill_buf(void)
 		} else if (count == 0) {
 			return ERROR_OK;
 		} else if (count < 0) {
+#ifdef _WIN32
+			if (WSAGetLastError() == WSAEWOULDBLOCK) {
+#else
 			if (errno == EAGAIN) {
+#endif
 				return ERROR_OK;
 			} else {
-				LOG_ERROR("remote_bitbang_fill_buf: %s (%d)",
-						strerror(errno), errno);
+				log_socket_error("remote_bitbang_fill_buf");
 				return ERROR_FAIL;
 			}
 		}
@@ -88,8 +90,10 @@ static int remote_bitbang_fill_buf(void)
 
 static int remote_bitbang_putc(int c)
 {
-	if (EOF == fputc(c, remote_bitbang_file)) {
-		LOG_ERROR("remote_bitbang_putc: %s", strerror(errno));
+	char buf = c;
+	ssize_t count = write_socket(remote_bitbang_fd, &buf, sizeof(buf));
+	if (count < 0) {
+		log_socket_error("remote_bitbang_putc");
 		return ERROR_FAIL;
 	}
 	return ERROR_OK;
@@ -97,20 +101,11 @@ static int remote_bitbang_putc(int c)
 
 static int remote_bitbang_quit(void)
 {
-	if (EOF == fputc('Q', remote_bitbang_file)) {
-		LOG_ERROR("fputs: %s", strerror(errno));
+	if (remote_bitbang_putc('Q') == ERROR_FAIL)
 		return ERROR_FAIL;
-	}
 
-	if (EOF == fflush(remote_bitbang_file)) {
-		LOG_ERROR("fflush: %s", strerror(errno));
-		return ERROR_FAIL;
-	}
-
-	/* We only need to close one of the FILE*s, because they both use the same */
-	/* underlying file descriptor. */
-	if (EOF == fclose(remote_bitbang_file)) {
-		LOG_ERROR("fclose: %s", strerror(errno));
+	if (close_socket(remote_bitbang_fd) != 0) {
+		log_socket_error("close_socket");
 		return ERROR_FAIL;
 	}
 
@@ -138,21 +133,16 @@ static bb_value_t char_to_int(int c)
 /* Get the next read response. */
 static bb_value_t remote_bitbang_rread(void)
 {
-	if (EOF == fflush(remote_bitbang_file)) {
-		remote_bitbang_quit();
-		LOG_ERROR("fflush: %s", strerror(errno));
-		return BB_ERROR;
-	}
-
 	/* Enable blocking access. */
 	socket_block(remote_bitbang_fd);
 	char c;
-	ssize_t count = read(remote_bitbang_fd, &c, 1);
+	ssize_t count = read_socket(remote_bitbang_fd, &c, 1);
 	if (count == 1) {
 		return char_to_int(c);
 	} else {
 		remote_bitbang_quit();
-		LOG_ERROR("read: count=%d, error=%s", (int) count, strerror(errno));
+		LOG_ERROR("read_socket: count=%d", (int) count);
+		log_socket_error("read_socket");
 		return BB_ERROR;
 	}
 }
@@ -238,7 +228,7 @@ static int remote_bitbang_init_tcp(void)
 	freeaddrinfo(result); /* No longer needed */
 
 	if (rp == NULL) { /* No address succeeded */
-		LOG_ERROR("Failed to connect: %s", strerror(errno));
+		log_socket_error("Failed to connect");
 		return ERROR_FAIL;
 	}
 
@@ -255,7 +245,7 @@ static int remote_bitbang_init_unix(void)
 	LOG_INFO("Connecting to unix socket %s", remote_bitbang_host);
 	int fd = socket(PF_UNIX, SOCK_STREAM, 0);
 	if (fd < 0) {
-		LOG_ERROR("socket: %s", strerror(errno));
+		log_socket_error("socket");
 		return ERROR_FAIL;
 	}
 
@@ -265,7 +255,7 @@ static int remote_bitbang_init_unix(void)
 	addr.sun_path[sizeof(addr.sun_path)-1] = '\0';
 
 	if (connect(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_un)) < 0) {
-		LOG_ERROR("connect: %s", strerror(errno));
+		log_socket_error("connect");
 		return ERROR_FAIL;
 	}
 
@@ -287,13 +277,6 @@ static int remote_bitbang_init(void)
 
 	if (remote_bitbang_fd < 0)
 		return remote_bitbang_fd;
-
-	remote_bitbang_file = fdopen(remote_bitbang_fd, "w+");
-	if (remote_bitbang_file == NULL) {
-		LOG_ERROR("fdopen: failed to open write stream");
-		close(remote_bitbang_fd);
-		return ERROR_FAIL;
-	}
 
 	LOG_INFO("remote_bitbang driver initialized");
 	return ERROR_OK;
