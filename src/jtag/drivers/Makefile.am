@@ -82,6 +82,9 @@ endif
 if JTAG_VPI
 DRIVERFILES += %D%/jtag_vpi.c
 endif
+if VDEBUG
+DRIVERFILES += %D%/vdebug.c
+endif
 if JTAG_DPI
 DRIVERFILES += %D%/jtag_dpi.c
 endif
