@@ -439,7 +439,7 @@ FLASH_BANK_COMMAND_HANDLER(stm32l4_flash_bank_command)
 	if (CMD_ARGC < 6)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
-	stm32l4_info = malloc(sizeof(struct stm32l4_flash_bank));
+	stm32l4_info = calloc(1, sizeof(struct stm32l4_flash_bank));
 	if (!stm32l4_info)
 		return ERROR_FAIL; /* Checkme: What better error to use?*/
 	bank->driver_priv = stm32l4_info;
