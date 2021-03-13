@@ -4278,7 +4278,7 @@ COMMAND_HANDLER(handle_profile_command)
 	if ((CMD_ARGC != 2) && (CMD_ARGC != 4))
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
-	const uint32_t MAX_PROFILE_SAMPLE_NUM = 10000;
+	const uint32_t MAX_PROFILE_SAMPLE_NUM = 1000000;
 	uint32_t offset;
 	uint32_t num_of_samples;
 	int retval = ERROR_OK;
