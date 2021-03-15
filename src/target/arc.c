@@ -227,7 +227,7 @@ static int arc_get_register(struct reg *reg)
 
 	if (desc->is_core) {
 		/* Accessing to R61/R62 registers causes Jtag hang */
-		if (desc->arch_num == CORE_R61_NUM || desc->arch_num == CORE_R62_NUM) {
+		if (desc->arch_num == ARC_R61 || desc->arch_num == ARC_R62) {
 			LOG_ERROR("It is forbidden to read core registers 61 and 62.");
 			return ERROR_FAIL;
 		}
@@ -267,8 +267,8 @@ static int arc_set_register(struct reg *reg, uint8_t *buf)
 		return ERROR_TARGET_NOT_HALTED;
 
 	/* Accessing to R61/R62 registers causes Jtag hang */
-	if (desc->is_core && (desc->arch_num == CORE_R61_NUM ||
-			desc->arch_num == CORE_R62_NUM)) {
+	if (desc->is_core && (desc->arch_num == ARC_R61 ||
+			desc->arch_num == ARC_R62)) {
 		LOG_ERROR("It is forbidden to write core registers 61 and 62.");
 		return ERROR_FAIL;
 	}

@@ -382,7 +382,7 @@ static int jim_arc_get_core_reg(Jim_Interp *interp, int argc, Jim_Obj * const *a
 
 	/* Register number */
 	JIM_CHECK_RETVAL(arc_cmd_jim_get_uint32(&goi, &regnum));
-	if (regnum > CORE_REG_MAX_NUMBER || regnum == CORE_R61_NUM || regnum == CORE_R62_NUM) {
+	if (regnum > CORE_REG_MAX_NUMBER || regnum == ARC_R61 || regnum == ARC_R62) {
 		Jim_SetResultFormatted(goi.interp, "Core register number %i "
 			"is invalid. Must less then 64 and not 61 and 62.", regnum);
 		return JIM_ERR;
@@ -425,7 +425,7 @@ static int jim_arc_set_core_reg(Jim_Interp *interp, int argc, Jim_Obj * const *a
 
 	/* Register number */
 	JIM_CHECK_RETVAL(arc_cmd_jim_get_uint32(&goi, &regnum));
-	if (regnum > CORE_REG_MAX_NUMBER || regnum == CORE_R61_NUM || regnum == CORE_R62_NUM) {
+	if (regnum > CORE_REG_MAX_NUMBER || regnum == ARC_R61 || regnum == ARC_R62) {
 		Jim_SetResultFormatted(goi.interp, "Core register number %i "
 			"is invalid. Must less then 64 and not 61 and 62.", regnum);
 		return JIM_ERR;
