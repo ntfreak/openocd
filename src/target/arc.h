@@ -45,9 +45,52 @@
 #define AUX_STATUS32_REG_HALT_BIT       BIT(0)
 #define AUX_STATUS32_REG_IE_BIT         BIT(31)    /* STATUS32[31] = IE field */
 
-/* Reserved core registers */
-#define CORE_R61_NUM			(61)
-#define CORE_R62_NUM			(62)
+/* ARC register numbers */
+enum {
+	ARC_R0,
+	ARC_R1,
+	ARC_R2,
+	ARC_R3,
+	ARC_R4,
+	ARC_R5,
+	ARC_R6,
+	ARC_R7,
+	ARC_R8,
+	ARC_R9,
+	ARC_R10,
+	ARC_R11,
+	ARC_R12,
+	ARC_R13,
+	ARC_R14,
+	ARC_R15,
+	ARC_R16,
+	ARC_R17,
+	ARC_R18,
+	ARC_R19,
+	ARC_R20,
+	ARC_R21,
+	ARC_R22,
+	ARC_R23,
+	ARC_R24,
+	ARC_R25,
+	ARC_GP		= 26,
+	ARC_FP		= 27,
+	ARC_SP		= 28,
+	ARC_ILINK	= 29,
+	ARC_R30,
+	ARC_BLINK	= 31,
+	ARC_LP_COUNT	= 60,
+
+	/* Reserved registers */
+	ARC_R61		= 61,
+	ARC_R62		= 62,
+
+	ARC_PCL		= 63,
+	ARC_PC		= 64,
+	ARC_LP_START	= 65,
+	ARC_LP_END	= 66,
+	ARC_STATUS32	= 67,
+};
 
 #define CORE_REG_MAX_NUMBER		(63)
 
