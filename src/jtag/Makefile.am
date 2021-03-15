@@ -20,6 +20,7 @@ endif
 MINIDRIVER_IMP_DIR = %D%/minidriver
 
 %D%/jtag_minidriver.h: $(JTAG_MINIDRIVER_DIR)/jtag_minidriver.h
+	mkdir -p %D%
 	cp $< $@
 
 BUILT_SOURCES += %D%/jtag_minidriver.h
@@ -47,6 +48,7 @@ endif
 # endif // MINIDRIVER
 
 %D%/minidriver_imp.h: $(MINIDRIVER_IMP_DIR)/minidriver_imp.h
+	mkdir -p %D%
 	cp $< $@
 
 
