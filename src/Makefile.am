@@ -65,6 +65,7 @@ BUILT_SOURCES += %D%/startup_tcl.inc
 
 # Convert .tcl to c-array
 %D%/startup_tcl.inc: $(STARTUP_TCL_SRCS)
+	mkdir -p %D%
 	cat $^ | $(BIN2C) > $@ || { rm -f $@; false; }
 
 # add generated files to make clean list
