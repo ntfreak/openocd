@@ -1,0 +1,9 @@
+Verified+1: jenkins
+Code-Review+1: Tarek BOCHKATI <tarek.bouchkati@gmail.com>
+Code-Review+2: Oleksij Rempel <linux@rempel-privat.de>
+Code-Review+2: Tomas Vanek <vanekt@fbl.cz>
+Submitted-by: Tomas Vanek <vanekt@fbl.cz>
+Submitted-at: Tue, 16 Mar 2021 08:51:37 +0000
+Reviewed-on: http://openocd.zylin.com/6103
+Project: openocd
+Branch: refs/heads/master
