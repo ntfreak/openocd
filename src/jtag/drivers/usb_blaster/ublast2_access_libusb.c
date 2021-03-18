@@ -144,7 +144,7 @@ static int load_usb_blaster_firmware(struct libusb_device_handle *libusb_dev,
 	int ret = image_open(&ublast2_firmware_image, low->firmware_path, "ihex");
 	if (ret != ERROR_OK) {
 		LOG_ERROR("Could not load firmware image");
-		return ret;
+		goto error_release_usb;
 	}
 
 	/** A host loader program must write 0x01 to the CPUCS register
@@ -172,7 +172,7 @@ static int load_usb_blaster_firmware(struct libusb_device_handle *libusb_dev,
 						     &ublast2_firmware_image, i);
 		if (ret != ERROR_OK) {
 			LOG_ERROR("Error while downloading the firmware");
-			return ret;
+			goto error_close_firmware;
 		}
 	}
 
@@ -187,8 +187,10 @@ static int load_usb_blaster_firmware(struct libusb_device_handle *libusb_dev,
 				     1,
 				     100);
 
+error_close_firmware:
 	image_close(&ublast2_firmware_image);
 
+error_release_usb:
 	/*
 	 * Release claimed interface. Most probably it is already disconnected
 	 * and re-enumerated as new devices after firmware upload, so we do
@@ -196,7 +198,7 @@ static int load_usb_blaster_firmware(struct libusb_device_handle *libusb_dev,
 	 */
 	libusb_release_interface(libusb_dev, 0);
 
-	return ERROR_OK;
+	return ret;
 }
 
 static int ublast2_libusb_init(struct ublast_lowlevel *low)
