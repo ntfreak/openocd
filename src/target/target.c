@@ -234,6 +234,8 @@ static const Jim_Nvp nvp_target_event[] = {
 
 	{ .value = TARGET_EVENT_TRACE_CONFIG, .name = "trace-config" },
 
+	{ .value = TARGET_EVENT_SHUTDOWN, .name = "shutdown" },
+
 	{ .name = NULL, .value = -1 }
 };
 
@@ -2264,6 +2266,10 @@ static void target_destroy(struct target *target)
 
 void target_quit(void)
 {
+	for (struct target *target = all_targets; target; target = target->next)
+		if (target_was_examined(target))
+			target_call_event_callbacks(target, TARGET_EVENT_SHUTDOWN);
+
 	struct target_event_callback *pe = target_event_callbacks;
 	while (pe) {
 		struct target_event_callback *t = pe->next;

@@ -292,6 +292,8 @@ enum target_event {
 	TARGET_EVENT_GDB_FLASH_WRITE_END,
 
 	TARGET_EVENT_TRACE_CONFIG,
+
+	TARGET_EVENT_SHUTDOWN,
 };
 
 struct target_event_action {
