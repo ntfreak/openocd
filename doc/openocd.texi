@@ -5053,6 +5053,8 @@ when reset disables PLLs needed to use a fast clock.
 @* After single-step has completed
 @item @b{trace-config}
 @* After target hardware trace configuration was changed
+@item @b{shutdown}
+@* Before OpenOCD exit.
 @end itemize
 
 @quotation Note
