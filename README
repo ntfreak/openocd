@@ -220,7 +220,7 @@ You'll also need:
 
 Additionally, for building from git:
 
-- autoconf >= 2.64
+- autoconf >= 2.69
 - automake >= 1.14
 - texinfo >= 5.0
 
