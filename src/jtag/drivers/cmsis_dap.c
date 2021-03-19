@@ -136,6 +136,7 @@ static bool swd_mode;
 
 /* CMSIS-DAP SWD Commands */
 #define CMD_DAP_SWD_CONFIGURE     0x13
+#define CMD_DAP_SWD_SEQUENCE      0x1D
 
 /* CMSIS-DAP JTAG Commands */
 #define CMD_DAP_JTAG_SEQ          0x14
@@ -534,6 +535,46 @@ static int cmsis_dap_cmd_DAP_Delay(uint16_t delay_us)
 }
 #endif
 
+static int cmsis_dap_metacmd_targetsel(uint32_t instance_id)
+{
+	int retval;
+	uint8_t *buffer = cmsis_dap_handle->packet_buffer;
+	const uint32_t SEQ_RD = 0x80, SEQ_WR = 0x00;
+
+	/* SWD multi-drop requires a transfer ala CMD_DAP_TFER,
+	but with no expectation of an SWD ACK response.  In
+	CMSIS-DAP v1.20 and v2.00, CMD_DAP_SWD_SEQUENCE was
+	added to allow this special sequence to be generated.
+	The purpose of this operation is to select the target
+	corresponding to the instance_id that is written */
+
+	size_t idx = 0;
+	buffer[idx++] = 0;	/* report number */
+	buffer[idx++] = CMD_DAP_SWD_SEQUENCE;
+	buffer[idx++] = 3;	/* sequence count */
+
+	/* sequence 0: packet request for TARGETSEL */
+	buffer[idx++] = SEQ_WR | 8;
+	buffer[idx++] = 0x99;
+	/* sequence 1: no expectation for target to ACK  */
+	buffer[idx++] = SEQ_RD | 5;
+	/* sequence 2: WDATA plus parity */
+	buffer[idx++] = SEQ_WR | 33;
+	buffer[idx++] = (uint8_t)(instance_id >> 0);
+	buffer[idx++] = (uint8_t)(instance_id >> 8);
+	buffer[idx++] = (uint8_t)(instance_id >> 16);
+	buffer[idx++] = (uint8_t)(instance_id >> 24);
+	buffer[idx++] = parity_u32(instance_id);
+
+	retval = cmsis_dap_xfer(cmsis_dap_handle, idx);
+
+	if (retval != ERROR_OK || buffer[1] != DAP_OK) {
+		LOG_ERROR("CMSIS-DAP command SWD_Sequence failed.");
+		return ERROR_JTAG_DEVICE_ERROR;
+	}
+	return ERROR_OK;
+}
+
 static void cmsis_dap_swd_write_from_queue(struct cmsis_dap *dap)
 {
 	uint8_t *buffer = dap->packet_buffer;
@@ -700,7 +741,10 @@ static int cmsis_dap_swd_run_queue(void)
 
 static void cmsis_dap_swd_queue_cmd(uint8_t cmd, uint32_t *dst, uint32_t data)
 {
-	if (pending_fifo[pending_fifo_put_idx].transfer_count == pending_queue_len) {
+	bool targetsel_cmd = swd_cmd(false, false, DP_TARGETSEL) == cmd;
+
+	if (pending_fifo[pending_fifo_put_idx].transfer_count == pending_queue_len
+			 || targetsel_cmd) {
 		if (pending_fifo_block_count)
 			cmsis_dap_swd_read_process(cmsis_dap_handle, 0);
 
@@ -713,6 +757,11 @@ static void cmsis_dap_swd_queue_cmd(uint8_t cmd, uint32_t *dst, uint32_t data)
 
 	if (queued_retval != ERROR_OK)
 		return;
+
+	if (targetsel_cmd) {
+		cmsis_dap_metacmd_targetsel(data);
+		return;
+	}
 
 	struct pending_request_block *block = &pending_fifo[pending_fifo_put_idx];
 	struct pending_transfer_result *transfer = &(block->transfers[block->transfer_count]);
@@ -844,6 +893,16 @@ static int cmsis_dap_swd_switch_seq(enum swd_special_seq seq)
 		LOG_DEBUG("SWD-to-JTAG");
 		s = swd_seq_swd_to_jtag;
 		s_len = swd_seq_swd_to_jtag_len;
+		break;
+	case SWD_TO_DORMANT:
+		LOG_DEBUG("SWD-to-DORMANT");
+		s = swd_seq_swd_to_dormant;
+		s_len = swd_seq_swd_to_dormant_len;
+		break;
+	case DORMANT_TO_SWD:
+		LOG_DEBUG("DORMANT-to-SWD");
+		s = swd_seq_dormant_to_swd;
+		s_len = swd_seq_dormant_to_swd_len;
 		break;
 	default:
 		LOG_ERROR("Sequence %d not supported", seq);
