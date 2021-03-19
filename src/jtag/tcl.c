@@ -609,48 +609,8 @@ static int jim_newtap_cmd(Jim_GetOptInfo *goi)
 	LOG_DEBUG("Creating New Tap, Chip: %s, Tap: %s, Dotted: %s, %d params",
 		pTap->chip, pTap->tapname, pTap->dotted_name, goi->argc);
 
-	if (!transport_is_jtag()) {
-	    bool target_id_specified = false;
-	    bool instance_id_specified = false;
-		while (goi->argc) {
-			e = Jim_GetOpt_Nvp(goi, opts, &n);
-			if (e != JIM_OK) {
-				Jim_GetOpt_NvpUnknown(goi, opts, 0);
-				free(cp);
-				free(pTap);
-				return e;
-			}
-			LOG_DEBUG("Processing option: %s", n->name);
-			switch (n->value) {
-				case NTAP_OPT_DP_ID:
-					target_id_specified = true;
-					e = jim_newtap_md_param(n, goi, pTap);
-					break;
-				case NTAP_OPT_INSTANCE_ID:
-					instance_id_specified = true;
-					e = jim_newtap_md_param(n, goi, pTap);
-					break;
-				default:
-					e = JIM_OK;
-					break;
-			} /* switch (n->value) */
-			if (JIM_OK != e) {
-				free(cp);
-				free(pTap);
-				return e;
-			}
-		}	/* while (goi->argc) */
-
-		if (instance_id_specified != target_id_specified) {
-			LOG_ERROR("%s: -dp-id and -instance-id must both be specified", pTap->dotted_name);
-			free(cp);
-			free(pTap);
-			return JIM_ERR;
-		}
-		pTap->enabled = true;
-		jtag_tap_init(pTap);
-		return JIM_OK;
-	}
+	bool target_id_specified = false;
+	bool instance_id_specified = false;
 
 	/* IEEE specifies that the two LSBs of an IR scan are 01, so make
 	 * that the default.  The "-ircapture" and "-irmask" options are only
@@ -696,8 +656,28 @@ static int jim_newtap_cmd(Jim_GetOptInfo *goi)
 		    case NTAP_OPT_VERSION:
 			    pTap->ignore_version = true;
 			    break;
+			case NTAP_OPT_DP_ID:
+				target_id_specified = true;
+				e = jim_newtap_md_param(n, goi, pTap);
+				break;
+			case NTAP_OPT_INSTANCE_ID:
+				instance_id_specified = true;
+				e = jim_newtap_md_param(n, goi, pTap);
+				break;
 		}	/* switch (n->value) */
 	}	/* while (goi->argc) */
+
+	if (!transport_is_jtag()) {
+		if (instance_id_specified != target_id_specified) {
+			LOG_ERROR("%s: -dp-id and -instance-id must both be specified", pTap->dotted_name);
+			free(cp);
+			free(pTap);
+			return JIM_ERR;
+		}
+		pTap->enabled = true;
+		jtag_tap_init(pTap);
+		return JIM_OK;
+	}
 
 	/* default is enabled-after-reset */
 	pTap->enabled = !pTap->disabled_after_reset;
