@@ -1,7 +1,7 @@
 # Defines basic Tcl procs for OpenOCD target module
 
 proc new_target_name { } {
-	return [target number [expr [target count] - 1 ]]
+	return [target number [expr {[target count] - 1}]]
 }
 
 global in_process_reset
@@ -16,7 +16,7 @@ proc ocd_process_reset { MODE } {
 	}
 
 	set in_process_reset 1
-	set success [expr [catch {ocd_process_reset_inner $MODE} result]==0]
+	set success [expr {[catch {ocd_process_reset_inner $MODE} result] == 0}]
 	set in_process_reset 0
 
 	if {$success} {

@@ -81,9 +81,10 @@ proc srst_asserted {} {
 # measure actual JTAG clock
 proc measure_clk {} {
 	set start_time [ms];
-        set iterations 10000000;
+	set iterations 10000000;
 	runtest $iterations;
-	echo "Running at more than [expr $iterations.0 / ([ms]-$start_time)] kHz";
+	set speed [expr "$iterations.0 / ([ms] - $start_time)"]
+	echo "Running at more than $speed kHz";
 }
 
 add_help_text measure_clk "Runs a test to measure the JTAG clk. Useful with RCLK / RTCK."
