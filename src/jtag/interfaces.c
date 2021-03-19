@@ -186,7 +186,7 @@ struct adapter_driver *adapter_drivers[] = {
 		&jtag_vpi_adapter_driver,
 #endif
 #if BUILD_VDEBUG == 1
-        &vdebug_adapter_driver,
+		&vdebug_adapter_driver,
 #endif
 #if BUILD_JTAG_DPI == 1
 		&jtag_dpi_adapter_driver,
