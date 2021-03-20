@@ -221,6 +221,8 @@ static uint8_t output_pins = SWJ_PIN_SRST | SWJ_PIN_TRST;
 static struct cmsis_dap *cmsis_dap_handle;
 
 
+static int cmsis_dap_quit(void);
+
 static int cmsis_dap_open(void)
 {
 	const struct cmsis_dap_backend *backend = NULL;
@@ -292,6 +294,7 @@ static int cmsis_dap_xfer(struct cmsis_dap *dap, int txlen)
 		pending_fifo_get_idx = 0;
 	}
 
+	uint8_t current_cmd = cmsis_dap_handle->command[0];
 	int retval = dap->backend->write(dap, txlen, USB_TIMEOUT);
 	if (retval < 0)
 		return retval;
@@ -300,6 +303,18 @@ static int cmsis_dap_xfer(struct cmsis_dap *dap, int txlen)
 	retval = dap->backend->read(dap, USB_TIMEOUT);
 	if (retval < 0)
 		return retval;
+
+	uint8_t *resp = cmsis_dap_handle->response;
+	if (resp[0] == DAP_ERROR) {
+		LOG_ERROR("CMSIS-DAP command 0x%" PRIx8 " not implemented", current_cmd);
+		return ERROR_NOT_IMPLEMENTED;
+	}
+
+	if (resp[0] != current_cmd) {
+		LOG_ERROR("CMSIS-DAP command mismatch. Sent 0x%" PRIx8
+			 " received 0x%" PRIx8, current_cmd, resp[0]);
+		return ERROR_FAIL;
+	}
 
 	return ERROR_OK;
 }
@@ -605,6 +620,13 @@ static void cmsis_dap_swd_read_process(struct cmsis_dap *dap, int timeout_ms)
 	}
 
 	uint8_t *resp = dap->response;
+	if (resp[0] != CMD_DAP_TFER) {
+		LOG_ERROR("CMSIS-DAP command mismatch. Expected 0x%" PRIx8
+			 " received 0x%" PRIx8, CMD_DAP_TFER, resp[0]);
+		queued_retval = ERROR_FAIL;
+		goto skip;
+	}
+
 	uint8_t transfer_count = resp[1];
 	uint8_t ack = resp[2] & 0x07;
 	if (resp[2] & 0x08) {
@@ -616,6 +638,7 @@ static void cmsis_dap_swd_read_process(struct cmsis_dap *dap, int timeout_ms)
 		LOG_DEBUG("SWD ack not OK @ %d %s", transfer_count,
 			  ack == SWD_ACK_WAIT ? "WAIT" : ack == SWD_ACK_FAULT ? "FAULT" : "JUNK");
 		queued_retval = ack == SWD_ACK_WAIT ? ERROR_WAIT : ERROR_FAIL;
+		/* TODO: use results of transfers completed before the error occurred? */
 		goto skip;
 	}
 
@@ -900,7 +923,7 @@ static int cmsis_dap_init(void)
 	/* INFO_ID_PKT_SZ - short */
 	retval = cmsis_dap_cmd_DAP_Info(INFO_ID_PKT_SZ, &data);
 	if (retval != ERROR_OK)
-		return retval;
+		goto init_err;
 
 	if (data[0] == 2) {  /* short */
 		uint16_t pkt_sz = data[1] + (data[2] << 8);
@@ -914,7 +937,7 @@ static int cmsis_dap_init(void)
 			free(cmsis_dap_handle->packet_buffer);
 			retval = cmsis_dap_handle->backend->packet_buffer_alloc(cmsis_dap_handle, pkt_sz);
 			if (retval != ERROR_OK)
-				return retval;
+				goto init_err;
 
 			LOG_DEBUG("CMSIS-DAP: Packet Size = %" PRIu16, pkt_sz);
 		}
@@ -923,7 +946,7 @@ static int cmsis_dap_init(void)
 	/* INFO_ID_PKT_CNT - byte */
 	retval = cmsis_dap_cmd_DAP_Info(INFO_ID_PKT_CNT, &data);
 	if (retval != ERROR_OK)
-		return retval;
+		goto init_err;
 
 	if (data[0] == 1) { /* byte */
 		int pkt_cnt = data[1];
@@ -938,43 +961,40 @@ static int cmsis_dap_init(void)
 		pending_fifo[i].transfers = malloc(pending_queue_len * sizeof(struct pending_transfer_result));
 		if (!pending_fifo[i].transfers) {
 			LOG_ERROR("Unable to allocate memory for CMSIS-DAP queue");
-			return ERROR_FAIL;
+			retval = ERROR_FAIL;
+			goto init_err;
 		}
 	}
 
-
-	retval = cmsis_dap_get_status();
-	if (retval != ERROR_OK)
-		return ERROR_FAIL;
+	/* Intentionally not checked for error, just logs an info message
+	 * not vital for further debugging */
+	(void)cmsis_dap_get_status();
 
 	/* Now try to connect to the target
 	 * TODO: This is all SWD only @ present */
 	retval = cmsis_dap_cmd_DAP_SWJ_Clock(jtag_get_speed_khz());
 	if (retval != ERROR_OK)
-		return ERROR_FAIL;
+		goto init_err;
 
 	/* Ask CMSIS-DAP to automatically retry on receiving WAIT for
 	 * up to 64 times. This must be changed to 0 if sticky
 	 * overrun detection is enabled. */
 	retval = cmsis_dap_cmd_DAP_TFER_Configure(0, 64, 0);
 	if (retval != ERROR_OK)
-		return ERROR_FAIL;
+		goto init_err;
 
 	if (swd_mode) {
 		/* Data Phase (bit 2) must be set to 1 if sticky overrun
 		 * detection is enabled */
 		retval = cmsis_dap_cmd_DAP_SWD_Configure(0);	/* 1 TRN, no Data Phase */
 		if (retval != ERROR_OK)
-			return ERROR_FAIL;
+			goto init_err;
 	}
 	/* Both LEDs on */
-	retval = cmsis_dap_cmd_DAP_LED(LED_ID_CONNECT, LED_ON);
-	if (retval != ERROR_OK)
-		return ERROR_FAIL;
-
-	retval = cmsis_dap_cmd_DAP_LED(LED_ID_RUN, LED_ON);
-	if (retval != ERROR_OK)
-		return ERROR_FAIL;
+	/* Intentionally not checked for error, debugging will work
+	 * without LEDs */
+	(void)cmsis_dap_cmd_DAP_LED(LED_ID_CONNECT, LED_ON);
+	(void)cmsis_dap_cmd_DAP_LED(LED_ID_RUN, LED_ON);
 
 	/* support connecting with srst asserted */
 	enum reset_types jtag_reset_config = jtag_get_reset_config();
@@ -983,13 +1003,16 @@ static int cmsis_dap_init(void)
 		if (jtag_reset_config & RESET_SRST_NO_GATING) {
 			retval = cmsis_dap_cmd_DAP_SWJ_Pins(0, SWJ_PIN_SRST, 0, NULL);
 			if (retval != ERROR_OK)
-				return ERROR_FAIL;
+				goto init_err;
 			LOG_INFO("Connecting under reset");
 		}
 	}
 	LOG_INFO("CMSIS-DAP: Interface ready");
-
 	return ERROR_OK;
+
+init_err:
+	cmsis_dap_quit();
+	return retval;
 }
 
 static int cmsis_dap_swd_init(void)
