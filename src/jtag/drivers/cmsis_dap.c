@@ -295,6 +295,7 @@ static int cmsis_dap_xfer(struct cmsis_dap *dap, int txlen)
 		pending_fifo_get_idx = 0;
 	}
 
+	uint8_t current_cmd = cmsis_dap_handle->command[0];
 	int retval = dap->backend->write(dap, txlen, USB_TIMEOUT);
 	if (retval < 0)
 		return retval;
@@ -303,6 +304,18 @@ static int cmsis_dap_xfer(struct cmsis_dap *dap, int txlen)
 	retval = dap->backend->read(dap, USB_TIMEOUT);
 	if (retval < 0)
 		return retval;
+
+	uint8_t *resp = cmsis_dap_handle->response;
+	if (resp[0] == DAP_ERROR) {
+		LOG_ERROR("CMSIS-DAP command 0x%" PRIx8 " not implemented", current_cmd);
+		return ERROR_NOT_IMPLEMENTED;
+	}
+
+	if (resp[0] != current_cmd) {
+		LOG_ERROR("CMSIS-DAP command mismatch. Sent 0x%" PRIx8
+			 " received 0x%" PRIx8, current_cmd, resp[0]);
+		return ERROR_FAIL;
+	}
 
 	return ERROR_OK;
 }
@@ -608,6 +621,13 @@ static void cmsis_dap_swd_read_process(struct cmsis_dap *dap, int timeout_ms)
 	}
 
 	uint8_t *resp = dap->response;
+	if (resp[0] != CMD_DAP_TFER) {
+		LOG_ERROR("CMSIS-DAP command mismatch. Expected 0x%" PRIx8
+			 " received 0x%" PRIx8, CMD_DAP_TFER, resp[0]);
+		queued_retval = ERROR_FAIL;
+		goto skip;
+	}
+
 	uint8_t transfer_count = resp[1];
 	uint8_t ack = resp[2] & 0x07;
 	if (resp[2] & 0x08) {
@@ -619,6 +639,7 @@ static void cmsis_dap_swd_read_process(struct cmsis_dap *dap, int timeout_ms)
 		LOG_DEBUG("SWD ack not OK @ %d %s", transfer_count,
 			  ack == SWD_ACK_WAIT ? "WAIT" : ack == SWD_ACK_FAULT ? "FAULT" : "JUNK");
 		queued_retval = ack == SWD_ACK_WAIT ? ERROR_WAIT : ERROR_FAIL;
+		/* TODO: use results of transfers completed before the error occured? */
 		goto skip;
 	}
 
