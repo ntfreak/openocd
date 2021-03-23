@@ -164,6 +164,8 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 		return ERROR_FAIL;
 	}
 
+	dap->command = dap->packet_buffer + REPORT_ID_SIZE;
+	dap->response = dap->packet_buffer;
 	return ERROR_OK;
 }
 
@@ -195,8 +197,10 @@ static int cmsis_dap_hid_write(struct cmsis_dap *dap, int txlen, int timeout_ms)
 {
 	(void) timeout_ms;
 
+	dap->packet_buffer[0] = 0; /* HID report number */
+
 	/* Pad the rest of the TX buffer with 0's */
-	memset(dap->packet_buffer + txlen, 0, dap->packet_buffer_size - txlen);
+	memset(dap->command + txlen, 0, dap->packet_size - txlen);
 
 	/* write data to device */
 	int retval = hid_write(dap->bdata->dev_handle, dap->packet_buffer, dap->packet_buffer_size);
@@ -220,6 +224,9 @@ static int cmsis_dap_hid_alloc(struct cmsis_dap *dap, unsigned int pkt_sz)
 	dap->packet_buffer = buf;
 	dap->packet_size = pkt_sz;
 	dap->packet_buffer_size = packet_buffer_size;
+
+	dap->command = dap->packet_buffer + REPORT_ID_SIZE;
+	dap->response = dap->packet_buffer;
 
 	return ERROR_OK;
 }
