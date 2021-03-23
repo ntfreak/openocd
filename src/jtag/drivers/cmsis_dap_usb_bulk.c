@@ -359,7 +359,7 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 			}
 
 			dap->packet_size = packet_size;
-			dap->packet_buffer_size = packet_size + REPORT_ID_SIZE;
+			dap->packet_buffer_size = packet_size;
 			dap->bdata->usb_ctx = ctx;
 			dap->bdata->dev_handle = dev_handle;
 			dap->bdata->ep_out = ep_out;
@@ -372,6 +372,9 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 				cmsis_dap_usb_close(dap);
 				return ERROR_FAIL;
 			}
+
+			dap->command = dap->packet_buffer;
+			dap->response = dap->packet_buffer;
 
 			return ERROR_OK;
 		}
@@ -424,7 +427,7 @@ static int cmsis_dap_usb_write(struct cmsis_dap *dap, int txlen, int timeout_ms)
 
 	/* skip the first byte that is only used by the HID backend */
 	err = libusb_bulk_transfer(dap->bdata->dev_handle, dap->bdata->ep_out,
-							dap->packet_buffer + REPORT_ID_SIZE, txlen - REPORT_ID_SIZE, &transferred, timeout_ms);
+							dap->packet_buffer, txlen, &transferred, timeout_ms);
 	if (err) {
 		if (err == LIBUSB_ERROR_TIMEOUT) {
 			return ERROR_TIMEOUT_REACHED;
@@ -448,7 +451,10 @@ static int cmsis_dap_usb_realloc(struct cmsis_dap *dap, int pkt_sz)
 		LOG_ERROR("unable to reallocate memory");
 		return ERROR_FAIL;
 	}
+
 	dap->packet_size = pkt_sz;
+	dap->command = dap->packet_buffer;
+	dap->response = dap->packet_buffer;
 
 	return ERROR_OK;
 }

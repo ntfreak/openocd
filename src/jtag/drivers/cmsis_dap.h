@@ -14,6 +14,8 @@ struct cmsis_dap {
 	int packet_count;
 	uint8_t *packet_buffer;
 	uint16_t packet_buffer_size;
+	uint8_t *command;
+	uint8_t *response;
 	uint8_t caps;
 	uint8_t mode;
 };
