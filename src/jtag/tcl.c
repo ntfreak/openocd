@@ -1151,13 +1151,22 @@ COMMAND_HANDLER(handle_irscan_command)
 
 		buf_set_u64(v, 0, field_size, value);
 		fields[i].out_value = v;
-		fields[i].in_value = NULL;
+		fields[i].in_value = v;
 	}
 
 	/* did we have an endstate? */
 	jtag_add_ir_scan(tap, fields, endstate);
 
 	retval = jtag_execute_queue();
+	if (retval != ERROR_OK)
+		goto error_return;
+
+	if (num_fields == 1) {
+		char *str;
+		str = buf_to_hex_str(fields[0].in_value, fields[0].num_bits);
+		command_print(CMD, "%s", str);
+		free(str);
+	}
 
 error_return:
 	for (i = 0; i < num_fields; i++)
