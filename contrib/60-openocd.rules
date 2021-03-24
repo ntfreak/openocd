@@ -181,4 +181,7 @@ ATTRS{idVendor}=="c251", ATTRS{idProduct}=="2750", MODE="660", GROUP="plugdev", 
 # CMSIS-DAP compatible adapters
 ATTRS{product}=="*CMSIS-DAP*", MODE="660", GROUP="plugdev", TAG+="uaccess"
 
+# ST SPC560D-DIS Discovery Board
+ATTRS{idVendor}=="263d", ATTRS{idProduct}=="4001", MODE="660", GROUP="plugdev", TAG+="uaccess"
+
 LABEL="openocd_rules_end"
