@@ -15,7 +15,8 @@ jobs:
     steps:
       - name: Install needed packages
         run: sudo apt-get install autotools-dev autoconf automake libtool pkg-config cmake texinfo texlive g++-mingw-w64-i686
-      - uses: actions/checkout@v1
+      - name: Checkout Code
+        uses: actions/checkout@v1
       - run: ./bootstrap
       - name: Prepare libusb1
         env:
@@ -62,9 +63,14 @@ jobs:
           LIBFTDI_CONFIG: "-DCMAKE_TOOLCHAIN_FILE='${{ env.LIBFTDI_SRC }}/cmake/Toolchain-i686-w64-mingw32.cmake' -DBUILD_TESTS:BOOL=off -DFTDIPP:BOOL=off -DPYTHON_BINDINGS:BOOL=off -DEXAMPLES:BOOL=off -DDOCUMENTATION:BOOL=off -DFTDI_EEPROM:BOOL=off"
           CAPSTONE_CONFIG: "CAPSTONE_BUILD_CORE_ONLY=yes CAPSTONE_STATIC=yes CAPSTONE_SHARED=no"
         run: |
-          # set snapshot tag
+          # check if there is tag pointing at HEAD, otherwise take the HEAD SHA-1 as OPENOCD_TAG
           OPENOCD_TAG="`git tag --points-at HEAD`"
           [ -z $OPENOCD_TAG ] && OPENOCD_TAG="`git rev-parse --short HEAD`"
+          # check if there is tag pointing at HEAD, if so the release will have the same name as the tag,
+          # otherwise it will be named 'latest'
+          RELEASE_NAME="`git tag --points-at HEAD`"
+          [ -z $RELEASE_NAME ] && RELEASE_NAME="latest"
+          [[ $RELEASE_NAME = "latest" ]] && IS_PRE_RELEASE="true" || IS_PRE_RELEASE="false"
           # set env and call cross-build.sh
           export OPENOCD_TAG=$OPENOCD_TAG
           export OPENOCD_SRC=$PWD
@@ -78,31 +84,26 @@ jobs:
           # prepare the artifact
           ARTIFACT="openocd-${OPENOCD_TAG}-${HOST}.tar.gz"
           tar -czf $ARTIFACT *
-          echo "ARTIFACT_NAME=$ARTIFACT" >> $GITHUB_ENV
+          echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
+          echo "IS_PRE_RELEASE=$IS_PRE_RELEASE" >> $GITHUB_ENV
           echo "ARTIFACT_PATH=$PWD/$ARTIFACT" >> $GITHUB_ENV
       - name: Publish OpenOCD packaged for windows
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
-          name: ${{ env.ARTIFACT_NAME }}
           path: ${{ env.ARTIFACT_PATH }}
+      - name: Delete 'latest' Release
+        uses: dev-drprasad/delete-tag-and-release@v0.2.0
+        with:
+          delete_release: true
+          tag_name: ${{ env.RELEASE_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create Release
-        id: create_release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/create-release@v1.1.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
+          tag: ${{ env.RELEASE_NAME }}
+          commit: ${{ github.sha }}
           draft: false
-          prerelease: false
-      - name: Release OpenOCD packaged for windows
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.ARTIFACT_PATH }}
-          asset_name: ${{ env.ARTIFACT_NAME }}
-          asset_content_type: application/gzip
+          artifacts: ${{ env.ARTIFACT_PATH }}
+          prerelease: ${{ env.IS_PRE_RELEASE }}
+          token: ${{ secrets.GITHUB_TOKEN }}
