@@ -482,7 +482,11 @@ static void ftdi_execute_scan(struct jtag_command *cmd)
 			uint8_t last_bit = 0;
 			if (field->out_value)
 				bit_copy(&last_bit, 0, field->out_value, field->num_bits - 1, 1);
-			uint8_t tms_bits = 0x01;
+
+			/* If endstate is TAP_IDLE, clock out 1-1-0 (->EXIT1 ->UPDATE ->IDLE)
+			 * Otherwise, clock out 1-0 (->EXIT1 ->PAUSE)
+			 */
+			uint8_t tms_bits = 0x03;
 			mpsse_clock_tms_cs(mpsse_ctx,
 					&tms_bits,
 					0,
@@ -492,9 +496,19 @@ static void ftdi_execute_scan(struct jtag_command *cmd)
 					last_bit,
 					ftdi_jtag_mode);
 			tap_set_state(tap_state_transition(tap_get_state(), 1));
+			if (tap_get_end_state() == TAP_IDLE) {
+				/* Skip this bit is endstate != TAP_IDLE */
+				mpsse_clock_tms_cs_out(mpsse_ctx,
+						&tms_bits,
+						1,
+						1,
+						last_bit,
+						ftdi_jtag_mode);
+				tap_set_state(tap_state_transition(tap_get_state(), 1));
+			}
 			mpsse_clock_tms_cs_out(mpsse_ctx,
 					&tms_bits,
-					1,
+					2,
 					1,
 					last_bit,
 					ftdi_jtag_mode);
