@@ -275,6 +275,10 @@ static const struct stm32l4_rev stm32_435_revs[] = {
 	{ 0x1000, "A" }, { 0x1001, "Z" }, { 0x2001, "Y" },
 };
 
+static const struct stm32l4_rev stm32_456_revs[] = {
+	{ 0x1000, "A" },
+};
+
 static const struct stm32l4_rev stm32_460_revs[] = {
 	{ 0x1000, "A/Z" } /* A and Z, no typo in RM! */, { 0x2000, "B" },
 };
@@ -359,6 +363,19 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .num_revs              = ARRAY_SIZE(stm32_435_revs),
 	  .device_str            = "STM32L43/L44xx",
 	  .max_flash_size_kb     = 256,
+	  .flags                 = F_NONE,
+	  .flash_regs_base       = 0x40022000,
+	  .default_flash_regs    = stm32l4_flash_regs,
+	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
+	},
+	{
+	  .id                    = 0x456,
+	  .revs                  = stm32_456_revs,
+	  .num_revs              = ARRAY_SIZE(stm32_456_revs),
+	  .device_str            = "STM32G05/G06xx",
+	  .max_flash_size_kb     = 64,
 	  .flags                 = F_NONE,
 	  .flash_regs_base       = 0x40022000,
 	  .default_flash_regs    = stm32l4_flash_regs,
@@ -1728,6 +1745,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 		}
 		break;
 	case 0x435: /* STM32L43/L44xx */
+	case 0x456: /* STM32G05/G06xx */
 	case 0x460: /* STM32G07/G08xx */
 	case 0x462: /* STM32L45/L46xx */
 	case 0x464: /* STM32L41/L42xx */
