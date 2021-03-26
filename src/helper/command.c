@@ -117,6 +117,40 @@ static void command_log_capture_finish(struct log_capture_state *state)
 	free(state);
 }
 
+/*
+ * FIXME: workaround for memory leak in jimtcl 0.80
+ * Jim API Jim_CreateCommand() converts the command name in a Jim object and
+ * does not free the object. Fixed for jimtcl 0.81 by e4416cf86f0b
+ * Use the internal jimtcl API Jim_CreateCommandObj, not exported by jim.h,
+ * and override the bugged API through preprocessor's macro.
+ * This workaround works only when jimtcl is compiled as OpenOCD submodule.
+ * If jimtcl is linked-in from a precompiled library, either static or dynamic,
+ * the symbol Jim_CreateCommandObj is not exported and the build will use the
+ * bugged API.
+ * To be removed when OpenOCD will switch to jimtcl 0.81
+ */
+#if JIM_VERSION == 80
+static int workaround_createcommand(Jim_Interp *interp, const char *cmdName,
+	Jim_CmdProc *cmdProc, void *privData, Jim_DelCmdProc *delProc);
+int Jim_CreateCommandObj(Jim_Interp *interp, Jim_Obj *cmdNameObj,
+	Jim_CmdProc *cmdProc, void *privData, Jim_DelCmdProc *delProc)
+__attribute__((weak, alias("workaround_createcommand")));
+static int workaround_createcommand(Jim_Interp *interp, const char *cmdName,
+	Jim_CmdProc *cmdProc, void *privData, Jim_DelCmdProc *delProc)
+{
+	if ((void *)Jim_CreateCommandObj == (void *)workaround_createcommand)
+		return Jim_CreateCommand(interp, cmdName, cmdProc, privData, delProc);
+
+	Jim_Obj *cmd_name = Jim_NewStringObj(interp, cmdName, -1);
+	Jim_IncrRefCount(cmd_name);
+	int retval = Jim_CreateCommandObj(interp, cmd_name, cmdProc, privData, delProc);
+	Jim_DecrRefCount(interp, cmd_name);
+	return retval;
+}
+#define Jim_CreateCommand workaround_createcommand
+#endif /* JIM_VERSION == 80 */
+/* FIXME: end of workaround for memory leak in jimtcl 0.80 */
+
 static int command_retval_set(Jim_Interp *interp, int retval)
 {
 	int *return_retval = Jim_GetAssocData(interp, "retval");
