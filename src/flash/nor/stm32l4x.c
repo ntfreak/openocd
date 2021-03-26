@@ -63,16 +63,21 @@
  *  - for STM32L4P5/Q5x
  *    In 1M FLASH devices bit 22 (DBANK) controls Dual Bank mode.
  *    In 512K FLASH devices bit 21 (DB512K) controls Dual Bank mode.
- *
  */
 
 /* STM32WBxxx series for reference.
  *
- * RM0434 (STM32WB55)
+ * RM0434 (STM32WB55/WB35x)
  * http://www.st.com/resource/en/reference_manual/dm00318631.pdf
  *
- * RM0471 (STM32WB50)
+ * RM0471 (STM32WB50/WB30x)
  * http://www.st.com/resource/en/reference_manual/dm00622834.pdf
+ *
+ * RM0473 (STM32WB15x)
+ * http://www.st.com/resource/en/reference_manual/dm00649196.pdf
+ *
+ * RM0478 (STM32WB10x)
+ * http://www.st.com/resource/en/reference_manual/dm00689203.pdf
  */
 
 /* STM32WLxxx series for reference.
@@ -331,6 +336,10 @@ static const struct stm32l4_rev stm32_482_revs[] = {
 	{ 0x1000, "A" }, { 0x1001, "Z" }, { 0x1003, "Y" }, { 0x2000, "B" },
 };
 
+static const struct stm32l4_rev stm32_494_revs[] = {
+	{ 0x1000, "A" }, { 0x2000, "B" },
+};
+
 static const struct stm32l4_rev stm32_495_revs[] = {
 	{ 0x2001, "2.1" },
 };
@@ -551,6 +560,19 @@ static const struct stm32l4_part_info stm32l4_parts[] = {
 	  .fsize_addr            = 0x0BFA07A0,
 	  .otp_base              = 0x0BFA0000,
 	  .otp_size              = 512,
+	},
+	{
+	  .id                    = 0x494,
+	  .revs                  = stm32_494_revs,
+	  .num_revs              = ARRAY_SIZE(stm32_494_revs),
+	  .device_str            = "STM32WB1x",
+	  .max_flash_size_kb     = 320,
+	  .flags                 = F_NONE,
+	  .flash_regs_base       = 0x58004000,
+	  .default_flash_regs    = stm32l4_flash_regs,
+	  .fsize_addr            = 0x1FFF75E0,
+	  .otp_base              = 0x1FFF7000,
+	  .otp_size              = 1024,
 	},
 	{
 	  .id                    = 0x495,
@@ -1752,6 +1774,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 	case 0x466: /* STM32G03/G04xx */
 	case 0x468: /* STM32G43/G44xx */
 	case 0x479: /* STM32G49/G4Axx */
+	case 0x494: /* STM32WB1x */
 		/* single bank flash */
 		page_size_kb = 2;
 		num_pages = flash_size_kb / page_size_kb;
@@ -1894,10 +1917,8 @@ static int stm32l4_probe(struct flash_bank *bank)
 
 	/* use *max_flash_size* instead of actual size as the trimmed versions
 	 * certainly use the same number of bits
-	 * max_flash_size is always power of two, so max_pages too
 	 */
 	uint32_t max_pages = stm32l4_info->part_info->max_flash_size_kb / page_size_kb;
-	assert((max_pages & (max_pages - 1)) == 0);
 
 	/* in dual bank mode number of pages is doubled, but extra bit is bank selection */
 	stm32l4_info->wrpxxr_mask = ((max_pages >> (stm32l4_info->dual_bank_mode ? 1 : 0)) - 1);
