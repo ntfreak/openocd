@@ -817,14 +817,13 @@ static COMMAND_HELPER(command_help_show, struct help_entry *c,
 		((c->help != NULL) && (strstr(c->help, cmd_match) != NULL));
 
 	if (is_match) {
-		command_help_show_indent(n);
-		LOG_USER_N("%s", c->cmd_name);
-
 		if (c->usage && strlen(c->usage) > 0) {
-			LOG_USER_N(" ");
-			command_help_show_wrap(c->usage, 0, n + 5);
-		} else
-			LOG_USER_N("\n");
+			char *msg = alloc_printf("%s %s", c->cmd_name, c->usage);
+			command_help_show_wrap(msg, n, n + 5);
+			free(msg);
+		} else {
+			command_help_show_wrap(c->cmd_name, n, n + 5);
+		}
 	}
 
 	if (is_match && show_help) {
