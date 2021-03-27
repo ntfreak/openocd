@@ -325,7 +325,7 @@ static const struct command_registration arm7a_l2x_cache_commands[] = {
 		.name = "conf",
 		.handler = armv7a_l2x_cache_conf_cmd,
 		.mode = COMMAND_ANY,
-		.help = "configure l2x cache ",
+		.help = "configure l2x cache",
 		.usage = "<base_addr> <number_of_way>",
 	},
 	{

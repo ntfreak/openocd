@@ -6677,15 +6677,15 @@ static const struct command_registration target_exec_command_handlers[] = {
 		.handler = handle_target_reset_nag,
 		.mode = COMMAND_ANY,
 		.help = "Nag after each reset about options that could have been "
-				"enabled to improve performance. ",
+				"enabled to improve performance.",
 		.usage = "['enable'|'disable']",
 	},
 	{
 		.name = "ps",
 		.handler = handle_ps_command,
 		.mode = COMMAND_EXEC,
-		.help = "list all tasks ",
-		.usage = " ",
+		.help = "list all tasks",
+		.usage = "",
 	},
 	{
 		.name = "test_mem_access",

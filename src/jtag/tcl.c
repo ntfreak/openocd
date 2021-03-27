@@ -887,7 +887,7 @@ static const struct command_registration jtag_subcommand_handlers[] = {
 			"['-expected_id' number] "
 			"['-ignore-version'] "
 			"['-ircapture' number] "
-			"['-mask' number] ",
+			"['-mask' number]",
 	},
 	{
 		.name = "tapisenabled",
@@ -1353,7 +1353,7 @@ static const struct command_registration jtag_command_handlers[] = {
 		.mode = COMMAND_ANY,
 		.help = "Wait for an SRST deassert. "
 			"Useful for cases where you need something to happen within ms "
-			"of an srst deassert. Timeout in ms ",
+			"of an srst deassert. Timeout in ms",
 		.usage = "ms",
 	},
 	{

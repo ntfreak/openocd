@@ -1763,7 +1763,7 @@ static const struct command_registration cmsis_dap_command_handlers[] = {
 		.handler = &cmsis_dap_handle_vid_pid_command,
 		.mode = COMMAND_CONFIG,
 		.help = "the vendor ID and product ID of the CMSIS-DAP device",
-		.usage = "(vid pid)* ",
+		.usage = "(vid pid)*",
 	},
 	{
 		.name = "cmsis_dap_serial",

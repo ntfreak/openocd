@@ -584,7 +584,7 @@ static const struct command_registration adapter_command_handlers[] = {
 		.handler = adapter_transports_command,
 		.mode = COMMAND_CONFIG,
 		.help = "Declare transports the adapter supports.",
-		.usage = "transport ... ",
+		.usage = "transport ...",
 	},
 	{
 		.name = "usb",

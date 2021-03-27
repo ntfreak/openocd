@@ -2243,7 +2243,7 @@ static const struct command_registration dsp563xx_command_handlers[] = {
 		.handler = dsp563xx_remove_watchpoint_command,
 		.mode = COMMAND_EXEC,
 		.help = "remove watchpoint custom",
-		.usage = " ",
+		.usage = "",
 	},
 	COMMAND_REGISTRATION_DONE
 };

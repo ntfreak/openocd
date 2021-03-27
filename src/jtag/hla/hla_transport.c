@@ -76,7 +76,7 @@ hl_transport_jtag_subcommand_handlers[] = {
 	 .help = "Create a new TAP instance named basename.tap_type, "
 	 "and appends it to the scan chain.",
 	 .usage = "basename tap_type '-irlen' count "
-	 "['-expected_id' number] ",
+	 "['-expected_id' number]",
 	 },
 	{
 	 .name = "init",

@@ -359,7 +359,7 @@ static const struct command_registration hl_interface_command_handlers[] = {
 	 .handler = &hl_interface_handle_vid_pid_command,
 	 .mode = COMMAND_CONFIG,
 	 .help = "the vendor and product ID of the adapter",
-	 .usage = "(vid pid)* ",
+	 .usage = "(vid pid)*",
 	 },
 	{
 	 .name = "hla_stlink_backend",

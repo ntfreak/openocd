@@ -1004,7 +1004,7 @@ static const struct command_registration ftdi_command_handlers[] = {
 		.handler = &ftdi_handle_vid_pid_command,
 		.mode = COMMAND_CONFIG,
 		.help = "the vendor ID and product ID of the FTDI device",
-		.usage = "(vid pid)* ",
+		.usage = "(vid pid)*",
 	},
 	{
 		.name = "ftdi_tdo_sample_edge",

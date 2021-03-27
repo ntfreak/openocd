@@ -1149,7 +1149,7 @@ static const struct command_registration arm_exec_command_handlers[] = {
 		.handler = handle_arm_disassemble_command,
 		.mode = COMMAND_EXEC,
 		.usage = "address [count ['thumb']]",
-		.help = "disassemble instructions ",
+		.help = "disassemble instructions",
 	},
 	{
 		.name = "mcr",
