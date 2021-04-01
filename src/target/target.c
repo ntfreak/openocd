@@ -23,6 +23,8 @@
  *   Copyright (C) 2011 Andreas Fritiofson                                 *
  *   andreas.fritiofson@gmail.com                                          *
  *                                                                         *
+ *   Copyright (C) 2021, Ampere Computing LLC                              *
+ *                                                                         *
  *   This program is free software; you can redistribute it and/or modify  *
  *   it under the terms of the GNU General Public License as published by  *
  *   the Free Software Foundation; either version 2 of the License, or     *
@@ -3044,6 +3046,18 @@ static int handle_target(void *priv)
 	return retval;
 }
 
+COMMAND_HANDLER(handle_dbgbase_command)
+{
+	struct target *target = get_current_target(CMD_CTX);
+
+	if (target->dbgbase_set)
+		command_print(CMD, "0x%08" PRIx32, target->dbgbase);
+	else
+		command_print(CMD, "0x00000000");
+
+	return ERROR_OK;
+}
+
 COMMAND_HANDLER(handle_reg_command)
 {
 	struct target *target;
@@ -5655,6 +5669,14 @@ static const struct command_registration target_instance_command_handlers[] = {
 		.help = "invoke handler for specified event",
 		.usage = "event_name",
 	},
+	{
+		.name = "dbgbase",
+		.handler = handle_dbgbase_command,
+		.mode = COMMAND_EXEC,
+		.help = "Return the core debug base address if set, "
+			"otherwise return 0x00000000.",
+		.usage = "",
+	},
 	COMMAND_REGISTRATION_DONE
 };
 
@@ -6693,6 +6715,14 @@ static const struct command_registration target_exec_command_handlers[] = {
 		.mode = COMMAND_EXEC,
 		.help = "Test the target's memory access functions",
 		.usage = "size",
+	},
+	{
+		.name = "dbgbase",
+		.handler = handle_dbgbase_command,
+		.mode = COMMAND_EXEC,
+		.help = "Return the core debug base address if set, "
+			"otherwise return 0x00000000.",
+		.usage = "",
 	},
 
 	COMMAND_REGISTRATION_DONE
