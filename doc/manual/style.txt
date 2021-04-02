@@ -135,13 +135,13 @@ should write statements like the following:
 @code
 // separate statements should be preferred
 result = foo();
-if (ERROR_OK != result)
+if (result != ERROR_OK)
 	...
 @endcode
 More directly, do @b not combine these kinds of statements:
 @code
 // Combined statements should be avoided
-if (ERROR_OK != (result = foo()))
+if ((result = foo()) != ERROR_OK)
 	return result;
 @endcode
 
