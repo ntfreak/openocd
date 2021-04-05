@@ -152,6 +152,12 @@ m4_define([LIBJAYLINK_ADAPTERS],
 m4_define([PCIE_ADAPTERS],
 	[[[xlnx_pcie_xvc], [Xilinx XVC/PCIe], [XLNX_PCIE_XVC]]])
 
+# The only "serial port" adapter at the moment is the Bus Pirate.
+# OpenOCD does not use any USB library in order to find or use the Bus Pirate,
+# it just opens the configured serial port file, which can be something like "/dev/ttyUSB0".
+m4_define([SERIAL_PORT_ADAPTERS],
+	[[[buspirate], [Bus Pirate], [BUS_PIRATE]]])
+
 m4_define([OPTIONAL_LIBRARIES],
 	[[[capstone], [Use Capstone disassembly framework], []]])
 
@@ -257,6 +263,13 @@ AC_ARG_ADAPTERS([
   LIBJAYLINK_ADAPTERS
   ],[auto])
 
+# The buspirate adapter is not supported on MinGW32 hosts, see the platform check further below,
+# so do not enable the buspirate by default for now. Any other serial port adapters
+# that may be added to OpenOCD in the future will probably face the same limitation.
+AC_ARG_ADAPTERS([
+  SERIAL_PORT_ADAPTERS
+  ],[no])
+
 AC_ARG_ENABLE([parport],
   AS_HELP_STRING([--enable-parport], [Enable building the pc parallel port driver]),
   [build_parport=$enableval], [build_parport=no])
@@ -315,10 +328,6 @@ AS_CASE(["${host_cpu}"],
 AC_ARG_ENABLE([gw16012],
   AS_HELP_STRING([--enable-gw16012], [Enable building support for the Gateworks GW16012 JTAG Programmer]),
   [build_gw16012=$enableval], [build_gw16012=no])
-
-AC_ARG_ENABLE([buspirate],
-  AS_HELP_STRING([--enable-buspirate], [Enable building support for the Buspirate]),
-  [build_buspirate=$enableval], [build_buspirate=no])
 
 AC_ARG_ENABLE([sysfsgpio],
   AS_HELP_STRING([--enable-sysfsgpio], [Enable building support for programming driven via sysfs gpios.]),
@@ -404,7 +413,7 @@ AS_CASE([$host],
     ])
     parport_use_giveio=yes
 
-    AS_IF([test "x$build_buspirate" = "xyes"], [
+    AS_IF([test "x$enable_buspirate" = "xyes"], [
       AC_MSG_ERROR([buspirate currently not supported by MinGW32 hosts])
     ])
 
@@ -534,7 +543,7 @@ AS_IF([test "x$build_gw16012" = "xyes"], [
   AC_DEFINE([BUILD_GW16012], [0], [0 if you don't want the Gateworks GW16012 driver.])
 ])
 
-AS_IF([test "x$build_buspirate" = "xyes"], [
+AS_IF([test "x$enable_buspirate" = "xyes"], [
   AC_DEFINE([BUILD_BUSPIRATE], [1], [1 if you want the Buspirate JTAG driver.])
 ], [
   AC_DEFINE([BUILD_BUSPIRATE], [0], [0 if you don't want the Buspirate JTAG driver.])
@@ -701,7 +710,7 @@ AM_CONDITIONAL([USB_BLASTER_DRIVER], [test "x$enable_usb_blaster" != "xno" -o "x
 AM_CONDITIONAL([AMTJTAGACCEL], [test "x$build_amtjtagaccel" = "xyes"])
 AM_CONDITIONAL([GW16012], [test "x$build_gw16012" = "xyes"])
 AM_CONDITIONAL([REMOTE_BITBANG], [test "x$build_remote_bitbang" = "xyes"])
-AM_CONDITIONAL([BUSPIRATE], [test "x$build_buspirate" = "xyes"])
+AM_CONDITIONAL([BUSPIRATE], [test "x$enable_buspirate" = "xyes"])
 AM_CONDITIONAL([SYSFSGPIO], [test "x$build_sysfsgpio" = "xyes"])
 AM_CONDITIONAL([XLNX_PCIE_XVC], [test "x$build_xlnx_pcie_xvc" = "xyes"])
 AM_CONDITIONAL([USE_LIBUSB0], [test "x$use_libusb0" = "xyes"])
@@ -787,7 +796,7 @@ m4_foreach([adapter], [USB1_ADAPTERS, USB0_ADAPTERS,
 	HIDAPI_ADAPTERS, HIDAPI_USB1_ADAPTERS, LIBFTDI_ADAPTERS,
 	LIBFTDI_USB1_ADAPTERS,
 	LIBGPIOD_ADAPTERS,
-	LIBJAYLINK_ADAPTERS, PCIE_ADAPTERS,
+	LIBJAYLINK_ADAPTERS, PCIE_ADAPTERS, SERIAL_PORT_ADAPTERS,
 	OPTIONAL_LIBRARIES],
 	[s=m4_format(["%-40s"], ADAPTER_DESC([adapter]))
 	AS_CASE([$ADAPTER_VAR([adapter])],
