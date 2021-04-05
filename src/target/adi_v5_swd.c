@@ -74,7 +74,7 @@ static void swd_clear_sticky_errors(struct adiv5_dap *dap)
 	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
 	assert(swd);
 
-	swd->write_reg(swd_cmd(false,  false, DP_ABORT),
+	swd->write_reg(swd_cmd(false, false, DP_ABORT),
 		STKCMPCLR | STKERRCLR | WDERRCLR | ORUNERRCLR, 0);
 }
 
@@ -174,7 +174,7 @@ static int swd_connect(struct adiv5_dap *dap)
 
 		dap->do_reconnect = false;
 
-		swd->write_reg(swd_cmd(false,  false, DP_ABORT),
+		swd->write_reg(swd_cmd(false, false, DP_ABORT),
 			DAPABORT | STKCMPCLR | STKERRCLR | WDERRCLR | ORUNERRCLR, 0);
 		status = swd_run_inner(dap);
 	}
@@ -325,7 +325,7 @@ static int swd_queue_ap_read(struct adiv5_ap *ap, unsigned reg,
 	if (retval != ERROR_OK)
 		return retval;
 
-	swd->read_reg(swd_cmd(true,  true, reg), dap->last_read, ap->memaccess_tck);
+	swd->read_reg(swd_cmd(true, true, reg), dap->last_read, ap->memaccess_tck);
 	dap->last_read = data;
 
 	return check_sync(dap);
@@ -347,7 +347,7 @@ static int swd_queue_ap_write(struct adiv5_ap *ap, unsigned reg,
 	if (retval != ERROR_OK)
 		return retval;
 
-	swd->write_reg(swd_cmd(false,  true, reg), data, ap->memaccess_tck);
+	swd->write_reg(swd_cmd(false, true, reg), data, ap->memaccess_tck);
 
 	return check_sync(dap);
 }
