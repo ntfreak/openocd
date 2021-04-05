@@ -55,6 +55,20 @@
 
 static bool do_sync;
 
+
+static int swd_run(struct adiv5_dap *dap);
+static int swd_queue_dp_write_inner(struct adiv5_dap *dap, unsigned int reg,
+		uint32_t data);
+
+
+static int swd_send_sequence(struct adiv5_dap *dap, enum swd_special_seq seq)
+{
+	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
+	assert(swd);
+
+	return swd->switch_seq(seq);
+}
+
 static void swd_finish_read(struct adiv5_dap *dap)
 {
 	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
@@ -63,11 +77,6 @@ static void swd_finish_read(struct adiv5_dap *dap)
 		dap->last_read = NULL;
 	}
 }
-
-static int swd_queue_dp_write(struct adiv5_dap *dap, unsigned reg,
-		uint32_t data);
-static int swd_queue_dp_read(struct adiv5_dap *dap, unsigned reg,
-		uint32_t *data);
 
 static void swd_clear_sticky_errors(struct adiv5_dap *dap)
 {
@@ -91,6 +100,79 @@ static int swd_run_inner(struct adiv5_dap *dap)
 	}
 
 	return retval;
+}
+
+static inline int check_sync(struct adiv5_dap *dap)
+{
+	return do_sync ? swd_run_inner(dap) : ERROR_OK;
+}
+
+/** Select the DP register bank matching bits 7:4 of reg. */
+static int swd_queue_dp_bankselect(struct adiv5_dap *dap, unsigned int reg)
+{
+	/* Only register address 4 is banked. */
+	if ((reg & 0xf) != 4)
+		return ERROR_OK;
+
+	uint32_t select_dp_bank = (reg & 0x000000F0) >> 4;
+	uint32_t sel = select_dp_bank
+			| (dap->select & (DP_SELECT_APSEL | DP_SELECT_APBANK));
+
+	if (sel == dap->select)
+		return ERROR_OK;
+
+	dap->select = sel;
+
+	int retval = swd_queue_dp_write_inner(dap, DP_SELECT, sel);
+	if (retval != ERROR_OK)
+		dap->select = DP_SELECT_INVALID;
+
+	return retval;
+}
+
+static int swd_queue_dp_read_inner(struct adiv5_dap *dap, unsigned int reg,
+		uint32_t *data)
+{
+	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
+	assert(swd);
+
+	int retval = swd_queue_dp_bankselect(dap, reg);
+	if (retval != ERROR_OK)
+		return retval;
+
+	swd->read_reg(swd_cmd(true, false, reg), data, 0);
+
+	return check_sync(dap);
+}
+
+static int swd_queue_dp_write_inner(struct adiv5_dap *dap, unsigned int reg,
+		uint32_t data)
+{
+	int retval;
+	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
+	assert(swd);
+
+	swd_finish_read(dap);
+
+	if (reg == DP_SELECT) {
+		dap->select = data & (DP_SELECT_APSEL | DP_SELECT_APBANK | DP_SELECT_DPBANK);
+
+		swd->write_reg(swd_cmd(false, false, reg), data, 0);
+
+		retval = check_sync(dap);
+		if (retval != ERROR_OK)
+			dap->select = DP_SELECT_INVALID;
+
+		return retval;
+	}
+
+	retval = swd_queue_dp_bankselect(dap, reg);
+	if (retval != ERROR_OK)
+		return retval;
+
+	swd->write_reg(swd_cmd(false, false, reg), data, 0);
+
+	return check_sync(dap);
 }
 
 static int swd_connect(struct adiv5_dap *dap)
@@ -129,7 +211,7 @@ static int swd_connect(struct adiv5_dap *dap)
 		dap->do_reconnect = false;
 		dap_invalidate_cache(dap);
 
-		status = swd_queue_dp_read(dap, DP_DPIDR, &dpidr);
+		status = swd_queue_dp_read_inner(dap, DP_DPIDR, &dpidr);
 		if (status == ERROR_OK) {
 			status = swd_run_inner(dap);
 			if (status == ERROR_OK)
@@ -185,19 +267,6 @@ static int swd_connect(struct adiv5_dap *dap)
 	return status;
 }
 
-static int swd_send_sequence(struct adiv5_dap *dap, enum swd_special_seq seq)
-{
-	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
-	assert(swd);
-
-	return swd->switch_seq(seq);
-}
-
-static inline int check_sync(struct adiv5_dap *dap)
-{
-	return do_sync ? swd_run_inner(dap) : ERROR_OK;
-}
-
 static int swd_check_reconnect(struct adiv5_dap *dap)
 {
 	if (dap->do_reconnect)
@@ -211,51 +280,19 @@ static int swd_queue_ap_abort(struct adiv5_dap *dap, uint8_t *ack)
 	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
 	assert(swd);
 
-	swd->write_reg(swd_cmd(false,  false, DP_ABORT),
+	swd->write_reg(swd_cmd(false, false, DP_ABORT),
 		DAPABORT | STKCMPCLR | STKERRCLR | WDERRCLR | ORUNERRCLR, 0);
 	return check_sync(dap);
-}
-
-/** Select the DP register bank matching bits 7:4 of reg. */
-static int swd_queue_dp_bankselect(struct adiv5_dap *dap, unsigned reg)
-{
-	/* Only register address 4 is banked. */
-	if ((reg & 0xf) != 4)
-		return ERROR_OK;
-
-	uint32_t select_dp_bank = (reg & 0x000000F0) >> 4;
-	uint32_t sel = select_dp_bank
-			| (dap->select & (DP_SELECT_APSEL | DP_SELECT_APBANK));
-
-	if (sel == dap->select)
-		return ERROR_OK;
-
-	dap->select = sel;
-
-	int retval = swd_queue_dp_write(dap, DP_SELECT, sel);
-	if (retval != ERROR_OK)
-		dap->select = DP_SELECT_INVALID;
-
-	return retval;
 }
 
 static int swd_queue_dp_read(struct adiv5_dap *dap, unsigned reg,
 		uint32_t *data)
 {
-	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
-	assert(swd);
-
 	int retval = swd_check_reconnect(dap);
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = swd_queue_dp_bankselect(dap, reg);
-	if (retval != ERROR_OK)
-		return retval;
-
-	swd->read_reg(swd_cmd(true,  false, reg), data, 0);
-
-	return check_sync(dap);
+	return swd_queue_dp_read_inner(dap, reg, data);
 }
 
 static int swd_queue_dp_write(struct adiv5_dap *dap, unsigned reg,
@@ -268,26 +305,7 @@ static int swd_queue_dp_write(struct adiv5_dap *dap, unsigned reg,
 	if (retval != ERROR_OK)
 		return retval;
 
-	swd_finish_read(dap);
-	if (reg == DP_SELECT) {
-		dap->select = data & (DP_SELECT_APSEL | DP_SELECT_APBANK | DP_SELECT_DPBANK);
-
-		swd->write_reg(swd_cmd(false,  false, reg), data, 0);
-
-		retval = check_sync(dap);
-		if (retval != ERROR_OK)
-			dap->select = DP_SELECT_INVALID;
-
-		return retval;
-	}
-
-	retval = swd_queue_dp_bankselect(dap, reg);
-	if (retval != ERROR_OK)
-		return retval;
-
-	swd->write_reg(swd_cmd(false,  false, reg), data, 0);
-
-	return check_sync(dap);
+	return swd_queue_dp_write_inner(dap, reg, data);
 }
 
 /** Select the AP register bank matching bits 7:4 of reg. */
@@ -303,7 +321,7 @@ static int swd_queue_ap_bankselect(struct adiv5_ap *ap, unsigned reg)
 
 	dap->select = sel;
 
-	int retval = swd_queue_dp_write(dap, DP_SELECT, sel);
+	int retval = swd_queue_dp_write_inner(dap, DP_SELECT, sel);
 	if (retval != ERROR_OK)
 		dap->select = DP_SELECT_INVALID;
 
