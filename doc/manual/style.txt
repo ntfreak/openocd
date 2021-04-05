@@ -114,9 +114,9 @@ pthreads require modest and predictable stack usage.
 
 - static inline functions should be preferred over macros:
 @code
-/** do NOT define macro-like functions like this... */
+/* do NOT define macro-like functions like this... */
 #define CUBE(x) ((x) * (x) * (x))
-/** instead, define the same expression using a C99 inline function */
+/* instead, define the same expression using a C99 inline function */
 static inline int cube(int x) { return x * x * x; }
 @endcode
 - Functions should be declared static unless required by other modules
