@@ -61,6 +61,10 @@
 
 #define DLCR_TO_TRN(dlcr) ((uint32_t)(1 + ((3 & (dlcr)) >> 8))) /* 1..4 clocks */
 
+/* Fields of DP_DPIDR register */
+#define DP_DPIDR_VERSION_SHIFT	12
+#define DP_DPIDR_VERSION_MASK	(0xFUL << DP_DPIDR_VERSION_SHIFT)
+
 /* Fields of the DP's AP ABORT register */
 #define DAPABORT        (1UL << 0)
 #define STKCMPCLR       (1UL << 1) /* SWD-only */
@@ -84,6 +88,8 @@
 #define CDBGPWRUPACK    (1UL << 29)
 #define CSYSPWRUPREQ    (1UL << 30)
 #define CSYSPWRUPACK    (1UL << 31)
+
+#define DP_DLPIDR_PROTVSN	1u
 
 #define DP_SELECT_APSEL 0xFF000000
 #define DP_SELECT_APBANK 0x000000F0
