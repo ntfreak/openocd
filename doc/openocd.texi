@@ -2115,7 +2115,7 @@ If you disable all access through TCP/IP, you will need to
 use the command line @option{-pipe} option.
 
 @anchor{gdb_port}
-@deffn {Command} gdb_port [number]
+@deffn {Command} {gdb_port} [number]
 @cindex GDB server
 Normally gdb listens to a TCP/IP port, but GDB can also
 communicate via pipes(stdin/out or named pipes). The name
@@ -2148,7 +2148,7 @@ gdb (with 'set remotetimeout') is recommended. An insufficient timeout may
 cause initialization to fail with "Unknown remote qXfer reply: OK".
 @end deffn
 
-@deffn {Command} tcl_port [number]
+@deffn {Command} {tcl_port} [number]
 Specify or query the port used for a simplified RPC
 connection that can be used by clients to issue TCL commands and get the
 output from the Tcl engine.
@@ -2158,7 +2158,7 @@ the port @var{number} defaults to 6666.
 When specified as "disabled", this service is not activated.
 @end deffn
 
-@deffn {Command} telnet_port [number]
+@deffn {Command} {telnet_port} [number]
 Specify or query the
 port on which to listen for incoming telnet connections.
 This port is intended for interaction with one human through TCL commands.
@@ -2177,7 +2177,7 @@ The ones listed here are static and global.
 @xref{targetevents,,Target Events}, about configuring target-specific event handling.
 
 @anchor{gdbbreakpointoverride}
-@deffn {Command} gdb_breakpoint_override [@option{hard}|@option{soft}|@option{disable}]
+@deffn {Command} {gdb_breakpoint_override} [@option{hard}|@option{soft}|@option{disable}]
 Force breakpoint type for gdb @command{break} commands.
 This option supports GDB GUIs which don't
 distinguish hard versus soft breakpoints, if the default OpenOCD and
@@ -2220,7 +2220,7 @@ Set to @option{enable} to cause OpenOCD to send the target descriptions to gdb v
 The default behaviour is @option{enable}.
 @end deffn
 
-@deffn {Command} gdb_save_tdesc
+@deffn {Command} {gdb_save_tdesc}
 Saves the target description file to the local file system.
 
 The file name is @i{target_name}.xml.
@@ -2265,7 +2265,7 @@ to the various active targets.
 There is a command to manage and monitor that polling,
 which is normally done in the background.
 
-@deffn {Command} poll [@option{on}|@option{off}]
+@deffn {Command} {poll} [@option{on}|@option{off}]
 Poll the current target for its current state.
 (Also, @pxref{targetcurstate,,target curstate}.)
 If that target is in debug mode, architecture
@@ -3598,19 +3598,19 @@ When a board has a reset button connected to SRST line it will
 probably have hardware debouncing, implying you should use this.
 @end deffn
 
-@deffn {Command} jtag_ntrst_assert_width milliseconds
+@deffn {Command} {jtag_ntrst_assert_width} milliseconds
 Minimum amount of time (in milliseconds) OpenOCD should wait
 after asserting nTRST (active-low JTAG TAP reset) before
 allowing it to be deasserted.
 @end deffn
 
-@deffn {Command} jtag_ntrst_delay milliseconds
+@deffn {Command} {jtag_ntrst_delay} milliseconds
 How long (in milliseconds) OpenOCD should wait after deasserting
 nTRST (active-low JTAG TAP reset) before starting new JTAG operations.
 @end deffn
 
 @anchor{reset_config}
-@deffn {Command} reset_config mode_flag ...
+@deffn {Command} {reset_config} mode_flag ...
 This command displays or modifies the reset configuration
 of your combination of JTAG board and target in target
 configuration scripts.
@@ -4446,7 +4446,7 @@ foreach t [target names] @{
 @c yep, "target list" would have been better.
 @c plus maybe "target setdefault".
 
-@deffn {Command} targets [name]
+@deffn {Command} {targets} [name]
 @emph{Note: the name of this command is plural. Other target
 command names are singular.}
 
@@ -8026,11 +8026,11 @@ port is 5555.
 
 @section Server Commands
 
-@deffn {Command} exit
+@deffn {Command} {exit}
 Exits the current telnet session.
 @end deffn
 
-@deffn {Command} help [string]
+@deffn {Command} {help} [string]
 With no parameters, prints help text for all commands.
 Otherwise, prints each helptext containing @var{string}.
 Not every command provides helptext.
@@ -8041,7 +8041,7 @@ In most cases, no such restriction is listed; this indicates commands
 which are only available after the configuration stage has completed.
 @end deffn
 
-@deffn {Command} sleep msec [@option{busy}]
+@deffn {Command} {sleep} msec [@option{busy}]
 Wait for at least @var{msec} milliseconds before resuming.
 If @option{busy} is passed, busy-wait instead of sleeping.
 (This option is strongly discouraged.)
@@ -8049,7 +8049,7 @@ Useful in connection with script files
 (@command{script} command and @command{target_name} configuration).
 @end deffn
 
-@deffn {Command} shutdown [@option{error}]
+@deffn {Command} {shutdown} [@option{error}]
 Close the OpenOCD server, disconnecting all clients (GDB, telnet,
 other). If option @option{error} is used, OpenOCD will return a
 non-zero exit code to the parent process.
@@ -8069,7 +8069,7 @@ or its replacement will be automatically executed before OpenOCD exits.
 @end deffn
 
 @anchor{debuglevel}
-@deffn {Command} debug_level [n]
+@deffn {Command} {debug_level} [n]
 @cindex message level
 Display debug level.
 If @var{n} (from 0..4) is provided, then set it to that level.
@@ -8085,7 +8085,7 @@ file (which is normally the server's standard output).
 @xref{Running}.
 @end deffn
 
-@deffn {Command} echo [-n] message
+@deffn {Command} {echo} [-n] message
 Logs a message at "user" priority.
 Output @var{message} to stdout.
 Option "-n" suppresses trailing newline.
@@ -8094,16 +8094,16 @@ echo "Downloading kernel -- please wait"
 @end example
 @end deffn
 
-@deffn {Command} log_output [filename | "default"]
+@deffn {Command} {log_output} [filename | "default"]
 Redirect logging to @var{filename} or set it back to default output;
 the default log output channel is stderr.
 @end deffn
 
-@deffn {Command} add_script_search_dir [directory]
+@deffn {Command} {add_script_search_dir} [directory]
 Add @var{directory} to the file/script search path.
 @end deffn
 
-@deffn {Command} bindto [@var{name}]
+@deffn {Command} {bindto} [@var{name}]
 Specify hostname or IPv4 address on which to listen for incoming
 TCP/IP connections. By default, OpenOCD will listen on the loopback
 interface only. If your network environment is safe, @code{bindto
@@ -8124,7 +8124,7 @@ various operations. The current target may be changed
 by using @command{targets} command with the name of the
 target which should become current.
 
-@deffn {Command} reg [(number|name) [(value|'force')]]
+@deffn {Command} {reg} [(number|name) [(value|'force')]]
 Access a single register by @var{number} or by its @var{name}.
 The target must generally be halted before access to CPU core
 registers is allowed. Depending on the hardware, some other
@@ -8163,8 +8163,8 @@ Debug and trace infrastructure:
 @end example
 @end deffn
 
-@deffn {Command} halt [ms]
-@deffnx {Command} wait_halt [ms]
+@deffn {Command} {halt} [ms]
+@deffnx {Command} {wait_halt} [ms]
 The @command{halt} command first sends a halt request to the target,
 which @command{wait_halt} doesn't.
 Otherwise these behave the same: wait up to @var{ms} milliseconds,
@@ -8198,19 +8198,19 @@ power consumption (because the CPU is needlessly clocked).
 
 @end deffn
 
-@deffn {Command} resume [address]
+@deffn {Command} {resume} [address]
 Resume the target at its current code position,
 or the optional @var{address} if it is provided.
 OpenOCD will wait 5 seconds for the target to resume.
 @end deffn
 
-@deffn {Command} step [address]
+@deffn {Command} {step} [address]
 Single-step the target at its current code position,
 or the optional @var{address} if it is provided.
 @end deffn
 
 @anchor{resetcommand}
-@deffn {Command} reset
+@deffn {Command} {reset}
 @deffnx {Command} {reset run}
 @deffnx {Command} {reset halt}
 @deffnx {Command} {reset init}
@@ -8231,7 +8231,7 @@ The other options will not work on all systems.
 @end itemize
 @end deffn
 
-@deffn {Command} soft_reset_halt
+@deffn {Command} {soft_reset_halt}
 Requesting target halt and executing a soft reset. This is often used
 when a target cannot be reset and halted. The target, after reset is
 released begins to execute code. OpenOCD attempts to stop the CPU and
@@ -8287,10 +8287,10 @@ Please use their TARGET object siblings to avoid making assumptions
 about what TAP is the current target, or about MMU configuration.
 @end enumerate
 
-@deffn {Command} mdd [phys] addr [count]
-@deffnx {Command} mdw [phys] addr [count]
-@deffnx {Command} mdh [phys] addr [count]
-@deffnx {Command} mdb [phys] addr [count]
+@deffn {Command} {mdd} [phys] addr [count]
+@deffnx {Command} {mdw} [phys] addr [count]
+@deffnx {Command} {mdh} [phys] addr [count]
+@deffnx {Command} {mdb} [phys] addr [count]
 Display contents of address @var{addr}, as
 64-bit doublewords (@command{mdd}),
 32-bit words (@command{mdw}), 16-bit halfwords (@command{mdh}),
@@ -8304,10 +8304,10 @@ If @var{count} is specified, displays that many units.
 see the @code{mem2array} primitives.)
 @end deffn
 
-@deffn {Command} mwd [phys] addr doubleword [count]
-@deffnx {Command} mww [phys] addr word [count]
-@deffnx {Command} mwh [phys] addr halfword [count]
-@deffnx {Command} mwb [phys] addr byte [count]
+@deffn {Command} {mwd} [phys] addr doubleword [count]
+@deffnx {Command} {mww} [phys] addr word [count]
+@deffnx {Command} {mwh} [phys] addr halfword [count]
+@deffnx {Command} {mwb} [phys] addr byte [count]
 Writes the specified @var{doubleword} (64 bits), @var{word} (32 bits),
 @var{halfword} (16 bits), or @var{byte} (8-bit) value,
 at the specified address @var{addr}.
@@ -11156,7 +11156,7 @@ type target_state state [state-name]
 type target_reset mode [reset-mode]
 @end verbatim
 
-@deffn {Command} tcl_notifications [on/off]
+@deffn {Command} {tcl_notifications} [on/off]
 Toggle output of target notifications to the current Tcl RPC server.
 Only available from the Tcl RPC server.
 Defaults to off.
@@ -11175,7 +11175,7 @@ Target trace data is emitted as a Tcl associative array in the following format.
 type target_trace data [trace-data-hex-encoded]
 @end verbatim
 
-@deffn {Command} tcl_trace [on/off]
+@deffn {Command} {tcl_trace} [on/off]
 Toggle output of target trace data to the current Tcl RPC server.
 Only available from the Tcl RPC server.
 Defaults to off.
