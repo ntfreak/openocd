@@ -2265,7 +2265,7 @@ to the various active targets.
 There is a command to manage and monitor that polling,
 which is normally done in the background.
 
-@deffn Command poll [@option{on}|@option{off}]
+@deffn {Command} poll [@option{on}|@option{off}]
 Poll the current target for its current state.
 (Also, @pxref{targetcurstate,,target curstate}.)
 If that target is in debug mode, architecture
@@ -2339,11 +2339,11 @@ Use the adapter driver @var{name} to connect to the
 target.
 @end deffn
 
-@deffn Command {adapter list}
+@deffn {Command} {adapter list}
 List the debug adapter drivers that have been built into
 the running copy of OpenOCD.
 @end deffn
-@deffn Command {adapter transports} transport_name+
+@deffn {Command} {adapter transports} transport_name+
 Specifies the transports supported by this debug adapter.
 The adapter driver builds-in similar knowledge; use this only
 when external configuration (such as jumpering) changes what
@@ -2352,12 +2352,12 @@ the hardware can support.
 
 
 
-@deffn Command {adapter name}
+@deffn {Command} {adapter name}
 Returns the name of the debug adapter driver being used.
 @end deffn
 
 @anchor{adapter_usb_location}
-@deffn Command {adapter usb location} [<bus>-<port>[.<port>]...]
+@deffn {Command} {adapter usb location} [<bus>-<port>[.<port>]...]
 Displays or specifies the physical USB port of the adapter to use. The path
 roots at @var{bus} and walks down the physical ports, with each
 @var{port} option specifying a deeper level in the bus topology, the last
@@ -2393,7 +2393,7 @@ Optionally sets that option first.
 Olimex ARM-JTAG-EW USB adapter
 This has one driver-specific command:
 
-@deffn Command {armjtagew_info}
+@deffn {Command} {armjtagew_info}
 Logs some status
 @end deffn
 @end deffn
@@ -2992,7 +2992,7 @@ When using PPDEV to access the parallel port, use the number of the parallel por
 you may encounter a problem.
 @end deffn
 
-@deffn Command {parport_toggling_time} [nanoseconds]
+@deffn {Command} {parport_toggling_time} [nanoseconds]
 Displays how many nanoseconds the hardware needs to toggle TCK;
 the parport driver uses this value to obey the
 @command{adapter speed} configuration.
@@ -3283,12 +3283,12 @@ As noted earlier, depending on the version of OpenOCD you use,
 and the debug adapter you are using,
 several transports may be available to
 communicate with debug targets (or perhaps to program flash memory).
-@deffn Command {transport list}
+@deffn {Command} {transport list}
 displays the names of the transports supported by this
 version of OpenOCD.
 @end deffn
 
-@deffn Command {transport select} @option{transport_name}
+@deffn {Command} {transport select} @option{transport_name}
 Select which of the supported transports to use in this OpenOCD session.
 
 When invoked with @option{transport_name}, attempts to select the named
@@ -3335,12 +3335,12 @@ driver} (in which case the command is @command{transport select hla_swd})
 or @ref{st_link_dap_interface,the st-link interface driver} (in which case
 the command is @command{transport select dapdirect_swd}).
 
-@deffn Command {swd newdap} ...
+@deffn {Command} {swd newdap} ...
 Declares a single DAP which uses SWD transport.
 Parameters are currently the same as "jtag newtap" but this is
 expected to change.
 @end deffn
-@deffn Command {swd wcr trn prescale}
+@deffn {Command} {swd wcr trn prescale}
 Updates TRN (turnaround delay) and prescaling.fields of the
 Wire Control Register (WCR).
 No parameters: displays current settings.
@@ -3415,7 +3415,7 @@ may not be the fastest solution.
 instead of @command{adapter speed}, but only for (ARM) cores and boards
 which support adaptive clocking.
 
-@deffn Command {adapter speed} max_speed_kHz
+@deffn {Command} {adapter speed} max_speed_kHz
 A non-zero speed is in KHZ. Hence: 3000 is 3mhz.
 JTAG interfaces usually support a limited number of
 speeds. The speed actually used won't be faster
@@ -3585,13 +3585,13 @@ needing to cope with both architecture and board specific constraints.
 
 @section Commands for Handling Resets
 
-@deffn Command {adapter srst pulse_width} milliseconds
+@deffn {Command} {adapter srst pulse_width} milliseconds
 Minimum amount of time (in milliseconds) OpenOCD should wait
 after asserting nSRST (active-low system reset) before
 allowing it to be deasserted.
 @end deffn
 
-@deffn Command {adapter srst delay} milliseconds
+@deffn {Command} {adapter srst delay} milliseconds
 How long (in milliseconds) OpenOCD should wait after deasserting
 nSRST (active-low system reset) before starting new JTAG operations.
 When a board has a reset button connected to SRST line it will
@@ -3768,7 +3768,7 @@ This is done by calling @command{jtag arp_init}
 (or @command{jtag arp_init-reset}).
 @end deffn
 
-@deffn Command {jtag arp_init}
+@deffn {Command} {jtag arp_init}
 This validates the scan chain using just the four
 standard JTAG signals (TMS, TCK, TDI, TDO).
 It starts by issuing a JTAG-only reset.
@@ -3781,7 +3781,7 @@ If these tests all pass, TAP @code{setup} events are
 issued to all TAPs with handlers for that event.
 @end deffn
 
-@deffn Command {jtag arp_init-reset}
+@deffn {Command} {jtag arp_init-reset}
 This uses TRST and SRST to try resetting
 everything on the JTAG scan chain
 (and anything else connected to SRST).
@@ -3889,7 +3889,7 @@ Actual config files typically use a variable such as @code{$_CHIPNAME}
 instead of literals like @option{str912}, to support more than one chip
 of each type.  @xref{Config File Guidelines}.
 
-@deffn Command {jtag names}
+@deffn {Command} {jtag names}
 Returns the names of all current TAPs in the scan chain.
 Use @command{jtag cget} or @command{jtag tapisenabled}
 to examine attributes and state of each TAP.
@@ -3900,7 +3900,7 @@ foreach t [jtag names] @{
 @end example
 @end deffn
 
-@deffn Command {scan_chain}
+@deffn {Command} {scan_chain}
 Displays the TAPs in the scan chain configuration,
 and their status.
 The set of TAPs listed by this command is fixed by
@@ -3934,7 +3934,7 @@ and underscores are OK; while others (including dots!) are not.
 @section TAP Declaration Commands
 
 @c shouldn't this be(come) a {Config Command}?
-@deffn Command {jtag newtap} chipname tapname configparams...
+@deffn {Command} {jtag newtap} chipname tapname configparams...
 Declares a new TAP with the dotted name @var{chipname}.@var{tapname},
 and configured according to the various @var{configparams}.
 
@@ -4026,12 +4026,12 @@ devices do not set the ack bit until sometime later.
 
 @section Other TAP commands
 
-@deffn Command {jtag cget} dotted.name @option{-idcode}
+@deffn {Command} {jtag cget} dotted.name @option{-idcode}
 Get the value of the IDCODE found in hardware.
 @end deffn
 
-@deffn Command {jtag cget} dotted.name @option{-event} event_name
-@deffnx Command {jtag configure} dotted.name @option{-event} event_name handler
+@deffn {Command} {jtag cget} dotted.name @option{-event} event_name
+@deffnx {Command} {jtag configure} dotted.name @option{-event} event_name handler
 At this writing this TAP attribute
 mechanism is limited and used mostly for event handling.
 (It is not a direct analogue of the @code{cget}/@code{configure}
@@ -4152,7 +4152,7 @@ uses quotes to evaluate @code{$CHIP} when the event is configured.
 Using brackets @{ @} would cause it to be evaluated later,
 at runtime, when it might have a different value.
 
-@deffn Command {jtag tapdisable} dotted.name
+@deffn {Command} {jtag tapdisable} dotted.name
 If necessary, disables the tap
 by sending it a @option{tap-disable} event.
 Returns the string "1" if the tap
@@ -4160,7 +4160,7 @@ specified by @var{dotted.name} is enabled,
 and "0" if it is disabled.
 @end deffn
 
-@deffn Command {jtag tapenable} dotted.name
+@deffn {Command} {jtag tapenable} dotted.name
 If necessary, enables the tap
 by sending it a @option{tap-enable} event.
 Returns the string "1" if the tap
@@ -4168,7 +4168,7 @@ specified by @var{dotted.name} is enabled,
 and "0" if it is disabled.
 @end deffn
 
-@deffn Command {jtag tapisenabled} dotted.name
+@deffn {Command} {jtag tapisenabled} dotted.name
 Returns the string "1" if the tap
 specified by @var{dotted.name} is enabled,
 and "0" if it is disabled.
@@ -4260,7 +4260,7 @@ instead of "@option{-chain-position} @var{dotted.name}" when the target is creat
 
 The @command{dap} command group supports the following sub-commands:
 
-@deffn Command {dap create} dap_name @option{-chain-position} dotted.name configparams...
+@deffn {Command} {dap create} dap_name @option{-chain-position} dotted.name configparams...
 Declare a DAP instance named @var{dap_name} linked to the JTAG tap
 @var{dotted.name}. This also creates a new command (@command{dap_name})
 which is used for various purposes including additional configuration.
@@ -4277,17 +4277,17 @@ devices do not set the ack bit until sometime later.
 @end itemize
 @end deffn
 
-@deffn Command {dap names}
+@deffn {Command} {dap names}
 This command returns a list of all registered DAP objects. It it useful mainly
 for TCL scripting.
 @end deffn
 
-@deffn Command {dap info} [num]
+@deffn {Command} {dap info} [num]
 Displays the ROM table for MEM-AP @var{num},
 defaulting to the currently selected AP of the currently selected target.
 @end deffn
 
-@deffn Command {dap init}
+@deffn {Command} {dap init}
 Initialize all registered DAPs. This command is used internally
 during initialization. It can be issued at any time after the
 initialization, too.
@@ -4295,27 +4295,27 @@ initialization, too.
 
 The following commands exist as subcommands of DAP instances:
 
-@deffn Command {$dap_name info} [num]
+@deffn {Command} {$dap_name info} [num]
 Displays the ROM table for MEM-AP @var{num},
 defaulting to the currently selected AP.
 @end deffn
 
-@deffn Command {$dap_name apid} [num]
+@deffn {Command} {$dap_name apid} [num]
 Displays ID register from AP @var{num}, defaulting to the currently selected AP.
 @end deffn
 
 @anchor{DAP subcommand apreg}
-@deffn Command {$dap_name apreg} ap_num reg [value]
+@deffn {Command} {$dap_name apreg} ap_num reg [value]
 Displays content of a register @var{reg} from AP @var{ap_num}
 or set a new value @var{value}.
 @var{reg} is byte address of a word register, 0, 4, 8 ... 0xfc.
 @end deffn
 
-@deffn Command {$dap_name apsel} [num]
+@deffn {Command} {$dap_name apsel} [num]
 Select AP @var{num}, defaulting to 0.
 @end deffn
 
-@deffn Command {$dap_name dpreg} reg [value]
+@deffn {Command} {$dap_name dpreg} reg [value]
 Displays the content of DP register at address @var{reg}, or set it to a new
 value @var{value}.
 
@@ -4327,18 +4327,18 @@ In case of JTAG it only assumes values 0, 4, 8 and 0xc.
 background activity by OpenOCD while you are operating at such low-level.
 @end deffn
 
-@deffn Command {$dap_name baseaddr} [num]
+@deffn {Command} {$dap_name baseaddr} [num]
 Displays debug base address from MEM-AP @var{num},
 defaulting to the currently selected AP.
 @end deffn
 
-@deffn Command {$dap_name memaccess} [value]
+@deffn {Command} {$dap_name memaccess} [value]
 Displays the number of extra tck cycles in the JTAG idle to use for MEM-AP
 memory bus access [0-255], giving additional time to respond to reads.
 If @var{value} is defined, first assigns that.
 @end deffn
 
-@deffn Command {$dap_name apcsw} [value [mask]]
+@deffn {Command} {$dap_name apcsw} [value [mask]]
 Displays or changes CSW bit pattern for MEM-AP transfers.
 
 At the begin of each memory access the CSW pattern is extended (bitwise or-ed)
@@ -4381,7 +4381,7 @@ xxx.dap apcsw default
 @end example
 @end deffn
 
-@deffn Command {$dap_name ti_be_32_quirks} [@option{enable}]
+@deffn {Command} {$dap_name ti_be_32_quirks} [@option{enable}]
 Set/get quirks mode for TI TMS450/TMS570 processors
 Disabled by default
 @end deffn
@@ -4430,11 +4430,11 @@ are examples; and there are many more.
 
 Several commands let you examine the list of targets:
 
-@deffn Command {target current}
+@deffn {Command} {target current}
 Returns the name of the current target.
 @end deffn
 
-@deffn Command {target names}
+@deffn {Command} {target names}
 Lists the names of all current targets in the list.
 @example
 foreach t [target names] @{
@@ -4446,7 +4446,7 @@ foreach t [target names] @{
 @c yep, "target list" would have been better.
 @c plus maybe "target setdefault".
 
-@deffn Command targets [name]
+@deffn {Command} targets [name]
 @emph{Note: the name of this command is plural. Other target
 command names are singular.}
 
@@ -4477,7 +4477,7 @@ It's easy to see what target types are supported,
 since there's a command to list them.
 
 @anchor{targettypes}
-@deffn Command {target types}
+@deffn {Command} {target types}
 Lists all supported target types.
 At this writing, the supported CPU types are:
 
@@ -4606,7 +4606,7 @@ That may be needed to let you write the boot loader into flash,
 in order to ``de-brick'' your board; or to load programs into
 external DDR memory without having run the boot loader.
 
-@deffn Command {target create} target_name type configparams...
+@deffn {Command} {target create} target_name type configparams...
 This command creates a GDB debug target that refers to a specific JTAG tap.
 It enters that target into a list, and creates a new
 command (@command{@var{target_name}}) which is used for various
@@ -4631,7 +4631,7 @@ You @emph{must} set the @code{-chain-position @var{dotted.name}} or
 @end itemize
 @end deffn
 
-@deffn Command {$target_name configure} configparams...
+@deffn {Command} {$target_name configure} configparams...
 The options accepted by this command may also be
 specified as parameters to @command{target create}.
 Their values can later be queried one at a time by
@@ -4754,18 +4754,18 @@ omap3530.cpu  mww 0x5555 123
 
 The commands supported by OpenOCD target objects are:
 
-@deffn Command {$target_name arp_examine} @option{allow-defer}
-@deffnx Command {$target_name arp_halt}
-@deffnx Command {$target_name arp_poll}
-@deffnx Command {$target_name arp_reset}
-@deffnx Command {$target_name arp_waitstate}
+@deffn {Command} {$target_name arp_examine} @option{allow-defer}
+@deffnx {Command} {$target_name arp_halt}
+@deffnx {Command} {$target_name arp_poll}
+@deffnx {Command} {$target_name arp_reset}
+@deffnx {Command} {$target_name arp_waitstate}
 Internal OpenOCD scripts (most notably @file{startup.tcl})
 use these to deal with specific reset cases.
 They are not otherwise documented here.
 @end deffn
 
-@deffn Command {$target_name array2mem} arrayname width address count
-@deffnx Command {$target_name mem2array} arrayname width address count
+@deffn {Command} {$target_name array2mem} arrayname width address count
+@deffnx {Command} {$target_name mem2array} arrayname width address count
 These provide an efficient script-oriented interface to memory.
 The @code{array2mem} primitive writes bytes, halfwords, or words;
 while @code{mem2array} reads them.
@@ -4787,7 +4787,7 @@ and neither store nor return those values.
 @end itemize
 @end deffn
 
-@deffn Command {$target_name cget} queryparm
+@deffn {Command} {$target_name cget} queryparm
 Each configuration parameter accepted by
 @command{$target_name configure}
 can be individually queried, to return its current value.
@@ -4820,7 +4820,7 @@ foreach name [target names] @{
 @end deffn
 
 @anchor{targetcurstate}
-@deffn Command {$target_name curstate}
+@deffn {Command} {$target_name curstate}
 Displays the current target state:
 @code{debug-running},
 @code{halted},
@@ -4829,22 +4829,22 @@ Displays the current target state:
 (Also, @pxref{eventpolling,,Event Polling}.)
 @end deffn
 
-@deffn Command {$target_name eventlist}
+@deffn {Command} {$target_name eventlist}
 Displays a table listing all event handlers
 currently associated with this target.
 @xref{targetevents,,Target Events}.
 @end deffn
 
-@deffn Command {$target_name invoke-event} event_name
+@deffn {Command} {$target_name invoke-event} event_name
 Invokes the handler for the event named @var{event_name}.
 (This is primarily intended for use by OpenOCD framework
 code, for example by the reset code in @file{startup.tcl}.)
 @end deffn
 
-@deffn Command {$target_name mdd} [phys] addr [count]
-@deffnx Command {$target_name mdw} [phys] addr [count]
-@deffnx Command {$target_name mdh} [phys] addr [count]
-@deffnx Command {$target_name mdb} [phys] addr [count]
+@deffn {Command} {$target_name mdd} [phys] addr [count]
+@deffnx {Command} {$target_name mdw} [phys] addr [count]
+@deffnx {Command} {$target_name mdh} [phys] addr [count]
+@deffnx {Command} {$target_name mdb} [phys] addr [count]
 Display contents of address @var{addr}, as
 64-bit doublewords (@command{mdd}),
 32-bit words (@command{mdw}), 16-bit halfwords (@command{mdh}),
@@ -4858,10 +4858,10 @@ If @var{count} is specified, displays that many units.
 see the @code{mem2array} primitives.)
 @end deffn
 
-@deffn Command {$target_name mwd} [phys] addr doubleword [count]
-@deffnx Command {$target_name mww} [phys] addr word [count]
-@deffnx Command {$target_name mwh} [phys] addr halfword [count]
-@deffnx Command {$target_name mwb} [phys] addr byte [count]
+@deffn {Command} {$target_name mwd} [phys] addr doubleword [count]
+@deffnx {Command} {$target_name mww} [phys] addr word [count]
+@deffnx {Command} {$target_name mwh} [phys] addr halfword [count]
+@deffnx {Command} {$target_name mwb} [phys] addr byte [count]
 Writes the specified @var{doubleword} (64 bits), @var{word} (32 bits),
 @var{halfword} (16 bits), or @var{byte} (8-bit) value,
 at the specified address @var{addr}.
@@ -5099,20 +5099,20 @@ Use it in board specific configuration files, not interactively.
 @end deffn
 
 @comment less confusing would be: "flash list" (like "nand list")
-@deffn Command {flash banks}
+@deffn {Command} {flash banks}
 Prints a one-line summary of each device that was
 declared using @command{flash bank}, numbered from zero.
 Note that this is the @emph{plural} form;
 the @emph{singular} form is a very different command.
 @end deffn
 
-@deffn Command {flash list}
+@deffn {Command} {flash list}
 Retrieves a list of associative arrays for each device that was
 declared using @command{flash bank}, numbered from zero.
 This returned list can be manipulated easily from within scripts.
 @end deffn
 
-@deffn Command {flash probe} num
+@deffn {Command} {flash probe} num
 Identify the flash, or validate the parameters of the configured flash. Operation
 depends on the flash type.
 The @var{num} parameter is a value shown by @command{flash banks}.
@@ -5174,7 +5174,7 @@ Examples include CFI flash such as ``Intel Advanced Bootblock flash'',
 and AT91SAM7 on-chip flash.
 @xref{flashprotect,,flash protect}.
 
-@deffn Command {flash erase_sector} num first last
+@deffn {Command} {flash erase_sector} num first last
 Erase sectors in bank @var{num}, starting at sector @var{first}
 up to and including @var{last}.
 Sector numbering starts at 0.
@@ -5183,7 +5183,7 @@ specifies "to the end of the flash bank".
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {flash erase_address} [@option{pad}] [@option{unlock}] address length
+@deffn {Command} {flash erase_address} [@option{pad}] [@option{unlock}] address length
 Erase sectors starting at @var{address} for @var{length} bytes.
 Unless @option{pad} is specified, @math{address} must begin a
 flash sector, and @math{address + length - 1} must end a sector.
@@ -5197,10 +5197,10 @@ If @option{unlock} is specified, then the flash is unprotected
 before erase starts.
 @end deffn
 
-@deffn Command {flash filld} address double-word length
-@deffnx Command {flash fillw} address word length
-@deffnx Command {flash fillh} address halfword length
-@deffnx Command {flash fillb} address byte length
+@deffn {Command} {flash filld} address double-word length
+@deffnx {Command} {flash fillw} address word length
+@deffnx {Command} {flash fillh} address halfword length
+@deffnx {Command} {flash fillb} address byte length
 Fills flash memory with the specified @var{double-word} (64 bits), @var{word} (32 bits),
 @var{halfword} (16 bits), or @var{byte} (8-bit) pattern,
 starting at @var{address} and continuing
@@ -5214,9 +5214,9 @@ each block, and the specified length must stay within that bank.
 @end deffn
 @comment no current checks for errors if fill blocks touch multiple banks!
 
-@deffn Command {flash mdw} addr [count]
-@deffnx Command {flash mdh} addr [count]
-@deffnx Command {flash mdb} addr [count]
+@deffn {Command} {flash mdw} addr [count]
+@deffnx {Command} {flash mdh} addr [count]
+@deffnx {Command} {flash mdb} addr [count]
 Display contents of address @var{addr}, as
 32-bit words (@command{mdw}), 16-bit halfwords (@command{mdh}),
 or 8-bit bytes (@command{mdb}).
@@ -5227,14 +5227,14 @@ The flash bank to use is inferred from the @var{address} of
 each block, and the specified length must stay within that bank.
 @end deffn
 
-@deffn Command {flash write_bank} num filename [offset]
+@deffn {Command} {flash write_bank} num filename [offset]
 Write the binary @file{filename} to flash bank @var{num},
 starting at @var{offset} bytes from the beginning of the bank. If @var{offset}
 is omitted, start at the beginning of the flash bank.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {flash read_bank} num filename [offset [length]]
+@deffn {Command} {flash read_bank} num filename [offset [length]]
 Read @var{length} bytes from the flash bank @var{num} starting at @var{offset}
 and write the contents to the binary @file{filename}. If @var{offset} is
 omitted, start at the beginning of the flash bank. If @var{length} is omitted,
@@ -5242,14 +5242,14 @@ read the remaining bytes from the flash bank.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {flash verify_bank} num filename [offset]
+@deffn {Command} {flash verify_bank} num filename [offset]
 Compare the contents of the binary file @var{filename} with the contents of the
 flash bank @var{num} starting at @var{offset}. If @var{offset} is omitted,
 start at the beginning of the flash bank. Fail if the contents do not match.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {flash write_image} [erase] [unlock] filename [offset] [type]
+@deffn {Command} {flash write_image} [erase] [unlock] filename [offset] [type]
 Write the image @file{filename} to the current target's flash bank(s).
 Only loadable sections from the image are written.
 A relocation @var{offset} may be specified, in which case it is added
@@ -5286,7 +5286,7 @@ it has been removed by the @option{unlock} flag.
 
 @end deffn
 
-@deffn Command {flash verify_image} filename [offset] [type]
+@deffn {Command} {flash verify_image} filename [offset] [type]
 Verify the image @file{filename} to the current target's flash bank(s).
 Parameters follow the description of 'flash write_image'.
 In contrast to the 'verify_image' command, for banks with specific
@@ -5301,13 +5301,13 @@ check for successful programming.
 @section Other Flash commands
 @cindex flash protection
 
-@deffn Command {flash erase_check} num
+@deffn {Command} {flash erase_check} num
 Check erase state of sectors in flash bank @var{num},
 and display that status.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {flash info} num [sectors]
+@deffn {Command} {flash info} num [sectors]
 Print info about flash bank @var{num}, a list of protection blocks
 and their status. Use @option{sectors} to show a list of sectors instead.
 
@@ -5317,7 +5317,7 @@ and possibly stale information.
 @end deffn
 
 @anchor{flashprotect}
-@deffn Command {flash protect} num first last (@option{on}|@option{off})
+@deffn {Command} {flash protect} num first last (@option{on}|@option{off})
 Enable (@option{on}) or disable (@option{off}) protection of flash blocks
 in flash bank @var{num}, starting at protection block @var{first}
 and continuing up to and including @var{last}.
@@ -5329,14 +5329,14 @@ Some devices may utilize a protection block distinct from flash sector.
 See @command{flash info} for a list of protection blocks.
 @end deffn
 
-@deffn Command {flash padded_value} num value
+@deffn {Command} {flash padded_value} num value
 Sets the default value used for padding any image sections, This should
 normally match the flash bank erased value. If not specified by this
 command or the flash driver then it defaults to 0xff.
 @end deffn
 
 @anchor{program}
-@deffn Command {program} filename [preverify] [verify] [reset] [exit] [offset]
+@deffn {Command} {program} filename [preverify] [verify] [reset] [exit] [offset]
 This is a helper script that simplifies using OpenOCD as a standalone
 programmer. The only required parameter is @option{filename}, the others are optional.
 @xref{Flash Programming}.
@@ -5467,7 +5467,7 @@ only difference is special registers controlling its FPGA specific behavior.
 They must be properly configured for successful FPGA loading using
 additional @var{xcf} driver command:
 
-@deffn Command {xcf ccb} <bank_id>
+@deffn {Command} {xcf ccb} <bank_id>
 command accepts additional parameters:
 @itemize
 @item @var{external|internal} ... selects clock source.
@@ -5486,7 +5486,7 @@ every time you erase/program data sectors because it stores in
 dedicated sector.
 @end deffn
 
-@deffn Command {xcf configure} <bank_id>
+@deffn {Command} {xcf configure} <bank_id>
 Initiates FPGA loading procedure. Useful if your board has no "configure"
 button.
 @example
@@ -5615,12 +5615,12 @@ flash bank $_FLASHNAME stmqspi 0x70000000 0 0 0 \
 @end example
 
 There are three specific commands
-@deffn Command {stmqspi mass_erase} bank_id
+@deffn {Command} {stmqspi mass_erase} bank_id
 Clears sector protections and performs a mass erase. Works only if there is no
 chip specific write protection engaged.
 @end deffn
 
-@deffn Command {stmqspi set} bank_id name total_size page_size read_cmd fread_cmd pprg_cmd mass_erase_cmd sector_size sector_erase_cmd
+@deffn {Command} {stmqspi set} bank_id name total_size page_size read_cmd fread_cmd pprg_cmd mass_erase_cmd sector_size sector_erase_cmd
 Set flash parameters: @var{name} human readable string, @var{total_size} size
 in bytes, @var{page_size} is write page size. @var{read_cmd}, @var{fread_cmd} and @var{pprg_cmd}
 are commands for reading and page programming. @var{fread_cmd} is used in DPI and QPI modes,
@@ -5634,7 +5634,7 @@ In dual mode parameters of both chips are set identically. The parameters refer 
 a single chip, so the whole bank gets twice the specified capacity etc.
 @end deffn
 
-@deffn Command {stmqspi cmd} bank_id resp_num cmd_byte ...
+@deffn {Command} {stmqspi cmd} bank_id resp_num cmd_byte ...
 If @var{resp_num} is zero, sends command @var{cmd_byte} and following data
 bytes. In dual mode command byte is sent to @emph{both} chips but data bytes are
 sent @emph{alternatingly} to chip 1 and 2, first to flash 1, second to flash 2, etc.,
@@ -5781,13 +5781,13 @@ are available to the user.
 
 The @var{ambiqmicro} driver adds some additional commands:
 
-@deffn Command {ambiqmicro mass_erase} <bank>
+@deffn {Command} {ambiqmicro mass_erase} <bank>
 Erase entire bank.
 @end deffn
-@deffn Command {ambiqmicro page_erase} <bank> <first> <last>
+@deffn {Command} {ambiqmicro page_erase} <bank> <first> <last>
 Erase device pages.
 @end deffn
-@deffn Command {ambiqmicro program_otp} <bank> <offset> <count>
+@deffn {Command} {ambiqmicro program_otp} <bank> <offset> <count>
 Program OTP is a one time operation to create write protected flash.
 The user writes sectors to SRAM starting at 0x10000010.
 Program OTP will write these sectors from SRAM to flash, and write protect
@@ -5809,13 +5809,13 @@ The devices have one flash bank:
 flash bank $_FLASHNAME at91samd 0x00000000 0 1 1 $_TARGETNAME
 @end example
 
-@deffn Command {at91samd chip-erase}
+@deffn {Command} {at91samd chip-erase}
 Issues a complete Flash erase via the Device Service Unit (DSU). This can be
 used to erase a chip back to its factory state and does not require the
 processor to be halted.
 @end deffn
 
-@deffn Command {at91samd set-security}
+@deffn {Command} {at91samd set-security}
 Secures the Flash via the Set Security Bit (SSB) command. This prevents access
 to the Flash and can only be undone by using the chip-erase command which
 erases the Flash contents and turns off the security bit. Warning: at this
@@ -5827,7 +5827,7 @@ at91samd set-security enable
 @end example
 @end deffn
 
-@deffn Command {at91samd eeprom}
+@deffn {Command} {at91samd eeprom}
 Shows or sets the EEPROM emulation size configuration, stored in the User Row
 of the Flash. When setting, the EEPROM size must be specified in bytes and it
 must be one of the permitted sizes according to the datasheet. Settings are
@@ -5842,7 +5842,7 @@ at91samd eeprom 1024
 @end example
 @end deffn
 
-@deffn Command {at91samd bootloader}
+@deffn {Command} {at91samd bootloader}
 Shows or sets the bootloader size configuration, stored in the User Row of the
 Flash. This is called the BOOTPROT region. When setting, the bootloader size
 must be specified in bytes and it must be one of the permitted sizes according
@@ -5855,13 +5855,13 @@ at91samd bootloader 16384
 @end example
 @end deffn
 
-@deffn Command {at91samd dsu_reset_deassert}
+@deffn {Command} {at91samd dsu_reset_deassert}
 This command releases internal reset held by DSU
 and prepares reset vector catch in case of reset halt.
 Command is used internally in event reset-deassert-post.
 @end deffn
 
-@deffn Command {at91samd nvmuserrow}
+@deffn {Command} {at91samd nvmuserrow}
 Writes or reads the entire 64 bit wide NVM user row register which is located at
 0x804000. This register includes various fuses lock-bits and factory calibration
 data. Reading the register is done by invoking this command without any
@@ -5921,10 +5921,10 @@ to the @command{flash bank} command:
 
 The AT91SAM3 driver adds some additional commands:
 
-@deffn Command {at91sam3 gpnvm}
-@deffnx Command {at91sam3 gpnvm clear} number
-@deffnx Command {at91sam3 gpnvm set} number
-@deffnx Command {at91sam3 gpnvm show} [@option{all}|number]
+@deffn {Command} {at91sam3 gpnvm}
+@deffnx {Command} {at91sam3 gpnvm clear} number
+@deffnx {Command} {at91sam3 gpnvm set} number
+@deffnx {Command} {at91sam3 gpnvm show} [@option{all}|number]
 With no parameters, @command{show} or @command{show all},
 shows the status of all GPNVM bits.
 With @command{show} @var{number}, displays that bit.
@@ -5933,7 +5933,7 @@ With @command{set} @var{number} or @command{clear} @var{number},
 modifies that GPNVM bit.
 @end deffn
 
-@deffn Command {at91sam3 info}
+@deffn {Command} {at91sam3 info}
 This command attempts to display information about the AT91SAM3
 chip. @emph{First} it read the @code{CHIPID_CIDR} [address 0x400e0740, see
 Section 28.2.1, page 505 of the AT91SAM3U 29/may/2009 datasheet,
@@ -5943,7 +5943,7 @@ believes the chip is configured. By default, the SLOWCLK is assumed to
 be 32768 Hz, see the command @command{at91sam3 slowclk}.
 @end deffn
 
-@deffn Command {at91sam3 slowclk} [value]
+@deffn {Command} {at91sam3 slowclk} [value]
 This command shows/sets the slow clock frequency used in the
 @command{at91sam3 info} command calculations above.
 @end deffn
@@ -5963,7 +5963,7 @@ Atmel include internal flash and use ARM's Cortex-M4 core.
 This driver uses the same command names/syntax as @xref{at91sam3}.
 
 The AT91SAM4L driver adds some additional commands:
-@deffn Command {at91sam4l smap_reset_deassert}
+@deffn {Command} {at91sam4l smap_reset_deassert}
 This command releases internal reset held by SMAP
 and prepares reset vector catch in case of reset halt.
 Command is used internally in event reset-deassert-post.
@@ -5985,7 +5985,7 @@ Bank swapping is not supported yet.
 flash bank $_FLASHNAME atsame5 0x00000000 0 1 1 $_TARGETNAME
 @end example
 
-@deffn Command {atsame5 bootloader}
+@deffn {Command} {atsame5 bootloader}
 Shows or sets the bootloader size configuration, stored in the User Page of the
 Flash. This is called the BOOTPROT region. When setting, the bootloader size
 must be specified in bytes. The nearest bigger protection size is used.
@@ -5998,19 +5998,19 @@ atsame5 bootloader 16384
 @end example
 @end deffn
 
-@deffn Command {atsame5 chip-erase}
+@deffn {Command} {atsame5 chip-erase}
 Issues a complete Flash erase via the Device Service Unit (DSU). This can be
 used to erase a chip back to its factory state and does not require the
 processor to be halted.
 @end deffn
 
-@deffn Command {atsame5 dsu_reset_deassert}
+@deffn {Command} {atsame5 dsu_reset_deassert}
 This command releases internal reset held by DSU
 and prepares reset vector catch in case of reset halt.
 Command is used internally in event reset-deassert-post.
 @end deffn
 
-@deffn Command {atsame5 userpage}
+@deffn {Command} {atsame5 userpage}
 Writes or reads the first 64 bits of NVM User Page which is located at
 0x804000. This field includes various fuses.
 Reading is done by invoking this command without any arguments.
@@ -6076,7 +6076,7 @@ However, there is an ``EraseAll`` command that can erase an entire flash
 plane (of up to 256KB), and it will be used automatically when you issue
 @command{flash erase_sector} or @command{flash erase_address} commands.
 
-@deffn Command {at91sam7 gpnvm} bitnum (@option{set}|@option{clear})
+@deffn {Command} {at91sam7 gpnvm} bitnum (@option{set}|@option{clear})
 Set or clear a ``General Purpose Non-Volatile Memory'' (GPNVM)
 bit for the processor. Each processor has a number of such bits,
 used for controlling features such as brownout detection (so they
@@ -6171,11 +6171,11 @@ flash bank $_FLASHNAME esirisc base_address size_bytes 0 0 \
            $_TARGETNAME cfg_address clock_hz wait_states
 @end example
 
-@deffn Command {esirisc flash mass_erase} bank_id
+@deffn {Command} {esirisc flash mass_erase} bank_id
 Erase all pages in data memory for the bank identified by @option{bank_id}.
 @end deffn
 
-@deffn Command {esirisc flash ref_erase} bank_id
+@deffn {Command} {esirisc flash ref_erase} bank_id
 Erase the reference cell for the bank identified by @option{bank_id}. @emph{This
 is an uncommon operation.}
 @end deffn
@@ -6232,13 +6232,13 @@ The @var{kinetis} driver defines option:
 flash bank $_FLASHNAME kinetis 0 0 0 0 $_TARGETNAME
 @end example
 
-@deffn Command {kinetis create_banks}
+@deffn {Command} {kinetis create_banks}
 Configuration command enables automatic creation of additional flash banks
 based on real flash layout of device. Banks are created during device probe.
 Use 'flash probe 0' to force probe.
 @end deffn
 
-@deffn Command {kinetis fcf_source} [protection|write]
+@deffn {Command} {kinetis fcf_source} [protection|write]
 Select what source is used when writing to a Flash Configuration Field.
 @option{protection} mode builds FCF content from protection bits previously
 set by 'flash protect' command.
@@ -6250,29 +6250,29 @@ with the rest of a flash image.
 @emph{BEWARE: Incorrect flash configuration may permanently lock the device!}
 @end deffn
 
-@deffn Command {kinetis fopt} [num]
+@deffn {Command} {kinetis fopt} [num]
 Set value to write to FOPT byte of Flash Configuration Field.
 Used in kinetis 'fcf_source protection' mode only.
 @end deffn
 
-@deffn Command {kinetis mdm check_security}
+@deffn {Command} {kinetis mdm check_security}
 Checks status of device security lock. Used internally in examine-end
 and examine-fail event.
 @end deffn
 
-@deffn Command {kinetis mdm halt}
+@deffn {Command} {kinetis mdm halt}
 Issues a halt via the MDM-AP. This command can be used to break a watchdog reset
 loop when connecting to an unsecured target.
 @end deffn
 
-@deffn Command {kinetis mdm mass_erase}
+@deffn {Command} {kinetis mdm mass_erase}
 Issues a complete flash erase via the MDM-AP. This can be used to erase a chip
 back to its factory state, removing security. It does not require the processor
 to be halted, however the target will remain in a halted state after this
 command completes.
 @end deffn
 
-@deffn Command {kinetis nvm_partition}
+@deffn {Command} {kinetis nvm_partition}
 For FlexNVM devices only (KxxDX and KxxFX).
 Command shows or sets data flash or EEPROM backup size in kilobytes,
 sets two EEPROM blocks sizes in bytes and enables/disables loading
@@ -6302,12 +6302,12 @@ kinetis nvm_partition eebkp 16 1024 1024 off
 @end example
 @end deffn
 
-@deffn Command {kinetis mdm reset}
+@deffn {Command} {kinetis mdm reset}
 Issues a reset via the MDM-AP. This causes the MCU to output a low pulse on the
 RESET pin, which can be used to reset other hardware on board.
 @end deffn
 
-@deffn Command {kinetis disable_wdog}
+@deffn {Command} {kinetis disable_wdog}
 For Kx devices only (KLx has different COP watchdog, it is not supported).
 Command disables watchdog timer.
 @end deffn
@@ -6325,18 +6325,18 @@ Use kinetis (not kinetis_ke) driver for KE1x devices.
 flash bank $_FLASHNAME kinetis_ke 0 0 0 0 $_TARGETNAME
 @end example
 
-@deffn Command {kinetis_ke mdm check_security}
+@deffn {Command} {kinetis_ke mdm check_security}
 Checks status of device security lock. Used internally in examine-end event.
 @end deffn
 
-@deffn Command {kinetis_ke mdm mass_erase}
+@deffn {Command} {kinetis_ke mdm mass_erase}
 Issues a complete Flash erase via the MDM-AP.
 This can be used to erase a chip back to its factory state.
 Command removes security lock from a device (use of SRST highly recommended).
 It does not require the processor to be halted.
 @end deffn
 
-@deffn Command {kinetis_ke disable_wdog}
+@deffn {Command} {kinetis_ke disable_wdog}
 Command disables watchdog timer.
 @end deffn
 @end deffn
@@ -6446,7 +6446,7 @@ Some @code{lpc2900}-specific commands are defined. In the following command list
 the @var{bank} parameter is the bank number as obtained by the
 @code{flash banks} command.
 
-@deffn Command {lpc2900 signature} bank
+@deffn {Command} {lpc2900 signature} bank
 Calculates a 128-bit hash value, the @emph{signature}, from the whole flash
 content. This is a hardware feature of the flash block, hence the calculation is
 very fast. You may use this to verify the content of a programmed device against
@@ -6458,7 +6458,7 @@ lpc2900 signature 0
 @end example
 @end deffn
 
-@deffn Command {lpc2900 read_custom} bank filename
+@deffn {Command} {lpc2900 read_custom} bank filename
 Reads the 912 bytes of customer information from the flash index sector, and
 saves it to a file in binary format.
 Example:
@@ -6472,7 +6472,7 @@ erased! In order to guard against unintentional write access, all following
 commands need to be preceded by a successful call to the @code{password}
 command:
 
-@deffn Command {lpc2900 password} bank password
+@deffn {Command} {lpc2900 password} bank password
 You need to use this command right before each of the following commands:
 @code{lpc2900 write_custom}, @code{lpc2900 secure_sector},
 @code{lpc2900 secure_jtag}.
@@ -6485,7 +6485,7 @@ lpc2900 password 0 I_know_what_I_am_doing
 @end example
 @end deffn
 
-@deffn Command {lpc2900 write_custom} bank filename type
+@deffn {Command} {lpc2900 write_custom} bank filename type
 Writes the content of the file into the customer info space of the flash index
 sector. The filetype can be specified with the @var{type} field. Possible values
 for @var{type} are: @var{bin} (binary), @var{ihex} (Intel hex format),
@@ -6501,7 +6501,7 @@ lpc2900 write_custom 0 /path_to/customer_info.bin bin
 @end example
 @end deffn
 
-@deffn Command {lpc2900 secure_sector} bank first last
+@deffn {Command} {lpc2900 secure_sector} bank first last
 Secures the sector range from @var{first} to @var{last} (including) against
 further program and erase operations. The sector security will be effective
 after the next power cycle.
@@ -6520,7 +6520,7 @@ flash info 0
 @end example
 @end deffn
 
-@deffn Command {lpc2900 secure_jtag} bank
+@deffn {Command} {lpc2900 secure_jtag} bank
 Irreversibly disable the JTAG port. The new JTAG security setting will be
 effective after the next power cycle.
 @quotation Attention
@@ -6572,7 +6572,7 @@ MSP432P4 versions starts at address 0x200000.
 flash bank $_FLASHNAME msp432 0 0 0 0 $_TARGETNAME
 @end example
 
-@deffn Command {msp432 mass_erase} bank_id [main|all]
+@deffn {Command} {msp432 mass_erase} bank_id [main|all]
 Performs a complete erase of flash. By default, @command{mass_erase} will erase
 only the main program flash.
 
@@ -6581,7 +6581,7 @@ main program and information flash regions. To also erase the BSL in information
 flash, the user must first use the @command{bsl} command.
 @end deffn
 
-@deffn Command {msp432 bsl} bank_id [unlock|lock]
+@deffn {Command} {msp432 bsl} bank_id [unlock|lock]
 On MSP432P4 versions, @command{bsl} unlocks and locks the bootstrap loader (BSL)
 region in information flash so that flash commands can erase or write the BSL.
 Leave the BSL locked to prevent accidentally corrupting the bootstrap loader.
@@ -6614,43 +6614,43 @@ flash bank $_FLASHNAME niietcm4 0 0 0 0 $_TARGETNAME
 
 Some niietcm4-specific commands are defined:
 
-@deffn Command {niietcm4 uflash_read_byte} bank ('main'|'info') address
+@deffn {Command} {niietcm4 uflash_read_byte} bank ('main'|'info') address
 Read byte from main or info userflash region.
 @end deffn
 
-@deffn Command {niietcm4 uflash_write_byte} bank ('main'|'info') address value
+@deffn {Command} {niietcm4 uflash_write_byte} bank ('main'|'info') address value
 Write byte to main or info userflash region.
 @end deffn
 
-@deffn Command {niietcm4 uflash_full_erase} bank
+@deffn {Command} {niietcm4 uflash_full_erase} bank
 Erase all userflash including info region.
 @end deffn
 
-@deffn Command {niietcm4 uflash_erase} bank ('main'|'info') first_sector last_sector
+@deffn {Command} {niietcm4 uflash_erase} bank ('main'|'info') first_sector last_sector
 Erase sectors of main or info userflash region, starting at sector first up to and including last.
 @end deffn
 
-@deffn Command {niietcm4 uflash_protect_check} bank ('main'|'info')
+@deffn {Command} {niietcm4 uflash_protect_check} bank ('main'|'info')
 Check sectors protect.
 @end deffn
 
-@deffn Command {niietcm4 uflash_protect} bank ('main'|'info') first_sector last_sector ('on'|'off')
+@deffn {Command} {niietcm4 uflash_protect} bank ('main'|'info') first_sector last_sector ('on'|'off')
 Protect sectors of main or info userflash region, starting at sector first up to and including last.
 @end deffn
 
-@deffn Command {niietcm4 bflash_info_remap} bank ('on'|'off')
+@deffn {Command} {niietcm4 bflash_info_remap} bank ('on'|'off')
 Enable remapping bootflash info region to 0x00000000 (or 0x40000000 if external memory boot used).
 @end deffn
 
-@deffn Command {niietcm4 extmem_cfg} bank ('gpioa'|'gpiob'|'gpioc'|'gpiod'|'gpioe'|'gpiof'|'gpiog'|'gpioh') pin_num ('func1'|'func3')
+@deffn {Command} {niietcm4 extmem_cfg} bank ('gpioa'|'gpiob'|'gpioc'|'gpiod'|'gpioe'|'gpiof'|'gpiog'|'gpioh') pin_num ('func1'|'func3')
 Configure external memory interface for boot.
 @end deffn
 
-@deffn Command {niietcm4 service_mode_erase} bank
+@deffn {Command} {niietcm4 service_mode_erase} bank
 Perform emergency erase of all flash (bootflash and userflash).
 @end deffn
 
-@deffn Command {niietcm4 driver_info} bank
+@deffn {Command} {niietcm4 driver_info} bank
 Show information about flash driver.
 @end deffn
 
@@ -6668,14 +6668,14 @@ flash bank $_FLASHNAME nrf5 0 0x00000000 0 0 $_TARGETNAME
 
 Some nrf5-specific commands are defined:
 
-@deffn Command {nrf5 mass_erase}
+@deffn {Command} {nrf5 mass_erase}
 Erases the contents of the code memory and user information
 configuration registers as well. It must be noted that this command
 works only for chips that do not have factory pre-programmed region 0
 code.
 @end deffn
 
-@deffn Command {nrf5 info}
+@deffn {Command} {nrf5 info}
 Decodes and shows information from FICR and UICR registers.
 @end deffn
 
@@ -6709,11 +6709,11 @@ flash bank $_FLASHNAME pix32mx 0x1d000000 0 0 0 $_TARGETNAME
 @comment - lock, unlock ... pointless given protect on/off (yes?)
 @comment - pgm_word ... shouldn't bank be deduced from address??
 Some pic32mx-specific commands are defined:
-@deffn Command {pic32mx pgm_word} address value bank
+@deffn {Command} {pic32mx pgm_word} address value bank
 Programs the specified 32-bit @var{value} at the given @var{address}
 in the specified chip @var{bank}.
 @end deffn
-@deffn Command {pic32mx unlock} bank
+@deffn {Command} {pic32mx unlock} bank
 Unlock and erase specified chip @var{bank}.
 This will remove any Code Protection.
 @end deffn
@@ -6733,7 +6733,7 @@ flash bank $_FLASHNAME psoc4 0 0 0 0 $_TARGETNAME
 @end example
 
 psoc4-specific commands
-@deffn Command {psoc4 flash_autoerase} num (on|off)
+@deffn {Command} {psoc4 flash_autoerase} num (on|off)
 Enables or disables autoerase mode for a flash bank.
 
 If flash_autoerase is off, use mass_erase before flash programming.
@@ -6746,7 +6746,7 @@ This mode is suitable for gdb load.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {psoc4 mass_erase} num
+@deffn {Command} {psoc4 mass_erase} num
 Erases the contents of the flash memory, protection and security lock.
 
 The @var{num} parameter is a value shown by @command{flash banks}.
@@ -6773,7 +6773,7 @@ Writing to the ECC data bytes in ECC-disabled mode is not implemented.
 
 Commands defined in the @var{psoc5lp} driver:
 
-@deffn Command {psoc5lp mass_erase}
+@deffn {Command} {psoc5lp mass_erase}
 Erases all flash data and ECC/configuration bytes, all flash protection rows,
 and all row latches in all flash arrays on the device.
 @end deffn
@@ -6869,7 +6869,7 @@ flash bank super_flash_toc2_cm4 psoc6 0x16007C00 0 0 0 \
 @end example
 
 psoc6-specific commands
-@deffn Command {psoc6 reset_halt}
+@deffn {Command} {psoc6 reset_halt}
 Command can be used to simulate broken Vector Catch from gdbinit or tcl scripts.
 When invoked for CM0+ target, it will set break point at application entry point
 and issue SYSRESETREQ. This will reset both cores and all peripherals. CM0+ will
@@ -6877,7 +6877,7 @@ reset CM4 during boot anyway so this is safe. On CM4 target, VECTRESET is used
 instead of SYSRESETREQ to avoid unwanted reset of CM0+;
 @end deffn
 
-@deffn Command {psoc6 mass_erase} num
+@deffn {Command} {psoc6 mass_erase} num
 Erases the contents given flash bank. The @var{num} parameter is a value shown
 by @command{flash banks}.
 Note: only Main and Work flash regions support Erase operation.
@@ -6897,12 +6897,12 @@ flash bank $_FLASHNAME sim3x 0 $_CPUROMSIZE 0 0 $_TARGETNAME
 
 There are 2 commands defined in the @var{sim3x} driver:
 
-@deffn Command {sim3x mass_erase}
+@deffn {Command} {sim3x mass_erase}
 Erases the complete flash. This is used to unlock the flash.
 And this command is only possible when using the SWD interface.
 @end deffn
 
-@deffn Command {sim3x lock}
+@deffn {Command} {sim3x lock}
 Lock the flash. To unlock use the @command{sim3x mass_erase} command.
 @end deffn
 @end deffn
@@ -6917,7 +6917,7 @@ identification register, and autoconfigures itself.
 flash bank $_FLASHNAME stellaris 0 0 0 0 $_TARGETNAME
 @end example
 
-@deffn Command {stellaris recover}
+@deffn {Command} {stellaris recover}
 Performs the @emph{Recovering a "Locked" Device} procedure to restore
 the flash and its associated nonvolatile registers to their factory
 default values (erased). This is the only way to remove flash
@@ -6959,35 +6959,35 @@ flash bank $_FLASHNAME stm32f1x 0x08080000 0 0 0 $_TARGETNAME
 
 Some stm32f1x-specific commands are defined:
 
-@deffn Command {stm32f1x lock} num
+@deffn {Command} {stm32f1x lock} num
 Locks the entire stm32 device against reading.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32f1x unlock} num
+@deffn {Command} {stm32f1x unlock} num
 Unlocks the entire stm32 device for reading. This command will cause
 a mass erase of the entire stm32 device if previously locked.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32f1x mass_erase} num
+@deffn {Command} {stm32f1x mass_erase} num
 Mass erases the entire stm32 device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32f1x options_read} num
+@deffn {Command} {stm32f1x options_read} num
 Reads and displays active stm32 option bytes loaded during POR
 or upon executing the @command{stm32f1x options_load} command.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32f1x options_write} num (@option{SWWDG}|@option{HWWDG}) (@option{RSTSTNDBY}|@option{NORSTSTNDBY}) (@option{RSTSTOP}|@option{NORSTSTOP}) (@option{USEROPT} user_data)
+@deffn {Command} {stm32f1x options_write} num (@option{SWWDG}|@option{HWWDG}) (@option{RSTSTNDBY}|@option{NORSTSTNDBY}) (@option{RSTSTOP}|@option{NORSTSTOP}) (@option{USEROPT} user_data)
 Writes the stm32 option byte with the specified values.
 The @var{num} parameter is a value shown by @command{flash banks}.
 The @var{user_data} parameter is content of higher 16 bits of the option byte register (Data0 and Data1 as one 16bit number).
 @end deffn
 
-@deffn Command {stm32f1x options_load} num
+@deffn {Command} {stm32f1x options_load} num
 Generates a special kind of reset to re-load the stm32 option bytes written
 by the @command{stm32f1x options_write} or @command{flash protect} commands
 without having to power cycle the target. Not applicable to stm32f1x devices.
@@ -7011,7 +7011,7 @@ as per the following example.
 flash bank $_FLASHNAME stm32f2x 0x1FFF7800 0 0 0 $_TARGETNAME
 @end example
 
-@deffn Command {stm32f2x otp } num (@option{enable}|@option{disable}|@option{show})
+@deffn {Command} {stm32f2x otp } num (@option{enable}|@option{disable}|@option{show})
 Enables or disables OTP write commands for bank @var{num}.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
@@ -7026,27 +7026,27 @@ flash bank $_FLASHNAME stm32f2x 0 0x20000 0 0 $_TARGETNAME
 
 Some stm32f2x-specific commands are defined:
 
-@deffn Command {stm32f2x lock} num
+@deffn {Command} {stm32f2x lock} num
 Locks the entire stm32 device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32f2x unlock} num
+@deffn {Command} {stm32f2x unlock} num
 Unlocks the entire stm32 device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32f2x mass_erase} num
+@deffn {Command} {stm32f2x mass_erase} num
 Mass erases the entire stm32f2x device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32f2x options_read} num
+@deffn {Command} {stm32f2x options_read} num
 Reads and displays user options and (where implemented) boot_addr0, boot_addr1, optcr2.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32f2x options_write} num user_options boot_addr0 boot_addr1
+@deffn {Command} {stm32f2x options_write} num user_options boot_addr0 boot_addr1
 Writes user options and (where implemented) boot_addr0 and boot_addr1 in raw format.
 Warning: The meaning of the various bits depends on the device, always check datasheet!
 The @var{num} parameter is a value shown by @command{flash banks}, @var{user_options} a
@@ -7054,7 +7054,7 @@ The @var{num} parameter is a value shown by @command{flash banks}, @var{user_opt
 @var{boot_addr1} two halfwords (of FLASH_OPTCR1).
 @end deffn
 
-@deffn Command {stm32f2x optcr2_write} num optcr2
+@deffn {Command} {stm32f2x optcr2_write} num optcr2
 Writes FLASH_OPTCR2 options. Warning: Clearing PCROPi bits requires a full mass erase!
 The @var{num} parameter is a value shown by @command{flash banks}, @var{optcr2} a 32-bit word.
 @end deffn
@@ -7080,22 +7080,22 @@ flash bank $_FLASHNAME stm32h7x 0 0x20000 0 0 $_TARGETNAME
 
 Some stm32h7x-specific commands are defined:
 
-@deffn Command {stm32h7x lock} num
+@deffn {Command} {stm32h7x lock} num
 Locks the entire stm32 device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32h7x unlock} num
+@deffn {Command} {stm32h7x unlock} num
 Unlocks the entire stm32 device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32h7x mass_erase} num
+@deffn {Command} {stm32h7x mass_erase} num
 Mass erases the entire stm32h7x device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32h7x option_read} num reg_offset
+@deffn {Command} {stm32h7x option_read} num reg_offset
 Reads an option byte register from the stm32h7x device.
 The @var{num} parameter is a value shown by @command{flash banks}, @var{reg_offset}
 is the register offset of the option byte to read from the used bank registers' base.
@@ -7112,7 +7112,7 @@ stm32h7x option_read 1 0x38
 @end example
 @end deffn
 
-@deffn Command {stm32h7x option_write} num reg_offset value [reg_mask]
+@deffn {Command} {stm32h7x option_write} num reg_offset value [reg_mask]
 Writes an option byte register of the stm32h7x device.
 The @var{num} parameter is a value shown by @command{flash banks}, @var{reg_offset}
 is the register offset of the option byte to write from the used bank register base,
@@ -7150,17 +7150,17 @@ flash bank $_FLASHNAME stm32lx 0x08000000 0x20000 0 0 $_TARGETNAME
 
 Some stm32lx-specific commands are defined:
 
-@deffn Command {stm32lx lock} num
+@deffn {Command} {stm32lx lock} num
 Locks the entire stm32 device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32lx unlock} num
+@deffn {Command} {stm32lx unlock} num
 Unlocks the entire stm32 device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32lx mass_erase} num
+@deffn {Command} {stm32lx mass_erase} num
 Mass erases the entire stm32lx device (all flash banks and EEPROM
 data). This is the only way to unlock a protected flash (unless RDP
 Level is 2 which can't be unlocked at all).
@@ -7185,7 +7185,7 @@ as per the following example.
 flash bank $_FLASHNAME stm32l4x 0x1FFF7000 0 0 0 $_TARGETNAME
 @end example
 
-@deffn Command {stm32l4x otp} num (@option{enable}|@option{disable}|@option{show})
+@deffn {Command} {stm32l4x otp} num (@option{enable}|@option{disable}|@option{show})
 Enables or disables OTP write commands for bank @var{num}.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
@@ -7201,22 +7201,22 @@ flash bank $_FLASHNAME stm32l4x 0x08000000 0x40000 0 0 $_TARGETNAME
 
 Some stm32l4x-specific commands are defined:
 
-@deffn Command {stm32l4x lock} num
+@deffn {Command} {stm32l4x lock} num
 Locks the entire stm32 device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32l4x unlock} num
+@deffn {Command} {stm32l4x unlock} num
 Unlocks the entire stm32 device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32l4x mass_erase} num
+@deffn {Command} {stm32l4x mass_erase} num
 Mass erases the entire stm32l4x device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
-@deffn Command {stm32l4x option_read} num reg_offset
+@deffn {Command} {stm32l4x option_read} num reg_offset
 Reads an option byte register from the stm32l4x device.
 The @var{num} parameter is a value shown by @command{flash banks}, @var{reg_offset}
 is the register offset of the Option byte to read.
@@ -7233,7 +7233,7 @@ The above example will read out the FLASH_OPTR register which contains the RDP
 option byte, Watchdog configuration, BOR level etc.
 @end deffn
 
-@deffn Command {stm32l4x option_write} num reg_offset reg_mask
+@deffn {Command} {stm32l4x option_write} num reg_offset reg_mask
 Write an option byte register of the stm32l4x device.
 The @var{num} parameter is a value shown by @command{flash banks}, @var{reg_offset}
 is the register offset of the Option byte to write, and @var{reg_mask} is the mask
@@ -7249,7 +7249,7 @@ Area A for bank 1. The above example set WRP1AR_END=255, WRP1AR_START=0.
 This will effectively write protect all sectors in flash bank 1.
 @end deffn
 
-@deffn Command {stm32l4x wrp_info} num [device_bank]
+@deffn {Command} {stm32l4x wrp_info} num [device_bank]
 List the protected areas using WRP.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @var{device_bank} parameter is optional, possible values 'bank1' or 'bank2',
@@ -7263,7 +7263,7 @@ write protected areas in a specific @var{device_bank}
 
 @end deffn
 
-@deffn Command {stm32l4x option_load} num
+@deffn {Command} {stm32l4x option_load} num
 Forces a re-load of the option byte registers. Will cause a system reset of the device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
@@ -7280,7 +7280,7 @@ flash bank $_FLASHNAME str7x \
       0x40000000 0x00040000 0 0 $_TARGETNAME STR71x
 @end example
 
-@deffn Command {str7x disable_jtag} bank
+@deffn {Command} {str7x disable_jtag} bank
 Activate the Debug/Readout protection mechanism
 for the specified flash bank.
 @end deffn
@@ -7297,7 +7297,7 @@ flash bank $_FLASHNAME str9x 0x40000000 0x00040000 0 0 $_TARGETNAME
 str9x flash_config 0 4 2 0 0x80000
 @end example
 
-@deffn Command {str9x flash_config} num bbsr nbbsr bbadr nbbadr
+@deffn {Command} {str9x flash_config} num bbsr nbbsr bbadr nbbadr
 Configures the str9 flash controller.
 The @var{num} parameter is a value shown by @command{flash banks}.
 
@@ -7358,49 +7358,49 @@ as mentioned above, just issue the commands above manually or from a telnet prom
 
 Several str9xpec-specific commands are defined:
 
-@deffn Command {str9xpec disable_turbo} num
+@deffn {Command} {str9xpec disable_turbo} num
 Restore the str9 into JTAG chain.
 @end deffn
 
-@deffn Command {str9xpec enable_turbo} num
+@deffn {Command} {str9xpec enable_turbo} num
 Enable turbo mode, will simply remove the str9 from the chain and talk
 directly to the embedded flash controller.
 @end deffn
 
-@deffn Command {str9xpec lock} num
+@deffn {Command} {str9xpec lock} num
 Lock str9 device. The str9 will only respond to an unlock command that will
 erase the device.
 @end deffn
 
-@deffn Command {str9xpec part_id} num
+@deffn {Command} {str9xpec part_id} num
 Prints the part identifier for bank @var{num}.
 @end deffn
 
-@deffn Command {str9xpec options_cmap} num (@option{bank0}|@option{bank1})
+@deffn {Command} {str9xpec options_cmap} num (@option{bank0}|@option{bank1})
 Configure str9 boot bank.
 @end deffn
 
-@deffn Command {str9xpec options_lvdsel} num (@option{vdd}|@option{vdd_vddq})
+@deffn {Command} {str9xpec options_lvdsel} num (@option{vdd}|@option{vdd_vddq})
 Configure str9 lvd source.
 @end deffn
 
-@deffn Command {str9xpec options_lvdthd} num (@option{2.4v}|@option{2.7v})
+@deffn {Command} {str9xpec options_lvdthd} num (@option{2.4v}|@option{2.7v})
 Configure str9 lvd threshold.
 @end deffn
 
-@deffn Command {str9xpec options_lvdwarn} bank (@option{vdd}|@option{vdd_vddq})
+@deffn {Command} {str9xpec options_lvdwarn} bank (@option{vdd}|@option{vdd_vddq})
 Configure str9 lvd reset warning source.
 @end deffn
 
-@deffn Command {str9xpec options_read} num
+@deffn {Command} {str9xpec options_read} num
 Read str9 option bytes.
 @end deffn
 
-@deffn Command {str9xpec options_write} num
+@deffn {Command} {str9xpec options_write} num
 Write str9 option bytes.
 @end deffn
 
-@deffn Command {str9xpec unlock} num
+@deffn {Command} {str9xpec unlock} num
 unlock str9 device.
 @end deffn
 
@@ -7416,7 +7416,7 @@ flash bank $_FLASHNAME swm050 0x0 0x2000 0 0 $_TARGETNAME
 
 One swm050-specific command is defined:
 
-@deffn Command {swm050 mass_erase} bank_id
+@deffn {Command} {swm050 mass_erase} bank_id
 Erases the entire flash bank.
 @end deffn
 
@@ -7430,15 +7430,15 @@ This driver doesn't require the chip and bus width to be specified.
 
 Some tms470-specific commands are defined:
 
-@deffn Command {tms470 flash_keyset} key0 key1 key2 key3
+@deffn {Command} {tms470 flash_keyset} key0 key1 key2 key3
 Saves programming keys in a register, to enable flash erase and write commands.
 @end deffn
 
-@deffn Command {tms470 osc_mhz} clock_mhz
+@deffn {Command} {tms470 osc_mhz} clock_mhz
 Reports the clock speed, which is used to calculate timings.
 @end deffn
 
-@deffn Command {tms470 plldis} (0|1)
+@deffn {Command} {tms470 plldis} (0|1)
 Disables (@var{1}) or enables (@var{0}) use of the PLL to speed up
 the flash clock.
 @end deffn
@@ -7466,11 +7466,11 @@ This driver does not require the chip and bus width to be specified.
 
 Some xmc4xxx-specific commands are defined:
 
-@deffn Command {xmc4xxx flash_password} bank_id passwd1 passwd2
+@deffn {Command} {xmc4xxx flash_password} bank_id passwd1 passwd2
 Saves flash protection passwords which are used to lock the user flash
 @end deffn
 
-@deffn Command {xmc4xxx flash_unprotect} bank_id user_level[0-1]
+@deffn {Command} {xmc4xxx flash_unprotect} bank_id user_level[0-1]
 Removes Flash write protection from the selected user bank
 @end deffn
 
@@ -7575,7 +7575,7 @@ for more information.
 @end itemize
 @end deffn
 
-@deffn Command {nand list}
+@deffn {Command} {nand list}
 Prints a summary of each device declared
 using @command{nand device}, numbered from zero.
 Note that un-probed devices show no details.
@@ -7589,7 +7589,7 @@ Note that un-probed devices show no details.
 @end example
 @end deffn
 
-@deffn Command {nand probe} num
+@deffn {Command} {nand probe} num
 Probes the specified device to determine key characteristics
 like its page and block sizes, and how many blocks it has.
 The @var{num} parameter is the value shown by @command{nand list}.
@@ -7599,7 +7599,7 @@ it with most other NAND commands.
 
 @subsection Erasing, Reading, Writing to NAND Flash
 
-@deffn Command {nand dump} num filename offset length [oob_option]
+@deffn {Command} {nand dump} num filename offset length [oob_option]
 @cindex NAND reading
 Reads binary data from the NAND device and writes it to the file,
 starting at the specified offset.
@@ -7636,7 +7636,7 @@ spare areas associated with each data page.
 @end itemize
 @end deffn
 
-@deffn Command {nand erase} num [offset length]
+@deffn {Command} {nand erase} num [offset length]
 @cindex NAND erasing
 @cindex NAND programming
 Erases blocks on the specified NAND device, starting at the
@@ -7654,7 +7654,7 @@ For the remainder of the current server session, @command{nand info}
 will still report that the block ``is'' bad.
 @end deffn
 
-@deffn Command {nand write} num filename offset [option...]
+@deffn {Command} {nand write} num filename offset [option...]
 @cindex NAND writing
 @cindex NAND programming
 Writes binary data from the file into the specified NAND device,
@@ -7713,7 +7713,7 @@ the underlying driver from applying hardware ECC.
 @end itemize
 @end deffn
 
-@deffn Command {nand verify} num filename offset [option...]
+@deffn {Command} {nand verify} num filename offset [option...]
 @cindex NAND verification
 @cindex NAND programming
 Verify the binary data in the file has been programmed to the
@@ -7742,7 +7742,7 @@ be removed in a future release.
 @subsection Other NAND commands
 @cindex NAND other commands
 
-@deffn Command {nand check_bad_blocks} num [offset length]
+@deffn {Command} {nand check_bad_blocks} num [offset length]
 Checks for manufacturer bad block markers on the specified NAND
 device. If no parameters are provided, checks the whole
 device; otherwise, starts at the specified @var{offset} and
@@ -7756,14 +7756,14 @@ with @command{nand raw_access enable} to ensure that the underlying
 driver will not try to apply hardware ECC.
 @end deffn
 
-@deffn Command {nand info} num
+@deffn {Command} {nand info} num
 The @var{num} parameter is the value shown by @command{nand list}.
 This prints the one-line summary from "nand list", plus for
 devices which have been probed this also prints any known
 status for each block.
 @end deffn
 
-@deffn Command {nand raw_access} num (@option{enable}|@option{disable})
+@deffn {Command} {nand raw_access} num (@option{enable}|@option{disable})
 Sets or clears an flag affecting how page I/O is done.
 The @var{num} parameter is the value shown by @command{nand list}.
 
@@ -7800,23 +7800,23 @@ AT91SAM9 chips support single-bit ECC hardware. The @code{write_page} and
 disabled by using the @command{nand raw_access} command. There are four
 additional commands that are needed to fully configure the AT91SAM9 NAND
 controller. Two are optional; most boards use the same wiring for ALE/CLE:
-@deffn Command {at91sam9 cle} num addr_line
+@deffn {Command} {at91sam9 cle} num addr_line
 Configure the address line used for latching commands. The @var{num}
 parameter is the value shown by @command{nand list}.
 @end deffn
-@deffn Command {at91sam9 ale} num addr_line
+@deffn {Command} {at91sam9 ale} num addr_line
 Configure the address line used for latching addresses. The @var{num}
 parameter is the value shown by @command{nand list}.
 @end deffn
 
 For the next two commands, it is assumed that the pins have already been
 properly configured for input or output.
-@deffn Command {at91sam9 rdy_busy} num pio_base_addr pin
+@deffn {Command} {at91sam9 rdy_busy} num pio_base_addr pin
 Configure the RDY/nBUSY input from the NAND device. The @var{num}
 parameter is the value shown by @command{nand list}. @var{pio_base_addr}
 is the base address of the PIO controller and @var{pin} is the pin number.
 @end deffn
-@deffn Command {at91sam9 ce} num pio_base_addr pin
+@deffn {Command} {at91sam9 ce} num pio_base_addr pin
 Configure the chip enable input to the NAND device. The @var{num}
 parameter is the value shown by @command{nand list}. @var{pio_base_addr}
 is the base address of the PIO controller and @var{pin} is the pin number.
@@ -7844,7 +7844,7 @@ the @command{nand raw_access} command.
 @deffn {NAND Driver} lpc3180
 These controllers require an extra @command{nand device}
 parameter: the clock rate used by the controller.
-@deffn Command {lpc3180 select} num [mlc|slc]
+@deffn {Command} {lpc3180 select} num [mlc|slc]
 Configures use of the MLC or SLC controller mode.
 MLC implies use of hardware ECC.
 The @var{num} parameter is the value shown by @command{nand list}.
@@ -7872,7 +7872,7 @@ main area and spare area (@option{biswap}), defaults to off.
 @example
 nand device mx35.nand mxc imx35.cpu mx35 hwecc biswap
 @end example
-@deffn Command {mxc biswap} bank_num [enable|disable]
+@deffn {Command} {mxc biswap} bank_num [enable|disable]
 Turns on/off bad block information swapping from main area,
 without parameter query status.
 @end deffn
@@ -8041,7 +8041,7 @@ In most cases, no such restriction is listed; this indicates commands
 which are only available after the configuration stage has completed.
 @end deffn
 
-@deffn Command sleep msec [@option{busy}]
+@deffn {Command} sleep msec [@option{busy}]
 Wait for at least @var{msec} milliseconds before resuming.
 If @option{busy} is passed, busy-wait instead of sleeping.
 (This option is strongly discouraged.)
@@ -8049,7 +8049,7 @@ Useful in connection with script files
 (@command{script} command and @command{target_name} configuration).
 @end deffn
 
-@deffn Command shutdown [@option{error}]
+@deffn {Command} shutdown [@option{error}]
 Close the OpenOCD server, disconnecting all clients (GDB, telnet,
 other). If option @option{error} is used, OpenOCD will return a
 non-zero exit code to the parent process.
@@ -8069,7 +8069,7 @@ or its replacement will be automatically executed before OpenOCD exits.
 @end deffn
 
 @anchor{debuglevel}
-@deffn Command debug_level [n]
+@deffn {Command} debug_level [n]
 @cindex message level
 Display debug level.
 If @var{n} (from 0..4) is provided, then set it to that level.
@@ -8085,7 +8085,7 @@ file (which is normally the server's standard output).
 @xref{Running}.
 @end deffn
 
-@deffn Command echo [-n] message
+@deffn {Command} echo [-n] message
 Logs a message at "user" priority.
 Output @var{message} to stdout.
 Option "-n" suppresses trailing newline.
@@ -8094,16 +8094,16 @@ echo "Downloading kernel -- please wait"
 @end example
 @end deffn
 
-@deffn Command log_output [filename | "default"]
+@deffn {Command} log_output [filename | "default"]
 Redirect logging to @var{filename} or set it back to default output;
 the default log output channel is stderr.
 @end deffn
 
-@deffn Command add_script_search_dir [directory]
+@deffn {Command} add_script_search_dir [directory]
 Add @var{directory} to the file/script search path.
 @end deffn
 
-@deffn Command bindto [@var{name}]
+@deffn {Command} bindto [@var{name}]
 Specify hostname or IPv4 address on which to listen for incoming
 TCP/IP connections. By default, OpenOCD will listen on the loopback
 interface only. If your network environment is safe, @code{bindto
@@ -8124,7 +8124,7 @@ various operations. The current target may be changed
 by using @command{targets} command with the name of the
 target which should become current.
 
-@deffn Command reg [(number|name) [(value|'force')]]
+@deffn {Command} reg [(number|name) [(value|'force')]]
 Access a single register by @var{number} or by its @var{name}.
 The target must generally be halted before access to CPU core
 registers is allowed. Depending on the hardware, some other
@@ -8163,8 +8163,8 @@ Debug and trace infrastructure:
 @end example
 @end deffn
 
-@deffn Command halt [ms]
-@deffnx Command wait_halt [ms]
+@deffn {Command} halt [ms]
+@deffnx {Command} wait_halt [ms]
 The @command{halt} command first sends a halt request to the target,
 which @command{wait_halt} doesn't.
 Otherwise these behave the same: wait up to @var{ms} milliseconds,
@@ -8198,22 +8198,22 @@ power consumption (because the CPU is needlessly clocked).
 
 @end deffn
 
-@deffn Command resume [address]
+@deffn {Command} resume [address]
 Resume the target at its current code position,
 or the optional @var{address} if it is provided.
 OpenOCD will wait 5 seconds for the target to resume.
 @end deffn
 
-@deffn Command step [address]
+@deffn {Command} step [address]
 Single-step the target at its current code position,
 or the optional @var{address} if it is provided.
 @end deffn
 
 @anchor{resetcommand}
-@deffn Command reset
-@deffnx Command {reset run}
-@deffnx Command {reset halt}
-@deffnx Command {reset init}
+@deffn {Command} reset
+@deffnx {Command} {reset run}
+@deffnx {Command} {reset halt}
+@deffnx {Command} {reset init}
 Perform as hard a reset as possible, using SRST if possible.
 @emph{All defined targets will be reset, and target
 events will fire during the reset sequence.}
@@ -8231,7 +8231,7 @@ The other options will not work on all systems.
 @end itemize
 @end deffn
 
-@deffn Command soft_reset_halt
+@deffn {Command} soft_reset_halt
 Requesting target halt and executing a soft reset. This is often used
 when a target cannot be reset and halted. The target, after reset is
 released begins to execute code. OpenOCD attempts to stop the CPU and
@@ -8240,8 +8240,8 @@ the code that was executed may have left the hardware in an unknown
 state.
 @end deffn
 
-@deffn Command {adapter assert} [signal [assert|deassert signal]]
-@deffnx Command {adapter deassert} [signal [assert|deassert signal]]
+@deffn {Command} {adapter assert} [signal [assert|deassert signal]]
+@deffnx {Command} {adapter deassert} [signal [assert|deassert signal]]
 Set values of reset signals.
 Without parameters returns current status of the signals.
 The @var{signal} parameter values may be
@@ -8287,10 +8287,10 @@ Please use their TARGET object siblings to avoid making assumptions
 about what TAP is the current target, or about MMU configuration.
 @end enumerate
 
-@deffn Command mdd [phys] addr [count]
-@deffnx Command mdw [phys] addr [count]
-@deffnx Command mdh [phys] addr [count]
-@deffnx Command mdb [phys] addr [count]
+@deffn {Command} mdd [phys] addr [count]
+@deffnx {Command} mdw [phys] addr [count]
+@deffnx {Command} mdh [phys] addr [count]
+@deffnx {Command} mdb [phys] addr [count]
 Display contents of address @var{addr}, as
 64-bit doublewords (@command{mdd}),
 32-bit words (@command{mdw}), 16-bit halfwords (@command{mdh}),
@@ -8304,10 +8304,10 @@ If @var{count} is specified, displays that many units.
 see the @code{mem2array} primitives.)
 @end deffn
 
-@deffn Command mwd [phys] addr doubleword [count]
-@deffnx Command mww [phys] addr word [count]
-@deffnx Command mwh [phys] addr halfword [count]
-@deffnx Command mwb [phys] addr byte [count]
+@deffn {Command} mwd [phys] addr doubleword [count]
+@deffnx {Command} mww [phys] addr word [count]
+@deffnx {Command} mwh [phys] addr halfword [count]
+@deffnx {Command} mwb [phys] addr byte [count]
 Writes the specified @var{doubleword} (64 bits), @var{word} (32 bits),
 @var{halfword} (16 bits), or @var{byte} (8-bit) value,
 at the specified address @var{addr}.
@@ -8323,17 +8323,17 @@ If @var{count} is specified, fills that many units of consecutive address.
 @cindex image loading
 @cindex image dumping
 
-@deffn Command {dump_image} filename address size
+@deffn {Command} {dump_image} filename address size
 Dump @var{size} bytes of target memory starting at @var{address} to the
 binary file named @var{filename}.
 @end deffn
 
-@deffn Command {fast_load}
+@deffn {Command} {fast_load}
 Loads an image stored in memory by @command{fast_load_image} to the
 current target. Must be preceded by fast_load_image.
 @end deffn
 
-@deffn Command {fast_load_image} filename address [@option{bin}|@option{ihex}|@option{elf}|@option{s19}]
+@deffn {Command} {fast_load_image} filename address [@option{bin}|@option{ihex}|@option{elf}|@option{s19}]
 Normally you should be using @command{load_image} or GDB load. However, for
 testing purposes or when I/O overhead is significant(OpenOCD running on an embedded
 host), storing the image in memory and uploading the image to the target
@@ -8344,7 +8344,7 @@ target programming performance as I/O and target programming can easily be profi
 separately.
 @end deffn
 
-@deffn Command {load_image} filename address [[@option{bin}|@option{ihex}|@option{elf}|@option{s19}] @option{min_addr} @option{max_length}]
+@deffn {Command} {load_image} filename address [[@option{bin}|@option{ihex}|@option{elf}|@option{s19}] @option{min_addr} @option{max_length}]
 Load image from file @var{filename} to target memory offset by @var{address} from its load address.
 The file format may optionally be specified
 (@option{bin}, @option{ihex}, @option{elf}, or @option{s19}).
@@ -8361,7 +8361,7 @@ proc load_image_bin @{fname foffset address length @} @{
 @end example
 @end deffn
 
-@deffn Command {test_image} filename [address [@option{bin}|@option{ihex}|@option{elf}]]
+@deffn {Command} {test_image} filename [address [@option{bin}|@option{ihex}|@option{elf}]]
 Displays image section sizes and addresses
 as if @var{filename} were loaded into target memory
 starting at @var{address} (defaults to zero).
@@ -8369,14 +8369,14 @@ The file format may optionally be specified
 (@option{bin}, @option{ihex}, or @option{elf})
 @end deffn
 
-@deffn Command {verify_image} filename address [@option{bin}|@option{ihex}|@option{elf}]
+@deffn {Command} {verify_image} filename address [@option{bin}|@option{ihex}|@option{elf}]
 Verify @var{filename} against target memory starting at @var{address}.
 The file format may optionally be specified
 (@option{bin}, @option{ihex}, or @option{elf})
 This will first attempt a comparison using a CRC checksum, if this fails it will try a binary compare.
 @end deffn
 
-@deffn Command {verify_image_checksum} filename address [@option{bin}|@option{ihex}|@option{elf}]
+@deffn {Command} {verify_image_checksum} filename address [@option{bin}|@option{ihex}|@option{elf}]
 Verify @var{filename} against target memory starting at @var{address}.
 The file format may optionally be specified
 (@option{bin}, @option{ihex}, or @option{elf})
@@ -8393,7 +8393,7 @@ hardware support for a handful of code breakpoints and data
 watchpoints.
 In addition, CPUs almost always support software breakpoints.
 
-@deffn Command {bp} [address len [@option{hw}]]
+@deffn {Command} {bp} [address len [@option{hw}]]
 With no parameters, lists all active breakpoints.
 Else sets a breakpoint on code execution starting
 at @var{address} for @var{length} bytes.
@@ -8404,15 +8404,15 @@ in which case it will be a hardware breakpoint.
 for similar mechanisms that do not consume hardware breakpoints.)
 @end deffn
 
-@deffn Command {rbp} @option{all} | address
+@deffn {Command} {rbp} @option{all} | address
 Remove the breakpoint at @var{address} or all breakpoints.
 @end deffn
 
-@deffn Command {rwp} address
+@deffn {Command} {rwp} address
 Remove data watchpoint on @var{address}
 @end deffn
 
-@deffn Command {wp} [address len [(@option{r}|@option{w}|@option{a}) [value [mask]]]]
+@deffn {Command} {wp} [address len [(@option{r}|@option{w}|@option{a}) [value [mask]]]]
 With no parameters, lists all active watchpoints.
 Else sets a data watchpoint on data from @var{address} for @var{length} bytes.
 The watch point is an "access" watchpoint unless
@@ -8454,43 +8454,43 @@ Channels are exposed via raw TCP/IP connections. One or more RTT servers can be
 assigned to each channel to make them accessible to an unlimited number
 of TCP/IP connections.
 
-@deffn Command {rtt setup} address size ID
+@deffn {Command} {rtt setup} address size ID
 Configure RTT for the currently selected target.
 Once RTT is started, OpenOCD searches for a control block with the
 identifier @var{ID} starting at the memory address @var{address} within the next
 @var{size} bytes.
 @end deffn
 
-@deffn Command {rtt start}
+@deffn {Command} {rtt start}
 Start RTT.
 If the control block location is not known, OpenOCD starts searching for it.
 @end deffn
 
-@deffn Command {rtt stop}
+@deffn {Command} {rtt stop}
 Stop RTT.
 @end deffn
 
-@deffn Command {rtt polling_interval [interval]}
+@deffn {Command} {rtt polling_interval [interval]}
 Display the polling interval.
 If @var{interval} is provided, set the polling interval.
 The polling interval determines (in milliseconds) how often the up-channels are
 checked for new data.
 @end deffn
 
-@deffn Command {rtt channels}
+@deffn {Command} {rtt channels}
 Display a list of all channels and their properties.
 @end deffn
 
-@deffn Command {rtt channellist}
+@deffn {Command} {rtt channellist}
 Return a list of all channels and their properties as Tcl list.
 The list can be manipulated easily from within scripts.
 @end deffn
 
-@deffn Command {rtt server start} port channel
+@deffn {Command} {rtt server start} port channel
 Start a TCP server on @var{port} for the channel @var{channel}.
 @end deffn
 
-@deffn Command {rtt server stop} port
+@deffn {Command} {rtt server stop} port
 Stop the TCP sever with port @var{port}.
 @end deffn
 
@@ -8514,7 +8514,7 @@ TCP/IP port 9090.
 @section Misc Commands
 
 @cindex profiling
-@deffn Command {profile} seconds filename [start end]
+@deffn {Command} {profile} seconds filename [start end]
 Profiling samples the CPU's program counter as quickly as possible,
 which is useful for non-intrusive stochastic profiling.
 Saves up to 10000 samples in @file{filename} using ``gmon.out''
@@ -8522,11 +8522,11 @@ format. Optional @option{start} and @option{end} parameters allow to
 limit the address range.
 @end deffn
 
-@deffn Command {version}
+@deffn {Command} {version}
 Displays a string identifying the version of this OpenOCD server.
 @end deffn
 
-@deffn Command {virt2phys} virtual_address
+@deffn {Command} {virt2phys} virtual_address
 Requests the current target to map the specified @var{virtual_address}
 to its corresponding physical address, and displays the result.
 @end deffn
@@ -8635,21 +8635,21 @@ what CPU activities are traced.
 @end quotation
 @end deffn
 
-@deffn Command {etm info}
+@deffn {Command} {etm info}
 Displays information about the current target's ETM.
 This includes resource counts from the @code{ETM_CONFIG} register,
 as well as silicon capabilities (except on rather old modules).
 from the @code{ETM_SYS_CONFIG} register.
 @end deffn
 
-@deffn Command {etm status}
+@deffn {Command} {etm status}
 Displays status of the current target's ETM and trace port driver:
 is the ETM idle, or is it collecting data?
 Did trace data overflow?
 Was it triggered?
 @end deffn
 
-@deffn Command {etm tracemode} [type context_id_bits cycle_accurate branch_output]
+@deffn {Command} {etm tracemode} [type context_id_bits cycle_accurate branch_output]
 Displays what data that ETM will collect.
 If arguments are provided, first configures that data.
 When the configuration changes, tracing is stopped
@@ -8673,7 +8673,7 @@ trace stream without an image of the code.
 @end itemize
 @end deffn
 
-@deffn Command {etm trigger_debug} (@option{enable}|@option{disable})
+@deffn {Command} {etm trigger_debug} (@option{enable}|@option{disable})
 Displays whether ETM triggering debug entry (like a breakpoint) is
 enabled or disabled, after optionally modifying that configuration.
 The default behaviour is @option{disable}.
@@ -8720,28 +8720,28 @@ model with sequencer triggers which on entry and exit to the IRQ handler.
 At this writing, September 2009, there are no Tcl utility
 procedures to help set up any common tracing scenarios.
 
-@deffn Command {etm analyze}
+@deffn {Command} {etm analyze}
 Reads trace data into memory, if it wasn't already present.
 Decodes and prints the data that was collected.
 @end deffn
 
-@deffn Command {etm dump} filename
+@deffn {Command} {etm dump} filename
 Stores the captured trace data in @file{filename}.
 @end deffn
 
-@deffn Command {etm image} filename [base_address] [type]
+@deffn {Command} {etm image} filename [base_address] [type]
 Opens an image file.
 @end deffn
 
-@deffn Command {etm load} filename
+@deffn {Command} {etm load} filename
 Loads captured trace data from @file{filename}.
 @end deffn
 
-@deffn Command {etm start}
+@deffn {Command} {etm start}
 Starts trace data collection.
 @end deffn
 
-@deffn Command {etm stop}
+@deffn {Command} {etm stop}
 Stops trace data collection.
 @end deffn
 
@@ -8767,7 +8767,7 @@ to use on-chip ETB memory.
 Associates the ETM for @var{target} with the ETB at @var{etb_tap}.
 You can see the ETB registers using the @command{reg} command.
 @end deffn
-@deffn Command {etb trigger_percent} [percent]
+@deffn {Command} {etb trigger_percent} [percent]
 This displays, or optionally changes, ETB behavior after the
 ETM's configured @emph{trigger} event fires.
 It controls how much more trace data is saved after the (single)
@@ -8802,7 +8802,7 @@ CTI is mandatory for core run control and each core has an individual
 CTI instance attached to it. OpenOCD has limited support for CTI using
 the @emph{cti} group of commands.
 
-@deffn Command {cti create} cti_name @option{-dap} dap_name @option{-ap-num} apn @option{-baseaddr} base_address
+@deffn {Command} {cti create} cti_name @option{-dap} dap_name @option{-ap-num} apn @option{-baseaddr} base_address
 Creates a CTI instance @var{cti_name} on the DAP instance @var{dap_name} on MEM-AP
 @var{apn}. The @var{base_address} must match the base address of the CTI
 on the respective MEM-AP. All arguments are mandatory. This creates a
@@ -8810,37 +8810,37 @@ new command @command{$cti_name} which is used for various purposes
 including additional configuration.
 @end deffn
 
-@deffn Command {$cti_name enable} @option{on|off}
+@deffn {Command} {$cti_name enable} @option{on|off}
 Enable (@option{on}) or disable (@option{off}) the CTI.
 @end deffn
 
-@deffn Command {$cti_name dump}
+@deffn {Command} {$cti_name dump}
 Displays a register dump of the CTI.
 @end deffn
 
-@deffn Command {$cti_name write } @var{reg_name} @var{value}
+@deffn {Command} {$cti_name write } @var{reg_name} @var{value}
 Write @var{value} to the CTI register with the symbolic name @var{reg_name}.
 @end deffn
 
-@deffn Command {$cti_name read} @var{reg_name}
+@deffn {Command} {$cti_name read} @var{reg_name}
 Print the value read from the CTI register with the symbolic name @var{reg_name}.
 @end deffn
 
-@deffn Command {$cti_name ack} @var{event}
+@deffn {Command} {$cti_name ack} @var{event}
 Acknowledge a CTI @var{event}.
 @end deffn
 
-@deffn Command {$cti_name channel} @var{channel_number} @var{operation}
+@deffn {Command} {$cti_name channel} @var{channel_number} @var{operation}
 Perform a specific channel operation, the possible operations are:
 gate, ungate, set, clear and pulse
 @end deffn
 
-@deffn Command {$cti_name testmode} @option{on|off}
+@deffn {Command} {$cti_name testmode} @option{on|off}
 Enable (@option{on}) or disable (@option{off}) the integration test mode
 of the CTI.
 @end deffn
 
-@deffn Command {cti names}
+@deffn {Command} {cti names}
 Prints a list of names of all CTI objects created. This command is mainly
 useful in TCL scripting.
 @end deffn
@@ -8852,7 +8852,7 @@ These commands should be available on all ARM processors.
 They are available in addition to other core-specific
 commands that may be available.
 
-@deffn Command {arm core_state} [@option{arm}|@option{thumb}]
+@deffn {Command} {arm core_state} [@option{arm}|@option{thumb}]
 Displays the core_state, optionally changing it to process
 either @option{arm} or @option{thumb} instructions.
 The target may later be resumed in the currently set core_state.
@@ -8860,7 +8860,7 @@ The target may later be resumed in the currently set core_state.
 that is not currently supported in OpenOCD.)
 @end deffn
 
-@deffn Command {arm disassemble} address [count [@option{thumb}]]
+@deffn {Command} {arm disassemble} address [count [@option{thumb}]]
 @cindex disassemble
 Disassembles @var{count} instructions starting at @var{address}.
 If @var{count} is not specified, a single instruction is disassembled.
@@ -8878,7 +8878,7 @@ with a handful of exceptions.
 ThumbEE disassembly currently has no explicit support.
 @end deffn
 
-@deffn Command {arm mcr} pX op1 CRn CRm op2 value
+@deffn {Command} {arm mcr} pX op1 CRn CRm op2 value
 Write @var{value} to a coprocessor @var{pX} register
 passing parameters @var{CRn},
 @var{CRm}, opcodes @var{opc1} and @var{opc2},
@@ -8887,7 +8887,7 @@ and using the MCR instruction.
 an ARM register.)
 @end deffn
 
-@deffn Command {arm mrc} pX coproc op1 CRn CRm op2
+@deffn {Command} {arm mrc} pX coproc op1 CRn CRm op2
 Read a coprocessor @var{pX} register passing parameters @var{CRn},
 @var{CRm}, opcodes @var{opc1} and @var{opc2},
 and the MRC instruction.
@@ -8896,12 +8896,12 @@ Returns the result so it can be manipulated by Jim scripts.
 an ARM register.)
 @end deffn
 
-@deffn Command {arm reg}
+@deffn {Command} {arm reg}
 Display a table of all banked core registers, fetching the current value from every
 core mode if necessary.
 @end deffn
 
-@deffn Command {arm semihosting} [@option{enable}|@option{disable}]
+@deffn {Command} {arm semihosting} [@option{enable}|@option{disable}]
 @cindex ARM semihosting
 Display status of semihosting, after optionally changing that status.
 
@@ -8913,7 +8913,7 @@ requests by using a special SVC instruction that is trapped at the
 Supervisor Call vector by OpenOCD.
 @end deffn
 
-@deffn Command {arm semihosting_cmdline} [@option{enable}|@option{disable}]
+@deffn {Command} {arm semihosting_cmdline} [@option{enable}|@option{disable}]
 @cindex ARM semihosting
 Set the command line to be passed to the debugger.
 
@@ -8927,7 +8927,7 @@ standard C environment (argv[0]). Depending on the program (not much
 programs look at argv[0]), argv0 is ignored and can be any string.
 @end deffn
 
-@deffn Command {arm semihosting_fileio} [@option{enable}|@option{disable}]
+@deffn {Command} {arm semihosting_fileio} [@option{enable}|@option{disable}]
 @cindex ARM semihosting
 Display status of semihosting fileio, after optionally changing that
 status.
@@ -8938,7 +8938,7 @@ interacting with remote files or displaying console messages in the
 debugger.
 @end deffn
 
-@deffn Command {arm semihosting_resexit} [@option{enable}|@option{disable}]
+@deffn {Command} {arm semihosting_resexit} [@option{enable}|@option{disable}]
 @cindex ARM semihosting
 Enable resumable SEMIHOSTING_SYS_EXIT.
 
@@ -8980,7 +8980,7 @@ ARM9TDMI, ARM920T or ARM926EJ-S.
 They are available in addition to the ARM commands,
 and any other core-specific commands that may be available.
 
-@deffn Command {arm7_9 dbgrq} [@option{enable}|@option{disable}]
+@deffn {Command} {arm7_9 dbgrq} [@option{enable}|@option{disable}]
 Displays the value of the flag controlling use of the
 EmbeddedIce DBGRQ signal to force entry into debug mode,
 instead of breakpoints.
@@ -8992,7 +8992,7 @@ This feature is enabled by default on most ARM9 cores,
 including ARM9TDMI, ARM920T, and ARM926EJ-S.
 @end deffn
 
-@deffn Command {arm7_9 dcc_downloads} [@option{enable}|@option{disable}]
+@deffn {Command} {arm7_9 dcc_downloads} [@option{enable}|@option{disable}]
 @cindex DCC
 Displays the value of the flag controlling use of the debug communications
 channel (DCC) to write larger (>128 byte) amounts of memory.
@@ -9003,7 +9003,7 @@ unsafe, especially with targets running at very low speeds. This command was int
 with OpenOCD rev. 60, and requires a few bytes of working area.
 @end deffn
 
-@deffn Command {arm7_9 fast_memory_access} [@option{enable}|@option{disable}]
+@deffn {Command} {arm7_9 fast_memory_access} [@option{enable}|@option{disable}]
 Displays the value of the flag controlling use of memory writes and reads
 that don't check completion of the operation.
 If a boolean parameter is provided, first assigns that flag.
@@ -9026,7 +9026,7 @@ Such cores include the ARM920T, ARM926EJ-S, and ARM966.
 @c versions have different rules about when they commit writes.
 
 @anchor{arm9vectorcatch}
-@deffn Command {arm9 vector_catch} [@option{all}|@option{none}|list]
+@deffn {Command} {arm9 vector_catch} [@option{all}|@option{none}|list]
 @cindex vector_catch
 Vector Catch hardware provides a sort of dedicated breakpoint
 for hardware events such as reset, interrupt, and abort.
@@ -9053,12 +9053,12 @@ built using the ARM9TDMI integer core.
 They are available in addition to the ARM, ARM7/ARM9,
 and ARM9 commands.
 
-@deffn Command {arm920t cache_info}
+@deffn {Command} {arm920t cache_info}
 Print information about the caches found. This allows to see whether your target
 is an ARM920T (2x16kByte cache) or ARM922T (2x8kByte cache).
 @end deffn
 
-@deffn Command {arm920t cp15} regnum [value]
+@deffn {Command} {arm920t cp15} regnum [value]
 Display cp15 register @var{regnum};
 else if a @var{value} is provided, that value is written to that register.
 This uses "physical access" and the register number is as
@@ -9066,11 +9066,11 @@ shown in bits 38..33 of table 9-9 in the ARM920T TRM.
 (Not all registers can be written.)
 @end deffn
 
-@deffn Command {arm920t read_cache} filename
+@deffn {Command} {arm920t read_cache} filename
 Dump the content of ICache and DCache to a file named @file{filename}.
 @end deffn
 
-@deffn Command {arm920t read_mmu} filename
+@deffn {Command} {arm920t read_mmu} filename
 Dump the content of the ITLB and DTLB to a file named @file{filename}.
 @end deffn
 
@@ -9086,7 +9086,7 @@ and ARM9 commands.
 The Feroceon cores also support these commands, although
 they are not built from ARM926ej-s designs.
 
-@deffn Command {arm926ejs cache_info}
+@deffn {Command} {arm926ejs cache_info}
 Print information about the caches found.
 @end deffn
 
@@ -9098,7 +9098,7 @@ which are implementations of the ARMv5TE architecture.
 They are available in addition to the ARM, ARM7/ARM9,
 and ARM9 commands.
 
-@deffn Command {arm966e cp15} regnum [value]
+@deffn {Command} {arm966e cp15} regnum [value]
 Display cp15 register @var{regnum};
 else if a @var{value} is provided, that value is written to that register.
 The six bit @var{regnum} values are bits 37..32 from table 7-2 of the
@@ -9186,50 +9186,50 @@ length of four, or one watchpoint with a length greater than four.
 These commands are available to XScale based CPUs,
 which are implementations of the ARMv5TE architecture.
 
-@deffn Command {xscale analyze_trace}
+@deffn {Command} {xscale analyze_trace}
 Displays the contents of the trace buffer.
 @end deffn
 
-@deffn Command {xscale cache_clean_address} address
+@deffn {Command} {xscale cache_clean_address} address
 Changes the address used when cleaning the data cache.
 @end deffn
 
-@deffn Command {xscale cache_info}
+@deffn {Command} {xscale cache_info}
 Displays information about the CPU caches.
 @end deffn
 
-@deffn Command {xscale cp15} regnum [value]
+@deffn {Command} {xscale cp15} regnum [value]
 Display cp15 register @var{regnum};
 else if a @var{value} is provided, that value is written to that register.
 @end deffn
 
-@deffn Command {xscale debug_handler} target address
+@deffn {Command} {xscale debug_handler} target address
 Changes the address used for the specified target's debug handler.
 @end deffn
 
-@deffn Command {xscale dcache} [@option{enable}|@option{disable}]
+@deffn {Command} {xscale dcache} [@option{enable}|@option{disable}]
 Enables or disable the CPU's data cache.
 @end deffn
 
-@deffn Command {xscale dump_trace} filename
+@deffn {Command} {xscale dump_trace} filename
 Dumps the raw contents of the trace buffer to @file{filename}.
 @end deffn
 
-@deffn Command {xscale icache} [@option{enable}|@option{disable}]
+@deffn {Command} {xscale icache} [@option{enable}|@option{disable}]
 Enables or disable the CPU's instruction cache.
 @end deffn
 
-@deffn Command {xscale mmu} [@option{enable}|@option{disable}]
+@deffn {Command} {xscale mmu} [@option{enable}|@option{disable}]
 Enables or disable the CPU's memory management unit.
 @end deffn
 
-@deffn Command {xscale trace_buffer} [@option{enable}|@option{disable} [@option{fill} [n] | @option{wrap}]]
+@deffn {Command} {xscale trace_buffer} [@option{enable}|@option{disable} [@option{fill} [n] | @option{wrap}]]
 Displays the trace buffer status, after optionally
 enabling or disabling the trace buffer
 and modifying how it is emptied.
 @end deffn
 
-@deffn Command {xscale trace_image} filename [offset [type]]
+@deffn {Command} {xscale trace_image} filename [offset [type]]
 Opens a trace image from @file{filename}, optionally rebasing
 its segment addresses by @var{offset}.
 The image @var{type} may be one of
@@ -9239,7 +9239,7 @@ The image @var{type} may be one of
 @end deffn
 
 @anchor{xscalevectorcatch}
-@deffn Command {xscale vector_catch} [mask]
+@deffn {Command} {xscale vector_catch} [mask]
 @cindex vector_catch
 Display a bitmask showing the hardware vectors to catch.
 If the optional parameter is provided, first set the bitmask to that value.
@@ -9257,7 +9257,7 @@ The mask bits correspond with bit 16..23 in the DCSR:
 @end example
 @end deffn
 
-@deffn Command {xscale vector_table} [(@option{low}|@option{high}) index value]
+@deffn {Command} {xscale vector_table} [(@option{low}|@option{high}) index value]
 @cindex vector_table
 
 Set an entry in the mini-IC vector table. There are two tables: one for
@@ -9276,7 +9276,7 @@ Without arguments, the current settings are displayed.
 @subsection ARM11 specific commands
 @cindex ARM11
 
-@deffn Command {arm11 memwrite burst} [@option{enable}|@option{disable}]
+@deffn {Command} {arm11 memwrite burst} [@option{enable}|@option{disable}]
 Displays the value of the memwrite burst-enable flag,
 which is enabled by default.
 If a boolean parameter is provided, first assigns that flag.
@@ -9287,21 +9287,21 @@ instead of polling for a status flag to verify that completion.
 This is usually safe, because JTAG runs much slower than the CPU.
 @end deffn
 
-@deffn Command {arm11 memwrite error_fatal} [@option{enable}|@option{disable}]
+@deffn {Command} {arm11 memwrite error_fatal} [@option{enable}|@option{disable}]
 Displays the value of the memwrite error_fatal flag,
 which is enabled by default.
 If a boolean parameter is provided, first assigns that flag.
 When set, certain memory write errors cause earlier transfer termination.
 @end deffn
 
-@deffn Command {arm11 step_irq_enable} [@option{enable}|@option{disable}]
+@deffn {Command} {arm11 step_irq_enable} [@option{enable}|@option{disable}]
 Displays the value of the flag controlling whether
 IRQs are enabled during single stepping;
 they are disabled by default.
 If a boolean parameter is provided, first assigns that.
 @end deffn
 
-@deffn Command {arm11 vcr} [value]
+@deffn {Command} {arm11 vcr} [value]
 @cindex vector_catch
 Displays the value of the @emph{Vector Catch Register (VCR)},
 coprocessor 14 register 7.
@@ -9321,39 +9321,39 @@ cores @emph{except the ARM1176} use the same six bits.
 @subsection ARMv7-A specific commands
 @cindex Cortex-A
 
-@deffn Command {cortex_a cache_info}
+@deffn {Command} {cortex_a cache_info}
 display information about target caches
 @end deffn
 
-@deffn Command {cortex_a dacrfixup [@option{on}|@option{off}]}
+@deffn {Command} {cortex_a dacrfixup [@option{on}|@option{off}]}
 Work around issues with software breakpoints when the program text is
 mapped read-only by the operating system. This option sets the CP15 DACR
 to "all-manager" to bypass MMU permission checks on memory access.
 Defaults to 'off'.
 @end deffn
 
-@deffn Command {cortex_a dbginit}
+@deffn {Command} {cortex_a dbginit}
 Initialize core debug
 Enables debug by unlocking the Software Lock and clearing sticky powerdown indications
 @end deffn
 
-@deffn Command {cortex_a smp} [on|off]
+@deffn {Command} {cortex_a smp} [on|off]
 Display/set the current SMP mode
 @end deffn
 
-@deffn Command {cortex_a smp_gdb} [core_id]
+@deffn {Command} {cortex_a smp_gdb} [core_id]
 Display/set the current core displayed in GDB
 @end deffn
 
-@deffn Command {cortex_a maskisr} [@option{on}|@option{off}]
+@deffn {Command} {cortex_a maskisr} [@option{on}|@option{off}]
 Selects whether interrupts will be processed when single stepping
 @end deffn
 
-@deffn Command {cache_config l2x}  [base way]
+@deffn {Command} {cache_config l2x}  [base way]
 configure l2x cache
 @end deffn
 
-@deffn Command {cortex_a mmu dump} [@option{0}|@option{1}|@option{addr} address [@option{num_entries}]]
+@deffn {Command} {cortex_a mmu dump} [@option{0}|@option{1}|@option{addr} address [@option{num_entries}]]
 Dump the MMU translation table from TTB0 or TTB1 register, or from physical
 memory location @var{address}. When dumping the table from @var{address}, print at most
 @var{num_entries} page table entries. @var{num_entries} is optional, if omitted, the maximum
@@ -9363,12 +9363,12 @@ possible (4096) entries are printed.
 @subsection ARMv7-R specific commands
 @cindex Cortex-R
 
-@deffn Command {cortex_r dbginit}
+@deffn {Command} {cortex_r dbginit}
 Initialize core debug
 Enables debug by unlocking the Software Lock and clearing sticky powerdown indications
 @end deffn
 
-@deffn Command {cortex_r maskisr} [@option{on}|@option{off}]
+@deffn {Command} {cortex_r maskisr} [@option{on}|@option{off}]
 Selects whether interrupts will be processed when single stepping
 @end deffn
 
@@ -9395,12 +9395,12 @@ The @command{tpiu} is used for either TPIU or SWO.
 A convenient alias @command{swo} is available to help distinguish, in scripts,
 the commands for SWO from the commands for TPIU.
 
-@deffn Command {swo} ...
+@deffn {Command} {swo} ...
 Alias of @command{tpiu ...}. Can be used in scripts to distinguish the commands
 for SWO from the commands for TPIU.
 @end deffn
 
-@deffn Command {tpiu create} tpiu_name configparams...
+@deffn {Command} {tpiu create} tpiu_name configparams...
 Creates a TPIU or a SWO object. The two commands are equivalent.
 Add the object in a list and add new commands (@command{@var{tpiu_name}})
 which are used for various purposes including additional configuration.
@@ -9416,23 +9416,23 @@ You @emph{must} set here the AP and MEM_AP base_address through @code{-dap @var{
 @end itemize
 @end deffn
 
-@deffn Command {tpiu names}
+@deffn {Command} {tpiu names}
 Lists all the TPIU or SWO objects created so far. The two commands are equivalent.
 @end deffn
 
-@deffn Command {tpiu init}
+@deffn {Command} {tpiu init}
 Initialize all registered TPIU and SWO. The two commands are equivalent.
 These commands are used internally during initialization. They can be issued
 at any time after the initialization, too.
 @end deffn
 
-@deffn Command {$tpiu_name cget} queryparm
+@deffn {Command} {$tpiu_name cget} queryparm
 Each configuration parameter accepted by @command{$tpiu_name configure} can be
 individually queried, to return its current value.
 The @var{queryparm} is a parameter name accepted by that command, such as @code{-dap}.
 @end deffn
 
-@deffn Command {$tpiu_name configure} configparams...
+@deffn {Command} {$tpiu_name configure} configparams...
 The options accepted by this command may also be specified as parameters
 to @command{tpiu create}. Their values can later be queried one at a time by
 using the @command{$tpiu_name cget} command.
@@ -9498,7 +9498,7 @@ default value is @var{0}.
 @end itemize
 @end deffn
 
-@deffn Command {$tpiu_name enable}
+@deffn {Command} {$tpiu_name enable}
 Uses the parameters specified by the previous @command{$tpiu_name configure}
 to configure and enable the TPIU or the SWO.
 If required, the adapter is also configured and enabled to receive the trace
@@ -9507,7 +9507,7 @@ This command can be used before @command{init}, but it will take effect only
 after the @command{init}.
 @end deffn
 
-@deffn Command {$tpiu_name disable}
+@deffn {Command} {$tpiu_name disable}
 Disable the TPIU or the SWO, terminating the receiving of the trace data.
 @end deffn
 
@@ -9555,19 +9555,19 @@ openocd -f interface/stlink.cfg \
 @cindex ITM
 @cindex ETM
 
-@deffn Command {itm port} @var{port} (@option{0}|@option{1}|@option{on}|@option{off})
+@deffn {Command} {itm port} @var{port} (@option{0}|@option{1}|@option{on}|@option{off})
 Enable or disable trace output for ITM stimulus @var{port} (counting
 from 0). Port 0 is enabled on target creation automatically.
 @end deffn
 
-@deffn Command {itm ports} (@option{0}|@option{1}|@option{on}|@option{off})
+@deffn {Command} {itm ports} (@option{0}|@option{1}|@option{on}|@option{off})
 Enable or disable trace output for all ITM stimulus ports.
 @end deffn
 
 @subsection Cortex-M specific commands
 @cindex Cortex-M
 
-@deffn Command {cortex_m maskisr} (@option{auto}|@option{on}|@option{off}|@option{steponly})
+@deffn {Command} {cortex_m maskisr} (@option{auto}|@option{on}|@option{off}|@option{steponly})
 Control masking (disabling) interrupts during target step/resume.
 
 The @option{auto} option handles interrupts during stepping in a way that they
@@ -9590,7 +9590,7 @@ does.
 Default is @option{auto}.
 @end deffn
 
-@deffn Command {cortex_m vector_catch} [@option{all}|@option{none}|list]
+@deffn {Command} {cortex_m vector_catch} [@option{all}|@option{none}|list]
 @cindex vector_catch
 Vector Catch hardware provides dedicated breakpoints
 for certain hardware events.
@@ -9617,7 +9617,7 @@ must also be explicitly enabled.
 This finishes by listing the current vector catch configuration.
 @end deffn
 
-@deffn Command {cortex_m reset_config} (@option{sysresetreq}|@option{vectreset})
+@deffn {Command} {cortex_m reset_config} (@option{sysresetreq}|@option{vectreset})
 Control reset handling if hardware srst is not fitted
 @xref{reset_config,,reset_config}.
 
@@ -9640,11 +9640,11 @@ instead.
 @cindex ARMv8-A
 @cindex aarch64
 
-@deffn Command {aarch64 cache_info}
+@deffn {Command} {aarch64 cache_info}
 Display information about target caches
 @end deffn
 
-@deffn Command {aarch64 dbginit}
+@deffn {Command} {aarch64 dbginit}
 This command enables debugging by clearing the OS Lock and sticky power-down and reset
 indications. It also establishes the expected, basic cross-trigger configuration the aarch64
 target code relies on. In a configuration file, the command would typically be called from a
@@ -9652,25 +9652,25 @@ target code relies on. In a configuration file, the command would typically be c
 However, normally it is not necessary to use the command at all.
 @end deffn
 
-@deffn Command {aarch64 disassemble} address [count]
+@deffn {Command} {aarch64 disassemble} address [count]
 @cindex disassemble
 Disassembles @var{count} instructions starting at @var{address}.
 If @var{count} is not specified, a single instruction is disassembled.
 @end deffn
 
-@deffn Command {aarch64 smp} [on|off]
+@deffn {Command} {aarch64 smp} [on|off]
 Display, enable or disable SMP handling mode. The state of SMP handling influences the way targets in an SMP group
 are handled by the run control. With SMP handling enabled, issuing halt or resume to one core will trigger
 halting or resuming of all cores in the group. The command @code{target smp} defines which targets are in the SMP
 group. With SMP handling disabled, all targets need to be treated individually.
 @end deffn
 
-@deffn Command {aarch64 maskisr} [@option{on}|@option{off}]
+@deffn {Command} {aarch64 maskisr} [@option{on}|@option{off}]
 Selects whether interrupts will be processed when single stepping. The default configuration is
 @option{on}.
 @end deffn
 
-@deffn Command {$target_name catch_exc} [@option{off}|@option{sec_el1}|@option{sec_el3}|@option{nsec_el1}|@option{nsec_el2}]+
+@deffn {Command} {$target_name catch_exc} [@option{off}|@option{sec_el1}|@option{sec_el3}|@option{nsec_el1}|@option{nsec_el2}]+
 Cause @command{$target_name} to halt when an exception is taken. Any combination of
 Secure (sec) EL1/EL3 or Non-Secure (nsec) EL1/EL2 is valid. The target
 @command{$target_name} will halt before taking the exception. In order to resume
@@ -9685,12 +9685,12 @@ provided by EnSilica. (See: @url{http://www.ensilica.com/risc-ip/}.)
 
 @subsection eSi-RISC Configuration
 
-@deffn Command {esirisc cache_arch} (@option{harvard}|@option{von_neumann})
+@deffn {Command} {esirisc cache_arch} (@option{harvard}|@option{von_neumann})
 Configure the caching architecture. Targets with the @code{UNIFIED_ADDRESS_SPACE}
 option disabled employ a Harvard architecture. By default, @option{von_neumann} is assumed.
 @end deffn
 
-@deffn Command {esirisc hwdc} (@option{all}|@option{none}|mask ...)
+@deffn {Command} {esirisc hwdc} (@option{all}|@option{none}|mask ...)
 Configure hardware debug control. The HWDC register controls which exceptions return
 control back to the debugger. Possible masks are @option{all}, @option{none},
 @option{reset}, @option{interrupt}, @option{syscall}, @option{error}, and @option{debug}.
@@ -9699,7 +9699,7 @@ By default, @option{reset}, @option{error}, and @option{debug} are enabled.
 
 @subsection eSi-RISC Operation
 
-@deffn Command {esirisc flush_caches}
+@deffn {Command} {esirisc flush_caches}
 Flush instruction and data caches. This command requires that the target is halted
 when the command is issued and configured with an instruction or data cache.
 @end deffn
@@ -9730,22 +9730,22 @@ managed by enabling flow control, however this can impact timing-sensitive
 software operation on the CPU.
 @end quotation
 
-@deffn Command {esirisc trace buffer} address size [@option{wrap}]
+@deffn {Command} {esirisc trace buffer} address size [@option{wrap}]
 Configure trace buffer using the provided address and size. If the @option{wrap}
 option is specified, trace collection will continue once the end of the buffer
 is reached. By default, wrap is disabled.
 @end deffn
 
-@deffn Command {esirisc trace fifo} address
+@deffn {Command} {esirisc trace fifo} address
 Configure trace FIFO using the provided address.
 @end deffn
 
-@deffn Command {esirisc trace flow_control} (@option{enable}|@option{disable})
+@deffn {Command} {esirisc trace flow_control} (@option{enable}|@option{disable})
 Enable or disable stalling the CPU to collect trace data. By default, flow
 control is disabled.
 @end deffn
 
-@deffn Command {esirisc trace format} (@option{full}|@option{branch}|@option{icache}) pc_bits
+@deffn {Command} {esirisc trace format} (@option{full}|@option{branch}|@option{icache}) pc_bits
 Configure trace format and number of PC bits to be captured. @option{pc_bits}
 must be within 1 and 31 as the LSB is not collected. If external tooling is used
 to analyze collected trace data, these values must match.
@@ -9760,7 +9760,7 @@ addresses.
 @end itemize
 @end deffn
 
-@deffn Command {esirisc trace trigger start} (@option{condition}) [start_data start_mask]
+@deffn {Command} {esirisc trace trigger start} (@option{condition}) [start_data start_mask]
 Configure trigger start condition using the provided start data and mask. A
 brief description of each condition is provided below; for more detail on how
 these values are used, see the eSi-RISC Architecture Manual.
@@ -9783,7 +9783,7 @@ data and mask.
 @end itemize
 @end deffn
 
-@deffn Command {esirisc trace trigger stop} (@option{condition}) [stop_data stop_mask]
+@deffn {Command} {esirisc trace trigger stop} (@option{condition}) [stop_data stop_mask]
 Configure trigger stop condition using the provided stop data and mask. A brief
 description of each condition is provided below; for more detail on how these
 values are used, see the eSi-RISC Architecture Manual.
@@ -9804,7 +9804,7 @@ data and mask.
 @end itemize
 @end deffn
 
-@deffn Command {esirisc trace trigger delay} (@option{trigger}) [cycles]
+@deffn {Command} {esirisc trace trigger delay} (@option{trigger}) [cycles]
 Configure trigger start/stop delay in clock cycles.
 
 Supported triggers:
@@ -9819,36 +9819,36 @@ collection.
 
 @subsection eSi-Trace Operation
 
-@deffn Command {esirisc trace init}
+@deffn {Command} {esirisc trace init}
 Initialize trace collection. This command must be called any time the
 configuration changes. If a trace buffer has been configured, the contents will
 be overwritten when trace collection starts.
 @end deffn
 
-@deffn Command {esirisc trace info}
+@deffn {Command} {esirisc trace info}
 Display trace configuration.
 @end deffn
 
-@deffn Command {esirisc trace status}
+@deffn {Command} {esirisc trace status}
 Display trace collection status.
 @end deffn
 
-@deffn Command {esirisc trace start}
+@deffn {Command} {esirisc trace start}
 Start manual trace collection.
 @end deffn
 
-@deffn Command {esirisc trace stop}
+@deffn {Command} {esirisc trace stop}
 Stop manual trace collection.
 @end deffn
 
-@deffn Command {esirisc trace analyze} [address size]
+@deffn {Command} {esirisc trace analyze} [address size]
 Analyze collected trace data. This command may only be used if a trace buffer
 has been configured. If a trace FIFO has been configured, trace data must be
 copied to an in-memory buffer identified by the @option{address} and
 @option{size} options using DMA.
 @end deffn
 
-@deffn Command {esirisc trace dump} [address size] @file{filename}
+@deffn {Command} {esirisc trace dump} [address size] @file{filename}
 Dump collected trace data to file. This command may only be used if a trace
 buffer has been configured. If a trace FIFO has been configured, trace data must
 be copied to an in-memory buffer identified by the @option{address} and
@@ -9872,27 +9872,27 @@ Useful docs are here: https://communities.intel.com/community/makers/documentati
 The three main address spaces for x86 are memory, I/O and configuration space.
 These commands allow a user to read and write to the 64Kbyte I/O address space.
 
-@deffn Command {x86_32 idw} address
+@deffn {Command} {x86_32 idw} address
 Display the contents of a 32-bit I/O port from address range 0x0000 - 0xffff.
 @end deffn
 
-@deffn Command {x86_32 idh} address
+@deffn {Command} {x86_32 idh} address
 Display the contents of a 16-bit I/O port from address range 0x0000 - 0xffff.
 @end deffn
 
-@deffn Command {x86_32 idb} address
+@deffn {Command} {x86_32 idb} address
 Display the contents of a 8-bit I/O port from address range 0x0000 - 0xffff.
 @end deffn
 
-@deffn Command {x86_32 iww} address
+@deffn {Command} {x86_32 iww} address
 Write the contents of a 32-bit I/O port to address range 0x0000 - 0xffff.
 @end deffn
 
-@deffn Command {x86_32 iwh} address
+@deffn {Command} {x86_32 iwh} address
 Write the contents of a 16-bit I/O port to address range 0x0000 - 0xffff.
 @end deffn
 
-@deffn Command {x86_32 iwb} address
+@deffn {Command} {x86_32 iwb} address
 Write the contents of a 8-bit I/O port to address range 0x0000 - 0xffff.
 @end deffn
 
@@ -9902,10 +9902,10 @@ The OpenRISC CPU is a soft core. It is used in a programmable SoC which can be
 configured with any of the TAP / Debug Unit available.
 
 @subsection TAP and Debug Unit selection commands
-@deffn Command {tap_select} (@option{vjtag}|@option{mohor}|@option{xilinx_bscan})
+@deffn {Command} {tap_select} (@option{vjtag}|@option{mohor}|@option{xilinx_bscan})
 Select between the Altera Virtual JTAG , Xilinx Virtual JTAG and Mohor TAP.
 @end deffn
-@deffn Command {du_select} (@option{adv}|@option{mohor}) [option]
+@deffn {Command} {du_select} (@option{adv}|@option{mohor}) [option]
 Select between the Advanced Debug Interface and the classic one.
 
 An option can be passed as a second argument to the debug unit.
@@ -9916,7 +9916,7 @@ between bytes while doing read or write bursts.
 @end deffn
 
 @subsection Registers commands
-@deffn Command {addreg} [name] [address] [feature] [reg_group]
+@deffn {Command} {addreg} [name] [address] [feature] [reg_group]
 Add a new register in the cpu register list. This register will be
 included in the generated target descriptor file.
 
@@ -9933,7 +9933,7 @@ addreg rtest 0x1234 org.gnu.gdb.or1k.group0 system
 
 
 @end deffn
-@deffn Command {readgroup} (@option{group})
+@deffn {Command} {readgroup} (@option{group})
 Display all registers in @emph{group}.
 
 @emph{group} can be "system",
@@ -9958,7 +9958,7 @@ OpenOCD exposes each hart as a separate core.
 
 @subsection RISC-V Debug Configuration Commands
 
-@deffn Command {riscv expose_csrs} n0[-m0][,n1[-m1]]...
+@deffn {Command} {riscv expose_csrs} n0[-m0][,n1[-m1]]...
 Configure a list of inclusive ranges for CSRs to expose in addition to the
 standard ones. This must be executed before `init`.
 
@@ -9968,7 +9968,7 @@ command can be used if OpenOCD gets this wrong, or a target implements custom
 CSRs.
 @end deffn
 
-@deffn Command {riscv expose_custom} n0[-m0][,n1[-m1]]...
+@deffn {Command} {riscv expose_custom} n0[-m0][,n1[-m1]]...
 The RISC-V Debug Specification allows targets to expose custom registers
 through abstract commands. (See Section 3.5.1.1 in that document.) This command
 configures a list of inclusive ranges of those registers to expose. Number 0
@@ -9976,39 +9976,39 @@ indicates the first custom register, whose abstract command number is 0xc000.
 This command must be executed before `init`.
 @end deffn
 
-@deffn Command {riscv set_command_timeout_sec} [seconds]
+@deffn {Command} {riscv set_command_timeout_sec} [seconds]
 Set the wall-clock timeout (in seconds) for individual commands. The default
 should work fine for all but the slowest targets (eg. simulators).
 @end deffn
 
-@deffn Command {riscv set_reset_timeout_sec} [seconds]
+@deffn {Command} {riscv set_reset_timeout_sec} [seconds]
 Set the maximum time to wait for a hart to come out of reset after reset is
 deasserted.
 @end deffn
 
-@deffn Command {riscv set_scratch_ram} none|[address]
+@deffn {Command} {riscv set_scratch_ram} none|[address]
 Set the address of 16 bytes of scratch RAM the debugger can use, or 'none'.
 This is used to access 64-bit floating point registers on 32-bit targets.
 @end deffn
 
-@deffn Command {riscv set_prefer_sba} on|off
+@deffn {Command} {riscv set_prefer_sba} on|off
 When on, prefer to use System Bus Access to access memory.  When off (default),
 prefer to use the Program Buffer to access memory.
 @end deffn
 
-@deffn Command {riscv set_enable_virtual} on|off
+@deffn {Command} {riscv set_enable_virtual} on|off
 When on, memory accesses are performed on physical or virtual memory depending
 on the current system configuration. When off (default), all memory accessses are performed
 on physical memory.
 @end deffn
 
-@deffn Command {riscv set_enable_virt2phys} on|off
+@deffn {Command} {riscv set_enable_virt2phys} on|off
 When on (default), memory accesses are performed on physical or virtual memory
 depending on the current satp configuration. When off, all memory accessses are
 performed on physical memory.
 @end deffn
 
-@deffn Command {riscv resume_order} normal|reversed
+@deffn {Command} {riscv resume_order} normal|reversed
 Some software assumes all harts are executing nearly continuously. Such
 software may be sensitive to the order that harts are resumed in. On harts
 that don't support hasel, this option allows the user to choose the order the
@@ -10019,7 +10019,7 @@ Normal order is from lowest hart index to highest. This is the default
 behavior. Reversed order is from highest hart index to lowest.
 @end deffn
 
-@deffn Command {riscv set_ir} (@option{idcode}|@option{dtmcs}|@option{dmi}) [value]
+@deffn {Command} {riscv set_ir} (@option{idcode}|@option{dtmcs}|@option{dmi}) [value]
 Set the IR value for the specified JTAG register.  This is useful, for
 example, when using the existing JTAG interface on a Xilinx FPGA by
 way of BSCANE2 primitives that only permit a limited selection of IR
@@ -10030,22 +10030,22 @@ When utilizing version 0.11 of the RISC-V Debug Specification,
 and DBUS registers, respectively.
 @end deffn
 
-@deffn Command {riscv use_bscan_tunnel} value
+@deffn {Command} {riscv use_bscan_tunnel} value
 Enable or disable use of a BSCAN tunnel to reach DM.  Supply the width of
 the DM transport TAP's instruction register to enable.  Supply a value of 0 to disable.
 @end deffn
 
-@deffn Command {riscv set_ebreakm} on|off
+@deffn {Command} {riscv set_ebreakm} on|off
 Control dcsr.ebreakm. When on (default), M-mode ebreak instructions trap to
 OpenOCD. When off, they generate a breakpoint exception handled internally.
 @end deffn
 
-@deffn Command {riscv set_ebreaks} on|off
+@deffn {Command} {riscv set_ebreaks} on|off
 Control dcsr.ebreaks. When on (default), S-mode ebreak instructions trap to
 OpenOCD. When off, they generate a breakpoint exception handled internally.
 @end deffn
 
-@deffn Command {riscv set_ebreaku} on|off
+@deffn {Command} {riscv set_ebreaku} on|off
 Control dcsr.ebreaku. When on (default), U-mode ebreak instructions trap to
 OpenOCD. When off, they generate a breakpoint exception handled internally.
 @end deffn
@@ -10060,11 +10060,11 @@ set challenge [riscv authdata_read]
 riscv authdata_write [expr $challenge + 1]
 @end example
 
-@deffn Command {riscv authdata_read}
+@deffn {Command} {riscv authdata_read}
 Return the 32-bit value read from authdata.
 @end deffn
 
-@deffn Command {riscv authdata_write} value
+@deffn {Command} {riscv authdata_write} value
 Write the 32-bit value to authdata.
 @end deffn
 
@@ -10073,11 +10073,11 @@ Write the 32-bit value to authdata.
 The following commands allow direct access to the Debug Module Interface, which
 can be used to interact with custom debug features.
 
-@deffn Command {riscv dmi_read} address
+@deffn {Command} {riscv dmi_read} address
 Perform a 32-bit DMI read at address, returning the value.
 @end deffn
 
-@deffn Command {riscv dmi_write} address value
+@deffn {Command} {riscv dmi_write} address value
 Perform a 32-bit DMI write of value at address.
 @end deffn
 
@@ -10269,7 +10269,7 @@ This is not the same format used by @file{libdcc}.
 Other software, such as the U-Boot boot loader, sometimes
 does the same thing.
 
-@deffn Command {target_request debugmsgs} [@option{enable}|@option{disable}|@option{charmsg}]
+@deffn {Command} {target_request debugmsgs} [@option{enable}|@option{disable}|@option{charmsg}]
 Displays current handling of target DCC message requests.
 These messages may be sent to the debugger while the target is running.
 The optional @option{enable} and @option{charmsg} parameters
@@ -10280,7 +10280,7 @@ as used by Linux with CONFIG_DEBUG_ICEDCC;
 otherwise the libdcc format is used.
 @end deffn
 
-@deffn Command {trace history} [@option{clear}|count]
+@deffn {Command} {trace history} [@option{clear}|count]
 With no parameter, displays all the trace points that have triggered
 in the order they triggered.
 With the parameter @option{clear}, erases all current trace history records.
@@ -10288,7 +10288,7 @@ With a @var{count} parameter, allocates space for that many
 history records.
 @end deffn
 
-@deffn Command {trace point} [@option{clear}|identifier]
+@deffn {Command} {trace point} [@option{clear}|identifier]
 With no parameter, displays all trace point identifiers and how many times
 they have been triggered.
 With the parameter @option{clear}, erases all current trace point counters.
@@ -10342,7 +10342,7 @@ JTAG router), you probably won't need to use these commands.
 In a debug session that doesn't use JTAG for its transport protocol,
 these commands are not available.
 
-@deffn Command {drscan} tap [numbits value]+ [@option{-endstate} tap_state]
+@deffn {Command} {drscan} tap [numbits value]+ [@option{-endstate} tap_state]
 Loads the data register of @var{tap} with a series of bit fields
 that specify the entire register.
 Each field is @var{numbits} bits long with
@@ -10377,7 +10377,7 @@ the register accessed by the INTEST instruction
 @end quotation
 @end deffn
 
-@deffn Command {flush_count}
+@deffn {Command} {flush_count}
 Returns the number of times the JTAG queue has been flushed.
 This may be used for performance tuning.
 
@@ -10389,7 +10389,7 @@ tasks which waste bandwidth by flushing small transfers too often,
 instead of batching them into larger operations.
 @end deffn
 
-@deffn Command {irscan} [tap instruction]+ [@option{-endstate} tap_state]
+@deffn {Command} {irscan} [tap instruction]+ [@option{-endstate} tap_state]
 For each @var{tap} listed, loads the instruction register
 with its associated numeric @var{instruction}.
 (The number of bits in that instruction may be displayed
@@ -10410,7 +10410,7 @@ portable scripts currently must issue only BYPASS instructions.
 @end quotation
 @end deffn
 
-@deffn Command {pathmove} start_state [next_state ...]
+@deffn {Command} {pathmove} start_state [next_state ...]
 Start by moving to @var{start_state}, which
 must be one of the @emph{stable} states.
 Unless it is the only state given, this will often be the
@@ -10421,7 +10421,7 @@ each @var{next_state} in sequence, one per TCK cycle.
 The final state must also be stable.
 @end deffn
 
-@deffn Command {runtest} @var{num_cycles}
+@deffn {Command} {runtest} @var{num_cycles}
 Move to the @sc{run/idle} state, and execute at least
 @var{num_cycles} of the JTAG clock (TCK).
 Instructions often need some time
@@ -10431,14 +10431,14 @@ to execute before they take effect.
 @c tms_sequence (short|long)
 @c ... temporary, debug-only, other than USBprog bug workaround...
 
-@deffn Command {verify_ircapture} (@option{enable}|@option{disable})
+@deffn {Command} {verify_ircapture} (@option{enable}|@option{disable})
 Verify values captured during @sc{ircapture} and returned
 during IR scans. Default is enabled, but this can be
 overridden by @command{verify_jtag}.
 This flag is ignored when validating JTAG chain configuration.
 @end deffn
 
-@deffn Command {verify_jtag} (@option{enable}|@option{disable})
+@deffn {Command} {verify_jtag} (@option{enable}|@option{disable})
 Enables verification of DR and IR scans, to help detect
 programming errors. For IR scans, @command{verify_ircapture}
 must also be enabled.
@@ -10512,7 +10512,7 @@ way to represent JTAG test patterns in text files.
 In a debug session using JTAG for its transport protocol,
 OpenOCD supports running such test files.
 
-@deffn Command {svf} @file{filename} [@option{-tap @var{tapname}}] [@option{[-]quiet}] @
+@deffn {Command} {svf} @file{filename} [@option{-tap @var{tapname}}] [@option{[-]quiet}] @
                      [@option{[-]nil}] [@option{[-]progress}] [@option{[-]ignore_error}]
 This issues a JTAG reset (Test-Logic-Reset) and then
 runs the SVF script from @file{filename}.
@@ -10549,7 +10549,7 @@ OpenOCD supports running such test files.
 Not all XSVF commands are supported.
 @end quotation
 
-@deffn Command {xsvf} (tapname|@option{plain}) filename [@option{virt2}] [@option{quiet}]
+@deffn {Command} {xsvf} (tapname|@option{plain}) filename [@option{virt2}] [@option{quiet}]
 This issues a JTAG reset (Test-Logic-Reset) and then
 runs the XSVF script from @file{filename}.
 When a @var{tapname} is specified, the commands are directed at
@@ -10607,24 +10607,24 @@ source [find tools/memtest.tcl]
 
 to get access to the following facilities:
 
-@deffn Command {memTestDataBus} address
+@deffn {Command} {memTestDataBus} address
 Test the data bus wiring in a memory region by performing a walking
 1's test at a fixed address within that region.
 @end deffn
 
-@deffn Command {memTestAddressBus} baseaddress size
+@deffn {Command} {memTestAddressBus} baseaddress size
 Perform a walking 1's test on the relevant bits of the address and
 check for aliasing. This test will find single-bit address failures
 such as stuck-high, stuck-low, and shorted pins.
 @end deffn
 
-@deffn Command {memTestDevice} baseaddress size
+@deffn {Command} {memTestDevice} baseaddress size
 Test the integrity of a physical memory device by performing an
 increment/decrement test over the entire region. In the process every
 storage bit in the device is tested as zero and as one.
 @end deffn
 
-@deffn Command {runAllMemTests} baseaddress size
+@deffn {Command} {runAllMemTests} baseaddress size
 Run all of the above tests over a specified memory region.
 @end deffn
 
