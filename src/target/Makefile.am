@@ -18,8 +18,10 @@ noinst_LTLIBRARIES += %D%/libtarget.la
 	$(NDS32_SRC) \
 	$(STM8_SRC) \
 	$(INTEL_IA32_SRC) \
+	$(MPC56XX_SRC) \
+	$(MPC57XX_SRC) \
 	$(ESIRISC_SRC) \
-        $(ARC_SRC) \
+	$(ARC_SRC) \
 	%D%/avrt.c \
 	%D%/dsp563xx.c \
 	%D%/dsp563xx_once.c \
@@ -157,10 +159,24 @@ ESIRISC_SRC = \
 	%D%/esirisc_trace.c
 
 ARC_SRC = \
-        %D%/arc.c \
-        %D%/arc_cmd.c \
-        %D%/arc_jtag.c \
-        %D%/arc_mem.c
+	%D%/arc.c \
+	%D%/arc_cmd.c \
+	%D%/arc_jtag.c \
+	%D%/arc_mem.c
+
+MPC56XX_SRC = \
+	%D%/mpc5xxx.c \
+	%D%/mpc5xxx_jtag.c \
+	%D%/mpc56xx.c \
+	%D%/mpc56xx_jtag.c \
+	%D%/mpc56xx_regs.c
+
+MPC57XX_SRC = \
+	%D%/mpc5xxx.c \
+	%D%/mpc5xxx_jtag.c \
+	%D%/mpc57xx.c \
+	%D%/mpc57xx_jtag.c \
+	%D%/mpc57xx_regs.c
 
 %C%_libtarget_la_SOURCES += \
 	%D%/algorithm.h \
@@ -247,6 +263,14 @@ ARC_SRC = \
 	%D%/lakemont.h \
 	%D%/x86_32_common.h \
 	%D%/arm_cti.h \
+	%D%/mpc5xxx_jtag.h \
+	%D%/mpc5xxx.h \
+	%D%/mpc56xx_regs.h \
+	%D%/mpc56xx_jtag.h \
+	%D%/mpc56xx.h \
+	%D%/mpc57xx_regs.h \
+	%D%/mpc57xx_jtag.h \
+	%D%/mpc57xx.h
 	%D%/esirisc.h \
 	%D%/esirisc_jtag.h \
 	%D%/esirisc_regs.h \
