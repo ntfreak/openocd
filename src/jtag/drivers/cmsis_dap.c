@@ -281,6 +281,21 @@ static void cmsis_dap_close(struct cmsis_dap *dap)
 	}
 }
 
+static void cmsis_dap_flush_read(struct cmsis_dap *dap)
+{
+	unsigned int i;
+	/* Some CMSIS-DAP adapters keep buffered packets over
+	 * USB close/open so we need to flush up to 64 old packets
+	 * to be sure all buffers are empty */
+	for (i = 0; i < 64; i++) {
+		int retval = dap->backend->read(dap, 10);
+		if (retval == ERROR_TIMEOUT_REACHED)
+			break;
+	}
+	if (i)
+		LOG_DEBUG("Flushed %u packets", i);
+}
+
 /* Send a message and receive the reply */
 static int cmsis_dap_xfer(struct cmsis_dap *dap, int txlen)
 {
@@ -313,6 +328,8 @@ static int cmsis_dap_xfer(struct cmsis_dap *dap, int txlen)
 	if (resp[0] != current_cmd) {
 		LOG_ERROR("CMSIS-DAP command mismatch. Sent 0x%" PRIx8
 			 " received 0x%" PRIx8, current_cmd, resp[0]);
+
+		cmsis_dap_flush_read(dap);
 		return ERROR_FAIL;
 	}
 
@@ -884,6 +901,8 @@ static int cmsis_dap_init(void)
 	retval = cmsis_dap_open();
 	if (retval != ERROR_OK)
 		return retval;
+
+	cmsis_dap_flush_read(cmsis_dap_handle);
 
 	retval = cmsis_dap_get_caps_info();
 	if (retval != ERROR_OK)
