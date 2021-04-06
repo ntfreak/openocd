@@ -210,6 +210,51 @@ static int dap_configure(Jim_GetOptInfo *goi, struct arm_dap_object *dap)
 	return JIM_OK;
 }
 
+static int dap_check_config(struct adiv5_dap *dap)
+{
+	if (transport_is_jtag() || transport_is_dapdirect_jtag() || transport_is_hla())
+		return ERROR_OK;
+
+	struct arm_dap_object *obj;
+	uint32_t targetsel = dap->tap->multidrop_targetsel;
+	bool had_multidrop = targetsel != DP_TARGETSEL_INVALID;
+	unsigned int non_multidrop_count = had_multidrop ? 0 : 1;
+
+	list_for_each_entry(obj, &all_dap, lh) {
+		struct adiv5_dap *dap_it = &obj->dap;
+
+		if (transport_is_swd()) {
+			if (dap_it->tap->multidrop_targetsel == DP_TARGETSEL_INVALID) {
+				non_multidrop_count++;
+			} else {
+				if (dap_it->tap->multidrop_targetsel == targetsel) {
+					uint32_t dp_id = targetsel & DP_TARGETSEL_DPID_MASK;
+					uint32_t instance_id = targetsel >> DP_TARGETSEL_INSTANCEID_SHIFT;
+					LOG_ERROR("%s and %s have the same multidrop selectors -dp-id 0x%08"
+							  PRIx32 " and -instance-id 0x%1" PRIx32,
+							  obj->name, adiv5_dap_name(dap),
+							  dp_id, instance_id);
+					return ERROR_FAIL;
+				}
+				had_multidrop = true;
+			}
+		} else if (transport_is_dapdirect_swd()) {
+			non_multidrop_count++;
+		}
+	}
+
+	if (non_multidrop_count > 1) {
+		LOG_ERROR("Two or more SWD non multidrop DAPs are not supported");
+		return ERROR_FAIL;
+	}
+	if (had_multidrop && non_multidrop_count) {
+		LOG_ERROR("Mixture of SWD multidrop DAPs and non multidrop DAPs is not supported");
+		return ERROR_FAIL;
+	}
+
+	return ERROR_OK;
+}
+
 static int dap_create(Jim_GetOptInfo *goi)
 {
 	struct command_context *cmd_ctx;
@@ -272,6 +317,10 @@ static int dap_create(Jim_GetOptInfo *goi)
 	struct command *c = command_find_in_context(cmd_ctx, cp);
 	assert(c);
 	command_set_handler_data(c, dap);
+
+	e = dap_check_config(&dap->dap);
+	if (e != ERROR_OK)
+		return JIM_ERR;
 
 	list_add_tail(&dap->lh, &all_dap);
 
