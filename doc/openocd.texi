@@ -588,6 +588,12 @@ produced, PDF schematics are easily found and it is easy to make.
 @* A JTAG driver acting as a client for the JTAG VPI server interface.
 @* Link: @url{http://github.com/fjullien/jtag_vpi}
 
+@item @b{vdebug}
+@* A driver for Cadence virtual Debug Interface to emulated or simulated targets. 
+It implements a client connecting to the vdebug server, which in turn communicates
+with the emulated or simulated RTL model through a transactor. The current version
+supports only JTAG as a transport, but other virtual transports, like DAP are planned.
+
 @item @b{jtag_dpi}
 @* A JTAG driver acting as a client for the SystemVerilog Direct Programming
 Interface (DPI) for JTAG devices. DPI allows OpenOCD to connect to the JTAG
