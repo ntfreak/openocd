@@ -2063,7 +2063,7 @@ a target has been successfully instantiated.
 If you want to use those commands, you may need to force
 entry to the run stage.
 
-@deffn {Config Command} init
+@deffn {Config Command} {init}
 This command terminates the configuration stage and
 enters the run stage. This helps when you need to have
 the startup scripts manage tasks such as resetting the target,
@@ -2082,7 +2082,7 @@ read/write memory on your target, @command{init} must occur before
 the memory read/write commands. This includes @command{nand probe}.
 @end deffn
 
-@deffn {Overridable Procedure} jtag_init
+@deffn {Overridable Procedure} {jtag_init}
 This is invoked at server startup to verify that it can talk
 to the scan chain (list of TAPs) which has been configured.
 
@@ -2186,13 +2186,13 @@ breakpoints if the memory map has been set up for flash regions.
 @end deffn
 
 @anchor{gdbflashprogram}
-@deffn {Config Command} gdb_flash_program (@option{enable}|@option{disable})
+@deffn {Config Command} {gdb_flash_program} (@option{enable}|@option{disable})
 Set to @option{enable} to cause OpenOCD to program the flash memory when a
 vFlash packet is received.
 The default behaviour is @option{enable}.
 @end deffn
 
-@deffn {Config Command} gdb_memory_map (@option{enable}|@option{disable})
+@deffn {Config Command} {gdb_memory_map} (@option{enable}|@option{disable})
 Set to @option{enable} to cause OpenOCD to send the memory configuration to GDB when
 requested. GDB will then know when to set hardware breakpoints, and program flash
 using the GDB load command. @command{gdb_flash_program enable} must also be enabled
@@ -2201,21 +2201,21 @@ Default behaviour is @option{enable}.
 @xref{gdbflashprogram,,gdb_flash_program}.
 @end deffn
 
-@deffn {Config Command} gdb_report_data_abort (@option{enable}|@option{disable})
+@deffn {Config Command} {gdb_report_data_abort} (@option{enable}|@option{disable})
 Specifies whether data aborts cause an error to be reported
 by GDB memory read packets.
 The default behaviour is @option{disable};
 use @option{enable} see these errors reported.
 @end deffn
 
-@deffn {Config Command} gdb_report_register_access_error (@option{enable}|@option{disable})
+@deffn {Config Command} {gdb_report_register_access_error} (@option{enable}|@option{disable})
 Specifies whether register accesses requested by GDB register read/write
 packets report errors or not.
 The default behaviour is @option{disable};
 use @option{enable} see these errors reported.
 @end deffn
 
-@deffn {Config Command} gdb_target_description (@option{enable}|@option{disable})
+@deffn {Config Command} {gdb_target_description} (@option{enable}|@option{disable})
 Set to @option{enable} to cause OpenOCD to send the target descriptions to gdb via qXfer:features:read packet.
 The default behaviour is @option{enable}.
 @end deffn
@@ -2383,7 +2383,7 @@ Specifies either the address of the I/O port (default: 0x378 for LPT1) or
 the number of the @file{/dev/parport} device.
 @end deffn
 
-@deffn {Config Command} rtck [@option{enable}|@option{disable}]
+@deffn {Config Command} {rtck} [@option{enable}|@option{disable}]
 Displays status of RTCK option.
 Optionally sets that option first.
 @end deffn
@@ -3745,7 +3745,7 @@ schemes. For example, on a multi-target board the standard
 may need the ability to reset only one target at time and
 thus want to avoid using the board-wide SRST signal.
 
-@deffn {Overridable Procedure} init_reset mode
+@deffn {Overridable Procedure} {init_reset} mode
 This is invoked near the beginning of the @command{reset} command,
 usually to provide as much of a cold (power-up) reset as practical.
 By default it is also invoked from @command{jtag_init} if
@@ -5348,7 +5348,7 @@ As noted above, the @command{flash bank} command requires a driver name,
 and allows driver-specific options and behaviors.
 Some drivers also activate driver-specific commands.
 
-@deffn {Flash Driver} virtual
+@deffn {Flash Driver} {virtual}
 This is a special driver that maps a previously defined bank to another
 address. All bank settings will be copied from the master physical bank.
 
@@ -5372,7 +5372,7 @@ flash bank vbank1 virtual 0x9fc00000 0 0 0 \
 
 @subsection External Flash
 
-@deffn {Flash Driver} cfi
+@deffn {Flash Driver} {cfi}
 @cindex Common Flash Interface
 @cindex CFI
 The ``Common Flash Interface'' (CFI) is the main standard for
@@ -5417,7 +5417,7 @@ flash bank $_FLASHNAME cfi 0x00000000 0x02000000 2 4 $_TARGETNAME
 @c "cfi part_id" disabled
 @end deffn
 
-@deffn {Flash Driver} jtagspi
+@deffn {Flash Driver} {jtagspi}
 @cindex Generic JTAG2SPI driver
 @cindex SPI
 @cindex jtagspi
@@ -5458,7 +5458,7 @@ flash bank $_FLASHNAME spi 0x0 0 0 0 \
 @end example
 @end deffn
 
-@deffn {Flash Driver} xcf
+@deffn {Flash Driver} {xcf}
 @cindex Xilinx Platform flash driver
 @cindex xcf
 Xilinx FPGAs can be configured from specialized flash ICs named Platform Flash.
@@ -5504,7 +5504,7 @@ only "bin" (raw binary, do not confuse it with "bit") and "mcs"
 @end itemize
 @end deffn
 
-@deffn {Flash Driver} lpcspifi
+@deffn {Flash Driver} {lpcspifi}
 @cindex NXP SPI Flash Interface
 @cindex SPIFI
 @cindex lpcspifi
@@ -5528,7 +5528,7 @@ flash bank $_FLASHNAME lpcspifi 0x14000000 0 0 0 $_TARGETNAME
 
 @end deffn
 
-@deffn {Flash Driver} stmsmi
+@deffn {Flash Driver} {stmsmi}
 @cindex STMicroelectronics Serial Memory Interface
 @cindex SMI
 @cindex stmsmi
@@ -5556,7 +5556,7 @@ flash bank $_FLASHNAME stmsmi 0xf8000000 0 0 0 $_TARGETNAME
 
 @end deffn
 
-@deffn {Flash Driver} stmqspi
+@deffn {Flash Driver} {stmqspi}
 @cindex STMicroelectronics QuadSPI/OctoSPI Interface
 @cindex QuadSPI
 @cindex OctoSPI
@@ -5671,7 +5671,7 @@ should return the status register contents.
 
 @end deffn
 
-@deffn {Flash Driver} mrvlqspi
+@deffn {Flash Driver} {mrvlqspi}
 This driver supports QSPI flash controller of Marvell's Wireless
 Microcontroller platform.
 
@@ -5684,7 +5684,7 @@ flash bank $_FLASHNAME mrvlqspi 0x0 0 0 0 $_TARGETNAME 0x46010000
 
 @end deffn
 
-@deffn {Flash Driver} ath79
+@deffn {Flash Driver} {ath79}
 @cindex Atheros ath79 SPI driver
 @cindex ath79
 Members of ATH79 SoC family from Atheros include a SPI interface with 3
@@ -5723,7 +5723,7 @@ flash bank flash2 ath79 0x20000000 0 0 0 $_TARGETNAME cs2
 
 @end deffn
 
-@deffn {Flash Driver} fespi
+@deffn {Flash Driver} {fespi}
 @cindex Freedom E SPI
 @cindex fespi
 
@@ -5736,7 +5736,7 @@ flash bank $_FLASHNAME fespi 0x20000000 0 0 0 $_TARGETNAME
 
 @subsection Internal Flash (Microcontrollers)
 
-@deffn {Flash Driver} aduc702x
+@deffn {Flash Driver} {aduc702x}
 The ADUC702x analog microcontrollers from Analog Devices
 include internal flash and use ARM7TDMI cores.
 The aduc702x flash driver works with models ADUC7019 through ADUC7028.
@@ -5748,7 +5748,7 @@ flash bank $_FLASHNAME aduc702x 0 0 0 0 $_TARGETNAME
 @end example
 @end deffn
 
-@deffn {Flash Driver} ambiqmicro
+@deffn {Flash Driver} {ambiqmicro}
 @cindex ambiqmicro
 @cindex apollo
 All members of the Apollo microcontroller family from
@@ -5796,7 +5796,7 @@ the flash.
 @end deffn
 
 @anchor{at91samd}
-@deffn {Flash Driver} at91samd
+@deffn {Flash Driver} {at91samd}
 @cindex at91samd
 All members of the ATSAM D2x, D1x, D0x, ATSAMR, ATSAML and ATSAMC microcontroller
 families from Atmel include internal flash and use ARM's Cortex-M0+ core.
@@ -5885,7 +5885,7 @@ NVMUSERROW: 0xFFFFFC5DD8E0C788
 @end deffn
 
 @anchor{at91sam3}
-@deffn {Flash Driver} at91sam3
+@deffn {Flash Driver} {at91sam3}
 @cindex at91sam3
 All members of the AT91SAM3 microcontroller family from
 Atmel include internal flash and use ARM's Cortex-M3 core. The driver
@@ -5949,14 +5949,14 @@ This command shows/sets the slow clock frequency used in the
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} at91sam4
+@deffn {Flash Driver} {at91sam4}
 @cindex at91sam4
 All members of the AT91SAM4 microcontroller family from
 Atmel include internal flash and use ARM's Cortex-M4 core.
 This driver uses the same command names/syntax as @xref{at91sam3}.
 @end deffn
 
-@deffn {Flash Driver} at91sam4l
+@deffn {Flash Driver} {at91sam4l}
 @cindex at91sam4l
 All members of the AT91SAM4L microcontroller family from
 Atmel include internal flash and use ARM's Cortex-M4 core.
@@ -5971,7 +5971,7 @@ Command is used internally in event reset-deassert-post.
 @end deffn
 
 @anchor{atsame5}
-@deffn {Flash Driver} atsame5
+@deffn {Flash Driver} {atsame5}
 @cindex atsame5
 All members of the SAM E54, E53, E51 and D51 microcontroller
 families from Microchip (former Atmel) include internal flash
@@ -6034,14 +6034,14 @@ USER PAGE: 0xAEECFF80FE9A9239
 
 @end deffn
 
-@deffn {Flash Driver} atsamv
+@deffn {Flash Driver} {atsamv}
 @cindex atsamv
 All members of the ATSAMV7x, ATSAMS70, and ATSAME70 families from
 Atmel include internal flash and use ARM's Cortex-M7 core.
 This driver uses the same command names/syntax as @xref{at91sam3}.
 @end deffn
 
-@deffn {Flash Driver} at91sam7
+@deffn {Flash Driver} {at91sam7}
 All members of the AT91SAM7 microcontroller family from Atmel include
 internal flash and use ARM7TDMI cores. The driver automatically
 recognizes a number of these chips using the chip identification
@@ -6088,13 +6088,13 @@ the appropriate at91sam7 target.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} avr
+@deffn {Flash Driver} {avr}
 The AVR 8-bit microcontrollers from Atmel integrate flash memory.
 @emph{The current implementation is incomplete.}
 @comment - defines mass_erase ... pointless given flash_erase_address
 @end deffn
 
-@deffn {Flash Driver} bluenrg-x
+@deffn {Flash Driver} {bluenrg-x}
 STMicroelectronics BlueNRG-1, BlueNRG-2 and BlueNRG-LP Bluetooth low energy wireless system-on-chip. They include ARM Cortex-M0/M0+ core and internal flash memory.
 The driver automatically recognizes these chips using
 the chip identification registers, and autoconfigures itself.
@@ -6113,7 +6113,7 @@ flash erase_sector 0 0 last # It will perform a mass erase
 Triggering a mass erase is also useful when users want to disable readout protection.
 @end deffn
 
-@deffn {Flash Driver} cc26xx
+@deffn {Flash Driver} {cc26xx}
 All versions of the SimpleLink CC13xx and CC26xx microcontrollers from Texas
 Instruments include internal flash. The cc26xx flash driver supports both the
 CC13xx and CC26xx family of devices. The driver automatically recognizes the
@@ -6125,7 +6125,7 @@ flash bank $_FLASHNAME cc26xx 0 0 0 0 $_TARGETNAME
 @end example
 @end deffn
 
-@deffn {Flash Driver} cc3220sf
+@deffn {Flash Driver} {cc3220sf}
 The CC3220SF version of the SimpleLink CC32xx microcontrollers from Texas
 Instruments includes 1MB of internal flash. The cc3220sf flash driver only
 supports the internal flash. The serial flash on SimpleLink boards is
@@ -6139,7 +6139,7 @@ flash bank $_FLASHNAME cc3220sf 0 0 0 0 $_TARGETNAME
 @end example
 @end deffn
 
-@deffn {Flash Driver} efm32
+@deffn {Flash Driver} {efm32}
 All members of the EFM32 microcontroller family from Energy Micro include
 internal flash and use ARM Cortex-M3 cores. The driver automatically recognizes
 a number of these chips using the chip identification register, and
@@ -6159,7 +6159,7 @@ Note that in order for this command to take effect, the target needs to be reset
 supported.}
 @end deffn
 
-@deffn {Flash Driver} esirisc
+@deffn {Flash Driver} {esirisc}
 Members of the eSi-RISC family may optionally include internal flash programmed
 via the eSi-TSMC Flash interface. Additional parameters are required to
 configure the driver: @option{cfg_address} is the base address of the
@@ -6181,7 +6181,7 @@ is an uncommon operation.}
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} fm3
+@deffn {Flash Driver} {fm3}
 All members of the FM3 microcontroller family from Fujitsu
 include internal flash and use ARM Cortex-M3 cores.
 The @var{fm3} driver uses the @var{target} parameter to select the
@@ -6194,7 +6194,7 @@ flash bank $_FLASHNAME fm3 0 0 0 0 $_TARGETNAME
 @end example
 @end deffn
 
-@deffn {Flash Driver} fm4
+@deffn {Flash Driver} {fm4}
 All members of the FM4 microcontroller family from Spansion (formerly Fujitsu)
 include internal flash and use ARM Cortex-M4 cores.
 The @var{fm4} driver uses a @var{family} parameter to select the
@@ -6214,7 +6214,7 @@ flash bank $@{_FLASHNAME@}1 fm4 0x00100000 0 0 0 \
 nor is Chip Erase (only Sector Erase is implemented).}
 @end deffn
 
-@deffn {Flash Driver} kinetis
+@deffn {Flash Driver} {kinetis}
 @cindex kinetis
 Kx, KLx, KVx and KE1x members of the Kinetis microcontroller family
 from NXP (former Freescale) include
@@ -6313,7 +6313,7 @@ Command disables watchdog timer.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} kinetis_ke
+@deffn {Flash Driver} {kinetis_ke}
 @cindex kinetis_ke
 KE0x and KEAx members of the Kinetis microcontroller family from NXP include
 internal flash and use ARM Cortex-M0+. The driver automatically recognizes
@@ -6341,7 +6341,7 @@ Command disables watchdog timer.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} lpc2000
+@deffn {Flash Driver} {lpc2000}
 This is the driver to support internal flash of all members of the
 LPC11(x)00 and LPC1300 microcontroller families and most members of
 the LPC800, LPC1500, LPC1700, LPC1800, LPC2000, LPC4000, LPC54100,
@@ -6398,7 +6398,7 @@ the specified flash @var{bank}.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} lpc288x
+@deffn {Flash Driver} {lpc288x}
 The LPC2888 microcontroller from NXP needs slightly different flash
 support from its lpc2000 siblings.
 The @var{lpc288x} driver defines one mandatory parameter,
@@ -6410,7 +6410,7 @@ flash bank $_FLASHNAME lpc288x 0 0 0 0 $_TARGETNAME 12000000
 @end example
 @end deffn
 
-@deffn {Flash Driver} lpc2900
+@deffn {Flash Driver} {lpc2900}
 This driver supports the LPC29xx ARM968E based microcontroller family
 from NXP.
 
@@ -6533,7 +6533,7 @@ lpc2900 secure_jtag 0
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} mdr
+@deffn {Flash Driver} {mdr}
 This drivers handles the integrated NOR flash on Milandr Cortex-M
 based controllers. A known limitation is that the Info memory can't be
 read or verified as it's not memory mapped.
@@ -6561,7 +6561,7 @@ if @{ [info exists IMEMORY] && [string equal $IMEMORY true] @} @{
 @end example
 @end deffn
 
-@deffn {Flash Driver} msp432
+@deffn {Flash Driver} {msp432}
 All versions of the SimpleLink MSP432 microcontrollers from Texas
 Instruments include internal flash. The msp432 flash driver automatically
 recognizes the specific version's flash parameters and autoconfigures itself.
@@ -6596,7 +6596,7 @@ msp432 bsl lock
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} niietcm4
+@deffn {Flash Driver} {niietcm4}
 This drivers handles the integrated NOR flash on NIIET Cortex-M4
 based controllers. Flash size and sector layout are auto-configured by the driver.
 Main flash memory is called "Bootflash" and has main region and info region.
@@ -6656,7 +6656,7 @@ Show information about flash driver.
 
 @end deffn
 
-@deffn {Flash Driver} nrf5
+@deffn {Flash Driver} {nrf5}
 All members of the nRF51 microcontroller families from Nordic Semiconductor
 include internal flash and use ARM Cortex-M0 core.
 Also, the nRF52832 microcontroller from Nordic Semiconductor, which include
@@ -6681,7 +6681,7 @@ Decodes and shows information from FICR and UICR registers.
 
 @end deffn
 
-@deffn {Flash Driver} ocl
+@deffn {Flash Driver} {ocl}
 This driver is an implementation of the ``on chip flash loader''
 protocol proposed by Pavel Chromy.
 
@@ -6695,7 +6695,7 @@ flash bank $_FLASHNAME ocl 0 0 0 0 $_TARGETNAME
 @end example
 @end deffn
 
-@deffn {Flash Driver} pic32mx
+@deffn {Flash Driver} {pic32mx}
 The PIC32MX microcontrollers are based on the MIPS 4K cores,
 and integrate flash memory.
 
@@ -6719,7 +6719,7 @@ This will remove any Code Protection.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} psoc4
+@deffn {Flash Driver} {psoc4}
 All members of the PSoC 41xx/42xx microcontroller family from Cypress
 include internal flash and use ARM Cortex-M0 cores.
 The driver automatically recognizes a number of these chips using
@@ -6753,7 +6753,7 @@ The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} psoc5lp
+@deffn {Flash Driver} {psoc5lp}
 All members of the PSoC 5LP microcontroller family from Cypress
 include internal program flash and use ARM Cortex-M3 cores.
 The driver probes for a number of these chips and autoconfigures itself,
@@ -6779,7 +6779,7 @@ and all row latches in all flash arrays on the device.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} psoc5lp_eeprom
+@deffn {Flash Driver} {psoc5lp_eeprom}
 All members of the PSoC 5LP microcontroller family from Cypress
 include internal EEPROM and use ARM Cortex-M3 cores.
 The driver probes for a number of these chips and autoconfigures itself,
@@ -6791,7 +6791,7 @@ flash bank $_CHIPNAME.eeprom psoc5lp_eeprom 0x40008000 0 0 0 \
 @end example
 @end deffn
 
-@deffn {Flash Driver} psoc5lp_nvl
+@deffn {Flash Driver} {psoc5lp_nvl}
 All members of the PSoC 5LP microcontroller family from Cypress
 include internal Nonvolatile Latches and use ARM Cortex-M3 cores.
 The driver probes for a number of these chips and autoconfigures itself.
@@ -6816,7 +6816,7 @@ after successful write.
 @end quotation
 @end deffn
 
-@deffn {Flash Driver} psoc6
+@deffn {Flash Driver} {psoc6}
 Supports PSoC6 (CY8C6xxx) family of Cypress microcontrollers.
 PSoC6 is a dual-core device with CM0+ and CM4 cores. Both cores share
 the same Flash/RAM/MMIO address space.
@@ -6884,7 +6884,7 @@ Note: only Main and Work flash regions support Erase operation.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} sim3x
+@deffn {Flash Driver} {sim3x}
 All members of the SiM3 microcontroller family from Silicon Laboratories
 include internal flash and use ARM Cortex-M3 cores. It supports both JTAG
 and SWD interface.
@@ -6907,7 +6907,7 @@ Lock the flash. To unlock use the @command{sim3x mass_erase} command.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} stellaris
+@deffn {Flash Driver} {stellaris}
 All members of the Stellaris LM3Sxxx, LM4x and Tiva C microcontroller
 families from Texas Instruments include internal flash. The driver
 automatically recognizes a number of these chips using the chip
@@ -6933,7 +6933,7 @@ applied to all of them.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} stm32f1x
+@deffn {Flash Driver} {stm32f1x}
 All members of the STM32F0, STM32F1 and STM32F3 microcontroller families
 from STMicroelectronics include internal flash and use ARM Cortex-M0/M3/M4 cores.
 The driver automatically recognizes a number of these chips using
@@ -6995,7 +6995,7 @@ The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} stm32f2x
+@deffn {Flash Driver} {stm32f2x}
 All members of the STM32F2, STM32F4 and STM32F7 microcontroller families from STMicroelectronics
 include internal flash and use ARM Cortex-M3/M4/M7 cores.
 The driver automatically recognizes a number of these chips using
@@ -7060,7 +7060,7 @@ The @var{num} parameter is a value shown by @command{flash banks}, @var{optcr2} 
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} stm32h7x
+@deffn {Flash Driver} {stm32h7x}
 All members of the STM32H7 microcontroller families from STMicroelectronics
 include internal flash and use ARM Cortex-M7 core.
 The driver automatically recognizes a number of these chips using
@@ -7128,7 +7128,7 @@ stm32h7x option_write 0 0x20 0x8000000 0x8000000
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} stm32lx
+@deffn {Flash Driver} {stm32lx}
 All members of the STM32L0 and STM32L1 microcontroller families from STMicroelectronics
 include internal flash and use ARM Cortex-M3 and Cortex-M0+ cores.
 The driver automatically recognizes a number of these chips using
@@ -7168,7 +7168,7 @@ The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} stm32l4x
+@deffn {Flash Driver} {stm32l4x}
 All members of the STM32 G0, G4, L4, L4+, L5, WB and WL
 microcontroller families from STMicroelectronics include internal flash
 and use ARM Cortex-M0+, M4 and M33 cores.
@@ -7269,7 +7269,7 @@ The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} str7x
+@deffn {Flash Driver} {str7x}
 All members of the STR7 microcontroller family from STMicroelectronics
 include internal flash and use ARM7TDMI cores.
 The @var{str7x} driver defines one mandatory parameter, @var{variant},
@@ -7286,7 +7286,7 @@ for the specified flash bank.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} str9x
+@deffn {Flash Driver} {str9x}
 Most members of the STR9 microcontroller family from STMicroelectronics
 include internal flash and use ARM966E cores.
 The str9 needs the flash controller to be configured using
@@ -7311,7 +7311,7 @@ The @var{num} parameter is a value shown by @command{flash banks}.
 
 @end deffn
 
-@deffn {Flash Driver} str9xpec
+@deffn {Flash Driver} {str9xpec}
 @cindex str9xpec
 
 Only use this driver for locking/unlocking the device or configuring the option bytes.
@@ -7406,7 +7406,7 @@ unlock str9 device.
 
 @end deffn
 
-@deffn {Flash Driver} swm050
+@deffn {Flash Driver} {swm050}
 @cindex swm050
 All members of the swm050 microcontroller family from Foshan Synwit Tech.
 
@@ -7423,7 +7423,7 @@ Erases the entire flash bank.
 @end deffn
 
 
-@deffn {Flash Driver} tms470
+@deffn {Flash Driver} {tms470}
 Most members of the TMS470 microcontroller family from Texas Instruments
 include internal flash and use ARM7TDMI cores.
 This driver doesn't require the chip and bus width to be specified.
@@ -7444,7 +7444,7 @@ the flash clock.
 @end deffn
 @end deffn
 
-@deffn {Flash Driver} w600
+@deffn {Flash Driver} {w600}
 W60x series Wi-Fi SoC from WinnerMicro
 are designed with ARM Cortex-M3 and have 1M Byte QFLASH inside.
 The @var{w600} driver uses the @var{target} parameter to select the
@@ -7455,12 +7455,12 @@ flash bank $_FLASHNAME w600 0x08000000 0 0 0 $_TARGETNAMEs
 @end example
 @end deffn
 
-@deffn {Flash Driver} xmc1xxx
+@deffn {Flash Driver} {xmc1xxx}
 All members of the XMC1xxx microcontroller family from Infineon.
 This driver does not require the chip and bus width to be specified.
 @end deffn
 
-@deffn {Flash Driver} xmc4xxx
+@deffn {Flash Driver} {xmc4xxx}
 All members of the XMC4xxx microcontroller family from Infineon.
 This driver does not require the chip and bus width to be specified.
 
@@ -7788,7 +7788,7 @@ As noted above, the @command{nand device} command allows
 driver-specific options and behaviors.
 Some controllers also activate controller-specific commands.
 
-@deffn {NAND Driver} at91sam9
+@deffn {NAND Driver} {at91sam9}
 This driver handles the NAND controllers found on AT91SAM9 family chips from
 Atmel. It takes two extra parameters: address of the NAND chip;
 address of the ECC controller.
@@ -7823,7 +7823,7 @@ is the base address of the PIO controller and @var{pin} is the pin number.
 @end deffn
 @end deffn
 
-@deffn {NAND Driver} davinci
+@deffn {NAND Driver} {davinci}
 This driver handles the NAND controllers found on DaVinci family
 chips from Texas Instruments.
 It takes three extra parameters:
@@ -7841,7 +7841,7 @@ to implement those ECC modes, unless they are disabled using
 the @command{nand raw_access} command.
 @end deffn
 
-@deffn {NAND Driver} lpc3180
+@deffn {NAND Driver} {lpc3180}
 These controllers require an extra @command{nand device}
 parameter: the clock rate used by the controller.
 @deffn {Command} {lpc3180 select} num [mlc|slc]
@@ -7857,12 +7857,12 @@ in the MLC controller mode, but won't change SLC behavior.
 @end deffn
 @comment current lpc3180 code won't issue 5-byte address cycles
 
-@deffn {NAND Driver} mx3
+@deffn {NAND Driver} {mx3}
 This driver handles the NAND controller in i.MX31. The mxc driver
 should work for this chip as well.
 @end deffn
 
-@deffn {NAND Driver} mxc
+@deffn {NAND Driver} {mxc}
 This driver handles the NAND controller found in Freescale i.MX
 chips. It has support for v1 (i.MX27 and i.MX31) and v2 (i.MX35).
 The driver takes 3 extra arguments, chip (@option{mx27},
@@ -7878,7 +7878,7 @@ without parameter query status.
 @end deffn
 @end deffn
 
-@deffn {NAND Driver} orion
+@deffn {NAND Driver} {orion}
 These controllers require an extra @command{nand device}
 parameter: the address of the controller.
 @example
@@ -7890,11 +7890,11 @@ or @code{read_page} methods, so @command{nand raw_access} won't
 change any behavior.
 @end deffn
 
-@deffn {NAND Driver} s3c2410
-@deffnx {NAND Driver} s3c2412
-@deffnx {NAND Driver} s3c2440
-@deffnx {NAND Driver} s3c2443
-@deffnx {NAND Driver} s3c6400
+@deffn {NAND Driver} {s3c2410}
+@deffnx {NAND Driver} {s3c2412}
+@deffnx {NAND Driver} {s3c2440}
+@deffnx {NAND Driver} {s3c2443}
+@deffnx {NAND Driver} {s3c6400}
 These S3C family controllers don't have any special
 @command{nand device} options, and don't define any
 specialized commands.
@@ -7981,7 +7981,7 @@ Drivers may support PLD-specific options to the @command{pld device}
 definition command, and may also define commands usable only with
 that particular type of PLD.
 
-@deffn {FPGA Driver} virtex2 [no_jstart]
+@deffn {FPGA Driver} {virtex2} [no_jstart]
 Virtex-II is a family of FPGAs sold by Xilinx.
 It supports the IEEE 1532 standard for In-System Configuration (ISC).
 
@@ -8750,7 +8750,7 @@ Stops trace data collection.
 
 To use an ETM trace port it must be associated with a driver.
 
-@deffn {Trace Port Driver} dummy
+@deffn {Trace Port Driver} {dummy}
 Use the @option{dummy} driver if you are configuring an ETM that's
 not connected to anything (on-chip ETB or off-chip trace connector).
 @emph{This driver lets OpenOCD talk to the ETM, but it does not expose
@@ -8760,7 +8760,7 @@ Associates the ETM for @var{target} with a dummy driver.
 @end deffn
 @end deffn
 
-@deffn {Trace Port Driver} etb
+@deffn {Trace Port Driver} {etb}
 Use the @option{etb} driver if you are configuring an ETM
 to use on-chip ETB memory.
 @deffn {Config Command} {etb config} target etb_tap
