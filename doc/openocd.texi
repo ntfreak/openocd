@@ -588,6 +588,12 @@ produced, PDF schematics are easily found and it is easy to make.
 @* A JTAG driver acting as a client for the JTAG VPI server interface.
 @* Link: @url{http://github.com/fjullien/jtag_vpi}
 
+@item @b{vdebug}
+@* A driver for Cadence virtual Debug Interface to emulated or simulated targets.
+It implements a client connecting to the vdebug server, which in turn communicates
+with the emulated or simulated RTL model through a transactor. The current version
+supports only JTAG as a transport, but other virtual transports, like DAP are planned.
+
 @item @b{jtag_dpi}
 @* A JTAG driver acting as a client for the SystemVerilog Direct Programming
 Interface (DPI) for JTAG devices. DPI allows OpenOCD to connect to the JTAG
@@ -3248,6 +3254,46 @@ This value is only used with the standard variant.
 @end deffn
 @end deffn
 
+
+@deffn {Interface Driver} {vdebug}
+Cadence Virtual Debug Interface driver.
+
+@deffn {Config Command} {vdebug_server} host:port
+Specifies the host and TCP port number where the vdebug server runs.
+@end deffn
+
+@deffn {Config Command} {vdebug_batching} value
+Specifies the batching method for the vdebug request. Possible values are
+0 for no batching
+1 or wr to batch write transactions together (default)
+2 or rw to batch both read and write transactions
+@end deffn
+
+@deffn {Config Command} {vdebug_bfm_path} path clk_period
+Specifies the hierarchical path and input clk period of the vdebug BFM in the design.
+The hierarchical path uses Verilog notation top.inst.inst
+The clock period must include the unit, for instance 40ns.
+@end deffn
+
+@deffn {Config Command} {vdebug_mem_path} path base size
+Specifies the hierarchical path to the design memory instance for backdoor access.
+Up to 4 memories can be specified. The hierarchical path uses Verilog notation.
+The base specifies start address in the design address space, size its size in bytes.
+Both values can use hexadecimal notation with prefix 0x.
+@end deffn
+
+@deffn {Config Command} {vdebug_register_poll} poll_min poll_max
+Takes two values, the first is used when any core is stopped, the other when running.
+Both represent the duration of wait in target clock cycles, lower values mean faster
+debugger responsiveness, but lower emulation performance. Few thousands are good for
+simulated target, hundred thousands are for emulation. They should be adjusted such
+that poll completes in ~100ms when stopped and <1s when running
+@end deffn
+
+@deffn {Config Command} {vdebug_register_dma}
+Activates the backdoor memory access for memories specified with vdebug_mem_path
+@end deffn
+@end deffn
 
 @deffn {Interface Driver} {jtag_dpi}
 SystemVerilog Direct Programming Interface (DPI) compatible driver for
