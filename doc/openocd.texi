@@ -4021,6 +4021,18 @@ there seems to be no problems with JTAG scan chain operations.
 register during initial examination and when checking the sticky error bit.
 This bit is normally checked after setting the CSYSPWRUPREQ bit, but some
 devices do not set the ack bit until sometime later.
+@item @code{-dp-id} @var{number}
+@*Debug port identification number for SWD DPv2 multidrop.
+The @var{number} is written to bits 0..27 of DP TARGETSEL during DP selection.
+To find the id number of a single connected device read DP TARGETID:
+@code{device.dap dpreg 0x24}
+Use bits 0..27 of TARGETID.
+@item @code{-instance-id} @var{number}
+@*Instance identification number for SWD DPv2 multidrop.
+The @var{number} is written to bits 28..31 of DP TARGETSEL during DP selection.
+To find the instance number of a single connected device read DP DLPIDR:
+@code{device.dap dpreg 0x34}
+The instance number is in bits 28..31 of DLPIDR value.
 @end itemize
 @end deffn
 

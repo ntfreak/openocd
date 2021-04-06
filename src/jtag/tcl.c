@@ -475,6 +475,9 @@ static int jim_newtap_expected_id(Jim_Nvp *n, Jim_GetOptInfo *goi,
 #define NTAP_OPT_DISABLED  4
 #define NTAP_OPT_EXPECTED_ID 5
 #define NTAP_OPT_VERSION   6
+#define NTAP_OPT_DP_ID 7
+#define NTAP_OPT_INSTANCE_ID 8
+
 
 static int jim_newtap_ir_param(Jim_Nvp *n, Jim_GetOptInfo *goi,
 	struct jtag_tap *pTap)
@@ -522,6 +525,38 @@ static int jim_newtap_ir_param(Jim_Nvp *n, Jim_GetOptInfo *goi,
 	return JIM_OK;
 }
 
+static int jim_newtap_md_param(Jim_Nvp *n, Jim_GetOptInfo *goi, struct jtag_tap *pTap)
+{
+	jim_wide w;
+	int e = Jim_GetOpt_Wide(goi, &w);
+	if (e != JIM_OK) {
+		Jim_SetResultFormatted(goi->interp,
+				"option: %s bad parameter", n->name);
+		return e;
+	}
+	switch (n->value) {
+		case NTAP_OPT_INSTANCE_ID:
+			if (w < 0 || w > 15) {
+				LOG_ERROR("%s: invalid multidrop instance-id %d",
+						pTap->dotted_name, (int) w);
+				return JIM_ERR;
+			}
+			pTap->multidrop_targetsel = (pTap->multidrop_targetsel & DP_TARGETSEL_DPID_MASK) |
+					(w << DP_TARGETSEL_INSTANCEID_SHIFT);
+			break;
+		case NTAP_OPT_DP_ID:
+			if (w < 0 || w > DP_TARGETSEL_DPID_MASK) {
+				LOG_ERROR("%s: invalid multidrop target-id %d",
+						pTap->dotted_name, (int) w);
+			}
+			pTap->multidrop_targetsel = (pTap->multidrop_targetsel & DP_TARGETSEL_INSTANCEID_MASK) | w;
+			break;
+		default:
+			return JIM_ERR;
+	}
+	return JIM_OK;
+}
+
 static int jim_newtap_cmd(Jim_GetOptInfo *goi)
 {
 	struct jtag_tap *pTap;
@@ -537,6 +572,8 @@ static int jim_newtap_cmd(Jim_GetOptInfo *goi)
 		{ .name = "-disable",       .value = NTAP_OPT_DISABLED },
 		{ .name = "-expected-id",       .value = NTAP_OPT_EXPECTED_ID },
 		{ .name = "-ignore-version",       .value = NTAP_OPT_VERSION },
+		{ .name = "-dp-id",       .value = NTAP_OPT_DP_ID },
+		{ .name = "-instance-id",       .value = NTAP_OPT_INSTANCE_ID },
 		{ .name = NULL,       .value = -1 },
 	};
 
@@ -567,16 +604,13 @@ static int jim_newtap_cmd(Jim_GetOptInfo *goi)
 	cp = malloc(x);
 	sprintf(cp, "%s.%s", pTap->chip, pTap->tapname);
 	pTap->dotted_name = cp;
+	pTap->multidrop_targetsel = DP_TARGETSEL_INVALID;
 
 	LOG_DEBUG("Creating New Tap, Chip: %s, Tap: %s, Dotted: %s, %d params",
 		pTap->chip, pTap->tapname, pTap->dotted_name, goi->argc);
 
-	if (!transport_is_jtag()) {
-		/* SWD doesn't require any JTAG tap parameters */
-		pTap->enabled = true;
-		jtag_tap_init(pTap);
-		return JIM_OK;
-	}
+	bool target_id_specified = false;
+	bool instance_id_specified = false;
 
 	/* IEEE specifies that the two LSBs of an IR scan are 01, so make
 	 * that the default.  The "-ircapture" and "-irmask" options are only
@@ -622,8 +656,29 @@ static int jim_newtap_cmd(Jim_GetOptInfo *goi)
 		    case NTAP_OPT_VERSION:
 			    pTap->ignore_version = true;
 			    break;
+			case NTAP_OPT_DP_ID:
+				target_id_specified = true;
+				e = jim_newtap_md_param(n, goi, pTap);
+				break;
+			case NTAP_OPT_INSTANCE_ID:
+				instance_id_specified = true;
+				e = jim_newtap_md_param(n, goi, pTap);
+				break;
 		}	/* switch (n->value) */
 	}	/* while (goi->argc) */
+
+	if (instance_id_specified && !target_id_specified) {
+		LOG_ERROR("%s: If -instance-id is set -dp-id must be specified", pTap->dotted_name);
+		free(cp);
+		free(pTap);
+		return JIM_ERR;
+	}
+
+	if (!transport_is_jtag()) {
+		pTap->enabled = true;
+		jtag_tap_init(pTap);
+		return JIM_OK;
+	}
 
 	/* default is enabled-after-reset */
 	pTap->enabled = !pTap->disabled_after_reset;
