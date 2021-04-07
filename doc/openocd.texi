@@ -2517,19 +2517,6 @@ If not specified, serial numbers are not considered.
 and are not restricted to containing only decimal digits.)
 @end deffn
 
-@deffn {Config Command} {ftdi_location} <bus>-<port>[.<port>]...
-@emph{DEPRECATED -- avoid using this.
-Use the command @ref{adapter_usb_location,,adapter usb location} instead.}
-
-Specifies the physical USB port of the adapter to use. The path
-roots at @var{bus} and walks down the physical ports, with each
-@var{port} option specifying a deeper level in the bus topology, the last
-@var{port} denoting where the target adapter is actually plugged.
-The USB bus topology can be queried with the command @emph{lsusb -t}.
-
-This command is only available if your libusb1 is at least version 1.0.16.
-@end deffn
-
 @deffn {Config Command} {ftdi_channel} channel
 Selects the channel of the FTDI device to use for MPSSE operations. Most
 adapters use the default, channel 0, but there are exceptions.
