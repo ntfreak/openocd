@@ -964,7 +964,7 @@ static const struct command_registration ftdi_command_handlers[] = {
 	{
 		.name = "ftdi_layout_signal",
 		.handler = &ftdi_handle_layout_signal_command,
-		.mode = COMMAND_ANY,
+		.mode = COMMAND_CONFIG,
 		.help = "define a signal controlled by one or more FTDI GPIO as data "
 			"and/or output enable",
 		.usage = "name [-data mask|-ndata mask] [-oe mask|-noe mask] [-alias|-nalias name]",
