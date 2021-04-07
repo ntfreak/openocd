@@ -2115,7 +2115,7 @@ If you disable all access through TCP/IP, you will need to
 use the command line @option{-pipe} option.
 
 @anchor{gdb_port}
-@deffn {Command} {gdb_port} [number]
+@deffn {Config Command} {gdb_port} [number]
 @cindex GDB server
 Normally gdb listens to a TCP/IP port, but GDB can also
 communicate via pipes(stdin/out or named pipes). The name
@@ -2148,7 +2148,7 @@ gdb (with 'set remotetimeout') is recommended. An insufficient timeout may
 cause initialization to fail with "Unknown remote qXfer reply: OK".
 @end deffn
 
-@deffn {Command} {tcl_port} [number]
+@deffn {Config Command} {tcl_port} [number]
 Specify or query the port used for a simplified RPC
 connection that can be used by clients to issue TCL commands and get the
 output from the Tcl engine.
@@ -2158,7 +2158,7 @@ the port @var{number} defaults to 6666.
 When specified as "disabled", this service is not activated.
 @end deffn
 
-@deffn {Command} {telnet_port} [number]
+@deffn {Config Command} {telnet_port} [number]
 Specify or query the
 port on which to listen for incoming telnet connections.
 This port is intended for interaction with one human through TCL commands.
@@ -2343,7 +2343,7 @@ target.
 List the debug adapter drivers that have been built into
 the running copy of OpenOCD.
 @end deffn
-@deffn {Command} {adapter transports} transport_name+
+@deffn {Config Command} {adapter transports} transport_name+
 Specifies the transports supported by this debug adapter.
 The adapter driver builds-in similar knowledge; use this only
 when external configuration (such as jumpering) changes what
@@ -2357,7 +2357,7 @@ Returns the name of the debug adapter driver being used.
 @end deffn
 
 @anchor{adapter_usb_location}
-@deffn {Command} {adapter usb location} [<bus>-<port>[.<port>]...]
+@deffn {Config Command} {adapter usb location} [<bus>-<port>[.<port>]...]
 Displays or specifies the physical USB port of the adapter to use. The path
 roots at @var{bus} and walks down the physical ports, with each
 @var{port} option specifying a deeper level in the bus topology, the last
@@ -2775,13 +2775,13 @@ reset_config srst_only
 @end example
 @end deffn
 
-@deffn {Command} {usb_blaster_lowlevel_driver} (@option{ftdi}|@option{ublast2})
+@deffn {Config Command} {usb_blaster_lowlevel_driver} (@option{ftdi}|@option{ublast2})
 Chooses the low level access method for the adapter. If not specified,
 @option{ftdi} is selected unless it wasn't enabled during the
 configure stage. USB-Blaster II needs @option{ublast2}.
 @end deffn
 
-@deffn {Command} {usb_blaster_firmware} @var{path}
+@deffn {Config Command} {usb_blaster_firmware} @var{path}
 This command specifies @var{path} to access USB-Blaster II firmware
 image. To be used with USB-Blaster II only.
 @end deffn
@@ -2873,7 +2873,7 @@ The following example shows how to read 4 bytes from the EMUCOM channel 0x0:
 77a90000
 @end example
 @end deffn
-@deffn {Config} {jlink usb} <@option{0} to @option{3}>
+@deffn {Config Command} {jlink usb} <@option{0} to @option{3}>
 Set the USB address of the interface, in case more than one adapter is connected
 to the host. If not specified, USB addresses are not considered. Device
 selection via USB address is not always unambiguous. It is recommended to use
@@ -2881,7 +2881,7 @@ the serial number instead, if possible.
 
 As a configuration command, it can be used only before 'init'.
 @end deffn
-@deffn {Config} {jlink serial} <serial number>
+@deffn {Config Command} {jlink serial} <serial number>
 Set the serial number of the interface, in case more than one adapter is
 connected to the host. If not specified, serial numbers are not considered.
 
@@ -2992,7 +2992,7 @@ When using PPDEV to access the parallel port, use the number of the parallel por
 you may encounter a problem.
 @end deffn
 
-@deffn {Command} {parport_toggling_time} [nanoseconds]
+@deffn {Config Command} {parport_toggling_time} [nanoseconds]
 Displays how many nanoseconds the hardware needs to toggle TCK;
 the parport driver uses this value to obey the
 @command{adapter speed} configuration.
@@ -3335,7 +3335,7 @@ driver} (in which case the command is @command{transport select hla_swd})
 or @ref{st_link_dap_interface,the st-link interface driver} (in which case
 the command is @command{transport select dapdirect_swd}).
 
-@deffn {Command} {swd newdap} ...
+@deffn {Config Command} {swd newdap} ...
 Declares a single DAP which uses SWD transport.
 Parameters are currently the same as "jtag newtap" but this is
 expected to change.
@@ -3933,8 +3933,7 @@ and underscores are OK; while others (including dots!) are not.
 
 @section TAP Declaration Commands
 
-@c shouldn't this be(come) a {Config Command}?
-@deffn {Command} {jtag newtap} chipname tapname configparams...
+@deffn {Config Command} {jtag newtap} chipname tapname configparams...
 Declares a new TAP with the dotted name @var{chipname}.@var{tapname},
 and configured according to the various @var{configparams}.
 
@@ -4381,7 +4380,7 @@ xxx.dap apcsw default
 @end example
 @end deffn
 
-@deffn {Command} {$dap_name ti_be_32_quirks} [@option{enable}]
+@deffn {Config Command} {$dap_name ti_be_32_quirks} [@option{enable}]
 Set/get quirks mode for TI TMS450/TMS570 processors
 Disabled by default
 @end deffn
@@ -4606,7 +4605,7 @@ That may be needed to let you write the boot loader into flash,
 in order to ``de-brick'' your board; or to load programs into
 external DDR memory without having run the boot loader.
 
-@deffn {Command} {target create} target_name type configparams...
+@deffn {Config Command} {target create} target_name type configparams...
 This command creates a GDB debug target that refers to a specific JTAG tap.
 It enters that target into a list, and creates a new
 command (@command{@var{target_name}}) which is used for various
@@ -6232,7 +6231,7 @@ The @var{kinetis} driver defines option:
 flash bank $_FLASHNAME kinetis 0 0 0 0 $_TARGETNAME
 @end example
 
-@deffn {Command} {kinetis create_banks}
+@deffn {Config Command} {kinetis create_banks}
 Configuration command enables automatic creation of additional flash banks
 based on real flash layout of device. Banks are created during device probe.
 Use 'flash probe 0' to force probe.
@@ -7800,23 +7799,23 @@ AT91SAM9 chips support single-bit ECC hardware. The @code{write_page} and
 disabled by using the @command{nand raw_access} command. There are four
 additional commands that are needed to fully configure the AT91SAM9 NAND
 controller. Two are optional; most boards use the same wiring for ALE/CLE:
-@deffn {Command} {at91sam9 cle} num addr_line
+@deffn {Config Command} {at91sam9 cle} num addr_line
 Configure the address line used for latching commands. The @var{num}
 parameter is the value shown by @command{nand list}.
 @end deffn
-@deffn {Command} {at91sam9 ale} num addr_line
+@deffn {Config Command} {at91sam9 ale} num addr_line
 Configure the address line used for latching addresses. The @var{num}
 parameter is the value shown by @command{nand list}.
 @end deffn
 
 For the next two commands, it is assumed that the pins have already been
 properly configured for input or output.
-@deffn {Command} {at91sam9 rdy_busy} num pio_base_addr pin
+@deffn {Config Command} {at91sam9 rdy_busy} num pio_base_addr pin
 Configure the RDY/nBUSY input from the NAND device. The @var{num}
 parameter is the value shown by @command{nand list}. @var{pio_base_addr}
 is the base address of the PIO controller and @var{pin} is the pin number.
 @end deffn
-@deffn {Command} {at91sam9 ce} num pio_base_addr pin
+@deffn {Config Command} {at91sam9 ce} num pio_base_addr pin
 Configure the chip enable input to the NAND device. The @var{num}
 parameter is the value shown by @command{nand list}. @var{pio_base_addr}
 is the base address of the PIO controller and @var{pin} is the pin number.
@@ -8103,7 +8102,7 @@ the default log output channel is stderr.
 Add @var{directory} to the file/script search path.
 @end deffn
 
-@deffn {Command} {bindto} [@var{name}]
+@deffn {Config Command} {bindto} [@var{name}]
 Specify hostname or IPv4 address on which to listen for incoming
 TCP/IP connections. By default, OpenOCD will listen on the loopback
 interface only. If your network environment is safe, @code{bindto
