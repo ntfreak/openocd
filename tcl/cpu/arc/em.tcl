@@ -27,6 +27,6 @@ proc arc_em_reset { {target ""} } {
 	# This is specific to ARC EM.
 	set debug [arc jtag get-aux-reg 5]
 	if { !($debug & (1 << 20)) } {
-		arc jtag set-aux-reg 5 [expr $debug | (1 << 20)]
+		arc jtag set-aux-reg 5 [expr {$debug | (1 << 20)}]
 	}
 }

@@ -48,7 +48,7 @@ proc arc_hs_reset { {target ""} } {
 			$target arc jtag set-aux-reg 0x904 1
 			set l2_ctrl [$target arc jtag get-aux-reg 0x903]
 			set l2_ctrl [$target arc jtag get-aux-reg 0x903]
-			while { [expr $l2_ctrl & 0x100] != 0 } {
+			while { [expr {$l2_ctrl & 0x100}] != 0 } {
 				set l2_ctrl [$target arc jtag get-aux-reg 0x903]
 			}
 		}

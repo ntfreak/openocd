@@ -111,23 +111,23 @@ proc setupGPIO {} {
     set GPIO_OE_REG		    [regs GPIO_OE_REG]
 
     # set GPIO29=GPIO17=1, GPIO5=0
-    mww $GPIO_OUTPUT_REG [expr 1<<29 | 1<<17]
+    mww $GPIO_OUTPUT_REG [expr {1<<29 | 1<<17}]
     # enable [as output] GPIO29,GPIO17,GPIO5
-    mww $GPIO_OE_REG [expr  1<<29 | 1<<17 | 1<<5]
+    mww $GPIO_OE_REG [expr  {1<<29 | 1<<17 | 1<<5}]
 }
 
 proc highGPIO5 {} {
     echo "GPIO5 high"
     set GPIO_OUTPUT_REG		    [regs GPIO_OUTPUT_REG]
     # set GPIO5=1
-    mmw $GPIO_OUTPUT_REG [expr 1 << 5] 0x0
+    mmw $GPIO_OUTPUT_REG [expr {1 << 5}] 0x0
 }
 
 proc lowGPIO5 {} {
     echo "GPIO5 low"
     set GPIO_OUTPUT_REG		    [regs GPIO_OUTPUT_REG]
     # set GPIO5=0
-    mmw $GPIO_OUTPUT_REG 0x0 [expr 1 << 5]
+    mmw $GPIO_OUTPUT_REG 0x0 [expr {1 << 5}]
 }
 
 proc boardID {id} {
@@ -163,7 +163,7 @@ proc ooma_board_detect {} {
     set tmp [mrw $GPIO_BOOTSTRAP_REG]
     echo [format "GPIO_BOOTSTRAP_REG  (0x%x): 0x%x" $GPIO_BOOTSTRAP_REG $tmp]
     # extract the GPBP bits
-    set gpbt [expr ($tmp &0x1C00) >> 10 | ($tmp & 0x40) >>3]
+    set gpbt [expr {($tmp &0x1C00) >> 10 | ($tmp & 0x40) >>3}]
 
     # display board ID
     echo [format "This is %s (0x%x)" [dict get [boardID $gpbt] $gpbt name] $gpbt]
@@ -226,13 +226,13 @@ proc configureDDR2regs_256M {} {
 
     set wr_dqs_shift 0x40
     # start DDRC
-    mw64bit $DENALI_CTL_02_DATA [expr $DENALI_CTL_02_VAL | (1 << 32)]
+    mw64bit $DENALI_CTL_02_DATA [expr {$DENALI_CTL_02_VAL | (1 << 32)}]
     # wait int_status[2] (DRAM init complete)
     echo -n "Waiting for DDR2 controller to init..."
-    set tmp [mrw [expr $DENALI_CTL_08_DATA + 4]]
-    while { [expr $tmp & 0x040000] == 0 } {
+    set tmp [mrw [expr {$DENALI_CTL_08_DATA + 4}]]
+    while { [expr {$tmp & 0x040000}] == 0 } {
 	sleep 1
-	set tmp [mrw [expr $DENALI_CTL_08_DATA + 4]]
+	set tmp [mrw [expr {$DENALI_CTL_08_DATA + 4}]]
     }
     echo "done."
 
@@ -294,16 +294,16 @@ proc configureDDR2regs_128M {} {
 
     set wr_dqs_shift 0x40
     # start DDRC
-    mw64bit $DENALI_CTL_02_DATA [expr $DENALI_CTL_02_VAL | (1 << 32)]
+    mw64bit $DENALI_CTL_02_DATA [expr {$DENALI_CTL_02_VAL | (1 << 32)}]
     # wait int_status[2] (DRAM init complete)
     echo -n "Waiting for DDR2 controller to init..."
-    set tmp [mrw [expr $DENALI_CTL_08_DATA + 4]]
-    while { [expr $tmp & 0x040000] == 0 } {
+    set tmp [mrw [expr {$DENALI_CTL_08_DATA + 4}]]
+    while { [expr {$tmp & 0x040000}] == 0 } {
 	sleep 1
-	set tmp [mrw [expr $DENALI_CTL_08_DATA + 4]]
+	set tmp [mrw [expr {$DENALI_CTL_08_DATA + 4}]]
     }
     # This is not necessary
-    #mw64bit $DENALI_CTL_11_DATA [expr ($DENALI_CTL_11_VAL  & ~0x00007F0000000000) | ($wr_dqs_shift << 40) ]
+    #mw64bit $DENALI_CTL_11_DATA [expr {($DENALI_CTL_11_VAL  & ~0x00007F0000000000) | ($wr_dqs_shift << 40)} ]
     echo "done."
 
     # do ddr2 training sequence
@@ -341,14 +341,14 @@ proc setupUART0 {} {
     # Enable Divisor Latch access
     mmw  $UART0_LCR $LCR_DLAB 0x0
     # set the divisor to $tmp
-    mww $UART0_DLL [expr $tmp & 0xff]
-    mww $UART0_DLH [expr $tmp >> 8]
+    mww $UART0_DLL [expr {$tmp & 0xff}]
+    mww $UART0_DLH [expr {$tmp >> 8}]
     # Disable Divisor Latch access
     mmw  $UART0_LCR 0x0 $LCR_DLAB
     # set the UART to 8N1
-    mmw  $UART0_LCR [expr $LCR_ONE_STOP | $LCR_CHAR_LEN_8 ] 0x0
+    mmw  $UART0_LCR [expr {$LCR_ONE_STOP | $LCR_CHAR_LEN_8} ] 0x0
     # reset FIFO
-    mmw  $UART0_IIR [expr $FCR_XMITRES  | $FCR_RCVRRES | $FCR_FIFOEN ] 0x0
+    mmw  $UART0_IIR [expr {$FCR_XMITRES  | $FCR_RCVRRES | $FCR_FIFOEN} ] 0x0
     #  enable FFUART
     mww $UART0_IER $IER_UUE
 }
@@ -372,7 +372,7 @@ proc putsUART0 {str} {
     set len [string length $str]
     while { $index < $len } {
 	putcUART0 [string index $str $index]
-	set index [expr $index + 1]
+	set index [expr {$index + 1}]
     }
 }
 

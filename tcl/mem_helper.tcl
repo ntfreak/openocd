@@ -34,7 +34,7 @@ add_help_text mrb "Returns value of byte in memory."
 #       $reg <== ((value & ~$clearbits) | $setbits)
 proc mmw {reg setbits clearbits} {
 	set old [mrw $reg]
-	set new [expr ($old & ~$clearbits) | $setbits]
+	set new [expr {($old & ~$clearbits) | $setbits}]
 	mww $reg $new
 }
 

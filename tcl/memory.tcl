@@ -43,9 +43,9 @@ set RWX_NO_ACCESS     0
 set RWX_X_ONLY        $BIT0
 set RWX_W_ONLY        $BIT1
 set RWX_R_ONLY        $BIT2
-set RWX_RW            [expr $RWX_R_ONLY + $RWX_W_ONLY]
-set RWX_R_X           [expr $RWX_R_ONLY + $RWX_X_ONLY]
-set RWX_RWX           [expr $RWX_R_ONLY + $RWX_W_ONLY + $RWX_X_ONLY]
+set RWX_RW            [expr {$RWX_R_ONLY + $RWX_W_ONLY}]
+set RWX_R_X           [expr {$RWX_R_ONLY + $RWX_X_ONLY}]
+set RWX_RWX           [expr {$RWX_R_ONLY + $RWX_W_ONLY + $RWX_X_ONLY}]
 set UNKNOWN(0,RWX)     $RWX_NO_ACCESS
 
 #     WIDTH       - access width
@@ -54,7 +54,7 @@ set ACCESS_WIDTH_NONE 0
 set ACCESS_WIDTH_8    $BIT0
 set ACCESS_WIDTH_16   $BIT1
 set ACCESS_WIDTH_32   $BIT2
-set ACCESS_WIDTH_ANY  [expr $ACCESS_WIDTH_8 + $ACCESS_WIDTH_16 + $ACCESS_WIDTH_32]
+set ACCESS_WIDTH_ANY  [expr {$ACCESS_WIDTH_8 + $ACCESS_WIDTH_16 + $ACCESS_WIDTH_32}]
 set UNKNOWN(0,ACCESS_WIDTH) $ACCESS_WIDTH_NONE
 
 proc iswithin { ADDRESS BASE LEN } {

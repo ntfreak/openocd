@@ -1,38 +1,38 @@
-set AIC_SMR      	[expr $AT91C_BASE_AIC + 0x00000000 ]
+set AIC_SMR      	[expr {$AT91C_BASE_AIC + 0x00000000} ]
 global AIC_SMR
-set AIC_SVR      	[expr $AT91C_BASE_AIC + 0x00000080 ]
+set AIC_SVR      	[expr {$AT91C_BASE_AIC + 0x00000080} ]
 global AIC_SVR
-set AIC_IVR      	[expr $AT91C_BASE_AIC + 0x00000100 ]
+set AIC_IVR      	[expr {$AT91C_BASE_AIC + 0x00000100} ]
 global AIC_IVR
-set AIC_FVR      	[expr $AT91C_BASE_AIC + 0x00000104 ]
+set AIC_FVR      	[expr {$AT91C_BASE_AIC + 0x00000104} ]
 global AIC_FVR
-set AIC_ISR      	[expr $AT91C_BASE_AIC + 0x00000108 ]
+set AIC_ISR      	[expr {$AT91C_BASE_AIC + 0x00000108} ]
 global AIC_ISR
-set AIC_IPR      	[expr $AT91C_BASE_AIC + 0x0000010C ]
+set AIC_IPR      	[expr {$AT91C_BASE_AIC + 0x0000010C} ]
 global AIC_IPR
-set AIC_IMR      	[expr $AT91C_BASE_AIC + 0x00000110 ]
+set AIC_IMR      	[expr {$AT91C_BASE_AIC + 0x00000110} ]
 global AIC_IMR
-set AIC_CISR     	[expr $AT91C_BASE_AIC + 0x00000114 ]
+set AIC_CISR     	[expr {$AT91C_BASE_AIC + 0x00000114} ]
 global AIC_CISR
-set AIC_IECR     	[expr $AT91C_BASE_AIC + 0x00000120 ]
+set AIC_IECR     	[expr {$AT91C_BASE_AIC + 0x00000120} ]
 global AIC_IECR
-set AIC_IDCR     	[expr $AT91C_BASE_AIC + 0x00000124 ]
+set AIC_IDCR     	[expr {$AT91C_BASE_AIC + 0x00000124} ]
 global AIC_IDCR
-set AIC_ICCR     	[expr $AT91C_BASE_AIC + 0x00000128 ]
+set AIC_ICCR     	[expr {$AT91C_BASE_AIC + 0x00000128} ]
 global AIC_ICCR
-set AIC_ISCR     	[expr $AT91C_BASE_AIC + 0x0000012C ]
+set AIC_ISCR     	[expr {$AT91C_BASE_AIC + 0x0000012C} ]
 global AIC_ISCR
-set AIC_EOICR    	[expr $AT91C_BASE_AIC + 0x00000130 ]
+set AIC_EOICR    	[expr {$AT91C_BASE_AIC + 0x00000130} ]
 global AIC_EOICR
-set AIC_SPU      	[expr $AT91C_BASE_AIC + 0x00000134 ]
+set AIC_SPU      	[expr {$AT91C_BASE_AIC + 0x00000134} ]
 global AIC_SPU
-set AIC_DCR      	[expr $AT91C_BASE_AIC + 0x00000138 ]
+set AIC_DCR      	[expr {$AT91C_BASE_AIC + 0x00000138} ]
 global AIC_DCR
-set AIC_FFER     	[expr $AT91C_BASE_AIC + 0x00000140 ]
+set AIC_FFER     	[expr {$AT91C_BASE_AIC + 0x00000140} ]
 global AIC_FFER
-set AIC_FFDR     	[expr $AT91C_BASE_AIC + 0x00000144 ]
+set AIC_FFDR     	[expr {$AT91C_BASE_AIC + 0x00000144} ]
 global AIC_FFDR
-set AIC_FFSR     	[expr $AT91C_BASE_AIC + 0x00000148 ]
+set AIC_FFSR     	[expr {$AT91C_BASE_AIC + 0x00000148} ]
 global AIC_FFSR
 
 
@@ -54,7 +54,7 @@ proc show_AIC_IMR_helper { NAME ADDR VAL } {
 
 proc show_AIC { } {
     global AIC_SMR
-    if [catch { mem2array aaa 32 $AIC_SMR [expr 32 * 4] } msg ] {
+    if [catch { mem2array aaa 32 $AIC_SMR [expr {32 * 4}] } msg ] {
 	error [format "%s (%s)" $msg AIC_SMR]
     }
     echo "AIC_SMR: Mode & Type"
@@ -71,7 +71,7 @@ proc show_AIC { } {
 	incr x
     }
     global AIC_SVR
-    if [catch { mem2array aaa 32 $AIC_SVR [expr 32 * 4] } msg ] {
+    if [catch { mem2array aaa 32 $AIC_SVR [expr {32 * 4}] } msg ] {
 	error [format "%s (%s)" $msg AIC_SVR]
     }
     echo "AIC_SVR: Vectors"

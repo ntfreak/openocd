@@ -38,8 +38,8 @@ proc sp_reset_deassert_post {} {
 
 	poll on
 	echo "====> Press reset button on the board <===="
-	for {set i 0} { [sp_is_halted] == 0 } { set i [expr $i + 1]} {
-		echo -n "$bar([expr $i & 3])\r"
+	for {set i 0} { [sp_is_halted] == 0 } { set i [expr {$i + 1}]} {
+		echo -n "$bar([expr {$i & 3}])\r"
 		sleep 200
 	}
 

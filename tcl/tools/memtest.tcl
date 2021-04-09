@@ -74,7 +74,7 @@ proc memTestDataBus { address } {
 # *
 #***********************************************************************************
 proc memTestAddressBus { baseAddress nBytes } {
-    set addressMask [expr $nBytes - 1]
+    set addressMask [expr {$nBytes - 1}]
     set pattern 0xAAAAAAAA
     set antipattern 0x55555555
 
@@ -83,16 +83,16 @@ proc memTestAddressBus { baseAddress nBytes } {
     echo "addressMask: [convertToHex $addressMask]"
 
     echo "memTestAddressBus: Writing the default pattern at each of the power-of-two offsets..."
-    for {set offset 32} {[expr $offset & $addressMask] != 0} {set offset [expr $offset << 1] } {
-	set addr [expr $baseAddress + $offset]
+    for {set offset 32} {[expr {$offset & $addressMask}] != 0} {set offset [expr {$offset << 1}] } {
+	set addr [expr {$baseAddress + $offset}]
 	memwrite32 $addr $pattern
     }
 
     echo "memTestAddressBus: Checking for address bits stuck high..."
     memwrite32 $baseAddress $antipattern
 
-    for {set offset 32} {[expr $offset & $addressMask] != 0} {set offset [expr $offset << 1]} {
-	set addr [expr $baseAddress + $offset]
+    for {set offset 32} {[expr {$offset & $addressMask}] != 0} {set offset [expr {$offset << 1}]} {
+	set addr [expr {$baseAddress + $offset}]
 	set data [memread32 $addr]
 
 	if {$data != $pattern} {
@@ -103,8 +103,8 @@ proc memTestAddressBus { baseAddress nBytes } {
 
     echo "memTestAddressBus: Checking for address bits stuck low or shorted..."
     memwrite32 $baseAddress $pattern
-    for {set testOffset 32} {[expr $testOffset & $addressMask] != 0} {set testOffset [expr $testOffset << 1] } {
-	set addr [expr $baseAddress + $testOffset]
+    for {set testOffset 32} {[expr {$testOffset & $addressMask}] != 0} {set testOffset [expr {$testOffset << 1}] } {
+	set addr [expr {$baseAddress + $testOffset}]
 	memwrite32 $addr $antipattern
 
 	set data [memread32 $baseAddress]
@@ -113,8 +113,8 @@ proc memTestAddressBus { baseAddress nBytes } {
 	    return $pattern
 	}
 
-	for {set offset 32} {[expr $offset & $addressMask] != 0} {set offset [expr $offset << 1]} {
-	    set addr [expr $baseAddress + $offset]
+	for {set offset 32} {[expr {$offset & $addressMask}] != 0} {set offset [expr {$offset << 1}]} {
+	    set addr [expr {$baseAddress + $offset}]
 	    set data [memread32 $baseAddress]
 
             if {(($data != $pattern) && ($offset != $testOffset))} {
@@ -122,7 +122,7 @@ proc memTestAddressBus { baseAddress nBytes } {
 		return $pattern
 	    }
         }
-	set addr [expr $baseAddress + $testOffset]
+	set addr [expr {$baseAddress + $testOffset}]
 	memwrite32 $addr $pattern
     }
 }
@@ -153,12 +153,12 @@ proc memTestDevice { baseAddress nBytes } {
 
     echo "memTestDevice: Filling memory with a known pattern..."
     for {set pattern 1; set offset 0} {$offset < $nBytes} {incr pattern; incr offset 32} {
-	memwrite32 [expr $baseAddress + $offset] $pattern
+	memwrite32 [expr {$baseAddress + $offset}] $pattern
     }
 
     echo "memTestDevice: Checking each location and inverting it for the second pass..."
     for {set pattern 1; set offset 0} {$offset < $nBytes} {incr pattern; incr offset 32} {
-	set addr [expr $baseAddress + $offset]
+	set addr [expr {$baseAddress + $offset}]
 	set data [memread32 $addr]
 
 	if {$data != $pattern} {
@@ -167,13 +167,13 @@ proc memTestDevice { baseAddress nBytes } {
 	}
 
 	set antiPattern [expr ~$pattern]
-	memwrite32 [expr $baseAddress + $offset] $antiPattern
+	memwrite32 [expr {$baseAddress + $offset}] $antiPattern
     }
 
     echo "memTestDevice: Checking each location for the inverted pattern and zeroing it..."
     for {set pattern 1; set offset 0} {$offset < $nBytes} {incr pattern; incr offset 32} {
-	set antiPattern [expr ~$pattern & ((1<<32) - 1)]
-	set addr [expr $baseAddress + $offset]
+	set antiPattern [expr {~$pattern & ((1<<32) - 1)}]
+	set addr [expr {$baseAddress + $offset}]
 	set data [memread32 $addr]
 	set dataHex [convertToHex $data]
 	set antiPatternHex [convertToHex $antiPattern]

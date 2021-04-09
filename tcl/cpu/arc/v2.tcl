@@ -41,7 +41,7 @@ proc arc_v2_examine_target { {target ""} } {
 			# 0b01 - 4 actionpoints
 			# 0b10 - 8 actionpoints
 			# 0b11 - reserved.
-			set ap_num [expr 0x2 << ($ap_build_type & 3)]
+			set ap_num [expr {0x2 << ($ap_build_type & 3)}]
 			# Expression on top may produce 16 action points - which is a
 			# reserved value for now.
 			if { $ap_num < 16 } {
@@ -341,6 +341,6 @@ proc arc_v2_reset { {target ""} } {
 	# to write directly via JTAG layer...
 	set num_ap [arc num-actionpoints]
 	for {set i 0} {$i < $num_ap} {incr i} {
-		arc jtag set-aux-reg [expr 0x222 + $i * 3] 0
+		arc jtag set-aux-reg [expr {0x222 + $i * 3}] 0
 	}
 }

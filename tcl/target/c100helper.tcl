@@ -37,11 +37,11 @@ proc mr64bit {reg} {
 
 # write a 64-bit register (memory mapped)
 proc mw64bit {reg value} {
-    set high [expr $value >> 32]
-    set low  [expr $value & 0xffffffff]
+    set high [expr {$value >> 32}]
+    set low  [expr {$value & 0xffffffff}]
     #echo [format "mw64bit(0x%x): 0x%08x%08x" $reg $high $low]
     mww $reg $low
-    mww [expr $reg+4] $high
+    mww [expr {$reg+4}] $high
 }
 
 
@@ -122,7 +122,7 @@ proc showAmbaClk {} {
     set bypass [expr ($value(0) & $PLL_CLK_BYPASS) >> 24 ]
     echo [format "PLL bypass bit: %d" $bypass]
     if {$bypass == 1} {
-	echo [format "Amba Clk is set to REFCLK: %d (MHz)" [expr $CFG_REFCLKFREQ/1000000]]
+	echo [format "Amba Clk is set to REFCLK: %d (MHz)" [expr {$CFG_REFCLKFREQ/1000000}]]
     } else {
 	# nope, extract x,y,w and compute the PLL output freq.
 	set x [expr ($value(0) & 0x0001F0000) >> 16]
@@ -131,7 +131,7 @@ proc showAmbaClk {} {
 	echo [format "y: %d" $y]
 	set w [expr ($value(0) & 0x000000300) >> 8]
 	echo [format "w: %d" $w]
-	echo [format "Amba PLL Clk: %d (MHz)" [expr ($CFG_REFCLKFREQ * $y / (($w + 1) * ($x + 1) * 2))/1000000]]
+	echo [format "Amba PLL Clk: %d (MHz)" [expr {($CFG_REFCLKFREQ * $y / (($w + 1) * ($x + 1) * 2))/1000000}]]
     }
 }
 
@@ -154,7 +154,7 @@ proc setupAmbaClk {} {
     set x    [config x_amba]
     set y    [config y_amba]
 
-    echo [format "Setting Amba PLL to lock to %d MHz" [expr $CONFIG_SYS_HZ_CLOCK/1000000]]
+    echo [format "Setting Amba PLL to lock to %d MHz" [expr {$CONFIG_SYS_HZ_CLOCK/1000000}]]
     #echo [format "setupAmbaClk: w= %d" $w]
     #echo [format "setupAmbaClk: x= %d" $x]
     #echo [format "setupAmbaClk: y= %d" $y]
@@ -174,7 +174,7 @@ proc setupAmbaClk {} {
     sleep 1
     # set X, W and X
     mmw $CLKCORE_AHB_CLK_CNTRL 0x0 0xFFFFFF
-    mmw $CLKCORE_AHB_CLK_CNTRL [expr (($x << 16) + ($w << 8) + $y)] 0x0
+    mmw $CLKCORE_AHB_CLK_CNTRL [expr {($x << 16) + ($w << 8) + $y}] 0x0
     # wait for PLL to lock
     echo "Waiting for Amba PLL to lock"
     while {[expr [mrw $CLKCORE_PLL_STATUS] & $AHBCLK_PLL_LOCK] == 0} { sleep 1 }
@@ -197,7 +197,7 @@ proc showArmClk {} {
     set bypass [expr ($value(0) & $PLL_CLK_BYPASS) >> 24 ]
     echo [format "PLL bypass bit: %d" $bypass]
     if {$bypass == 1} {
-	echo [format "Amba Clk is set to REFCLK: %d (MHz)" [expr $CFG_REFCLKFREQ/1000000]]
+	echo [format "Amba Clk is set to REFCLK: %d (MHz)" [expr {$CFG_REFCLKFREQ/1000000}]]
     } else {
 	# nope, extract x,y,w and compute the PLL output freq.
 	set x [expr ($value(0) & 0x0001F0000) >> 16]
@@ -206,7 +206,7 @@ proc showArmClk {} {
 	echo [format "y: %d" $y]
 	set w [expr ($value(0) & 0x000000300) >> 8]
 	echo [format "w: %d" $w]
-	echo [format "Arm PLL Clk: %d (MHz)" [expr ($CFG_REFCLKFREQ * $y / (($w + 1) * ($x + 1) * 2))/1000000]]
+	echo [format "Arm PLL Clk: %d (MHz)" [expr {($CFG_REFCLKFREQ * $y / (($w + 1) * ($x + 1) * 2))/1000000}]]
     }
 }
 
@@ -228,7 +228,7 @@ proc setupArmClk {} {
     set x    [config x_arm]
     set y    [config y_arm]
 
-    echo [format "Setting Arm PLL to lock to %d MHz" [expr $CFG_ARM_CLOCK/1000000]]
+    echo [format "Setting Arm PLL to lock to %d MHz" [expr {$CFG_ARM_CLOCK/1000000}]]
     #echo [format "setupArmClk: w= %d" $w]
     #echo [format "setupArmaClk: x= %d" $x]
     #echo [format "setupArmaClk: y= %d" $y]
@@ -248,7 +248,7 @@ proc setupArmClk {} {
     sleep 1
     # set X, W and X
     mmw $CLKCORE_ARM_CLK_CNTRL 0x0 0xFFFFFF
-    mmw $CLKCORE_ARM_CLK_CNTRL [expr (($x << 16) + ($w << 8) + $y)] 0x0
+    mmw $CLKCORE_ARM_CLK_CNTRL [expr {($x << 16) + ($w << 8) + $y}] 0x0
     # wait for PLL to lock
     echo "Waiting for Amba PLL to lock"
     while {[expr [mrw $CLKCORE_PLL_STATUS] & $FCLK_PLL_LOCK] == 0} { sleep 1 }
@@ -281,11 +281,11 @@ proc setupDDR2 {} {
     # and not reset.
     mmw $BLOCK_RESET_REG 0x0 $DDR_RST
 
-    set M [expr 1024 * 1024]
-    set DDR_SZ_1024M	[expr 1024 * $M]
-    set DDR_SZ_256M	[expr 256 * $M]
-    set DDR_SZ_128M	[expr 128 * $M]
-    set DDR_SZ_64M	[expr 64 * $M]
+    set M [expr {1024 * 1024}]
+    set DDR_SZ_1024M	[expr {1024 * $M}]
+    set DDR_SZ_256M	[expr {256 * $M}]
+    set DDR_SZ_128M	[expr {128 * $M}]
+    set DDR_SZ_64M	[expr {64 * $M}]
     # ooma_board_detect returns DDR2 memory size
     set tmp [ooma_board_detect]
     if {$tmp == "128M"} {
@@ -299,7 +299,7 @@ proc setupDDR2 {} {
     }
 
     # Memory setup register
-    mww $MEMORY_MAX_ADDR  [expr ($ddr_size - 1) + $MEMORY_BASE_ADDR]
+    mww $MEMORY_MAX_ADDR  [expr {($ddr_size - 1) + $MEMORY_BASE_ADDR}]
     # disable ROM remap
     mww $MEMORY_CR 0x0
     # Take DDR controller out of reset
@@ -445,9 +445,9 @@ proc initC100 {} {
     mww [expr $APB_ACCESS_WS_REG] 0x40
     # AHB init
     #	// enable all 6 masters for ARAM
-    mmw $ASA_ARAM_TC_CR_REG [expr $ASA_TC_REQIDMAEN | $ASA_TC_REQTDMEN | $ASA_TC_REQIPSECUSBEN | $ASA_TC_REQARM0EN | $ASA_TC_REQARM1EN | $ASA_TC_REQMDMAEN] 0x0
+    mmw $ASA_ARAM_TC_CR_REG [expr {$ASA_TC_REQIDMAEN | $ASA_TC_REQTDMEN | $ASA_TC_REQIPSECUSBEN | $ASA_TC_REQARM0EN | $ASA_TC_REQARM1EN | $ASA_TC_REQMDMAEN}] 0x0
     #	// enable all 6 masters for EBUS
-    mmw $ASA_EBUS_TC_CR_REG [expr $ASA_TC_REQIDMAEN | $ASA_TC_REQTDMEN | $ASA_TC_REQIPSECUSBEN | $ASA_TC_REQARM0EN | $ASA_TC_REQARM1EN | $ASA_TC_REQMDMAEN] 0x0
+    mmw $ASA_EBUS_TC_CR_REG [expr {$ASA_TC_REQIDMAEN | $ASA_TC_REQTDMEN | $ASA_TC_REQIPSECUSBEN | $ASA_TC_REQARM0EN | $ASA_TC_REQARM1EN | $ASA_TC_REQMDMAEN}] 0x0
 
     # ARAM init
     #	// disable pipeline mode in ARAM

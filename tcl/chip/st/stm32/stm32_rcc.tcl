@@ -1,14 +1,14 @@
 
-set RCC_CR            [expr $RCC_BASE + 0x00]
-set RCC_CFGR          [expr $RCC_BASE + 0x04]
-set RCC_CIR           [expr $RCC_BASE + 0x08]
-set RCC_APB2RSTR      [expr $RCC_BASE + 0x0c]
-set RCC_APB1RSTR      [expr $RCC_BASE + 0x10]
-set RCC_AHBENR        [expr $RCC_BASE + 0x14]
-set RCC_APB2ENR       [expr $RCC_BASE + 0x18]
-set RCC_APB1ENR       [expr $RCC_BASE + 0x1c]
-set RCC_BDCR          [expr $RCC_BASE + 0x20]
-set RCC_CSR           [expr $RCC_BASE + 0x24]
+set RCC_CR            [expr {$RCC_BASE + 0x00}]
+set RCC_CFGR          [expr {$RCC_BASE + 0x04}]
+set RCC_CIR           [expr {$RCC_BASE + 0x08}]
+set RCC_APB2RSTR      [expr {$RCC_BASE + 0x0c}]
+set RCC_APB1RSTR      [expr {$RCC_BASE + 0x10}]
+set RCC_AHBENR        [expr {$RCC_BASE + 0x14}]
+set RCC_APB2ENR       [expr {$RCC_BASE + 0x18}]
+set RCC_APB1ENR       [expr {$RCC_BASE + 0x1c}]
+set RCC_BDCR          [expr {$RCC_BASE + 0x20}]
+set RCC_CSR           [expr {$RCC_BASE + 0x24}]
 
 
 proc show_RCC_CR { } {

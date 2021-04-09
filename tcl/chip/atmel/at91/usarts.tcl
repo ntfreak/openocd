@@ -1,20 +1,20 @@
 # the DBGU and USARTs are 'almost' indentical'
-set DBGU_CR         [expr $AT91C_BASE_DBGU + 0x00000000]
-set DBGU_MR         [expr $AT91C_BASE_DBGU + 0x00000004]
-set DBGU_IER        [expr $AT91C_BASE_DBGU + 0x00000008]
-set DBGU_IDR        [expr $AT91C_BASE_DBGU + 0x0000000C]
-set DBGU_IMR        [expr $AT91C_BASE_DBGU + 0x00000010]
-set DBGU_CSR        [expr $AT91C_BASE_DBGU + 0x00000014]
-set DBGU_RHR        [expr $AT91C_BASE_DBGU + 0x00000018]
-set DBGU_THR        [expr $AT91C_BASE_DBGU + 0x0000001C]
-set DBGU_BRGR       [expr $AT91C_BASE_DBGU + 0x00000020]
+set DBGU_CR         [expr {$AT91C_BASE_DBGU + 0x00000000}]
+set DBGU_MR         [expr {$AT91C_BASE_DBGU + 0x00000004}]
+set DBGU_IER        [expr {$AT91C_BASE_DBGU + 0x00000008}]
+set DBGU_IDR        [expr {$AT91C_BASE_DBGU + 0x0000000C}]
+set DBGU_IMR        [expr {$AT91C_BASE_DBGU + 0x00000010}]
+set DBGU_CSR        [expr {$AT91C_BASE_DBGU + 0x00000014}]
+set DBGU_RHR        [expr {$AT91C_BASE_DBGU + 0x00000018}]
+set DBGU_THR        [expr {$AT91C_BASE_DBGU + 0x0000001C}]
+set DBGU_BRGR       [expr {$AT91C_BASE_DBGU + 0x00000020}]
 # no RTOR
 # no TTGR
 # no FIDI
 # no NER
-set DBGU_CIDR       [expr $AT91C_BASE_DBGU + 0x00000040]
-set DBGU_EXID       [expr $AT91C_BASE_DBGU + 0x00000044]
-set DBGU_FNTR       [expr $AT91C_BASE_DBGU + 0x00000048]
+set DBGU_CIDR       [expr {$AT91C_BASE_DBGU + 0x00000040}]
+set DBGU_EXID       [expr {$AT91C_BASE_DBGU + 0x00000044}]
+set DBGU_FNTR       [expr {$AT91C_BASE_DBGU + 0x00000048}]
 
 
 set USx_CR           0x00000000
@@ -54,7 +54,7 @@ proc show_mmr_USx_MR_helper { NAME ADDR VAL } {
 	2 { set s "Force=0" }
 	3 { set s "Force=1" }
 	* {
-	    set $x [expr $x & 6]
+	    set $x [expr {$x & 6}]
 	    switch -exact $x {
 		4 { set s "None" }
 		6 { set s "Multidrop Mode" }
