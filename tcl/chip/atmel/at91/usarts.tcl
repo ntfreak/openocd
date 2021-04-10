@@ -89,7 +89,7 @@ foreach WHO { US0 US1 US2 US3 US4 US5 US6 US7 US8 US9 } {
 	    set vn [set WHO]_[set REG]
 	    # vn = USx_IER
 	    # vv = variable value
-	    set vv [expr $$n + [set USx_[set REG]]]
+	    set vv [expr "$$n + [set USx_[set REG]]"]
 	    # And VV is the address in memory of that register
 
 
