@@ -26,14 +26,14 @@ proc configC100 {} {
     dict set configC100 w_amba 1
     dict set configC100 x_amba 1
     # y = amba_clk * (w+1)*(x+1)*2/xtal_clk
-    dict set configC100 y_amba [expr ([dict get $configC100 CONFIG_SYS_HZ_CLOCK] * ( ([dict get $configC100 w_amba]+1 ) * ([dict get $configC100 x_amba]+1 ) *2 ) / [dict get $configC100 CFG_REFCLKFREQ]) ]
+    dict set configC100 y_amba [expr {[dict get $configC100 CONFIG_SYS_HZ_CLOCK] * ( ([dict get $configC100 w_amba]+1 ) * ([dict get $configC100 x_amba]+1 ) *2 ) / [dict get $configC100 CFG_REFCLKFREQ]} ]
 
     # Arm Clk 450MHz, must be a multiple of 25 MHz
     dict set configC100 CFG_ARM_CLOCK      450000000
     dict set configC100 w_arm 0
     dict set configC100 x_arm 1
     # y = arm_clk * (w+1)*(x+1)*2/xtal_clk
-    dict set configC100 y_arm [expr ([dict get $configC100 CFG_ARM_CLOCK] * ( ([dict get $configC100 w_arm]+1 ) * ([dict get $configC100 x_arm]+1 ) *2 ) / [dict get $configC100 CFG_REFCLKFREQ]) ]
+    dict set configC100 y_arm [expr {[dict get $configC100 CFG_ARM_CLOCK] * ( ([dict get $configC100 w_arm]+1 ) * ([dict get $configC100 x_arm]+1 ) *2 ) / [dict get $configC100 CFG_REFCLKFREQ]} ]
 
 
 }
@@ -362,7 +362,7 @@ proc putcUART0 {char} {
     # convert the 'char' to digit
     set tmp [ scan $char %c ]
     # /* wait for room in the tx FIFO on FFUART */
-    while {[expr [mrw $UART0_LSR] & $LSR_TEMT] == 0} { sleep 1 }
+    while {[expr {[mrw $UART0_LSR] & $LSR_TEMT}] == 0} { sleep 1 }
     mww $UART0_THR $tmp
     if { $char == "\n" } { putcUART0 \r }
 }

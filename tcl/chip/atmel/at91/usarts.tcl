@@ -63,7 +63,7 @@ proc show_mmr_USx_MR_helper { NAME ADDR VAL } {
     }
     echo [format "\tParity: %s " $s]
 
-    set x [expr 5 + [show_normalize_bitfield $VAL 7 6]]
+    set x [expr {5 + [show_normalize_bitfield $VAL 7 6]}]
     echo [format "\tDatabits: %d" $x]
 
     set x [show_normalize_bitfield $VAL 13 12]

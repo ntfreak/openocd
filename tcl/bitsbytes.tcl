@@ -36,7 +36,7 @@ proc create_mask { MSB LSB } {
 # Result:  0x02340000
 
 proc extract_bitfield { VALUE MSB LSB } {
-    return [expr [create_mask $MSB $LSB] & $VALUE]
+    return [expr {[create_mask $MSB $LSB] & $VALUE}]
 }
 
 
@@ -47,7 +47,7 @@ proc extract_bitfield { VALUE MSB LSB } {
 # Result:  0x00000234
 #
 proc normalize_bitfield { VALUE MSB LSB } {
-    return [expr [extract_bitfield $VALUE $MSB $LSB ] >> $LSB]
+    return [expr {[extract_bitfield $VALUE $MSB $LSB ] >> $LSB}]
 }
 
 proc show_normalize_bitfield { VALUE MSB LSB } {

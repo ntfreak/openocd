@@ -24,7 +24,7 @@ set sp_reset_mode ""
 proc sp_is_halted {} {
 	global sp_target_name
 
-	return [expr [string compare [$sp_target_name curstate] "halted" ] == 0]
+	return [expr {[string compare [$sp_target_name curstate] "halted" ] == 0}]
 }
 
 # wait for reset button to be pressed, causing CPU to get halted

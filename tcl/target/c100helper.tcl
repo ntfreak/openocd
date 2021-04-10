@@ -119,17 +119,17 @@ proc showAmbaClk {} {
     echo [format "CLKCORE_AHB_CLK_CNTRL       (0x%x): 0x%x" $CLKCORE_AHB_CLK_CNTRL [mrw $CLKCORE_AHB_CLK_CNTRL]]
     mem2array value 32 $CLKCORE_AHB_CLK_CNTRL 1
     # see if the PLL is in bypass mode
-    set bypass [expr ($value(0) & $PLL_CLK_BYPASS) >> 24 ]
+    set bypass [expr {($value(0) & $PLL_CLK_BYPASS) >> 24}]
     echo [format "PLL bypass bit: %d" $bypass]
     if {$bypass == 1} {
 	echo [format "Amba Clk is set to REFCLK: %d (MHz)" [expr {$CFG_REFCLKFREQ/1000000}]]
     } else {
 	# nope, extract x,y,w and compute the PLL output freq.
-	set x [expr ($value(0) & 0x0001F0000) >> 16]
+	set x [expr {($value(0) & 0x0001F0000) >> 16}]
 	echo [format "x: %d" $x]
-	set y [expr ($value(0) & 0x00000007F)]
+	set y [expr {($value(0) & 0x00000007F)}]
 	echo [format "y: %d" $y]
-	set w [expr ($value(0) & 0x000000300) >> 8]
+	set w [expr {($value(0) & 0x000000300) >> 8}]
 	echo [format "w: %d" $w]
 	echo [format "Amba PLL Clk: %d (MHz)" [expr {($CFG_REFCLKFREQ * $y / (($w + 1) * ($x + 1) * 2))/1000000}]]
     }
@@ -177,7 +177,7 @@ proc setupAmbaClk {} {
     mmw $CLKCORE_AHB_CLK_CNTRL [expr {($x << 16) + ($w << 8) + $y}] 0x0
     # wait for PLL to lock
     echo "Waiting for Amba PLL to lock"
-    while {[expr [mrw $CLKCORE_PLL_STATUS] & $AHBCLK_PLL_LOCK] == 0} { sleep 1 }
+    while {[expr {[mrw $CLKCORE_PLL_STATUS] & $AHBCLK_PLL_LOCK]} == 0} { sleep 1 }
     # remove the internal PLL bypass
     mmw $CLKCORE_AHB_CLK_CNTRL 0x0 $AHB_PLL_BY_CTRL
     # remove PLL from BYPASS mode using MUX
@@ -194,17 +194,17 @@ proc showArmClk {} {
     echo [format "CLKCORE_ARM_CLK_CNTRL       (0x%x): 0x%x" $CLKCORE_ARM_CLK_CNTRL [mrw $CLKCORE_ARM_CLK_CNTRL]]
     mem2array value 32 $CLKCORE_ARM_CLK_CNTRL 1
     # see if the PLL is in bypass mode
-    set bypass [expr ($value(0) & $PLL_CLK_BYPASS) >> 24 ]
+    set bypass [expr {($value(0) & $PLL_CLK_BYPASS) >> 24}]
     echo [format "PLL bypass bit: %d" $bypass]
     if {$bypass == 1} {
 	echo [format "Amba Clk is set to REFCLK: %d (MHz)" [expr {$CFG_REFCLKFREQ/1000000}]]
     } else {
 	# nope, extract x,y,w and compute the PLL output freq.
-	set x [expr ($value(0) & 0x0001F0000) >> 16]
+	set x [expr {($value(0) & 0x0001F0000) >> 16}]
 	echo [format "x: %d" $x]
-	set y [expr ($value(0) & 0x00000007F)]
+	set y [expr {($value(0) & 0x00000007F)}]
 	echo [format "y: %d" $y]
-	set w [expr ($value(0) & 0x000000300) >> 8]
+	set w [expr {($value(0) & 0x000000300) >> 8}]
 	echo [format "w: %d" $w]
 	echo [format "Arm PLL Clk: %d (MHz)" [expr {($CFG_REFCLKFREQ * $y / (($w + 1) * ($x + 1) * 2))/1000000}]]
     }
@@ -251,7 +251,7 @@ proc setupArmClk {} {
     mmw $CLKCORE_ARM_CLK_CNTRL [expr {($x << 16) + ($w << 8) + $y}] 0x0
     # wait for PLL to lock
     echo "Waiting for Amba PLL to lock"
-    while {[expr [mrw $CLKCORE_PLL_STATUS] & $FCLK_PLL_LOCK] == 0} { sleep 1 }
+    while {[expr {[mrw $CLKCORE_PLL_STATUS] & $FCLK_PLL_LOCK]} == 0} { sleep 1 }
     # remove the internal PLL bypass
     mmw $CLKCORE_ARM_CLK_CNTRL 0x0 $ARM_PLL_BY_CTRL
     # remove PLL from BYPASS mode using MUX
@@ -442,7 +442,7 @@ proc initC100 {} {
     # APB init
     #    	// Setting APB Bus Wait states to 1, set post write
     #	(*(volatile u32*)(APB_ACCESS_WS_REG)) = 0x40;
-    mww [expr $APB_ACCESS_WS_REG] 0x40
+    mww $APB_ACCESS_WS_REG 0x40
     # AHB init
     #	// enable all 6 masters for ARAM
     mmw $ASA_ARAM_TC_CR_REG [expr {$ASA_TC_REQIDMAEN | $ASA_TC_REQTDMEN | $ASA_TC_REQIPSECUSBEN | $ASA_TC_REQARM0EN | $ASA_TC_REQARM1EN | $ASA_TC_REQMDMAEN}] 0x0

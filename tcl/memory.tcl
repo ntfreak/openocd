@@ -58,7 +58,7 @@ set ACCESS_WIDTH_ANY  [expr {$ACCESS_WIDTH_8 + $ACCESS_WIDTH_16 + $ACCESS_WIDTH_
 set UNKNOWN(0,ACCESS_WIDTH) $ACCESS_WIDTH_NONE
 
 proc iswithin { ADDRESS BASE LEN } {
-    return [expr ((($ADDRESS - $BASE) >= 0) && (($BASE + $LEN - $ADDRESS) > 0))]
+    return [expr {(($ADDRESS - $BASE) >= 0) && (($BASE + $LEN - $ADDRESS) > 0)}]
 }
 
 proc address_info { ADDRESS } {

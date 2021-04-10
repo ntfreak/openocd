@@ -166,7 +166,7 @@ proc memTestDevice { baseAddress nBytes } {
 	    return $pattern
 	}
 
-	set antiPattern [expr ~$pattern]
+	set antiPattern [expr {~$pattern}]
 	memwrite32 [expr {$baseAddress + $offset}] $antiPattern
     }
 
@@ -177,7 +177,7 @@ proc memTestDevice { baseAddress nBytes } {
 	set data [memread32 $addr]
 	set dataHex [convertToHex $data]
 	set antiPatternHex [convertToHex $antiPattern]
-	if {[expr $dataHex != $antiPatternHex]} {
+	if {$dataHex != $antiPatternHex} {
 	    echo "FAILED memTestDevice_antipattern: Address: [convertToHex $addr], antiPattern: $antiPatternHex, Returned: $dataHex, offset: $offset"
 	    return $pattern
 	}

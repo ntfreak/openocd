@@ -2,7 +2,7 @@
 proc proc_exists { NAME } {
     set n [info commands $NAME]
     set l [string length $n]
-    return [expr $l != 0]
+    return [expr {$l != 0}]
 }
 
 # Give: REGISTER name - must be a global variable.
@@ -52,7 +52,7 @@ proc show_mmr32_bits { NAMES VAL } {
 
 	echo -n "  "
 	for { set y 7 } { $y >= 0 } { incr y -1 } {
-	    echo -n [format "    %d%*s | " [expr !!($VAL & (1 << ($x + $y)))] [expr {$w -1}] ""]
+	    echo -n [format "    %d%*s | " [expr {!!($VAL & (1 << ($x + $y)))}] [expr {$w -1}] ""]
 	}
 	echo ""
     }
