@@ -289,7 +289,7 @@ static const struct nrf5_device_package nrf5_packages_table[] = {
 
 const struct flash_driver nrf5_flash, nrf51_flash;
 
-static int nrf5_bank_is_probed(struct flash_bank *bank)
+static bool nrf5_bank_is_probed(const struct flash_bank *bank)
 {
 	struct nrf5_bank *nbank = bank->driver_priv;
 
@@ -309,13 +309,10 @@ static int nrf5_get_probed_chip_if_halted(struct flash_bank *bank, struct nrf5_i
 	struct nrf5_bank *nbank = bank->driver_priv;
 	*chip = nbank->chip;
 
-	int probed = nrf5_bank_is_probed(bank);
-	if (probed < 0)
-		return probed;
-	else if (!probed)
+	if (!nrf5_bank_is_probed(bank))
 		return nrf5_probe(bank);
-	else
-		return ERROR_OK;
+
+	return ERROR_OK;
 }
 
 static int nrf5_wait_for_nvmc(struct nrf5_info *chip)
@@ -872,14 +869,10 @@ static int nrf5_probe(struct flash_bank *bank)
 
 static int nrf5_auto_probe(struct flash_bank *bank)
 {
-	int probed = nrf5_bank_is_probed(bank);
-
-	if (probed < 0)
-		return probed;
-	else if (probed)
-		return ERROR_OK;
-	else
+	if (!nrf5_bank_is_probed(bank))
 		return nrf5_probe(bank);
+
+	return ERROR_OK;
 }
 
 static int nrf5_erase_all(struct nrf5_info *chip)
