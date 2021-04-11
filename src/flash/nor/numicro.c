@@ -1132,7 +1132,7 @@ static const struct numicro_cpu_type NuMicroParts[] = {
 /* Private bank information for NuMicro. */
 struct  numicro_flash_bank {
 	struct working_area *write_algorithm;
-	int probed;
+	bool probed;
 	const struct numicro_cpu_type *cpu;
 };
 
