@@ -692,7 +692,7 @@ static int stm32x_probe(struct flash_bank *bank)
 	struct stm32x_flash_bank *stm32x_info = bank->driver_priv;
 	uint16_t flash_size_in_kb;
 	uint16_t max_flash_size_in_kb;
-	uint32_t device_id;
+	uint32_t dbgmcu_idcode;
 	int page_size;
 	uint32_t base_address = 0x08000000;
 
@@ -705,14 +705,17 @@ static int stm32x_probe(struct flash_bank *bank)
 	stm32x_info->default_rdp = 0xA5;
 
 	/* read stm32 device id register */
-	int retval = stm32x_get_device_id(bank, &device_id);
+	int retval = stm32x_get_device_id(bank, &dbgmcu_idcode);
 	if (retval != ERROR_OK)
 		return retval;
 
-	LOG_INFO("device id = 0x%08" PRIx32 "", device_id);
+	LOG_INFO("device id = 0x%08" PRIx32 "", dbgmcu_idcode);
+
+	uint16_t device_id = dbgmcu_idcode & 0xfff;
+	uint16_t rev_id = dbgmcu_idcode >> 16;
 
 	/* set page size, protection granularity and max flash size depending on family */
-	switch (device_id & 0xfff) {
+	switch (device_id) {
 	case 0x440: /* stm32f05x */
 		page_size = 1024;
 		stm32x_info->ppage_size = 4;
@@ -754,6 +757,25 @@ static int stm32x_probe(struct flash_bank *bank)
 		page_size = 1024;
 		stm32x_info->ppage_size = 4;
 		max_flash_size_in_kb = 128;
+		/* GigaDevice GD32F1x0 & GD32F3x0 series devices share DEV_ID
+		   with STM32F101/2/3 medium-density line,
+		   however they use a REV_ID different from any STM32 device.
+		   The main difference is another offset of user option bits
+		   (like WDG_SW, nRST_STOP, nRST_STDBY) in option byte register
+		   (FLASH_OBR/FMC_OBSTAT 0x4002201C).
+		   This caused problems e.g. during flash block programming
+		   because of unexpected active hardware watchog. */
+		switch (rev_id) {
+		case 0x1303: /* gd32f1x0 */
+			stm32x_info->user_data_offset = 16;
+			stm32x_info->option_offset = 6;
+			max_flash_size_in_kb = 64;
+			break;
+		case 0x1704: /* gd32f3x0 */
+			stm32x_info->user_data_offset = 16;
+			stm32x_info->option_offset = 6;
+			break;
+		}
 		break;
 	case 0x412: /* stm32f1x low-density */
 		page_size = 1024;
@@ -953,6 +975,14 @@ static int get_stm32x_info(struct flash_bank *bank, char *buf, int buf_size)
 		switch (rev_id) {
 		case 0x0000:
 			rev_str = "A";
+			break;
+
+		case 0x1303: /* gd32f1x0 */
+			device_str = "GD32F1x0";
+			break;
+
+		case 0x1704: /* gd32f3x0 */
+			device_str = "GD32F3x0";
 			break;
 
 		case 0x2000:

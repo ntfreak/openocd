@@ -6941,7 +6941,8 @@ applied to all of them.
 
 @deffn {Flash Driver} stm32f1x
 All members of the STM32F0, STM32F1 and STM32F3 microcontroller families
-from STMicroelectronics include internal flash and use ARM Cortex-M0/M3/M4 cores.
+from STMicroelectronics and all members of the GD32F1x0 and GD32F3x0 microcontroller
+families from GigaDevice include internal flash and use ARM Cortex-M0/M3/M4 cores.
 The driver automatically recognizes a number of these chips using
 the chip identification register, and autoconfigures itself.
 
