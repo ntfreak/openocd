@@ -41,8 +41,8 @@
 #include "cmsis_dap.h"
 
 struct cmsis_dap_backend_data {
-	libusb_context *usb_ctx;
-	libusb_device_handle *dev_handle;
+	struct libusb_context *usb_ctx;
+	struct libusb_device_handle *dev_handle;
 	unsigned int ep_out;
 	unsigned int ep_in;
 	int interface;
@@ -56,8 +56,8 @@ static int cmsis_dap_usb_alloc(struct cmsis_dap *dap, unsigned int pkt_sz);
 static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t pids[], char *serial)
 {
 	int err;
-	libusb_context *ctx;
-	libusb_device **device_list;
+	struct libusb_context *ctx;
+	struct libusb_device **device_list;
 
 	err = libusb_init(&ctx);
 	if (err) {
@@ -73,7 +73,7 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 	}
 
 	for (int i = 0; i < num_devices; i++) {
-		libusb_device *dev = device_list[i];
+		struct libusb_device *dev = device_list[i];
 		struct libusb_device_descriptor dev_desc;
 
 		err = libusb_get_device_descriptor(dev, &dev_desc);
@@ -101,7 +101,7 @@ static int cmsis_dap_usb_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 		if (dev_desc.iSerialNumber == 0 && serial && serial[0])
 			continue;
 
-		libusb_device_handle *dev_handle = NULL;
+		struct libusb_device_handle *dev_handle = NULL;
 		err = libusb_open(dev, &dev_handle);
 		if (err) {
 			/* It's to be expected that most USB devices can't be opened

@@ -213,8 +213,8 @@ struct scan_result {
 
 struct xds110_info {
 	/* USB connection handles and data buffers */
-	libusb_context *ctx;
-	libusb_device_handle *dev;
+	struct libusb_context *ctx;
+	struct libusb_device_handle *dev;
 	unsigned char read_payload[USB_PAYLOAD_SIZE];
 	unsigned char write_packet[3];
 	unsigned char write_payload[USB_PAYLOAD_SIZE];
@@ -317,9 +317,9 @@ static inline uint16_t xds110_get_u16(uint8_t *buffer)
 
 static bool usb_connect(void)
 {
-	libusb_context *ctx  = NULL;
-	libusb_device **list = NULL;
-	libusb_device_handle *dev  = NULL;
+	struct libusb_context *ctx  = NULL;
+	struct libusb_device **list = NULL;
+	struct libusb_device_handle *dev  = NULL;
 
 	struct libusb_device_descriptor desc;
 

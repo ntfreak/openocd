@@ -812,7 +812,7 @@ static int vsllink_check_usb_strings(
 static int vsllink_usb_open(struct vsllink *vsllink)
 {
 	ssize_t num_devices, i;
-	libusb_device **usb_devices;
+	struct libusb_device **usb_devices;
 	struct libusb_device_descriptor usb_desc;
 	struct libusb_device_handle *usb_device_handle;
 	int retval;
@@ -823,7 +823,7 @@ static int vsllink_usb_open(struct vsllink *vsllink)
 		return ERROR_FAIL;
 
 	for (i = 0; i < num_devices; i++) {
-		libusb_device *device = usb_devices[i];
+		struct libusb_device *device = usb_devices[i];
 
 		retval = libusb_get_device_descriptor(device, &usb_desc);
 		if (retval != 0)

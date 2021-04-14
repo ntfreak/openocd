@@ -96,14 +96,14 @@
 #define ST7_PC_TDO      ST7_PC_IO9
 #define ST7_PA_DBGACK   ST7_PA_IO10
 
-static libusb_device_handle *pHDev;
+static struct libusb_device_handle *pHDev;
 
 /*
  * ep1 commands are up to USB_EP1OUT_SIZE bytes in length.
  * This function takes care of zeroing the unused bytes before sending the packet.
  * Any reply packet is not handled by this function.
  */
-static int ep1_generic_commandl(libusb_device_handle *pHDev_param, size_t length, ...)
+static int ep1_generic_commandl(struct libusb_device_handle *pHDev_param, size_t length, ...)
 {
 	uint8_t usb_buffer[USB_EP1OUT_SIZE];
 	uint8_t *usb_buffer_p;
@@ -143,7 +143,7 @@ static int ep1_generic_commandl(libusb_device_handle *pHDev_param, size_t length
 
 #if 0
 static ssize_t ep1_memory_read(
-	libusb_device_handle *pHDev_param, uint16_t addr,
+	struct libusb_device_handle *pHDev_param, uint16_t addr,
 	size_t length, uint8_t *buffer)
 {
 	uint8_t usb_buffer[USB_EP1OUT_SIZE];
@@ -202,7 +202,7 @@ static ssize_t ep1_memory_read(
 }
 #endif
 
-static ssize_t ep1_memory_write(libusb_device_handle *pHDev_param, uint16_t addr,
+static ssize_t ep1_memory_write(struct libusb_device_handle *pHDev_param, uint16_t addr,
 	size_t length, uint8_t const *buffer)
 {
 	uint8_t usb_buffer[USB_EP1OUT_SIZE];
@@ -258,7 +258,7 @@ static ssize_t ep1_memory_write(libusb_device_handle *pHDev_param, uint16_t addr
 
 
 #if 0
-static ssize_t ep1_memory_writel(libusb_device_handle *pHDev_param, uint16_t addr,
+static ssize_t ep1_memory_writel(struct libusb_device_handle *pHDev_param, uint16_t addr,
 	size_t length, ...)
 {
 	uint8_t buffer[USB_EP1OUT_SIZE - 4];
@@ -295,7 +295,7 @@ static ssize_t ep1_memory_writel(libusb_device_handle *pHDev_param, uint16_t add
 static uint8_t dtc_entry_download;
 
 /* The buffer is specially formatted to represent a valid image to load into the DTC. */
-static int dtc_load_from_buffer(libusb_device_handle *pHDev_param, const uint8_t *buffer,
+static int dtc_load_from_buffer(struct libusb_device_handle *pHDev_param, const uint8_t *buffer,
 		size_t length)
 {
 	struct header_s {
@@ -469,7 +469,7 @@ static int dtc_start_download(void)
 }
 
 static int dtc_run_download(
-	libusb_device_handle *pHDev_param,
+	struct libusb_device_handle *pHDev_param,
 	uint8_t *command_buffer,
 	int command_buffer_size,
 	uint8_t *reply_buffer,

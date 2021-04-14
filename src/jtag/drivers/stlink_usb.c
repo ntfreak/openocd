@@ -3016,7 +3016,7 @@ static int stlink_close(void *handle)
  *    based on the length (0x1a = 26) we could easily decide if we have to fixup the serial
  *    and then we have just to convert the raw data into printable characters using sprintf
  */
-static char *stlink_usb_get_alternate_serial(libusb_device_handle *device,
+static char *stlink_usb_get_alternate_serial(struct libusb_device_handle *device,
 		struct libusb_device_descriptor *dev_desc)
 {
 	int usb_retval;

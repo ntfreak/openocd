@@ -35,7 +35,7 @@ uint16_t versaloon_buf_size;
 struct versaloon_pending_t versaloon_pending[VERSALOON_MAX_PENDING_NUMBER];
 uint16_t versaloon_pending_idx;
 
-libusb_device_handle *versaloon_usb_device_handle;
+struct libusb_device_handle *versaloon_usb_device_handle;
 static uint32_t versaloon_usb_to = VERSALOON_TIMEOUT;
 
 static RESULT versaloon_init(void);

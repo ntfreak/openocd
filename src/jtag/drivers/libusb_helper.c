@@ -31,7 +31,7 @@
 #define MAX_USB_PORTS	7
 
 static struct libusb_context *jtag_libusb_context; /**< Libusb context **/
-static libusb_device **devs; /**< The usb device list **/
+static struct libusb_device **devs; /**< The usb device list **/
 
 static int jtag_libusb_error(int err)
 {
@@ -71,7 +71,7 @@ static bool jtag_libusb_match_ids(struct libusb_device_descriptor *dev_desc,
 }
 
 #ifdef HAVE_LIBUSB_GET_PORT_NUMBERS
-static bool jtag_libusb_location_equal(libusb_device *device)
+static bool jtag_libusb_location_equal(struct libusb_device *device)
 {
 	uint8_t port_path[MAX_USB_PORTS];
 	uint8_t dev_bus;
@@ -88,7 +88,7 @@ static bool jtag_libusb_location_equal(libusb_device *device)
 	return jtag_usb_location_equal(dev_bus, port_path, path_len);
 }
 #else /* HAVE_LIBUSB_GET_PORT_NUMBERS */
-static bool jtag_libusb_location_equal(libusb_device *device)
+static bool jtag_libusb_location_equal(struct libusb_device *device)
 {
 	return true;
 }
@@ -96,7 +96,7 @@ static bool jtag_libusb_location_equal(libusb_device *device)
 
 
 /* Returns true if the string descriptor indexed by str_index in device matches string */
-static bool string_descriptor_equal(libusb_device_handle *device, uint8_t str_index,
+static bool string_descriptor_equal(struct libusb_device_handle *device, uint8_t str_index,
 									const char *string)
 {
 	int retval;
@@ -123,7 +123,7 @@ static bool string_descriptor_equal(libusb_device_handle *device, uint8_t str_in
 	return matched;
 }
 
-static bool jtag_libusb_match_serial(libusb_device_handle *device,
+static bool jtag_libusb_match_serial(struct libusb_device_handle *device,
 		struct libusb_device_descriptor *dev_desc, const char *serial,
 		adapter_get_alternate_serial_fn adapter_get_alternate_serial)
 {

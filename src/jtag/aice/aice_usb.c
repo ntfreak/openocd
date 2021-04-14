@@ -349,8 +349,8 @@ static void aice_unpack_dthmb(uint8_t *cmd_ack_code, uint8_t *target_id,
 /* calls the given usb_bulk_* function, allowing for the data to
  * trickle in with some timeouts  */
 static int usb_bulk_with_retries(
-			int (*f)(libusb_device_handle *, int, char *, int, int, int *),
-			libusb_device_handle *dev, int ep,
+			int (*f)(struct libusb_device_handle *, int, char *, int, int, int *),
+			struct libusb_device_handle *dev, int ep,
 			char *bytes, int size, int timeout, int *transferred)
 {
 	int tries = 3, count = 0;
@@ -369,7 +369,7 @@ static int usb_bulk_with_retries(
 	return ERROR_OK;
 }
 
-static int wrap_usb_bulk_write(libusb_device_handle *dev, int ep,
+static int wrap_usb_bulk_write(struct libusb_device_handle *dev, int ep,
 		char *buff, int size, int timeout, int *transferred)
 {
 
@@ -379,7 +379,7 @@ static int wrap_usb_bulk_write(libusb_device_handle *dev, int ep,
 	return 0;
 }
 
-static inline int usb_bulk_write_ex(libusb_device_handle *dev, int ep,
+static inline int usb_bulk_write_ex(struct libusb_device_handle *dev, int ep,
 		char *bytes, int size, int timeout)
 {
 	int tr = 0;

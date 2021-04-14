@@ -107,6 +107,6 @@ struct versaloon_interface_t {
 };
 
 extern struct versaloon_interface_t versaloon_interface;
-extern libusb_device_handle *versaloon_usb_device_handle;
+extern struct libusb_device_handle *versaloon_usb_device_handle;
 
 #endif /* OPENOCD_JTAG_DRIVERS_VERSALOON_VERSALOON_H */
