@@ -860,6 +860,31 @@ sub read_words {
 	return 0;
 }
 
+# OpenOCD specific: load list of allowed CamelCase symbols
+if (show_type("CAMELCASE")) {
+	my $allowed_camelcase_file = "$root/tools/scripts/camelcase.txt";
+	if (open(my $words, '<', $allowed_camelcase_file)) {
+		while (<$words>) {
+			 my $line = $_;
+
+			$line =~ s/\s*\n?$//g;
+			$line =~ s/^\s*//g;
+
+			next if ($line =~ m/^\s*#/);
+			next if ($line =~ m/^\s*$/);
+			if ($line =~ /\s/) {
+				print("$allowed_camelcase_file: '$line' invalid - ignored\n");
+				next;
+			}
+
+			$camelcase{$line} = 1;
+		}
+		close($allowed_camelcase_file);
+	} else {
+		warn "No camelcase symbols to ignore - file '$allowed_camelcase_file': $!\n";
+	}
+}
+
 my $const_structs;
 if (show_type("CONST_STRUCT")) {
 	read_words(\$const_structs, $conststructsfile)
