@@ -1,0 +1,8 @@
+Verified+1: jenkins
+Code-Review+1: Adrian M Negreanu <adrian.negreanu@nxp.com>
+Code-Review+2: Tomas Vanek <vanekt@fbl.cz>
+Submitted-by: Tomas Vanek <vanekt@fbl.cz>
+Submitted-at: Sun, 18 Apr 2021 21:21:44 +0100
+Reviewed-on: http://openocd.zylin.com/6135
+Project: openocd
+Branch: refs/heads/master
