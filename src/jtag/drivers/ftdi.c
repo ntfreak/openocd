@@ -74,6 +74,7 @@
 #include <jtag/swd.h>
 #include <transport/transport.h>
 #include <helper/time_support.h>
+#include <helper/log.h>
 
 #if IS_CYGWIN == 1
 #include <windows.h>

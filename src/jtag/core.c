@@ -35,6 +35,7 @@
 #include "interface.h"
 #include <transport/transport.h>
 #include <helper/jep106.h>
+#include "helper/system.h"
 
 #ifdef HAVE_STRINGS_H
 #include <strings.h>

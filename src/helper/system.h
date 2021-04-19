@@ -21,6 +21,15 @@
 #ifndef OPENOCD_HELPER_SYSTEM_H
 #define OPENOCD_HELPER_SYSTEM_H
 
+/* +++ platform specific headers +++ */
+#ifdef _WIN32
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#endif
+/* --- platform specific headers --- */
+
 /* standard C library header files */
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,15 +42,6 @@
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
-
-/* +++ platform specific headers +++ */
-#ifdef _WIN32
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#endif
-/* --- platform specific headers --- */
 
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>

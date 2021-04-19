@@ -77,6 +77,7 @@
 #include <jtag/interface.h>
 #include <jtag/commands.h>
 #include <helper/time_support.h>
+#include <helper/replacements.h>
 #include "ublast_access.h"
 
 /* system includes */

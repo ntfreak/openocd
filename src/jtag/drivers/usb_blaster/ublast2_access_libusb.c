@@ -23,6 +23,7 @@
 #endif
 #include <jtag/interface.h>
 #include <jtag/commands.h>
+#include "helper/system.h"
 #include <libusb_helper.h>
 #include <target/image.h>
 

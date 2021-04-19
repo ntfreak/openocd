@@ -19,6 +19,7 @@
 #define OPENOCD_FLASH_COMMON_H
 
 #include <helper/log.h>
+#include <helper/replacements.h>
 
 /**
  * Parses the optional '.index' portion of a flash bank identifier.

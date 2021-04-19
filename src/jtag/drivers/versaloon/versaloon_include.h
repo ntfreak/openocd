@@ -18,6 +18,7 @@
 #ifndef OPENOCD_JTAG_DRIVERS_VERSALOON_VERSALOON_INCLUDE_H
 #define OPENOCD_JTAG_DRIVERS_VERSALOON_VERSALOON_INCLUDE_H
 
+#include "helper/system.h"
 /* This file is used to include different header and macros */
 /* according to different platform */
 #include <jtag/interface.h>

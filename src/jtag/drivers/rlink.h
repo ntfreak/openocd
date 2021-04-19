@@ -19,6 +19,7 @@
 #ifndef OPENOCD_JTAG_DRIVERS_RLINK_H
 #define OPENOCD_JTAG_DRIVERS_RLINK_H
 
+#include "helper/types.h"
 struct rlink_speed_table {
 	uint8_t const *dtc;
 	uint16_t dtc_size;

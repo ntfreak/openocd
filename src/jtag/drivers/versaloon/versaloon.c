@@ -19,11 +19,12 @@
 #include "config.h"
 #endif
 
+#include "versaloon_include.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <libusb.h>
 
-#include "versaloon_include.h"
 #include "versaloon.h"
 #include "versaloon_internal.h"
 #include "usbtoxxx/usbtoxxx.h"

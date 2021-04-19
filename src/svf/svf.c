@@ -31,6 +31,7 @@
 
 #include <jtag/jtag.h>
 #include "svf.h"
+#include "helper/system.h"
 #include <helper/time_support.h>
 
 /* SVF command */
