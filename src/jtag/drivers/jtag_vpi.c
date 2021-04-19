@@ -33,7 +33,7 @@
 #include <netinet/tcp.h>
 #endif
 
-#include <string.h>
+#include "helper/replacements.h"
 
 #define NO_TAP_SHIFT	0
 #define TAP_SHIFT	1

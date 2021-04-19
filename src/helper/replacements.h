@@ -26,6 +26,7 @@
 #define OPENOCD_HELPER_REPLACEMENTS_H
 
 #include <stdint.h>
+#include <helper/system.h>
 
 /* MIN,MAX macros */
 #ifndef MIN

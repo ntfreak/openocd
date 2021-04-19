@@ -26,6 +26,7 @@
 #define OPENOCD_TARGET_IMAGE_H
 
 #include <helper/fileio.h>
+#include <helper/replacements.h>
 
 #ifdef HAVE_ELF_H
 #include <elf.h>

@@ -24,6 +24,7 @@
 
 #include <helper/binarybuffer.h>
 #include <helper/log.h>
+#include <helper/replacements.h>
 
 #ifndef DEBUG_JTAG_IOZ
 #define DEBUG_JTAG_IOZ 64

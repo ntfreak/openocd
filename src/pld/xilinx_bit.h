@@ -19,6 +19,8 @@
 #ifndef OPENOCD_PLD_XILINX_BIT_H
 #define OPENOCD_PLD_XILINX_BIT_H
 
+#include "helper/types.h"
+
 struct xilinx_bit_file {
 	uint8_t unknown_header[13];
 	uint8_t *source_file;
