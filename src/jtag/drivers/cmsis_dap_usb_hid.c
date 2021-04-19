@@ -35,6 +35,7 @@
 #include "config.h"
 #endif
 
+#include <string.h>
 #include <hidapi.h>
 #include <helper/log.h>
 

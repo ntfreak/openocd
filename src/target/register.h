@@ -22,6 +22,9 @@
 #ifndef OPENOCD_TARGET_REGISTER_H
 #define OPENOCD_TARGET_REGISTER_H
 
+#include "helper/replacements.h"
+#include "helper/types.h"
+
 struct target;
 
 enum reg_type {

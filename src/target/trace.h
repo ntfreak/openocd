@@ -19,6 +19,8 @@
 #ifndef OPENOCD_TARGET_TRACE_H
 #define OPENOCD_TARGET_TRACE_H
 
+#include "helper/types.h"
+
 struct target;
 struct command_context;
 

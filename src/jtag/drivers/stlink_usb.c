@@ -35,6 +35,7 @@
 /* project specific includes */
 #include <helper/binarybuffer.h>
 #include <helper/bits.h>
+#include <helper/system.h>
 #include <jtag/interface.h>
 #include <jtag/hla/hla_layout.h>
 #include <jtag/hla/hla_transport.h>
