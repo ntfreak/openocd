@@ -19,6 +19,9 @@
 #ifndef OPENOCD_TARGET_ALGORITHM_H
 #define OPENOCD_TARGET_ALGORITHM_H
 
+#include "helper/types.h"
+#include "helper/replacements.h"
+
 enum param_direction {
 	PARAM_IN,
 	PARAM_OUT,

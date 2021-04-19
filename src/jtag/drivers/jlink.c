@@ -39,6 +39,7 @@
 #include <jtag/swd.h>
 #include <jtag/commands.h>
 #include <jtag/drivers/jtag_usb_common.h>
+#include <src/helper/replacements.h>
 #include <target/cortex_m.h>
 
 #include <libjaylink/libjaylink.h>

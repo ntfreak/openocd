@@ -29,6 +29,7 @@
 #include "log.h"
 #include "configuration.h"
 #include "fileio.h"
+#include "replacements.h"
 
 struct fileio {
 	char *url;
