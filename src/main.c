@@ -20,6 +20,7 @@
 #include "config.h"
 #endif
 #include "openocd.h"
+#include "helper/system.h"
 
 /* This is the main entry for developer PC hosted OpenOCD.
  *

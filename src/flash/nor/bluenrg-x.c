@@ -20,6 +20,7 @@
 #include "config.h"
 #endif
 
+#include "helper/types.h"
 #include <target/algorithm.h>
 #include <target/armv7m.h>
 #include <target/cortex_m.h>

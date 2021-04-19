@@ -21,6 +21,8 @@
 
 #include <stdint.h>
 
+#include "helper/types.h"
+
 struct target;
 
 enum breakpoint_type {

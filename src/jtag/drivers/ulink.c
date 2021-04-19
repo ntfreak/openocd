@@ -21,6 +21,7 @@
 #endif
 
 #include <math.h>
+#include "helper/system.h"
 #include <jtag/interface.h>
 #include <jtag/commands.h>
 #include <target/image.h>
