@@ -17,11 +17,6 @@ AC_SUBST([MAKEINFO])
 AM_INIT_AUTOMAKE([-Wall -Wno-portability dist-bzip2 dist-zip subdir-objects])
 
 AC_CONFIG_HEADERS([config.h])
-AH_BOTTOM([
-#include <helper/system.h>
-#include <helper/types.h>
-#include <helper/replacements.h>
-])
 
 AC_LANG([C])
 AC_PROG_CC

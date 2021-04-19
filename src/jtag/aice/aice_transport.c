@@ -27,6 +27,7 @@
 #include <target/target.h>
 #include <jtag/aice/aice_interface.h>
 #include <jtag/aice/aice_transport.h>
+#include <string.h>
 
 /* */
 static int jim_newtap_expected_id(Jim_Nvp *n, Jim_GetOptInfo *goi,

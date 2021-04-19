@@ -62,6 +62,7 @@ void *fill_malloc(size_t size)
 
 #ifdef _WIN32
 #include <io.h>
+#include <winsock2.h>
 #endif
 
 /* replacements for gettimeofday */

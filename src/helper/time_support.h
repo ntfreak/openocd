@@ -26,6 +26,7 @@
 #define OPENOCD_HELPER_TIME_SUPPORT_H
 
 #include <time.h>
+#include "types.h"
 
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>

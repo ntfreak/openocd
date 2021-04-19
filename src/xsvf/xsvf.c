@@ -39,6 +39,7 @@
 #endif
 
 #include "xsvf.h"
+#include "helper/system.h"
 #include <jtag/jtag.h>
 #include <svf/svf.h>
 
