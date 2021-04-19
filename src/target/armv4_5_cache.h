@@ -19,6 +19,8 @@
 #ifndef OPENOCD_TARGET_ARMV4_5_CACHE_H
 #define OPENOCD_TARGET_ARMV4_5_CACHE_H
 
+#include "helper/types.h"
+
 struct command_invocation;
 
 struct armv4_5_cachesize {

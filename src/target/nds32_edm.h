@@ -19,6 +19,8 @@
 #ifndef OPENOCD_TARGET_NDS32_EDM_H
 #define OPENOCD_TARGET_NDS32_EDM_H
 
+#include "helper/types.h"
+
 /**
  * @file
  * This is the interface to the Embedded Debug Module for Andes cores.

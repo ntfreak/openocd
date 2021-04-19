@@ -25,6 +25,8 @@
 #ifndef OPENOCD_HELPER_FILEIO_H
 #define OPENOCD_HELPER_FILEIO_H
 
+#include "types.h"
+
 #define FILEIO_MAX_ERROR_STRING		(128)
 
 enum fileio_type {

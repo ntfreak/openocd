@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <time.h>
+#include "helper/replacements.h"
 
 /*
  * According to:

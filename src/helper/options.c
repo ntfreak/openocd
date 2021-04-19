@@ -31,6 +31,7 @@
 
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 #if IS_DARWIN
 #include <libproc.h>
 #endif

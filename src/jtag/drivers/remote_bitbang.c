@@ -24,6 +24,8 @@
 #include <sys/un.h>
 #include <netdb.h>
 #endif
+#include "helper/system.h"
+#include "helper/replacements.h"
 #include <jtag/interface.h>
 #include "bitbang.h"
 

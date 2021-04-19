@@ -33,6 +33,7 @@
 #include "openocd.h"
 #include "tcl_server.h"
 #include "telnet_server.h"
+#include "time_support.h"
 
 #include <signal.h>
 
