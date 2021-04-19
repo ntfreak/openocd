@@ -19,6 +19,8 @@
 #include "config.h"
 #endif
 
+#include <helper/system.h>
+
 #ifdef _WIN32
 #include <windows.h>
 #else

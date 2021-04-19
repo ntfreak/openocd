@@ -35,8 +35,10 @@
 #include "config.h"
 #endif
 
+#include <helper/system.h>
 #include <libusb.h>
 #include <helper/log.h>
+#include <helper/replacements.h>
 
 #include "cmsis_dap.h"
 

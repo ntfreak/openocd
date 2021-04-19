@@ -30,6 +30,7 @@
 #endif
 
 #include <helper/log.h>
+#include <helper/replacements.h>
 
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>

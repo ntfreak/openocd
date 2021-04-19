@@ -25,7 +25,7 @@
 #include <helper/log.h>
 
 #include <sys/stat.h>
-
+#include <helper/system.h>
 
 static int read_section(FILE *input_file, int length_size, char section,
 	uint32_t *buffer_length, uint8_t **buffer)

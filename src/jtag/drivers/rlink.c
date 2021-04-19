@@ -29,6 +29,7 @@
 /* project specific includes */
 #include <jtag/interface.h>
 #include <jtag/commands.h>
+#include "helper/replacements.h"
 #include "rlink.h"
 #include "rlink_st7.h"
 #include "rlink_ep1_cmd.h"

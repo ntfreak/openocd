@@ -4,6 +4,7 @@
  */
 
 #include <helper/log.h>
+#include <string.h>
 
 #include "jtag_usb_common.h"
 
