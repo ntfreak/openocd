@@ -25,6 +25,7 @@
 #include <signal.h>
 #endif
 
+#include <helper/system.h>
 #include <helper/log.h>
 #include <helper/time_support.h>
 #include "aice_port.h"

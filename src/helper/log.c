@@ -28,6 +28,7 @@
 
 #include "log.h"
 #include "command.h"
+#include "replacements.h"
 #include "time_support.h"
 
 #include <stdarg.h>

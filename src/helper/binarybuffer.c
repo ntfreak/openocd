@@ -23,6 +23,7 @@
 #include "config.h"
 #endif
 
+#include "helper/replacements.h"
 #include "log.h"
 #include "binarybuffer.h"
 

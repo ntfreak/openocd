@@ -26,7 +26,6 @@
 #include <stdbool.h>
 #include <jim-nvp.h>
 
-#include <helper/list.h>
 #include <helper/types.h>
 
 /* To achieve C99 printf compatibility in MinGW, gnu_printf should be
