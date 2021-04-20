@@ -426,7 +426,10 @@ static int image_elf32_read_headers(struct image *image)
 			(field32(elf, elf->segments32[i].p_filesz) != 0))
 			image->num_sections++;
 
-	assert(image->num_sections > 0);
+	if (image->num_sections == 0) {
+		LOG_ERROR("invalid ELF file, no loadable segments");
+		return ERROR_IMAGE_FORMAT_ERROR;
+	}
 
 	/**
 	 * some ELF linkers produce binaries with *all* the program header
@@ -548,7 +551,10 @@ static int image_elf64_read_headers(struct image *image)
 			(field64(elf, elf->segments64[i].p_filesz) != 0))
 			image->num_sections++;
 
-	assert(image->num_sections > 0);
+	if (image->num_sections == 0) {
+		LOG_ERROR("invalid ELF file, no loadable segments");
+		return ERROR_IMAGE_FORMAT_ERROR;
+	}
 
 	/**
 	 * some ELF linkers produce binaries with *all* the program header
