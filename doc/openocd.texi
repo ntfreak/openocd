@@ -4514,7 +4514,7 @@ a CPU, through which bus read and write cycles can be generated; it may be
 useful for working with non-CPU hardware behind an AP or during development of
 support for new CPUs.
 It's possible to connect a GDB client to this target (the GDB port has to be
-specified, @xref{gdbportoverride,,option -gdb-port}), and a fake ARM core will
+specified, @xref{gdbportoverride,,option -gdb-port}.), and a fake ARM core will
 be emulated to comply to GDB remote protocol.
 @item @code{mips_m4k} -- a MIPS core.
 @item @code{mips_mips64} -- a MIPS64 core.
