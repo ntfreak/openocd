@@ -10181,7 +10181,7 @@ startbit endbit}.
 
 @deffn {Command} {arc get-reg-field} reg-name field-name
 Returns value of bit-field in a register. Register must be ``struct'' register
-type, @xref{add-reg-type-struct} command definition.
+type, @xref{add-reg-type-struct}. command definition.
 @end deffn
 
 @deffn {Command} {arc set-reg-exists} reg-names...
