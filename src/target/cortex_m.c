@@ -2019,7 +2019,7 @@ int cortex_m_examine(struct target *target)
 			/* test for floating point feature on Cortex-M4 */
 			if ((mvfr0 == MVFR0_DEFAULT_M4) && (mvfr1 == MVFR1_DEFAULT_M4)) {
 				LOG_DEBUG("Cortex-M%d floating point feature FPv4_SP found", i);
-				armv7m->fp_feature = FPv4_SP;
+				armv7m->fp_feature = FPV4_SP;
 			}
 		} else if (i == 7 || i == 33 || i == 35 || i == 55) {
 			target_read_u32(target, MVFR0, &mvfr0);
@@ -2028,10 +2028,10 @@ int cortex_m_examine(struct target *target)
 			/* test for floating point features on Cortex-M7 */
 			if ((mvfr0 == MVFR0_DEFAULT_M7_SP) && (mvfr1 == MVFR1_DEFAULT_M7_SP)) {
 				LOG_DEBUG("Cortex-M%d floating point feature FPv5_SP found", i);
-				armv7m->fp_feature = FPv5_SP;
+				armv7m->fp_feature = FPV5_SP;
 			} else if ((mvfr0 == MVFR0_DEFAULT_M7_DP) && (mvfr1 == MVFR1_DEFAULT_M7_DP)) {
 				LOG_DEBUG("Cortex-M%d floating point feature FPv5_DP found", i);
-				armv7m->fp_feature = FPv5_DP;
+				armv7m->fp_feature = FPV5_DP;
 			}
 		} else if (i == 0) {
 			/* Cortex-M0 does not support unaligned memory access */

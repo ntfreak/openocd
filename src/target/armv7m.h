@@ -169,9 +169,9 @@ enum {
 
 enum {
 	FP_NONE = 0,
-	FPv4_SP,
-	FPv5_SP,
-	FPv5_DP,
+	FPV4_SP,
+	FPV5_SP,
+	FPV5_DP,
 };
 
 #define ARMV7M_NUM_CORE_REGS (ARMV7M_xPSR + 1)
