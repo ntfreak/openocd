@@ -352,7 +352,7 @@ static int nuttx_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	bool cm4_fpu_enabled = false;
 	struct armv7m_common *armv7m_target = target_to_armv7m(rtos->target);
 	if (is_armv7m(armv7m_target)) {
-		if (armv7m_target->fp_feature == FPv4_SP) {
+		if (armv7m_target->fp_feature == FPV4_SP) {
 			/* Found ARM v7m target which includes a FPU */
 			uint32_t cpacr;
 
