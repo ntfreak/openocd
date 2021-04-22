@@ -1596,6 +1596,35 @@ int cortex_m_remove_watchpoint(struct target *target, struct watchpoint *watchpo
 	return ERROR_OK;
 }
 
+int cortex_m_hit_watchpoint(struct target *target, struct watchpoint **hit_watchpoint)
+{
+	if (target->debug_reason != DBG_REASON_WATCHPOINT)
+		return ERROR_FAIL;
+
+	struct cortex_m_common *cortex_m = target_to_cm(target);
+
+	for (struct watchpoint *wp = target->watchpoints; wp; wp = wp->next) {
+		if (!wp->set)
+			continue;
+
+		unsigned int dwt_num = wp->set - 1;
+		struct cortex_m_dwt_comparator *comparator = cortex_m->dwt_comparator_list + dwt_num;
+
+		uint32_t dwt_function;
+		int retval = target_read_u32(target, comparator->dwt_comparator_address + 8, &dwt_function);
+		if (retval != ERROR_OK)
+			return ERROR_FAIL;
+
+		/* check the MATCHED bit */
+		if (dwt_function & BIT(24)) {
+			*hit_watchpoint = wp;
+			return ERROR_OK;
+		}
+	}
+
+	return ERROR_FAIL;
+}
+
 void cortex_m_enable_watchpoints(struct target *target)
 {
 	struct watchpoint *watchpoint = target->watchpoints;
@@ -2531,6 +2560,7 @@ struct target_type cortexm_target = {
 	.remove_breakpoint = cortex_m_remove_breakpoint,
 	.add_watchpoint = cortex_m_add_watchpoint,
 	.remove_watchpoint = cortex_m_remove_watchpoint,
+	.hit_watchpoint = cortex_m_hit_watchpoint,
 
 	.commands = cortex_m_command_handlers,
 	.target_create = cortex_m_target_create,
