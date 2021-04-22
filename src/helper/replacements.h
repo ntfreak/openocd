@@ -241,10 +241,8 @@ static inline int socket_select(int max_fd,
 typedef uint32_t Elf32_Addr;
 typedef uint16_t Elf32_Half;
 typedef uint32_t Elf32_Off;
-typedef int32_t Elf32_Sword;
 typedef uint32_t Elf32_Word;
 typedef uint32_t Elf32_Size;
-typedef Elf32_Off Elf32_Hashelt;
 
 #define EI_NIDENT   16
 
