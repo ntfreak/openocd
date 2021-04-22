@@ -190,6 +190,7 @@ struct cortex_m_common {
 
 	/* Context information */
 	uint32_t dcb_dhcsr;
+	uint32_t dcb_dhcsr_cumulated_sticky;
 	uint32_t nvic_dfsr;  /* Debug Fault Status Register - shows reason for debug halt */
 	uint32_t nvic_icsr;  /* Interrupt Control State Register - shows active and pending IRQ */
 
