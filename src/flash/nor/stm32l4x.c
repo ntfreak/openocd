@@ -1608,7 +1608,7 @@ static int stm32l4_auto_probe(struct flash_bank *bank)
 	return stm32l4_probe(bank);
 }
 
-static int get_stm32l4_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_stm32l4_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
 	const struct stm32l4_part_info *part_info = stm32l4_info->part_info;
@@ -1623,11 +1623,17 @@ static int get_stm32l4_info(struct flash_bank *bank, char *buf, int buf_size)
 			}
 		}
 
-		int buf_len = snprintf(buf, buf_size, "%s - Rev %s : 0x%04x",
+		int snprintf_ret = snprintf(buf, buf_size, "%s - Rev %s : 0x%04x",
 				part_info->device_str, rev_str ? rev_str : "'unknown'", rev_id);
 
+		if (snprintf_ret < 0)
+			return ERROR_FAIL;
+		unsigned printed = snprintf_ret;
+		if (printed >= buf_size)
+			return ERROR_BUF_TOO_SMALL;
+
 		if (stm32l4_info->probed)
-			snprintf(buf + buf_len, buf_size - buf_len, " - %s-bank",
+			snprintf(buf + printed, buf_size - printed, " - %s-bank",
 					stm32l4_is_otp(bank) ? "OTP" :
 					stm32l4_info->dual_bank_mode ? "Flash dual" : "Flash single");
 

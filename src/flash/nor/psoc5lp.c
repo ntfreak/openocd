@@ -753,7 +753,7 @@ static int psoc5lp_nvl_write(struct flash_bank *bank,
 }
 
 static int psoc5lp_nvl_get_info_command(struct flash_bank *bank,
-	char *buf, int buf_size)
+	char *buf, unsigned buf_size)
 {
 	struct psoc5lp_nvl_flash_bank *psoc_nvl_bank = bank->driver_priv;
 	char part_number[PART_NUMBER_LEN];
@@ -934,7 +934,7 @@ static int psoc5lp_eeprom_write(struct flash_bank *bank,
 	return ERROR_OK;
 }
 
-static int psoc5lp_eeprom_get_info_command(struct flash_bank *bank, char *buf, int buf_size)
+static int psoc5lp_eeprom_get_info_command(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	struct psoc5lp_eeprom_flash_bank *psoc_eeprom_bank = bank->driver_priv;
 	char part_number[PART_NUMBER_LEN];
@@ -1397,7 +1397,7 @@ static int psoc5lp_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int psoc5lp_get_info_command(struct flash_bank *bank, char *buf, int buf_size)
+static int psoc5lp_get_info_command(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	struct psoc5lp_flash_bank *psoc_bank = bank->driver_priv;
 	char part_number[PART_NUMBER_LEN];

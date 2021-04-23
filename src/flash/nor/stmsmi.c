@@ -631,7 +631,7 @@ static int stmsmi_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int get_stmsmi_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_stmsmi_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	struct stmsmi_flash_bank *stmsmi_info = bank->driver_priv;
 

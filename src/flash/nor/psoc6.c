@@ -495,7 +495,7 @@ static const char *protection_to_str(uint8_t protection)
  * @param buf_size size of the buffer
  * @return ERROR_OK in case of success, ERROR_XXX code otherwise
  *************************************************************************************************/
-static int psoc6_get_info(struct flash_bank *bank, char *buf, int buf_size)
+static int psoc6_get_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	struct psoc6_target_info *psoc6_info = bank->driver_priv;
 

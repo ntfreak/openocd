@@ -851,7 +851,7 @@ static int psoc4_auto_probe(struct flash_bank *bank)
 }
 
 
-static int get_psoc4_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_psoc4_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	struct target *target = bank->target;
 	struct psoc4_flash_bank *psoc4_info = bank->driver_priv;
@@ -868,27 +868,26 @@ static int get_psoc4_info(struct flash_bank *bank, char *buf, int buf_size)
 		return ERROR_OK;
 	}
 
-	int retval;
-	int printed = 0;
 	uint32_t silicon_id;
 	uint16_t family_id;
 	uint8_t protection;
 
-	retval = psoc4_get_silicon_id(bank, &silicon_id, &family_id, &protection);
+	int retval = psoc4_get_silicon_id(bank, &silicon_id, &family_id, &protection);
 	if (retval != ERROR_OK)
 		return retval;
 
+	int snprintf_ret;
 	if (family_id != psoc4_info->family_id)
-		printed = snprintf(buf, buf_size, "Family id mismatch 0x%02" PRIx16
+		snprintf_ret = snprintf(buf, buf_size, "Family id mismatch 0x%02" PRIx16
 			"/0x%02" PRIx16 ", silicon id 0x%08" PRIx32,
 			psoc4_info->family_id, family_id, silicon_id);
 	else {
-		printed = snprintf(buf, buf_size, "%s silicon id 0x%08" PRIx32 "",
+		snprintf_ret = snprintf(buf, buf_size, "%s silicon id 0x%08" PRIx32 "",
 			family->name, silicon_id);
 	}
 
-	buf += printed;
-	buf_size -= printed;
+	buf += snprintf_num_printed(snprintf_ret, buf_size);
+	buf_size -= snprintf_num_printed(snprintf_ret, buf_size);
 
 	const char *prot_txt = psoc4_decode_chip_protection(protection);
 	snprintf(buf, buf_size, ", flash %" PRIu32 " kb %s", size_in_kb, prot_txt);

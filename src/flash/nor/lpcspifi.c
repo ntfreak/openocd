@@ -926,7 +926,7 @@ static int lpcspifi_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int get_lpcspifi_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_lpcspifi_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	struct lpcspifi_flash_bank *lpcspifi_info = bank->driver_priv;
 

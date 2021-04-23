@@ -209,11 +209,11 @@ struct flash_driver {
 	 * overflowing the buffer.
 	 *
 	 * @param bank - the bank to get info about
-	 * @param char - where to put the text for the human to read
-	 * @param buf_size - the size of the human buffer.
+	 * @param buf - buffer where to put the text for the human to read
+	 * @param buf_size - the size of the buffer.
 	 * @returns ERROR_OK if successful; otherwise, an error code.
 	 */
-	int (*info)(struct flash_bank *bank, char *buf, int buf_size);
+	int (*info)(struct flash_bank *bank, char *buf, unsigned buf_size);
 
 	/**
 	 * A more gentle flavor of flash_driver_s::probe, performing

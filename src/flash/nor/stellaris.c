@@ -479,9 +479,8 @@ FLASH_BANK_COMMAND_HANDLER(stellaris_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int get_stellaris_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_stellaris_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
-	int printed;
 	struct stellaris_flash_bank *stellaris_info = bank->driver_priv;
 
 	if (stellaris_info->did1 == 0)
@@ -490,7 +489,8 @@ static int get_stellaris_info(struct flash_bank *bank, char *buf, int buf_size)
 	/* Read main and master clock frequency register */
 	stellaris_read_clock_info(bank);
 
-	printed = snprintf(buf,
+	int snprintf_ret;
+	snprintf_ret = snprintf(buf,
 			   buf_size,
 			   "\nTI/LMI Stellaris information: Chip is "
 			   "class %i (%s) %s rev %c%i\n",
@@ -499,10 +499,11 @@ static int get_stellaris_info(struct flash_bank *bank, char *buf, int buf_size)
 			   stellaris_info->target_name,
 			   (int)('A' + ((stellaris_info->did0 >> 8) & 0xFF)),
 			   (int)((stellaris_info->did0) & 0xFF));
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf,
+	buf += snprintf_num_printed(snprintf_ret, buf_size);
+	buf_size -= snprintf_num_printed(snprintf_ret, buf_size);
+
+	snprintf_ret = snprintf(buf,
 			   buf_size,
 			   "did1: 0x%8.8" PRIx32 ", arch: 0x%4.4" PRIx32
 			   ", eproc: %s, ramsize: %" PRIu32 "k, flashsize: %" PRIu32 "k\n",
@@ -511,8 +512,9 @@ static int get_stellaris_info(struct flash_bank *bank, char *buf, int buf_size)
 			   "ARMv7M",
 			   stellaris_info->sramsiz,
 			   (uint32_t)(stellaris_info->num_pages * stellaris_info->pagesize / 1024));
-	buf += printed;
-	buf_size -= printed;
+
+	buf += snprintf_num_printed(snprintf_ret, buf_size);
+	buf_size -= snprintf_num_printed(snprintf_ret, buf_size);
 
 	snprintf(buf,
 			   buf_size,

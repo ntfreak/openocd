@@ -702,7 +702,7 @@ COMMAND_HANDLER(str7x_handle_part_id_command)
 }
 #endif
 
-static int get_str7x_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_str7x_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	/* Setting the write protection on a sector is a permanent change but it
 	 * can be disabled temporarily. FLASH_NVWPAR reflects the permanent

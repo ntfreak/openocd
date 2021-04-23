@@ -403,7 +403,7 @@ static int xmc1xxx_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int xmc1xxx_get_info_command(struct flash_bank *bank, char *buf, int buf_size)
+static int xmc1xxx_get_info_command(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	uint32_t chipid[8];
 	int i, retval;

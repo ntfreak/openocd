@@ -1251,7 +1251,7 @@ static int stm32x_auto_probe(struct flash_bank *bank)
 	return stm32x_probe(bank);
 }
 
-static int get_stm32x_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_stm32x_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	uint32_t dbgmcu_idcode;
 
