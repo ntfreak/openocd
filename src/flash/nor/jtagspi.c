@@ -421,7 +421,7 @@ static int jtagspi_write(struct flash_bank *bank, const uint8_t *buffer, uint32_
 	return ERROR_OK;
 }
 
-static int jtagspi_info(struct flash_bank *bank, char *buf, int buf_size)
+static int jtagspi_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	struct jtagspi_flash_bank *info = bank->driver_priv;
 

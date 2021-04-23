@@ -362,7 +362,7 @@ static int w600_auto_probe(struct flash_bank *bank)
 	return w600_probe(bank);
 }
 
-static int get_w600_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_w600_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	uint32_t flash_id;
 

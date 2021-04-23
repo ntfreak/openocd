@@ -517,3 +517,27 @@ void log_socket_error(const char *socket_desc)
 	LOG_ERROR("Error on socket '%s': errno==%d, message: %s.", socket_desc, error_code, strerror(error_code));
 #endif
 }
+
+/**
+ * Determine the number of characters that snprintf() function really printed to the buffer
+ * (excluding the terminating '\0').
+ * @param retval Return value from snprintf()
+ * @param buf_size Buffer size that snprintf() operated on
+ */
+unsigned snprintf_num_printed(int retval, unsigned buf_size)
+{
+	if (retval < 0) {
+		/* snprintf() failed, assume the buffer is untouched */
+		return 0;
+	}
+
+	unsigned printed = retval;
+	if (printed < buf_size) {
+		/* large enough buffer, whole string printed */
+		return printed;
+	} else {
+		/* insufficient buffer, output got truncated */
+		return (buf_size > 0) ? (buf_size - 1) : 0;
+	}
+
+}

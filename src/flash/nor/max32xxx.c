@@ -113,7 +113,7 @@ FLASH_BANK_COMMAND_HANDLER(max32xxx_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int get_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	int printed;
 	struct max32xxx_flash_bank *info = bank->driver_priv;

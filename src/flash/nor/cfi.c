@@ -728,7 +728,7 @@ static int cfi_read_0002_pri_ext(struct flash_bank *bank)
 		return cfi_read_spansion_pri_ext(bank);
 }
 
-static int cfi_spansion_info(struct flash_bank *bank, char *buf, int buf_size)
+static int cfi_spansion_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	int printed;
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
@@ -763,7 +763,7 @@ static int cfi_spansion_info(struct flash_bank *bank, char *buf, int buf_size)
 	return ERROR_OK;
 }
 
-static int cfi_intel_info(struct flash_bank *bank, char *buf, int buf_size)
+static int cfi_intel_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	int printed;
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
@@ -2992,9 +2992,9 @@ int cfi_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size)
+int cfi_get_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
-	int printed;
+	int ret;
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 
 	if (cfi_info->qry[0] == 0xff) {
@@ -3003,34 +3003,38 @@ int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size)
 	}
 
 	if (!cfi_info->not_cfi)
-		printed = snprintf(buf, buf_size, "\nCFI flash: ");
+		ret = snprintf(buf, buf_size, "\nCFI flash: ");
 	else
-		printed = snprintf(buf, buf_size, "\nnon-CFI flash: ");
-	buf += printed;
-	buf_size -= printed;
+		ret = snprintf(buf, buf_size, "\nnon-CFI flash: ");
 
-	printed = snprintf(buf, buf_size, "mfr: 0x%4.4x, id:0x%4.4x\n\n",
+	buf += snprintf_num_printed(ret, buf_size);
+	buf_size -= snprintf_num_printed(ret, buf_size);
+
+	ret = snprintf(buf, buf_size, "mfr: 0x%4.4x, id:0x%4.4x\n\n",
 			cfi_info->manufacturer, cfi_info->device_id);
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf, buf_size, "qry: '%c%c%c', pri_id: 0x%4.4x, pri_addr: "
+	buf += snprintf_num_printed(ret, buf_size);
+	buf_size -= snprintf_num_printed(ret, buf_size);
+
+	ret = snprintf(buf, buf_size, "qry: '%c%c%c', pri_id: 0x%4.4x, pri_addr: "
 			"0x%4.4x, alt_id: 0x%4.4x, alt_addr: 0x%4.4x\n",
 			cfi_info->qry[0], cfi_info->qry[1], cfi_info->qry[2],
 			cfi_info->pri_id, cfi_info->pri_addr, cfi_info->alt_id, cfi_info->alt_addr);
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf, buf_size, "Vcc min: %x.%x, Vcc max: %x.%x, "
+	buf += snprintf_num_printed(ret, buf_size);
+	buf_size -= snprintf_num_printed(ret, buf_size);
+
+	ret = snprintf(buf, buf_size, "Vcc min: %x.%x, Vcc max: %x.%x, "
 			"Vpp min: %u.%x, Vpp max: %u.%x\n",
 			(cfi_info->vcc_min & 0xf0) >> 4, cfi_info->vcc_min & 0x0f,
 			(cfi_info->vcc_max & 0xf0) >> 4, cfi_info->vcc_max & 0x0f,
 			(cfi_info->vpp_min & 0xf0) >> 4, cfi_info->vpp_min & 0x0f,
 			(cfi_info->vpp_max & 0xf0) >> 4, cfi_info->vpp_max & 0x0f);
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf, buf_size, "typ. word write timeout: %u us, "
+	buf += snprintf_num_printed(ret, buf_size);
+	buf_size -= snprintf_num_printed(ret, buf_size);
+
+	ret = snprintf(buf, buf_size, "typ. word write timeout: %u us, "
 			"typ. buf write timeout: %u us, "
 			"typ. block erase timeout: %u ms, "
 			"typ. chip erase timeout: %u ms\n",
@@ -3038,10 +3042,11 @@ int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size)
 			1 << cfi_info->buf_write_timeout_typ,
 			1 << cfi_info->block_erase_timeout_typ,
 			1 << cfi_info->chip_erase_timeout_typ);
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf,
+	buf += snprintf_num_printed(ret, buf_size);
+	buf_size -= snprintf_num_printed(ret, buf_size);
+
+	ret = snprintf(buf,
 			buf_size,
 			"max. word write timeout: %u us, "
 			"max. buf write timeout: %u us, max. "
@@ -3056,16 +3061,18 @@ int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size)
 			(1 <<
 			 cfi_info->chip_erase_timeout_max) *
 			(1 << cfi_info->chip_erase_timeout_typ));
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf, buf_size, "size: 0x%" PRIx32 ", interface desc: %i, "
+	buf += snprintf_num_printed(ret, buf_size);
+	buf_size -= snprintf_num_printed(ret, buf_size);
+
+	ret = snprintf(buf, buf_size, "size: 0x%" PRIx32 ", interface desc: %i, "
 			"max buffer write size: 0x%x\n",
 			cfi_info->dev_size,
 			cfi_info->interface_desc,
 			1 << cfi_info->max_buf_write_size);
-	buf += printed;
-	buf_size -= printed;
+
+	buf += snprintf_num_printed(ret, buf_size);
+	buf_size -= snprintf_num_printed(ret, buf_size);
 
 	switch (cfi_info->pri_id) {
 	    case 1:

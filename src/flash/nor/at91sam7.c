@@ -978,22 +978,22 @@ static int at91sam7_probe(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int get_at91sam7_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_at91sam7_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
-	int printed;
+	int ret;
 	struct at91sam7_flash_bank *at91sam7_info = bank->driver_priv;
 
 	if (at91sam7_info->cidr == 0)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
-	printed = snprintf(buf, buf_size,
+	ret = snprintf(buf, buf_size,
 			"\n at91sam7 driver information: Chip is %s\n",
 			at91sam7_info->target_name);
 
-	buf += printed;
-	buf_size -= printed;
+	buf += snprintf_num_printed(ret, buf_size);
+	buf_size -= snprintf_num_printed(ret, buf_size);
 
-	printed = snprintf(buf,
+	ret = snprintf(buf,
 			buf_size,
 			" Cidr: 0x%8.8" PRIx32 " | Arch: 0x%4.4x | Eproc: %s | Version: 0x%3.3x | "
 			"Flashsize: 0x%8.8" PRIx32 "\n",
@@ -1003,28 +1003,28 @@ static int get_at91sam7_info(struct flash_bank *bank, char *buf, int buf_size)
 			at91sam7_info->cidr_version,
 			bank->size);
 
-	buf += printed;
-	buf_size -= printed;
+	buf += snprintf_num_printed(ret, buf_size);
+	buf_size -= snprintf_num_printed(ret, buf_size);
 
-	printed = snprintf(buf, buf_size,
+	ret = snprintf(buf, buf_size,
 			" Master clock (estimated): %u KHz | External clock: %u KHz\n",
 			(unsigned)(at91sam7_info->mck_freq / 1000),
 			(unsigned)(at91sam7_info->ext_freq / 1000));
 
-	buf += printed;
-	buf_size -= printed;
+	buf += snprintf_num_printed(ret, buf_size);
+	buf_size -= snprintf_num_printed(ret, buf_size);
 
-	printed = snprintf(buf,
+	ret = snprintf(buf,
 			buf_size,
 			" Pagesize: %i bytes | Lockbits(%u): %i 0x%4.4x | Pages in lock region: %i\n",
 			at91sam7_info->pagesize,
 			bank->num_sectors,
 			at91sam7_info->num_lockbits_on,
 			at91sam7_info->lockbits,
-			at91sam7_info->pages_per_sector*at91sam7_info->num_lockbits_on);
+			at91sam7_info->pages_per_sector * at91sam7_info->num_lockbits_on);
 
-	buf += printed;
-	buf_size -= printed;
+	buf += snprintf_num_printed(ret, buf_size);
+	buf_size -= snprintf_num_printed(ret, buf_size);
 
 	snprintf(buf, buf_size,
 		" Securitybit: %i | Nvmbits(%i): %i 0x%1.1x\n",

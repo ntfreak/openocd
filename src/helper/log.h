@@ -84,6 +84,8 @@ void busy_sleep(uint64_t ms);
 
 void log_socket_error(const char *socket_desc);
 
+unsigned snprintf_num_printed(int retval, unsigned buf_size);
+
 typedef void (*log_callback_fn)(void *priv, const char *file, unsigned line,
 		const char *function, const char *string);
 

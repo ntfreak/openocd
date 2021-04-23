@@ -160,7 +160,7 @@ int cfi_protect(struct flash_bank *bank, int set, unsigned int first,
 int cfi_probe(struct flash_bank *bank);
 int cfi_auto_probe(struct flash_bank *bank);
 int cfi_protect_check(struct flash_bank *bank);
-int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size);
+int cfi_get_info(struct flash_bank *bank, char *buf, unsigned buf_size);
 int cfi_flash_bank_cmd(struct flash_bank *bank, unsigned int argc, const char **argv);
 
 uint32_t cfi_flash_address(struct flash_bank *bank, int sector, uint32_t offset);

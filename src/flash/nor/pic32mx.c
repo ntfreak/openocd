@@ -801,13 +801,13 @@ static int pic32mx_auto_probe(struct flash_bank *bank)
 	return pic32mx_probe(bank);
 }
 
-static int pic32mx_info(struct flash_bank *bank, char *buf, int buf_size)
+static int pic32mx_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	struct target *target = bank->target;
 	struct mips32_common *mips32 = target->arch_info;
 	struct mips_ejtag *ejtag_info = &mips32->ejtag_info;
 	uint32_t device_id;
-	int printed = 0, i;
+	int ret;
 
 	device_id = ejtag_info->idcode;
 
@@ -819,18 +819,20 @@ static int pic32mx_info(struct flash_bank *bank, char *buf, int buf_size)
 		return ERROR_FLASH_OPERATION_FAILED;
 	}
 
+	int i;
 	for (i = 0; pic32mx_devs[i].name != NULL; i++) {
 		if (pic32mx_devs[i].devid == (device_id & 0x0fffffff)) {
-			printed = snprintf(buf, buf_size, "PIC32MX%s", pic32mx_devs[i].name);
+			ret = snprintf(buf, buf_size, "PIC32MX%s", pic32mx_devs[i].name);
 			break;
 		}
 	}
 
 	if (pic32mx_devs[i].name == NULL)
-		printed = snprintf(buf, buf_size, "Unknown");
+		ret = snprintf(buf, buf_size, "Unknown");
 
-	buf += printed;
-	buf_size -= printed;
+	buf += snprintf_num_printed(ret, buf_size);
+	buf_size -= snprintf_num_printed(ret, buf_size);
+
 	snprintf(buf, buf_size, " Ver: 0x%02x",
 			(unsigned)((device_id >> 28) & 0xf));
 

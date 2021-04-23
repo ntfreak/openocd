@@ -916,7 +916,7 @@ static int stm32x_auto_probe(struct flash_bank *bank)
 }
 
 /* This method must return a string displaying information about the bank */
-static int stm32x_get_info(struct flash_bank *bank, char *buf, int buf_size)
+static int stm32x_get_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	struct stm32h7x_flash_bank *stm32x_info = bank->driver_priv;
 	const struct stm32h7x_part_info *info = stm32x_info->part_info;

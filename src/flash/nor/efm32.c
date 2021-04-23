@@ -327,13 +327,15 @@ static int efm32x_read_info(struct flash_bank *bank,
 /*
  * Helper to create a human friendly string describing a part
  */
-static int efm32x_decode_info(struct efm32_info *info, char *buf, int buf_size)
+static int efm32x_decode_info(struct efm32_info *info, char *buf, unsigned buf_size)
 {
 	int printed = 0;
 	printed = snprintf(buf, buf_size, "%s Gecko, rev %d",
 			info->family_data->name, info->prod_rev);
 
-	if (printed >= buf_size)
+	if (printed < 0)
+		return ERROR_FAIL;
+	if ((unsigned)printed >= buf_size)
 		return ERROR_BUF_TOO_SMALL;
 
 	return ERROR_OK;
@@ -1044,7 +1046,7 @@ static int efm32x_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int get_efm32x_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_efm32x_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	struct efm32_info info;
 	int ret = 0;

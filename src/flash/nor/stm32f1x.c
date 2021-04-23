@@ -932,7 +932,7 @@ static const char *get_stm32f0_revision(uint16_t rev_id)
 	return rev_str;
 }
 
-static int get_stm32x_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_stm32x_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	uint32_t dbgmcu_idcode;
 

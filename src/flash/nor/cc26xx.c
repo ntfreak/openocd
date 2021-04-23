@@ -498,7 +498,7 @@ static int cc26xx_auto_probe(struct flash_bank *bank)
 	return retval;
 }
 
-static int cc26xx_info(struct flash_bank *bank, char *buf, int buf_size)
+static int cc26xx_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	struct cc26xx_bank *cc26xx_bank = bank->driver_priv;
 	int printed = 0;
@@ -530,7 +530,7 @@ static int cc26xx_info(struct flash_bank *bank, char *buf, int buf_size)
 		"%s device: ICEPick ID 0x%08" PRIx32 ", USER ID 0x%08" PRIx32 "\n",
 		device, cc26xx_bank->icepick_id, cc26xx_bank->user_id);
 
-	if (printed >= buf_size)
+	if ((unsigned)printed >= buf_size)
 		return ERROR_BUF_TOO_SMALL;
 
 	return ERROR_OK;

@@ -477,13 +477,15 @@ static int cc3220sf_auto_probe(struct flash_bank *bank)
 	return retval;
 }
 
-static int cc3220sf_info(struct flash_bank *bank, char *buf, int buf_size)
+static int cc3220sf_info(struct flash_bank *bank, char *buf, unsigned buf_size)
 {
 	int printed;
 
 	printed = snprintf(buf, buf_size, "CC3220SF with 1MB internal flash\n");
 
-	if (printed >= buf_size)
+	if (printed <= 0)
+		return ERROR_FAIL;
+	if ((unsigned)printed >= buf_size)
 		return ERROR_BUF_TOO_SMALL;
 
 	return ERROR_OK;
