@@ -367,7 +367,7 @@ static int avrf_auto_probe(struct flash_bank *bank)
 	return avrf_probe(bank);
 }
 
-static int avrf_info(struct flash_bank *bank, char *buf, int buf_size)
+static int avrf_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct target *target = bank->target;
 	struct avr_common *avr = target->arch_info;
@@ -400,12 +400,12 @@ static int avrf_info(struct flash_bank *bank, char *buf, int buf_size)
 
 	if (avr_info != NULL) {
 		/* chip found */
-		snprintf(buf, buf_size, "%s - Rev: 0x%" PRIx32 "", avr_info->name,
+		command_print_sameline(cmd, "%s - Rev: 0x%" PRIx32 "", avr_info->name,
 			EXTRACT_VER(device_id));
 		return ERROR_OK;
 	} else {
 		/* chip not supported */
-		snprintf(buf, buf_size, "Cannot identify target as a avr\n");
+		command_print_sameline(cmd, "Cannot identify target as a avr\n");
 		return ERROR_FLASH_OPERATION_FAILED;
 	}
 }

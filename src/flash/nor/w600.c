@@ -362,7 +362,7 @@ static int w600_auto_probe(struct flash_bank *bank)
 	return w600_probe(bank);
 }
 
-static int get_w600_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_w600_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	uint32_t flash_id;
 
@@ -371,7 +371,7 @@ static int get_w600_info(struct flash_bank *bank, char *buf, int buf_size)
 	if (retval != ERROR_OK)
 		return retval;
 
-	snprintf(buf, buf_size, "w600 : 0x%08" PRIx32 "", flash_id);
+	command_print_sameline(cmd, "w600 : 0x%08" PRIx32 "", flash_id);
 	return ERROR_OK;
 }
 

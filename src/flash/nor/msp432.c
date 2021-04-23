@@ -975,59 +975,49 @@ static int msp432_auto_probe(struct flash_bank *bank)
 	return retval;
 }
 
-static int msp432_info(struct flash_bank *bank, char *buf, int buf_size)
+static int msp432_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct msp432_bank *msp432_bank = bank->driver_priv;
-	int printed = 0;
 
 	switch (msp432_bank->device_type) {
 		case MSP432P401X_DEPR:
 			if (0xFFFF == msp432_bank->device_id) {
 				/* Very early pre-production silicon currently deprecated */
-				printed = snprintf(buf, buf_size,
-					"MSP432P401x pre-production device (deprecated silicon)\n"
+				command_print_sameline(cmd, "MSP432P401x pre-production device (deprecated silicon)\n"
 					SUPPORT_MESSAGE);
 			} else {
 				/* Revision A or B silicon, also deprecated */
-				printed = snprintf(buf, buf_size,
-					"MSP432P401x Device Rev %c (deprecated silicon)\n"
+				command_print_sameline(cmd, "MSP432P401x Device Rev %c (deprecated silicon)\n"
 					SUPPORT_MESSAGE, (char)msp432_bank->hardware_rev);
 			}
 			break;
 		case MSP432P401X:
-			printed = snprintf(buf, buf_size,
-				"MSP432P401x Device Rev %c\n",
+			command_print_sameline(cmd, "MSP432P401x Device Rev %c\n",
 				(char)msp432_bank->hardware_rev);
 			break;
 		case MSP432P411X:
-			printed = snprintf(buf, buf_size,
-				"MSP432P411x Device Rev %c\n",
+			command_print_sameline(cmd, "MSP432P411x Device Rev %c\n",
 				(char)msp432_bank->hardware_rev);
 			break;
 		case MSP432E401Y:
-			printed = snprintf(buf, buf_size, "MSP432E401Y Device\n");
+			command_print_sameline(cmd, "MSP432E401Y Device\n");
 			break;
 		case MSP432E411Y:
-			printed = snprintf(buf, buf_size, "MSP432E411Y Device\n");
+			command_print_sameline(cmd, "MSP432E411Y Device\n");
 			break;
 		case MSP432E4X_GUESS:
-			printed = snprintf(buf, buf_size,
+			command_print_sameline(cmd,
 				"Unrecognized MSP432E4 DID0 and DID1 IDs (%08" PRIX32 ", %08" PRIX32 ")",
 				msp432_bank->device_id, msp432_bank->hardware_rev);
 			break;
 		case MSP432P401X_GUESS:
 		case MSP432P411X_GUESS:
 		default:
-			printed = snprintf(buf, buf_size,
+			command_print_sameline(cmd,
 				"Unrecognized MSP432P4 Device ID and Hardware Rev (%04" PRIX32 ", %02" PRIX32 ")",
 				msp432_bank->device_id, msp432_bank->hardware_rev);
 			break;
 	}
-
-	buf_size -= printed;
-
-	if (0 > buf_size)
-		return ERROR_BUF_TOO_SMALL;
 
 	return ERROR_OK;
 }

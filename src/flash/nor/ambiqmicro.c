@@ -161,10 +161,9 @@ FLASH_BANK_COMMAND_HANDLER(ambiqmicro_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int get_ambiqmicro_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_ambiqmicro_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct ambiqmicro_flash_bank *ambiqmicro_info = bank->driver_priv;
-	int printed;
 	char *classname;
 
 	if (!ambiqmicro_info->probed) {
@@ -178,16 +177,12 @@ static int get_ambiqmicro_info(struct flash_bank *bank, char *buf, int buf_size)
 	else
 		classname = ambiqmicroClassname[0];
 
-	printed = snprintf(buf,
-		buf_size,
-		"\nAmbiq Micro information: Chip is "
+	command_print_sameline(cmd, "\nAmbiq Micro information: Chip is "
 		"class %d (%s) %s\n",
 		ambiqmicro_info->target_class,
 		classname,
 		ambiqmicro_info->target_name);
 
-	if ((printed < 0))
-		return ERROR_BUF_TOO_SMALL;
 	return ERROR_OK;
 }
 

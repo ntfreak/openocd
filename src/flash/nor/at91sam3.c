@@ -256,7 +256,7 @@ static struct sam3_chip *get_current_sam3(struct command_invocation *cmd)
 
 	t = get_current_target(cmd->ctx);
 	if (!t) {
-		command_print(cmd, "No current target?");
+		command_print_sameline(cmd, "No current target?\n");
 		return NULL;
 	}
 
@@ -264,7 +264,7 @@ static struct sam3_chip *get_current_sam3(struct command_invocation *cmd)
 	if (!p) {
 		/* this should not happen */
 		/* the command is not registered until the chip is created? */
-		command_print(cmd, "No SAM3 chips exist?");
+		command_print_sameline(cmd, "No SAM3 chips exist?\n");
 		return NULL;
 	}
 
@@ -273,7 +273,7 @@ static struct sam3_chip *get_current_sam3(struct command_invocation *cmd)
 			return p;
 		p = p->next;
 	}
-	command_print(cmd, "Cannot find SAM3 chip?");
+	command_print_sameline(cmd, "Cannot find SAM3 chip?\n");
 	return NULL;
 }
 

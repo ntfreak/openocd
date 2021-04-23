@@ -1171,10 +1171,9 @@ static int kinetis_ke_auto_probe(struct flash_bank *bank)
 	return kinetis_ke_probe(bank);
 }
 
-static int kinetis_ke_info(struct flash_bank *bank, char *buf, int buf_size)
+static int kinetis_ke_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
-	(void) snprintf(buf, buf_size,
-			"%s driver for flash bank %s at " TARGET_ADDR_FMT,
+	command_print_sameline(cmd, "%s driver for flash bank %s at " TARGET_ADDR_FMT,
 			bank->driver->name,	bank->name, bank->base);
 
 	return ERROR_OK;

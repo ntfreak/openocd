@@ -702,13 +702,13 @@ COMMAND_HANDLER(str7x_handle_part_id_command)
 }
 #endif
 
-static int get_str7x_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_str7x_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	/* Setting the write protection on a sector is a permanent change but it
 	 * can be disabled temporarily. FLASH_NVWPAR reflects the permanent
 	 * protection state of the sectors, not the temporary.
 	 */
-	snprintf(buf, buf_size, "STR7x flash protection info is only valid after a power cycle, "
+	command_print_sameline(cmd, "STR7x flash protection info is only valid after a power cycle, "
 			"clearing the protection is only temporary and may not be reflected in the current "
 			"info returned.");
 	return ERROR_OK;

@@ -403,7 +403,7 @@ static int xmc1xxx_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int xmc1xxx_get_info_command(struct flash_bank *bank, char *buf, int buf_size)
+static int xmc1xxx_get_info_command(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	uint32_t chipid[8];
 	int i, retval;
@@ -429,7 +429,8 @@ static int xmc1xxx_get_info_command(struct flash_bank *bank, char *buf, int buf_
 	}
 	LOG_DEBUG("ID[7] = %08" PRIX32, chipid[7]);
 
-	snprintf(buf, buf_size, "XMC%" PRIx32 "00 %" PRIX32 " flash %" PRIu32 "KB ROM %" PRIu32 "KB SRAM %" PRIu32 "KB",
+	command_print_sameline(cmd,
+			"XMC%" PRIx32 "00 %" PRIX32 " flash %" PRIu32 "KB ROM %" PRIu32 "KB SRAM %" PRIu32 "KB",
 			(chipid[0] >> 12) & 0xff,
 			0xAA + (chipid[7] >> 28) - 1,
 			(((chipid[6] >> 12) & 0x3f) - 1) * 4,

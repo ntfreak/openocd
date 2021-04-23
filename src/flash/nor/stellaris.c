@@ -479,9 +479,8 @@ FLASH_BANK_COMMAND_HANDLER(stellaris_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int get_stellaris_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_stellaris_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
-	int printed;
 	struct stellaris_flash_bank *stellaris_info = bank->driver_priv;
 
 	if (stellaris_info->did1 == 0)
@@ -490,41 +489,34 @@ static int get_stellaris_info(struct flash_bank *bank, char *buf, int buf_size)
 	/* Read main and master clock frequency register */
 	stellaris_read_clock_info(bank);
 
-	printed = snprintf(buf,
-			   buf_size,
-			   "\nTI/LMI Stellaris information: Chip is "
-			   "class %i (%s) %s rev %c%i\n",
-			   stellaris_info->target_class,
-			   StellarisClassname[stellaris_info->target_class],
-			   stellaris_info->target_name,
-			   (int)('A' + ((stellaris_info->did0 >> 8) & 0xFF)),
-			   (int)((stellaris_info->did0) & 0xFF));
-	buf += printed;
-	buf_size -= printed;
+	command_print_sameline(cmd,
+			"\nTI/LMI Stellaris information: Chip is "
+			"class %i (%s) %s rev %c%i\n",
+			stellaris_info->target_class,
+			StellarisClassname[stellaris_info->target_class],
+			stellaris_info->target_name,
+			(int)('A' + ((stellaris_info->did0 >> 8) & 0xFF)),
+			(int)((stellaris_info->did0) & 0xFF));
 
-	printed = snprintf(buf,
-			   buf_size,
-			   "did1: 0x%8.8" PRIx32 ", arch: 0x%4.4" PRIx32
-			   ", eproc: %s, ramsize: %" PRIu32 "k, flashsize: %" PRIu32 "k\n",
-			   stellaris_info->did1,
-			   stellaris_info->did1,
-			   "ARMv7M",
-			   stellaris_info->sramsiz,
-			   (uint32_t)(stellaris_info->num_pages * stellaris_info->pagesize / 1024));
-	buf += printed;
-	buf_size -= printed;
+	command_print_sameline(cmd,
+			"did1: 0x%8.8" PRIx32 ", arch: 0x%4.4" PRIx32
+			", eproc: %s, ramsize: %" PRIu32 "k, flashsize: %" PRIu32 "k\n",
+			stellaris_info->did1,
+			stellaris_info->did1,
+			"ARMv7M",
+			stellaris_info->sramsiz,
+			(uint32_t)(stellaris_info->num_pages * stellaris_info->pagesize / 1024));
 
-	snprintf(buf,
-			   buf_size,
-			   "master clock: %ikHz%s, "
-			   "rcc is 0x%" PRIx32 ", rcc2 is 0x%" PRIx32 ", "
-			   "pagesize: %" PRIu32 ", pages: %" PRIu32,
-			   (int)(stellaris_info->mck_freq / 1000),
-			   stellaris_info->mck_desc,
-			   stellaris_info->rcc,
-			   stellaris_info->rcc2,
-			   stellaris_info->pagesize,
-			   stellaris_info->num_pages);
+	command_print_sameline(cmd,
+			"master clock: %ikHz%s, "
+			"rcc is 0x%" PRIx32 ", rcc2 is 0x%" PRIx32 ", "
+			"pagesize: %" PRIu32 ", pages: %" PRIu32,
+			(int)(stellaris_info->mck_freq / 1000),
+			stellaris_info->mck_desc,
+			stellaris_info->rcc,
+			stellaris_info->rcc2,
+			stellaris_info->pagesize,
+			stellaris_info->num_pages);
 
 	return ERROR_OK;
 }

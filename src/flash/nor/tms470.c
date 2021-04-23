@@ -1118,26 +1118,20 @@ static int tms470_protect_check(struct flash_bank *bank)
 
 /* ---------------------------------------------------------------------- */
 
-static int get_tms470_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_tms470_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
-	int used = 0;
 	struct tms470_flash_bank *tms470_info = bank->driver_priv;
 
 	if (!tms470_info->device_ident_reg)
 		tms470_read_part_info(bank);
 
 	if (!tms470_info->device_ident_reg) {
-		(void)snprintf(buf, buf_size, "Cannot identify target as a TMS470\n");
+		command_print_sameline(cmd, "Cannot identify target as a TMS470\n");
 		return ERROR_FLASH_OPERATION_FAILED;
 	}
 
-	used =
-		snprintf(buf, buf_size, "\ntms470 information: Chip is %s\n",
-			tms470_info->part_name);
-	buf += used;
-	buf_size -= used;
-
-	snprintf(buf, buf_size, "Flash protection level 2 is %s\n",
+	command_print_sameline(cmd, "\ntms470 information: Chip is %s\n", tms470_info->part_name);
+	command_print_sameline(cmd, "Flash protection level 2 is %s\n",
 		tms470_check_flash_unlocked(bank->target) == ERROR_OK ? "disabled" : "enabled");
 
 	return ERROR_OK;

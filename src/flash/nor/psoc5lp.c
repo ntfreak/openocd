@@ -753,14 +753,14 @@ static int psoc5lp_nvl_write(struct flash_bank *bank,
 }
 
 static int psoc5lp_nvl_get_info_command(struct flash_bank *bank,
-	char *buf, int buf_size)
+	struct command_invocation *cmd)
 {
 	struct psoc5lp_nvl_flash_bank *psoc_nvl_bank = bank->driver_priv;
 	char part_number[PART_NUMBER_LEN];
 
 	psoc5lp_get_part_number(psoc_nvl_bank->device, part_number);
 
-	snprintf(buf, buf_size, "%s", part_number);
+	command_print_sameline(cmd, "%s", part_number);
 
 	return ERROR_OK;
 }
@@ -934,14 +934,14 @@ static int psoc5lp_eeprom_write(struct flash_bank *bank,
 	return ERROR_OK;
 }
 
-static int psoc5lp_eeprom_get_info_command(struct flash_bank *bank, char *buf, int buf_size)
+static int psoc5lp_eeprom_get_info_command(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct psoc5lp_eeprom_flash_bank *psoc_eeprom_bank = bank->driver_priv;
 	char part_number[PART_NUMBER_LEN];
 
 	psoc5lp_get_part_number(psoc_eeprom_bank->device, part_number);
 
-	snprintf(buf, buf_size, "%s", part_number);
+	command_print_sameline(cmd, "%s", part_number);
 
 	return ERROR_OK;
 }
@@ -1397,7 +1397,7 @@ static int psoc5lp_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int psoc5lp_get_info_command(struct flash_bank *bank, char *buf, int buf_size)
+static int psoc5lp_get_info_command(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct psoc5lp_flash_bank *psoc_bank = bank->driver_priv;
 	char part_number[PART_NUMBER_LEN];
@@ -1406,7 +1406,7 @@ static int psoc5lp_get_info_command(struct flash_bank *bank, char *buf, int buf_
 	psoc5lp_get_part_number(psoc_bank->device, part_number);
 	ecc = psoc_bank->ecc_enabled ? "ECC enabled" : "ECC disabled";
 
-	snprintf(buf, buf_size, "%s %s", part_number, ecc);
+	command_print_sameline(cmd, "%s %s", part_number, ecc);
 
 	return ERROR_OK;
 }

@@ -851,17 +851,16 @@ static int sh_qspi_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int sh_qspi_get_info(struct flash_bank *bank, char *buf, int buf_size)
+static int sh_qspi_get_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct sh_qspi_flash_bank *info = bank->driver_priv;
 
 	if (!info->probed) {
-		snprintf(buf, buf_size,
-			 "\nSH QSPI flash bank not probed yet\n");
+		command_print_sameline(cmd, "\nSH QSPI flash bank not probed yet\n");
 		return ERROR_OK;
 	}
 
-	snprintf(buf, buf_size, "\nSH QSPI flash information:\n"
+	command_print_sameline(cmd, "\nSH QSPI flash information:\n"
 		"  Device \'%s\' (ID 0x%08" PRIx32 ")\n",
 		info->dev->name, info->dev->device_id);
 

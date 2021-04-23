@@ -875,17 +875,16 @@ static int ath79_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int get_ath79_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_ath79_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct ath79_flash_bank *ath79_info = bank->driver_priv;
 
 	if (!ath79_info->probed) {
-		snprintf(buf, buf_size,
-			 "\nATH79 flash bank not probed yet\n");
+		command_print_sameline(cmd, "\nATH79 flash bank not probed yet\n");
 		return ERROR_OK;
 	}
 
-	snprintf(buf, buf_size, "\nATH79 flash information:\n"
+	command_print_sameline(cmd, "\nATH79 flash information:\n"
 		"  Device \'%s\' (ID 0x%08" PRIx32 ")\n",
 		ath79_info->dev->name, ath79_info->dev->device_id);
 

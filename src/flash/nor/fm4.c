@@ -539,7 +539,7 @@ static int fm4_auto_probe(struct flash_bank *bank)
 	return fm4_probe(bank);
 }
 
-static int fm4_get_info_command(struct flash_bank *bank, char *buf, int buf_size)
+static int fm4_get_info_command(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct fm4_flash_bank *fm4_bank = bank->driver_priv;
 	const char *name;
@@ -586,11 +586,10 @@ static int fm4_get_info_command(struct flash_bank *bank, char *buf, int buf_size
 	case s6e2cx8:
 	case s6e2cx9:
 	case s6e2cxa:
-		snprintf(buf, buf_size, "%s MainFlash Macro #%i",
-			name, fm4_bank->macro_nr);
+		command_print_sameline(cmd, "%s MainFlash Macro #%i", name, fm4_bank->macro_nr);
 		break;
 	default:
-		snprintf(buf, buf_size, "%s MainFlash", name);
+		command_print_sameline(cmd, "%s MainFlash", name);
 		break;
 	}
 

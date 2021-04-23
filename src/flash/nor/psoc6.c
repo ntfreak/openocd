@@ -495,7 +495,7 @@ static const char *protection_to_str(uint8_t protection)
  * @param buf_size size of the buffer
  * @return ERROR_OK in case of success, ERROR_XXX code otherwise
  *************************************************************************************************/
-static int psoc6_get_info(struct flash_bank *bank, char *buf, int buf_size)
+static int psoc6_get_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct psoc6_target_info *psoc6_info = bank->driver_priv;
 
@@ -506,7 +506,7 @@ static int psoc6_get_info(struct flash_bank *bank, char *buf, int buf_size)
 	if (hr != ERROR_OK)
 		return hr;
 
-	snprintf(buf, buf_size,
+	command_print_sameline(cmd,
 		"PSoC6 Silicon ID: 0x%08" PRIX32 "\n"
 		"Protection: %s\n"
 		"Main Flash size: %" PRIu32 " kB\n"

@@ -1552,12 +1552,12 @@ static int lpc2000_erase_check(struct flash_bank *bank)
 	return lpc2000_iap_blank_check(bank, 0, bank->num_sectors - 1);
 }
 
-static int get_lpc2000_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_lpc2000_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct lpc2000_flash_bank *lpc2000_info = bank->driver_priv;
 
-	snprintf(buf, buf_size, "lpc2000 flash driver variant: %i, clk: %" PRIu32 "kHz", lpc2000_info->variant,
-			lpc2000_info->cclk);
+	command_print_sameline(cmd, "lpc2000 flash driver variant: %i, clk: %" PRIu32 "kHz",
+			lpc2000_info->variant, lpc2000_info->cclk);
 
 	return ERROR_OK;
 }

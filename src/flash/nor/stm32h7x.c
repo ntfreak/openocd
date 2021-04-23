@@ -916,7 +916,7 @@ static int stm32x_auto_probe(struct flash_bank *bank)
 }
 
 /* This method must return a string displaying information about the bank */
-static int stm32x_get_info(struct flash_bank *bank, char *buf, int buf_size)
+static int stm32x_get_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct stm32h7x_flash_bank *stm32x_info = bank->driver_priv;
 	const struct stm32h7x_part_info *info = stm32x_info->part_info;
@@ -924,7 +924,7 @@ static int stm32x_get_info(struct flash_bank *bank, char *buf, int buf_size)
 	if (!stm32x_info->probed) {
 		int retval = stm32x_probe(bank);
 		if (retval != ERROR_OK) {
-			snprintf(buf, buf_size, "Unable to find bank information.");
+			command_print_sameline(cmd, "Unable to find bank information.");
 			return retval;
 		}
 	}
@@ -938,16 +938,16 @@ static int stm32x_get_info(struct flash_bank *bank, char *buf, int buf_size)
 				rev_str = info->revs[i].str;
 
 		if (rev_str != NULL) {
-			snprintf(buf, buf_size, "%s - Rev: %s",
+			command_print_sameline(cmd, "%s - Rev: %s",
 				stm32x_info->part_info->device_str, rev_str);
 		} else {
-			snprintf(buf, buf_size,
+			command_print_sameline(cmd,
 				 "%s - Rev: unknown (0x%04" PRIx16 ")",
 				stm32x_info->part_info->device_str, rev_id);
 		}
 	} else {
-	  snprintf(buf, buf_size, "Cannot identify target as a STM32H7x");
-	  return ERROR_FAIL;
+		command_print_sameline(cmd, "Cannot identify target as a STM32H7x");
+		return ERROR_FAIL;
 	}
 	return ERROR_OK;
 }

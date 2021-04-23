@@ -607,7 +607,7 @@ static int samv_write(struct flash_bank *bank, const uint8_t *buffer,
 	return ERROR_OK;
 }
 
-static int samv_get_info(struct flash_bank *bank, char *buf, int buf_size)
+static int samv_get_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct samv_flash_bank *samv_info = bank->driver_priv;
 	if (!samv_info->probed) {
@@ -615,7 +615,7 @@ static int samv_get_info(struct flash_bank *bank, char *buf, int buf_size)
 		if (ERROR_OK != r)
 			return r;
 	}
-	snprintf(buf, buf_size, "Cortex-M7 detected with %" PRIu32 " kB flash",
+	command_print_sameline(cmd, "Cortex-M7 detected with %" PRIu32 " kB flash\n",
 			bank->size / 1024);
 	return ERROR_OK;
 }

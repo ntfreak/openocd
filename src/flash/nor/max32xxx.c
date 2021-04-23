@@ -113,17 +113,14 @@ FLASH_BANK_COMMAND_HANDLER(max32xxx_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int get_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
-	int printed;
 	struct max32xxx_flash_bank *info = bank->driver_priv;
 
 	if (!info->probed)
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
-	printed = snprintf(buf, buf_size, "\nMaxim Integrated max32xxx flash driver\n");
-	buf += printed;
-	buf_size -= printed;
+	command_print_sameline(cmd, "\nMaxim Integrated max32xxx flash driver\n");
 	return ERROR_OK;
 }
 

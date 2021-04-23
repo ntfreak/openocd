@@ -834,53 +834,32 @@ static int sim3x_auto_probe(struct flash_bank *bank)
 	}
 }
 
-static int sim3x_flash_info(struct flash_bank *bank, char *buf, int buf_size)
+static int sim3x_flash_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
-	int ret;
-	int printed = 0;
 	struct sim3x_info *sim3x_info;
 
 	sim3x_info = bank->driver_priv;
 
 	/* Read info about chip */
-	ret = sim3x_read_info(bank);
+	int ret = sim3x_read_info(bank);
 	if (ret != ERROR_OK)
 		return ret;
 
 	/* Part */
 	if (sim3x_info->part_family && sim3x_info->part_number) {
-		printed = snprintf(buf, buf_size, "SiM3%c%d", sim3x_info->part_family, sim3x_info->part_number);
-		buf += printed;
-		buf_size -= printed;
-
-		if (buf_size <= 0)
-			return ERROR_BUF_TOO_SMALL;
+		command_print_sameline(cmd, "SiM3%c%d", sim3x_info->part_family, sim3x_info->part_number);
 
 		/* Revision */
 		if (sim3x_info->device_revision && sim3x_info->device_revision <= 'Z' - 'A') {
-			printed = snprintf(buf, buf_size, "-%c", sim3x_info->device_revision + 'A');
-			buf += printed;
-			buf_size -= printed;
-
-			if (buf_size <= 0)
-				return ERROR_BUF_TOO_SMALL;
+			command_print_sameline(cmd, "-%c", sim3x_info->device_revision + 'A');
 
 			/* Package */
-			printed = snprintf(buf, buf_size, "-G%s", sim3x_info->device_package);
-			buf += printed;
-			buf_size -= printed;
-
-			if (buf_size <= 0)
-				return ERROR_BUF_TOO_SMALL;
+			command_print_sameline(cmd, "-G%s", sim3x_info->device_package);
 		}
 	}
 
 	/* Print flash size */
-	printed = snprintf(buf, buf_size, " flash_size = %dKB", sim3x_info->flash_size_kb);
-	buf_size -= printed;
-
-	if (buf_size <= 0)
-		return ERROR_BUF_TOO_SMALL;
+	command_print_sameline(cmd, " flash_size = %dKB", sim3x_info->flash_size_kb);
 
 	return ERROR_OK;
 }

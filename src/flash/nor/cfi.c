@@ -728,79 +728,57 @@ static int cfi_read_0002_pri_ext(struct flash_bank *bank)
 		return cfi_read_spansion_pri_ext(bank);
 }
 
-static int cfi_spansion_info(struct flash_bank *bank, char *buf, int buf_size)
+static int cfi_spansion_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
-	int printed;
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 	struct cfi_spansion_pri_ext *pri_ext = cfi_info->pri_ext;
 
-	printed = snprintf(buf, buf_size, "\nSpansion primary algorithm extend information:\n");
-	buf += printed;
-	buf_size -= printed;
+	command_print_sameline(cmd, "\nSpansion primary algorithm extend information:\n");
 
-	printed = snprintf(buf, buf_size, "pri: '%c%c%c', version: %c.%c\n", pri_ext->pri[0],
-			pri_ext->pri[1], pri_ext->pri[2],
+	command_print_sameline(cmd, "pri: '%c%c%c', version: %c.%c\n",
+			pri_ext->pri[0], pri_ext->pri[1], pri_ext->pri[2],
 			pri_ext->major_version, pri_ext->minor_version);
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf, buf_size, "Silicon Rev.: 0x%x, Address Sensitive unlock: 0x%x\n",
+	command_print_sameline(cmd, "Silicon Rev.: 0x%x, Address Sensitive unlock: 0x%x\n",
 			(pri_ext->SiliconRevision) >> 2,
 			(pri_ext->SiliconRevision) & 0x03);
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf, buf_size, "Erase Suspend: 0x%x, Sector Protect: 0x%x\n",
+	command_print_sameline(cmd, "Erase Suspend: 0x%x, Sector Protect: 0x%x\n",
 			pri_ext->EraseSuspend,
 			pri_ext->BlkProt);
-	buf += printed;
-	buf_size -= printed;
 
-	snprintf(buf, buf_size, "VppMin: %u.%x, VppMax: %u.%x\n",
+	command_print_sameline(cmd, "VppMin: %u.%x, VppMax: %u.%x\n",
 		(pri_ext->VppMin & 0xf0) >> 4, pri_ext->VppMin & 0x0f,
 		(pri_ext->VppMax & 0xf0) >> 4, pri_ext->VppMax & 0x0f);
 
 	return ERROR_OK;
 }
 
-static int cfi_intel_info(struct flash_bank *bank, char *buf, int buf_size)
+static int cfi_intel_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
-	int printed;
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 	struct cfi_intel_pri_ext *pri_ext = cfi_info->pri_ext;
 
-	printed = snprintf(buf, buf_size, "\nintel primary algorithm extend information:\n");
-	buf += printed;
-	buf_size -= printed;
+	command_print_sameline(cmd, "\nintel primary algorithm extend information:\n");
 
-	printed = snprintf(buf,
-			buf_size,
-			"pri: '%c%c%c', version: %c.%c\n",
+	command_print_sameline(cmd, "pri: '%c%c%c', version: %c.%c\n",
 			pri_ext->pri[0],
 			pri_ext->pri[1],
 			pri_ext->pri[2],
 			pri_ext->major_version,
 			pri_ext->minor_version);
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf,
-			buf_size,
-			"feature_support: 0x%" PRIx32 ", "
+	command_print_sameline(cmd, "feature_support: 0x%" PRIx32 ", "
 			"suspend_cmd_support: 0x%x, blk_status_reg_mask: 0x%x\n",
 			pri_ext->feature_support,
 			pri_ext->suspend_cmd_support,
 			pri_ext->blk_status_reg_mask);
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf, buf_size, "Vcc opt: %x.%x, Vpp opt: %u.%x\n",
+	command_print_sameline(cmd, "Vcc opt: %x.%x, Vpp opt: %u.%x\n",
 			(pri_ext->vcc_optimal & 0xf0) >> 4, pri_ext->vcc_optimal & 0x0f,
 			(pri_ext->vpp_optimal & 0xf0) >> 4, pri_ext->vpp_optimal & 0x0f);
-	buf += printed;
-	buf_size -= printed;
 
-	snprintf(buf, buf_size, "protection_fields: %i, prot_reg_addr: 0x%x, "
+	command_print_sameline(cmd, "protection_fields: %i, prot_reg_addr: 0x%x, "
 		"factory pre-programmed: %i, user programmable: %i\n",
 		pri_ext->num_protection_fields, pri_ext->prot_reg_addr,
 		1 << pri_ext->fact_prot_reg_size, 1 << pri_ext->user_prot_reg_size);
@@ -2992,45 +2970,36 @@ int cfi_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size)
+int cfi_get_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
-	int printed;
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;
 
 	if (cfi_info->qry[0] == 0xff) {
-		snprintf(buf, buf_size, "\ncfi flash bank not probed yet\n");
+		command_print_sameline(cmd, "\ncfi flash bank not probed yet\n");
 		return ERROR_OK;
 	}
 
 	if (!cfi_info->not_cfi)
-		printed = snprintf(buf, buf_size, "\nCFI flash: ");
+		command_print_sameline(cmd, "\nCFI flash: ");
 	else
-		printed = snprintf(buf, buf_size, "\nnon-CFI flash: ");
-	buf += printed;
-	buf_size -= printed;
+		command_print_sameline(cmd, "\nnon-CFI flash: ");
 
-	printed = snprintf(buf, buf_size, "mfr: 0x%4.4x, id:0x%4.4x\n\n",
+	command_print_sameline(cmd, "mfr: 0x%4.4x, id:0x%4.4x\n",
 			cfi_info->manufacturer, cfi_info->device_id);
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf, buf_size, "qry: '%c%c%c', pri_id: 0x%4.4x, pri_addr: "
+	command_print_sameline(cmd, "qry: '%c%c%c', pri_id: 0x%4.4x, pri_addr: "
 			"0x%4.4x, alt_id: 0x%4.4x, alt_addr: 0x%4.4x\n",
 			cfi_info->qry[0], cfi_info->qry[1], cfi_info->qry[2],
 			cfi_info->pri_id, cfi_info->pri_addr, cfi_info->alt_id, cfi_info->alt_addr);
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf, buf_size, "Vcc min: %x.%x, Vcc max: %x.%x, "
+	command_print_sameline(cmd, "Vcc min: %x.%x, Vcc max: %x.%x, "
 			"Vpp min: %u.%x, Vpp max: %u.%x\n",
 			(cfi_info->vcc_min & 0xf0) >> 4, cfi_info->vcc_min & 0x0f,
 			(cfi_info->vcc_max & 0xf0) >> 4, cfi_info->vcc_max & 0x0f,
 			(cfi_info->vpp_min & 0xf0) >> 4, cfi_info->vpp_min & 0x0f,
 			(cfi_info->vpp_max & 0xf0) >> 4, cfi_info->vpp_max & 0x0f);
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf, buf_size, "typ. word write timeout: %u us, "
+	command_print_sameline(cmd, "typ. word write timeout: %u us, "
 			"typ. buf write timeout: %u us, "
 			"typ. block erase timeout: %u ms, "
 			"typ. chip erase timeout: %u ms\n",
@@ -3038,12 +3007,8 @@ int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size)
 			1 << cfi_info->buf_write_timeout_typ,
 			1 << cfi_info->block_erase_timeout_typ,
 			1 << cfi_info->chip_erase_timeout_typ);
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf,
-			buf_size,
-			"max. word write timeout: %u us, "
+	command_print_sameline(cmd, "max. word write timeout: %u us, "
 			"max. buf write timeout: %u us, max. "
 			"block erase timeout: %u ms, max. chip erase timeout: %u ms\n",
 			(1 <<
@@ -3056,24 +3021,20 @@ int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size)
 			(1 <<
 			 cfi_info->chip_erase_timeout_max) *
 			(1 << cfi_info->chip_erase_timeout_typ));
-	buf += printed;
-	buf_size -= printed;
 
-	printed = snprintf(buf, buf_size, "size: 0x%" PRIx32 ", interface desc: %i, "
+	command_print_sameline(cmd, "size: 0x%" PRIx32 ", interface desc: %i, "
 			"max buffer write size: 0x%x\n",
 			cfi_info->dev_size,
 			cfi_info->interface_desc,
 			1 << cfi_info->max_buf_write_size);
-	buf += printed;
-	buf_size -= printed;
 
 	switch (cfi_info->pri_id) {
 	    case 1:
 	    case 3:
-		    cfi_intel_info(bank, buf, buf_size);
+		    cfi_intel_info(bank, cmd);
 		    break;
 	    case 2:
-		    cfi_spansion_info(bank, buf, buf_size);
+		    cfi_spansion_info(bank, cmd);
 		    break;
 	    default:
 		    LOG_ERROR("cfi primary command set %i unsupported", cfi_info->pri_id);

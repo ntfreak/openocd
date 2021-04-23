@@ -235,7 +235,7 @@ static struct sam4_chip *get_current_sam4(struct command_invocation *cmd)
 
 	t = get_current_target(cmd->ctx);
 	if (!t) {
-		command_print(cmd, "No current target?");
+		command_print_sameline(cmd, "No current target?\n");
 		return NULL;
 	}
 
@@ -243,7 +243,7 @@ static struct sam4_chip *get_current_sam4(struct command_invocation *cmd)
 	if (!p) {
 		/* this should not happen */
 		/* the command is not registered until the chip is created? */
-		command_print(cmd, "No SAM4 chips exist?");
+		command_print_sameline(cmd, "No SAM4 chips exist?\n");
 		return NULL;
 	}
 
@@ -252,7 +252,7 @@ static struct sam4_chip *get_current_sam4(struct command_invocation *cmd)
 			return p;
 		p = p->next;
 	}
-	command_print(cmd, "Cannot find SAM4 chip?");
+	command_print_sameline(cmd, "Cannot find SAM4 chip?\n");
 	return NULL;
 }
 
@@ -2656,19 +2656,16 @@ static int sam4_GetDetails(struct sam4_bank_private *pPrivate)
 	return ERROR_OK;
 }
 
-static int sam4_info(struct flash_bank *bank, char *buf, int buf_size)
+static int sam4_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct sam4_bank_private *pPrivate;
 	int k = bank->size / 1024;
 
 	pPrivate = get_sam4_bank_private(bank);
-	if (pPrivate == NULL) {
-		buf[0] = '\0';
+	if (pPrivate == NULL)
 		return ERROR_FAIL;
-	}
 
-	snprintf(buf, buf_size,
-		"%s bank %d: %d kB at " TARGET_ADDR_FMT,
+	command_print_sameline(cmd, "%s bank %d: %d kB at " TARGET_ADDR_FMT,
 		pPrivate->pChip->details.name,
 		pPrivate->bank_number,
 		k,

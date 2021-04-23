@@ -805,7 +805,7 @@ abort_write_and_exit:
 
 }
 
-static int xmc4xxx_get_info_command(struct flash_bank *bank, char *buf, int buf_size)
+static int xmc4xxx_get_info_command(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct xmc4xxx_flash_bank *fb = bank->driver_priv;
 	uint32_t scu_idcode;
@@ -914,9 +914,7 @@ static int xmc4xxx_get_info_command(struct flash_bank *bank, char *buf, int buf_
 		break;
 
 	default:
-		snprintf(buf, buf_size,
-			 "Cannot identify target as an XMC4xxx. SCU_ID: %"PRIx32"\n",
-			 scu_idcode);
+		command_print_sameline(cmd, "Cannot identify target as an XMC4xxx. SCU_ID: %"PRIx32 "\n", scu_idcode);
 		return ERROR_OK;
 	}
 
@@ -944,11 +942,9 @@ static int xmc4xxx_get_info_command(struct flash_bank *bank, char *buf, int buf_
 	}
 
 	if (rev_str != NULL)
-		snprintf(buf, buf_size, "%s - Rev: %s%s",
-			 dev_str, rev_str, prot_str);
+		command_print_sameline(cmd, "%s - Rev: %s%s", dev_str, rev_str, prot_str);
 	else
-		snprintf(buf, buf_size, "%s - Rev: unknown (0x%01x)%s",
-			 dev_str, rev_id, prot_str);
+		command_print_sameline(cmd, "%s - Rev: unknown (0x%01x)%s", dev_str, rev_id, prot_str);
 
 	return ERROR_OK;
 }

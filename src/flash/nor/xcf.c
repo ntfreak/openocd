@@ -581,15 +581,15 @@ FLASH_BANK_COMMAND_HANDLER(xcf_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int xcf_info(struct flash_bank *bank, char *buf, int buf_size)
+static int xcf_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	const struct xcf_priv *priv = bank->driver_priv;
 
 	if (!priv->probed) {
-		snprintf(buf, buf_size, "\nXCF flash bank not probed yet\n");
+		command_print_sameline(cmd, "\nXCF flash bank not probed yet\n");
 		return ERROR_OK;
 	}
-	snprintf(buf, buf_size, "%s", product_name(bank));
+	command_print_sameline(cmd, "%s", product_name(bank));
 	return ERROR_OK;
 }
 

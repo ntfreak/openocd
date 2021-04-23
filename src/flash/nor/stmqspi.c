@@ -2397,17 +2397,16 @@ static int stmqspi_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int get_stmqspi_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_stmqspi_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct stmqspi_flash_bank *stmqspi_info = bank->driver_priv;
 
 	if (!(stmqspi_info->probed)) {
-		snprintf(buf, buf_size,
-			"\nQSPI flash bank not probed yet\n");
+		command_print_sameline(cmd, "\nQSPI flash bank not probed yet\n");
 		return ERROR_FLASH_BANK_NOT_PROBED;
 	}
 
-	snprintf(buf, buf_size, "flash%s%s \'%s\', device id = 0x%06" PRIx32
+	command_print_sameline(cmd, "flash%s%s \'%s\', device id = 0x%06" PRIx32
 			", flash size = %" PRIu32 "%sbytes\n(page size = %" PRIu32
 			", read = 0x%02" PRIx8 ", qread = 0x%02" PRIx8
 			", pprog = 0x%02" PRIx8 ", mass_erase = 0x%02" PRIx8

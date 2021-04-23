@@ -597,11 +597,11 @@ static int mdr_auto_probe(struct flash_bank *bank)
 	return mdr_probe(bank);
 }
 
-static int get_mdr_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_mdr_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct mdr_flash_bank *mdr_info = bank->driver_priv;
-	snprintf(buf, buf_size, "MDR32Fx - %s",
-		 mdr_info->mem_type ? "info memory" : "main memory");
+	command_print_sameline(cmd, "MDR32Fx - %s",
+			mdr_info->mem_type ? "info memory" : "main memory");
 
 	return ERROR_OK;
 }

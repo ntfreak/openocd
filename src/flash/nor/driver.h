@@ -205,15 +205,14 @@ struct flash_driver {
 
 	/**
 	 * Display human-readable information about the flash
-	 * bank into the given buffer.  Drivers must be careful to avoid
-	 * overflowing the buffer.
+	 * bank.
 	 *
 	 * @param bank - the bank to get info about
-	 * @param char - where to put the text for the human to read
-	 * @param buf_size - the size of the human buffer.
+	 * @param cmd - command invocation instance for which to generate
+	 *              the textual output
 	 * @returns ERROR_OK if successful; otherwise, an error code.
 	 */
-	int (*info)(struct flash_bank *bank, char *buf, int buf_size);
+	int (*info)(struct flash_bank *bank, struct command_invocation *cmd);
 
 	/**
 	 * A more gentle flavor of flash_driver_s::probe, performing

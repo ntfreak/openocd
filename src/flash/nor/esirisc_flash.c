@@ -487,11 +487,11 @@ static int esirisc_flash_auto_probe(struct flash_bank *bank)
 	return esirisc_flash_probe(bank);
 }
 
-static int esirisc_flash_info(struct flash_bank *bank, char *buf, int buf_size)
+static int esirisc_flash_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct esirisc_flash_bank *esirisc_info = bank->driver_priv;
 
-	snprintf(buf, buf_size,
+	command_print_sameline(cmd,
 			"%4s cfg at 0x%" PRIx32 ", clock %" PRIu32 ", wait_states %" PRIu32,
 			"",	/* align with first line */
 			esirisc_info->cfg,

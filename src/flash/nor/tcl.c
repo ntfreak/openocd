@@ -89,7 +89,6 @@ COMMAND_HANDLER(handle_flash_info_command)
 		return retval;
 
 	if (p != NULL) {
-		char buf[1024];
 		int num_blocks;
 		struct flash_sector *block_array;
 
@@ -150,10 +149,10 @@ COMMAND_HANDLER(handle_flash_info_command)
 		}
 
 		if (p->driver->info != NULL) {
-			retval = p->driver->info(p, buf, sizeof(buf));
-			if (retval == ERROR_OK)
-				command_print(CMD, "%s", buf);
-			else
+			/* Let the flash driver print extra custom info */
+			retval = p->driver->info(p, CMD);
+			command_print_sameline(CMD, "\n");
+			if (retval != ERROR_OK)
 				LOG_ERROR("error retrieving flash info");
 		}
 	}

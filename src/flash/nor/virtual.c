@@ -172,14 +172,14 @@ static int virtual_auto_probe(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int virtual_info(struct flash_bank *bank, char *buf, int buf_size)
+static int virtual_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct flash_bank *master_bank = virtual_get_master_bank(bank);
 
 	if (master_bank == NULL)
 		return ERROR_FLASH_OPERATION_FAILED;
 
-	snprintf(buf, buf_size, "%s driver for flash bank %s at " TARGET_ADDR_FMT,
+	command_print_sameline(cmd, "%s driver for flash bank %s at " TARGET_ADDR_FMT,
 			bank->driver->name, master_bank->name, master_bank->base);
 
 	return ERROR_OK;

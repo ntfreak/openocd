@@ -624,35 +624,42 @@ static const char *nrf5_decode_info_package(uint32_t package)
 	return "xx";
 }
 
-static int nrf5_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_nrf5_chip_type_str(const struct nrf5_info *chip, char *buf, unsigned int buf_size)
 {
-	struct nrf5_bank *nbank = bank->driver_priv;
-	struct nrf5_info *chip = nbank->chip;
 	int res;
-
 	if (chip->spec) {
-		res = snprintf(buf, buf_size,
-				"nRF%s-%s(build code: %s)",
+		res = snprintf(buf, buf_size, "nRF%s-%s(build code: %s)",
 				chip->spec->part, chip->spec->variant, chip->spec->build_code);
-
 	} else if (chip->ficr_info_valid) {
 		char variant[5];
 		nrf5_info_variant_to_str(chip->ficr_info.variant, variant);
-		res = snprintf(buf, buf_size,
-				"nRF%" PRIx32 "-%s%.2s(build code: %s)",
+		res = snprintf(buf, buf_size, "nRF%" PRIx32 "-%s%.2s(build code: %s)",
 				chip->ficr_info.part,
 				nrf5_decode_info_package(chip->ficr_info.package),
 				variant, &variant[2]);
-
 	} else {
-		res = snprintf(buf, buf_size, "nRF51xxx (HWID 0x%04" PRIx16 ")",
-				chip->hwid);
+		res = snprintf(buf, buf_size, "nRF51xxx (HWID 0x%04" PRIx16 ")", chip->hwid);
 	}
-	if (res <= 0)
+
+	/* safety: */
+	if (res <= 0 || (unsigned int)res >= buf_size) {
+		LOG_ERROR("BUG: buffer problem in %s", __func__);
+		return ERROR_FAIL;
+	}
+	return ERROR_OK;
+}
+
+static int nrf5_info(struct flash_bank *bank, struct command_invocation *cmd)
+{
+	struct nrf5_bank *nbank = bank->driver_priv;
+	struct nrf5_info *chip = nbank->chip;
+
+	char chip_type_str[256];
+	if (get_nrf5_chip_type_str(chip, chip_type_str, sizeof(chip_type_str)) != ERROR_OK)
 		return ERROR_FAIL;
 
-	snprintf(buf + res, buf_size - res, " %ukB Flash, %ukB RAM",
-				chip->flash_size_kb, chip->ram_size_kb);
+	command_print_sameline(cmd, "%s %ukB Flash, %ukB RAM",
+			chip_type_str, chip->flash_size_kb, chip->ram_size_kb);
 	return ERROR_OK;
 }
 
@@ -824,13 +831,15 @@ static int nrf5_probe(struct flash_bank *bank)
 	chip->flash_size_kb = num_sectors * flash_page_size / 1024;
 
 	if (!chip->bank[0].probed && !chip->bank[1].probed) {
-		char buf[80];
-		nrf5_info(bank, buf, sizeof(buf));
-		if (!chip->spec && !chip->ficr_info_valid) {
-			LOG_INFO("Unknown device: %s", buf);
-		} else {
-			LOG_INFO("%s", buf);
-		}
+		char chip_type_str[256];
+		if (get_nrf5_chip_type_str(chip, chip_type_str, sizeof(chip_type_str)) != ERROR_OK) 
+			return ERROR_FAIL;
+		const bool device_is_unknown = (!chip->spec && !chip->ficr_info_valid);
+		LOG_INFO("%s%s %ukB Flash, %ukB RAM",
+				device_is_unknown ? "Unknown device: " : "",
+				chip_type_str,
+				chip->flash_size_kb,
+				chip->ram_size_kb);
 	}
 
 	free(bank->sectors);

@@ -324,23 +324,7 @@ static int efm32x_read_info(struct flash_bank *bank,
 	return ERROR_OK;
 }
 
-/*
- * Helper to create a human friendly string describing a part
- */
-static int efm32x_decode_info(struct efm32_info *info, char *buf, int buf_size)
-{
-	int printed = 0;
-	printed = snprintf(buf, buf_size, "%s Gecko, rev %d",
-			info->family_data->name, info->prod_rev);
-
-	if (printed >= buf_size)
-		return ERROR_BUF_TOO_SMALL;
-
-	return ERROR_OK;
-}
-
-/* flash bank efm32 <base> <size> 0 0 <target#>
- */
+/* flash bank efm32 <base> <size> 0 0 <target#> */
 FLASH_BANK_COMMAND_HANDLER(efm32x_flash_bank_command)
 {
 	struct efm32x_flash_bank *efm32x_info;
@@ -961,7 +945,6 @@ static int efm32x_probe(struct flash_bank *bank)
 	struct efm32_info efm32_mcu_info;
 	int ret;
 	uint32_t base_address = 0x00000000;
-	char buf[256];
 
 	efm32x_info->probed = false;
 	memset(efm32x_info->lb_page, 0xff, LOCKBITS_PAGE_SZ);
@@ -970,11 +953,8 @@ static int efm32x_probe(struct flash_bank *bank)
 	if (ERROR_OK != ret)
 		return ret;
 
-	ret = efm32x_decode_info(&efm32_mcu_info, buf, sizeof(buf));
-	if (ERROR_OK != ret)
-		return ret;
-
-	LOG_INFO("detected part: %s", buf);
+	LOG_INFO("detected part: %s Gecko, rev %d",
+			efm32_mcu_info.family_data->name, efm32_mcu_info.prod_rev);
 	LOG_INFO("flash size = %dkbytes", efm32_mcu_info.flash_sz_kib);
 	LOG_INFO("flash page size = %dbytes", efm32_mcu_info.page_size);
 
@@ -1044,10 +1024,10 @@ static int efm32x_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int get_efm32x_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_efm32x_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
 	struct efm32_info info;
-	int ret = 0;
+	int ret;
 
 	ret = efm32x_read_info(bank, &info);
 	if (ERROR_OK != ret) {
@@ -1055,7 +1035,8 @@ static int get_efm32x_info(struct flash_bank *bank, char *buf, int buf_size)
 		return ret;
 	}
 
-	return efm32x_decode_info(&info, buf, buf_size);
+	command_print_sameline(cmd, "%s Gecko, rev %d", info.family_data->name, info.prod_rev);
+	return ERROR_OK;
 }
 
 COMMAND_HANDLER(efm32x_handle_debuglock_command)
