@@ -22,10 +22,10 @@
  * ------------------------------------------------------------------------- */
 
 
-static int arc_cmd_jim_get_uint32(Jim_GetOptInfo *goi, uint32_t *value)
+static int arc_cmd_jim_get_uint32(struct jim_getopt_info *goi, uint32_t *value)
 {
 	jim_wide value_wide;
-	JIM_CHECK_RETVAL(Jim_GetOpt_Wide(goi, &value_wide));
+	JIM_CHECK_RETVAL(jim_getopt_wide(goi, &value_wide));
 	*value = (uint32_t)value_wide;
 	return JIM_OK;
 }
@@ -40,7 +40,7 @@ enum add_reg_type_flags {
 	CFG_ADD_REG_TYPE_FLAGS_FLAG,
 };
 
-static Jim_Nvp nvp_add_reg_type_flags_opts[] = {
+static struct jim_nvp nvp_add_reg_type_flags_opts[] = {
 	{ .name = "-name",  .value = CFG_ADD_REG_TYPE_FLAGS_NAME },
 	{ .name = "-flag",  .value = CFG_ADD_REG_TYPE_FLAGS_FLAG },
 	{ .name = NULL,     .value = -1 }
@@ -64,7 +64,7 @@ static const char *validate_register(const struct arc_reg_desc * const reg, bool
 
 /* Helper function to read the name of register type or register from
  * configure files  */
-static int jim_arc_read_reg_name_field(Jim_GetOptInfo *goi,
+static int jim_arc_read_reg_name_field(struct jim_getopt_info *goi,
 	const char **name, int *name_len)
 {
 	int e = JIM_OK;
@@ -73,12 +73,12 @@ static int jim_arc_read_reg_name_field(Jim_GetOptInfo *goi,
 		Jim_WrongNumArgs(goi->interp, goi->argc, goi->argv, "-name <name> ...");
 		return JIM_ERR;
 	}
-	e = Jim_GetOpt_String(goi, name, name_len);
+	e = jim_getopt_string(goi, name, name_len);
 	return e;
 }
 
 /* Helper function to read bitfields/flags of register type. */
-static int jim_arc_read_reg_type_field(Jim_GetOptInfo *goi, const char **field_name, int *field_name_len,
+static int jim_arc_read_reg_type_field(struct jim_getopt_info *goi, const char **field_name, int *field_name_len,
 	 struct arc_reg_bitfield *bitfields, int cur_field, int type)
 {
 		jim_wide start_pos, end_pos;
@@ -90,12 +90,12 @@ static int jim_arc_read_reg_type_field(Jim_GetOptInfo *goi, const char **field_n
 			return JIM_ERR;
 		}
 
-		e = Jim_GetOpt_String(goi, field_name, field_name_len);
+		e = jim_getopt_string(goi, field_name, field_name_len);
 		if (e != JIM_OK)
 					return e;
 
 		/* read start position of bitfield/flag */
-		e = Jim_GetOpt_Wide(goi, &start_pos);
+		e = jim_getopt_wide(goi, &start_pos);
 		if (e != JIM_OK)
 					return e;
 
@@ -108,7 +108,7 @@ static int jim_arc_read_reg_type_field(Jim_GetOptInfo *goi, const char **field_n
 			 * than bitfields[cur_field].end remains start */
 			if ((strcmp(Jim_String(goi->argv[0]), "-flag") && type == CFG_ADD_REG_TYPE_FLAG)
 					|| (type == CFG_ADD_REG_TYPE_STRUCT)) {
-								e = Jim_GetOpt_Wide(goi, &end_pos);
+								e = jim_getopt_wide(goi, &end_pos);
 								if (e != JIM_OK) {
 									Jim_SetResultFormatted(goi->interp, "Error reading end position");
 									return e;
@@ -125,8 +125,8 @@ static int jim_arc_read_reg_type_field(Jim_GetOptInfo *goi, const char **field_n
 static int jim_arc_add_reg_type_flags(Jim_Interp *interp, int argc,
 	Jim_Obj * const *argv)
 {
-	Jim_GetOptInfo goi;
-	JIM_CHECK_RETVAL(Jim_GetOpt_Setup(&goi, interp, argc-1, argv+1));
+	struct jim_getopt_info goi;
+	JIM_CHECK_RETVAL(jim_getopt_setup(&goi, interp, argc-1, argv+1));
 
 	LOG_DEBUG("-");
 
@@ -179,10 +179,10 @@ static int jim_arc_add_reg_type_flags(Jim_Interp *interp, int argc,
 	flags->size = 4; /* For now ARC has only 32-bit registers */
 
 	while (goi.argc > 0 && e == JIM_OK) {
-		Jim_Nvp *n;
-		e = Jim_GetOpt_Nvp(&goi, nvp_add_reg_type_flags_opts, &n);
+		struct jim_nvp *n;
+		e = jim_getopt_nvp(&goi, nvp_add_reg_type_flags_opts, &n);
 		if (e != JIM_OK) {
-			Jim_GetOpt_NvpUnknown(&goi, nvp_add_reg_type_flags_opts, 0);
+			jim_getopt_nvp_unknown(&goi, nvp_add_reg_type_flags_opts, 0);
 			continue;
 		}
 
@@ -272,7 +272,7 @@ enum add_reg_type_struct {
 	CFG_ADD_REG_TYPE_STRUCT_BITFIELD,
 };
 
-static Jim_Nvp nvp_add_reg_type_struct_opts[] = {
+static struct jim_nvp nvp_add_reg_type_struct_opts[] = {
 	{ .name = "-name",     .value = CFG_ADD_REG_TYPE_STRUCT_NAME },
 	{ .name = "-bitfield", .value = CFG_ADD_REG_TYPE_STRUCT_BITFIELD },
 	{ .name = NULL,     .value = -1 }
@@ -286,8 +286,8 @@ static int jim_arc_set_aux_reg(Jim_Interp *interp, int argc, Jim_Obj * const *ar
 	uint32_t regnum;
 	uint32_t value;
 
-	Jim_GetOptInfo goi;
-	JIM_CHECK_RETVAL(Jim_GetOpt_Setup(&goi, interp, argc-1, argv+1));
+	struct jim_getopt_info goi;
+	JIM_CHECK_RETVAL(jim_getopt_setup(&goi, interp, argc-1, argv+1));
 
 	if (goi.argc != 2) {
 		Jim_SetResultFormatted(goi.interp,
@@ -325,8 +325,8 @@ static int jim_arc_get_aux_reg(Jim_Interp *interp, int argc, Jim_Obj * const *ar
 	uint32_t regnum;
 	uint32_t value;
 
-	Jim_GetOptInfo goi;
-	JIM_CHECK_RETVAL(Jim_GetOpt_Setup(&goi, interp, argc-1, argv+1));
+	struct jim_getopt_info goi;
+	JIM_CHECK_RETVAL(jim_getopt_setup(&goi, interp, argc-1, argv+1));
 
 	if (goi.argc != 1) {
 		Jim_SetResultFormatted(goi.interp,
@@ -362,8 +362,8 @@ static int jim_arc_get_core_reg(Jim_Interp *interp, int argc, Jim_Obj * const *a
 	uint32_t regnum;
 	uint32_t value;
 
-	Jim_GetOptInfo goi;
-	JIM_CHECK_RETVAL(Jim_GetOpt_Setup(&goi, interp, argc-1, argv+1));
+	struct jim_getopt_info goi;
+	JIM_CHECK_RETVAL(jim_getopt_setup(&goi, interp, argc-1, argv+1));
 
 	if (goi.argc != 1) {
 		Jim_SetResultFormatted(goi.interp,
@@ -405,8 +405,8 @@ static int jim_arc_set_core_reg(Jim_Interp *interp, int argc, Jim_Obj * const *a
 	uint32_t regnum;
 	uint32_t value;
 
-	Jim_GetOptInfo goi;
-	JIM_CHECK_RETVAL(Jim_GetOpt_Setup(&goi, interp, argc-1, argv+1));
+	struct jim_getopt_info goi;
+	JIM_CHECK_RETVAL(jim_getopt_setup(&goi, interp, argc-1, argv+1));
 
 	if (goi.argc != 2) {
 		Jim_SetResultFormatted(goi.interp,
@@ -491,8 +491,8 @@ static const struct command_registration arc_jtag_command_group[] = {
 static int jim_arc_add_reg_type_struct(Jim_Interp *interp, int argc,
 	Jim_Obj * const *argv)
 {
-	Jim_GetOptInfo goi;
-	JIM_CHECK_RETVAL(Jim_GetOpt_Setup(&goi, interp, argc-1, argv+1));
+	struct jim_getopt_info goi;
+	JIM_CHECK_RETVAL(jim_getopt_setup(&goi, interp, argc-1, argv+1));
 
 	LOG_DEBUG("-");
 
@@ -545,10 +545,10 @@ static int jim_arc_add_reg_type_struct(Jim_Interp *interp, int argc,
 	struct_type->size = 4; /* For now ARC has only 32-bit registers */
 
 	while (goi.argc > 0 && e == JIM_OK) {
-		Jim_Nvp *n;
-		e = Jim_GetOpt_Nvp(&goi, nvp_add_reg_type_struct_opts, &n);
+		struct jim_nvp *n;
+		e = jim_getopt_nvp(&goi, nvp_add_reg_type_struct_opts, &n);
 		if (e != JIM_OK) {
-			Jim_GetOpt_NvpUnknown(&goi, nvp_add_reg_type_struct_opts, 0);
+			jim_getopt_nvp_unknown(&goi, nvp_add_reg_type_struct_opts, 0);
 			continue;
 		}
 
@@ -642,7 +642,7 @@ enum opts_add_reg {
 	CFG_ADD_REG_GENERAL,
 };
 
-static Jim_Nvp opts_nvp_add_reg[] = {
+static struct jim_nvp opts_nvp_add_reg[] = {
 	{ .name = "-name",    .value = CFG_ADD_REG_NAME },
 	{ .name = "-num",     .value = CFG_ADD_REG_ARCH_NUM },
 	{ .name = "-core",    .value = CFG_ADD_REG_IS_CORE },
@@ -662,8 +662,8 @@ void free_reg_desc(struct arc_reg_desc *r)
 
 static int jim_arc_add_reg(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 {
-	Jim_GetOptInfo goi;
-	JIM_CHECK_RETVAL(Jim_GetOpt_Setup(&goi, interp, argc-1, argv+1));
+	struct jim_getopt_info goi;
+	JIM_CHECK_RETVAL(jim_getopt_setup(&goi, interp, argc-1, argv+1));
 
 	struct arc_reg_desc *reg = calloc(1, sizeof(*reg));
 	if (!reg) {
@@ -692,10 +692,10 @@ static int jim_arc_add_reg(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 
 	/* Parse options. */
 	while (goi.argc > 0) {
-		Jim_Nvp *n;
-		e = Jim_GetOpt_Nvp(&goi, opts_nvp_add_reg, &n);
+		struct jim_nvp *n;
+		e = jim_getopt_nvp(&goi, opts_nvp_add_reg, &n);
 		if (e != JIM_OK) {
-			Jim_GetOpt_NvpUnknown(&goi, opts_nvp_add_reg, 0);
+			jim_getopt_nvp_unknown(&goi, opts_nvp_add_reg, 0);
 			free_reg_desc(reg);
 			return e;
 		}
@@ -732,7 +732,7 @@ static int jim_arc_add_reg(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 					return JIM_ERR;
 				}
 
-				e = Jim_GetOpt_Wide(&goi, &archnum);
+				e = jim_getopt_wide(&goi, &archnum);
 				if (e != JIM_OK) {
 					free_reg_desc(reg);
 					return e;
@@ -845,12 +845,12 @@ COMMAND_HANDLER(arc_set_reg_exists)
  * Reads struct type register field */
 static int jim_arc_get_reg_field(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 {
-	Jim_GetOptInfo goi;
+	struct jim_getopt_info goi;
 	const char *reg_name, *field_name;
 	uint32_t value;
 	int retval;
 
-	JIM_CHECK_RETVAL(Jim_GetOpt_Setup(&goi, interp, argc-1, argv+1));
+	JIM_CHECK_RETVAL(jim_getopt_setup(&goi, interp, argc-1, argv+1));
 
 	LOG_DEBUG("Reading register field");
 	if (goi.argc != 2) {
@@ -863,8 +863,8 @@ static int jim_arc_get_reg_field(Jim_Interp *interp, int argc, Jim_Obj * const *
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 
-	JIM_CHECK_RETVAL(Jim_GetOpt_String(&goi, &reg_name, NULL));
-	JIM_CHECK_RETVAL(Jim_GetOpt_String(&goi, &field_name, NULL));
+	JIM_CHECK_RETVAL(jim_getopt_string(&goi, &reg_name, NULL));
+	JIM_CHECK_RETVAL(jim_getopt_string(&goi, &field_name, NULL));
 	assert(reg_name);
 	assert(field_name);
 
@@ -932,8 +932,8 @@ COMMAND_HANDLER(arc_l2_cache_disable_auto_cmd)
 static int jim_handle_actionpoints_num(Jim_Interp *interp, int argc,
 	Jim_Obj * const *argv)
 {
-	Jim_GetOptInfo goi;
-	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+	struct jim_getopt_info goi;
+	jim_getopt_setup(&goi, interp, argc - 1, argv + 1);
 
 	LOG_DEBUG("-");
 

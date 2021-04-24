@@ -1945,7 +1945,7 @@ static int stm8_run_algorithm(struct target *target, int num_mem_params,
 	return ERROR_OK;
 }
 
-static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
+static int stm8_jim_configure(struct target *target, struct jim_getopt_info *goi)
 {
 	struct stm8_common *stm8 = target_to_stm8(target);
 	jim_wide w;
@@ -1954,7 +1954,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 
 	arg = Jim_GetString(goi->argv[0], NULL);
 	if (!strcmp(arg, "-blocksize")) {
-		e = Jim_GetOpt_String(goi, &arg, NULL);
+		e = jim_getopt_string(goi, &arg, NULL);
 		if (e != JIM_OK)
 			return e;
 
@@ -1964,7 +1964,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return JIM_ERR;
 		}
 
-		e = Jim_GetOpt_Wide(goi, &w);
+		e = jim_getopt_wide(goi, &w);
 		if (e != JIM_OK)
 			return e;
 
@@ -1973,7 +1973,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-flashstart")) {
-		e = Jim_GetOpt_String(goi, &arg, NULL);
+		e = jim_getopt_string(goi, &arg, NULL);
 		if (e != JIM_OK)
 			return e;
 
@@ -1983,7 +1983,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return JIM_ERR;
 		}
 
-		e = Jim_GetOpt_Wide(goi, &w);
+		e = jim_getopt_wide(goi, &w);
 		if (e != JIM_OK)
 			return e;
 
@@ -1992,7 +1992,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-flashend")) {
-		e = Jim_GetOpt_String(goi, &arg, NULL);
+		e = jim_getopt_string(goi, &arg, NULL);
 		if (e != JIM_OK)
 			return e;
 
@@ -2002,7 +2002,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return JIM_ERR;
 		}
 
-		e = Jim_GetOpt_Wide(goi, &w);
+		e = jim_getopt_wide(goi, &w);
 		if (e != JIM_OK)
 			return e;
 
@@ -2011,7 +2011,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-eepromstart")) {
-		e = Jim_GetOpt_String(goi, &arg, NULL);
+		e = jim_getopt_string(goi, &arg, NULL);
 		if (e != JIM_OK)
 			return e;
 
@@ -2021,7 +2021,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return JIM_ERR;
 		}
 
-		e = Jim_GetOpt_Wide(goi, &w);
+		e = jim_getopt_wide(goi, &w);
 		if (e != JIM_OK)
 			return e;
 
@@ -2030,7 +2030,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-eepromend")) {
-		e = Jim_GetOpt_String(goi, &arg, NULL);
+		e = jim_getopt_string(goi, &arg, NULL);
 		if (e != JIM_OK)
 			return e;
 
@@ -2040,7 +2040,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return JIM_ERR;
 		}
 
-		e = Jim_GetOpt_Wide(goi, &w);
+		e = jim_getopt_wide(goi, &w);
 		if (e != JIM_OK)
 			return e;
 
@@ -2049,7 +2049,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-optionstart")) {
-		e = Jim_GetOpt_String(goi, &arg, NULL);
+		e = jim_getopt_string(goi, &arg, NULL);
 		if (e != JIM_OK)
 			return e;
 
@@ -2059,7 +2059,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return JIM_ERR;
 		}
 
-		e = Jim_GetOpt_Wide(goi, &w);
+		e = jim_getopt_wide(goi, &w);
 		if (e != JIM_OK)
 			return e;
 
@@ -2068,7 +2068,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-optionend")) {
-		e = Jim_GetOpt_String(goi, &arg, NULL);
+		e = jim_getopt_string(goi, &arg, NULL);
 		if (e != JIM_OK)
 			return e;
 
@@ -2078,7 +2078,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 			return JIM_ERR;
 		}
 
-		e = Jim_GetOpt_Wide(goi, &w);
+		e = jim_getopt_wide(goi, &w);
 		if (e != JIM_OK)
 			return e;
 
@@ -2087,7 +2087,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-enable_step_irq")) {
-		e = Jim_GetOpt_String(goi, &arg, NULL);
+		e = jim_getopt_string(goi, &arg, NULL);
 		if (e != JIM_OK)
 			return e;
 
@@ -2096,7 +2096,7 @@ static int stm8_jim_configure(struct target *target, Jim_GetOptInfo *goi)
 		return JIM_OK;
 	}
 	if (!strcmp(arg, "-enable_stm8l")) {
-		e = Jim_GetOpt_String(goi, &arg, NULL);
+		e = jim_getopt_string(goi, &arg, NULL);
 		if (e != JIM_OK)
 			return e;
 

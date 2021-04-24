@@ -156,31 +156,31 @@ enum dap_cfg_param {
 	CFG_IGNORE_SYSPWRUPACK,
 };
 
-static const Jim_Nvp nvp_config_opts[] = {
+static const struct jim_nvp nvp_config_opts[] = {
 	{ .name = "-chain-position",   .value = CFG_CHAIN_POSITION },
 	{ .name = "-ignore-syspwrupack", .value = CFG_IGNORE_SYSPWRUPACK },
 	{ .name = NULL, .value = -1 }
 };
 
-static int dap_configure(Jim_GetOptInfo *goi, struct arm_dap_object *dap)
+static int dap_configure(struct jim_getopt_info *goi, struct arm_dap_object *dap)
 {
 	struct jtag_tap *tap = NULL;
-	Jim_Nvp *n;
+	struct jim_nvp *n;
 	int e;
 
 	/* parse config or cget options ... */
 	while (goi->argc > 0) {
 		Jim_SetEmptyResult(goi->interp);
 
-		e = Jim_GetOpt_Nvp(goi, nvp_config_opts, &n);
+		e = jim_getopt_nvp(goi, nvp_config_opts, &n);
 		if (e != JIM_OK) {
-			Jim_GetOpt_NvpUnknown(goi, nvp_config_opts, 0);
+			jim_getopt_nvp_unknown(goi, nvp_config_opts, 0);
 			return e;
 		}
 		switch (n->value) {
 		case CFG_CHAIN_POSITION: {
 			Jim_Obj *o_t;
-			e = Jim_GetOpt_Obj(goi, &o_t);
+			e = jim_getopt_obj(goi, &o_t);
 			if (e != JIM_OK)
 				return e;
 			tap = jtag_tap_by_jim_obj(goi->interp, o_t);
@@ -210,7 +210,7 @@ static int dap_configure(Jim_GetOptInfo *goi, struct arm_dap_object *dap)
 	return JIM_OK;
 }
 
-static int dap_create(Jim_GetOptInfo *goi)
+static int dap_create(struct jim_getopt_info *goi)
 {
 	struct command_context *cmd_ctx;
 	static struct arm_dap_object *dap;
@@ -227,7 +227,7 @@ static int dap_create(Jim_GetOptInfo *goi)
 		return JIM_ERR;
 	}
 	/* COMMAND */
-	Jim_GetOpt_Obj(goi, &new_cmd);
+	jim_getopt_obj(goi, &new_cmd);
 	/* does this command exist? */
 	cmd = Jim_GetCommand(goi->interp, new_cmd, JIM_ERRMSG);
 	if (cmd) {
@@ -276,8 +276,8 @@ static int dap_create(Jim_GetOptInfo *goi)
 
 static int jim_dap_create(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 {
-	Jim_GetOptInfo goi;
-	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+	struct jim_getopt_info goi;
+	jim_getopt_setup(&goi, interp, argc - 1, argv + 1);
 	if (goi.argc < 2) {
 		Jim_WrongNumArgs(goi.interp, goi.argc, goi.argv,
 			"<name> [<dap_options> ...]");

@@ -600,7 +600,7 @@ struct adiv5_private_config {
 };
 
 extern int adiv5_verify_config(struct adiv5_private_config *pc);
-extern int adiv5_jim_configure(struct target *target, Jim_GetOptInfo *goi);
+extern int adiv5_jim_configure(struct target *target, struct jim_getopt_info *goi);
 
 struct adiv5_mem_ap_spot {
 	struct adiv5_dap *dap;
@@ -610,6 +610,6 @@ struct adiv5_mem_ap_spot {
 
 extern int adiv5_mem_ap_spot_init(struct adiv5_mem_ap_spot *p);
 extern int adiv5_jim_mem_ap_spot_configure(struct adiv5_mem_ap_spot *cfg,
-		Jim_GetOptInfo *goi);
+		struct jim_getopt_info *goi);
 
 #endif /* OPENOCD_TARGET_ARM_ADI_V5_H */

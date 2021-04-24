@@ -110,7 +110,7 @@ struct rtos_register_stacking {
 
 #define GDB_THREAD_PACKET_NOT_CONSUMED (-40)
 
-int rtos_create(Jim_GetOptInfo *goi, struct target *target);
+int rtos_create(struct jim_getopt_info *goi, struct target *target);
 void rtos_destroy(struct target *target);
 int rtos_set_reg(struct connection *connection, int reg_num,
 		uint8_t *reg_value);

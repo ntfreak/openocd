@@ -1500,7 +1500,7 @@ enum adiv5_cfg_param {
 	CFG_CTIBASE, /* DEPRECATED */
 };
 
-static const Jim_Nvp nvp_config_opts[] = {
+static const struct jim_nvp nvp_config_opts[] = {
 	{ .name = "-dap",       .value = CFG_DAP },
 	{ .name = "-ap-num",    .value = CFG_AP_NUM },
 	{ .name = "-baseaddr",  .value = CFG_BASEADDR },
@@ -1508,7 +1508,7 @@ static const Jim_Nvp nvp_config_opts[] = {
 	{ .name = NULL, .value = -1 }
 };
 
-static int adiv5_jim_spot_configure(Jim_GetOptInfo *goi,
+static int adiv5_jim_spot_configure(struct jim_getopt_info *goi,
 		struct adiv5_dap **dap_p, int *ap_num_p, uint32_t *base_p)
 {
 	if (!goi->argc)
@@ -1516,8 +1516,8 @@ static int adiv5_jim_spot_configure(Jim_GetOptInfo *goi,
 
 	Jim_SetEmptyResult(goi->interp);
 
-	Jim_Nvp *n;
-	int e = Jim_Nvp_name2value_obj(goi->interp, nvp_config_opts,
+	struct jim_nvp *n;
+	int e = jim_nvp_name2value_obj(goi->interp, nvp_config_opts,
 				goi->argv[0], &n);
 	if (e != JIM_OK)
 		return JIM_CONTINUE;
@@ -1526,7 +1526,7 @@ static int adiv5_jim_spot_configure(Jim_GetOptInfo *goi,
 	if (!base_p && (n->value == CFG_BASEADDR || n->value == CFG_CTIBASE))
 		return JIM_CONTINUE;
 
-	e = Jim_GetOpt_Obj(goi, NULL);
+	e = jim_getopt_obj(goi, NULL);
 	if (e != JIM_OK)
 		return e;
 
@@ -1535,7 +1535,7 @@ static int adiv5_jim_spot_configure(Jim_GetOptInfo *goi,
 		if (goi->isconfigure) {
 			Jim_Obj *o_t;
 			struct adiv5_dap *dap;
-			e = Jim_GetOpt_Obj(goi, &o_t);
+			e = jim_getopt_obj(goi, &o_t);
 			if (e != JIM_OK)
 				return e;
 			dap = dap_instance_by_jim_obj(goi->interp, o_t);
@@ -1563,7 +1563,7 @@ static int adiv5_jim_spot_configure(Jim_GetOptInfo *goi,
 	case CFG_AP_NUM:
 		if (goi->isconfigure) {
 			jim_wide ap_num;
-			e = Jim_GetOpt_Wide(goi, &ap_num);
+			e = jim_getopt_wide(goi, &ap_num);
 			if (e != JIM_OK)
 				return e;
 			if (ap_num < 0 || ap_num > DP_APSEL_MAX) {
@@ -1588,7 +1588,7 @@ static int adiv5_jim_spot_configure(Jim_GetOptInfo *goi,
 	case CFG_BASEADDR:
 		if (goi->isconfigure) {
 			jim_wide base;
-			e = Jim_GetOpt_Wide(goi, &base);
+			e = jim_getopt_wide(goi, &base);
 			if (e != JIM_OK)
 				return e;
 			*base_p = (uint32_t)base;
@@ -1607,7 +1607,7 @@ err_no_param:
 	return JIM_ERR;
 }
 
-int adiv5_jim_configure(struct target *target, Jim_GetOptInfo *goi)
+int adiv5_jim_configure(struct target *target, struct jim_getopt_info *goi)
 {
 	struct adiv5_private_config *pc;
 	int e;
@@ -1651,7 +1651,7 @@ int adiv5_verify_config(struct adiv5_private_config *pc)
 }
 
 int adiv5_jim_mem_ap_spot_configure(struct adiv5_mem_ap_spot *cfg,
-		Jim_GetOptInfo *goi)
+		struct jim_getopt_info *goi)
 {
 	return adiv5_jim_spot_configure(goi, &cfg->dap, &cfg->ap_num, &cfg->base);
 }

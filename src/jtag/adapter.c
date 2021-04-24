@@ -51,8 +51,8 @@ const char * const jtag_only[] = { "jtag", NULL };
 
 static int jim_adapter_name(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 {
-	Jim_GetOptInfo goi;
-	Jim_GetOpt_Setup(&goi, interp, argc-1, argv + 1);
+	struct jim_getopt_info goi;
+	jim_getopt_setup(&goi, interp, argc-1, argv + 1);
 
 	/* return the name of the interface */
 	/* TCL code might need to know the exact type... */

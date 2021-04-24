@@ -28,11 +28,11 @@
 #include <transport/transport.h>
 #include <helper/time_support.h>
 
-static int jim_newtap_expected_id(Jim_Nvp *n, Jim_GetOptInfo *goi,
+static int jim_newtap_expected_id(struct jim_nvp *n, struct jim_getopt_info *goi,
 				  struct jtag_tap *pTap)
 {
 	jim_wide w;
-	int e = Jim_GetOpt_Wide(goi, &w);
+	int e = jim_getopt_wide(goi, &w);
 	if (e != JIM_OK) {
 		Jim_SetResultFormatted(goi->interp, "option: %s bad parameter",
 				       n->name);
@@ -60,14 +60,14 @@ static int jim_newtap_expected_id(Jim_Nvp *n, Jim_GetOptInfo *goi,
 #define NTAP_OPT_EXPECTED_ID 5
 #define NTAP_OPT_VERSION   6
 
-static int jim_hl_newtap_cmd(Jim_GetOptInfo *goi)
+static int jim_hl_newtap_cmd(struct jim_getopt_info *goi)
 {
 	struct jtag_tap *pTap;
 	int x;
 	int e;
-	Jim_Nvp *n;
+	struct jim_nvp *n;
 	char *cp;
-	const Jim_Nvp opts[] = {
+	const struct jim_nvp opts[] = {
 		{ .name = "-irlen",       .value = NTAP_OPT_IRLEN },
 		{ .name = "-irmask",       .value = NTAP_OPT_IRMASK },
 		{ .name = "-ircapture",       .value = NTAP_OPT_IRCAPTURE },
@@ -95,10 +95,10 @@ static int jim_hl_newtap_cmd(Jim_GetOptInfo *goi)
 	}
 
 	const char *tmp;
-	Jim_GetOpt_String(goi, &tmp, NULL);
+	jim_getopt_string(goi, &tmp, NULL);
 	pTap->chip = strdup(tmp);
 
-	Jim_GetOpt_String(goi, &tmp, NULL);
+	jim_getopt_string(goi, &tmp, NULL);
 	pTap->tapname = strdup(tmp);
 
 	/* name + dot + name + null */
@@ -111,9 +111,9 @@ static int jim_hl_newtap_cmd(Jim_GetOptInfo *goi)
 		  pTap->chip, pTap->tapname, pTap->dotted_name, goi->argc);
 
 	while (goi->argc) {
-		e = Jim_GetOpt_Nvp(goi, opts, &n);
+		e = jim_getopt_nvp(goi, opts, &n);
 		if (e != JIM_OK) {
-			Jim_GetOpt_NvpUnknown(goi, opts, 0);
+			jim_getopt_nvp_unknown(goi, opts, 0);
 			free(cp);
 			free(pTap);
 			return e;
@@ -132,7 +132,7 @@ static int jim_hl_newtap_cmd(Jim_GetOptInfo *goi)
 		case NTAP_OPT_IRMASK:
 		case NTAP_OPT_IRCAPTURE:
 			/* dummy read to ignore the next argument */
-			Jim_GetOpt_Wide(goi, NULL);
+			jim_getopt_wide(goi, NULL);
 			break;
 		}		/* switch (n->value) */
 	}			/* while (goi->argc) */
@@ -146,7 +146,7 @@ static int jim_hl_newtap_cmd(Jim_GetOptInfo *goi)
 
 int jim_hl_newtap(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 {
-	Jim_GetOptInfo goi;
-	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+	struct jim_getopt_info goi;
+	jim_getopt_setup(&goi, interp, argc - 1, argv + 1);
 	return jim_hl_newtap_cmd(&goi);
 }
