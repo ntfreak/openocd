@@ -62,7 +62,7 @@
  *
  * Example:
  * \code
- *      const Jim_Nvp yn[] = {
+ *      const struct jim_nvp yn[] = {
  *          { "yes", 1 },
  *          { "no" , 0 },
  *          { "yep", 1 },
@@ -70,60 +70,60 @@
  *          { NULL, -1 },
  *      };
  *
- *  Jim_Nvp *result
- *  e = Jim_Nvp_name2value(interp, yn, "y", &result);
+ *  struct jim_nvp *result
+ *  e = jim_nvp_name2value(interp, yn, "y", &result);
  *         returns &yn[0];
- *  e = Jim_Nvp_name2value(interp, yn, "n", &result);
+ *  e = jim_nvp_name2value(interp, yn, "n", &result);
  *         returns &yn[1];
- *  e = Jim_Nvp_name2value(interp, yn, "Blah", &result);
+ *  e = jim_nvp_name2value(interp, yn, "Blah", &result);
  *         returns &yn[4];
  * \endcode
  *
  * During the number2name operation, the first matching value is returned.
  */
-typedef struct {
+struct jim_nvp {
 	const char *name;
 	int value;
-} Jim_Nvp;
+};
 
-int Jim_GetNvp(Jim_Interp *interp,
-		Jim_Obj *objPtr,
-		const Jim_Nvp *nvp_table,
-		const Jim_Nvp **result);
+int jim_get_nvp(Jim_Interp *interp,
+		Jim_Obj *objptr,
+		const struct jim_nvp *nvp_table,
+		const struct jim_nvp **result);
 
 /* Name Value Pairs Operations */
-Jim_Nvp *Jim_Nvp_name2value_simple(const Jim_Nvp *nvp_table, const char *name);
-Jim_Nvp *Jim_Nvp_name2value_nocase_simple(const Jim_Nvp *nvp_table, const char *name);
-Jim_Nvp *Jim_Nvp_value2name_simple(const Jim_Nvp *nvp_table, int v);
+struct jim_nvp *jim_nvp_name2value_simple(const struct jim_nvp *nvp_table, const char *name);
+struct jim_nvp *jim_nvp_name2value_nocase_simple(const struct jim_nvp *nvp_table, const char *name);
+struct jim_nvp *jim_nvp_value2name_simple(const struct jim_nvp *nvp_table, int v);
 
-int Jim_Nvp_name2value(Jim_Interp *interp,
-		const Jim_Nvp *nvp_table,
+int jim_nvp_name2value(Jim_Interp *interp,
+		const struct jim_nvp *nvp_table,
 		const char *name,
-		Jim_Nvp **result);
-int Jim_Nvp_name2value_nocase(Jim_Interp *interp,
-		const Jim_Nvp *nvp_table,
+		struct jim_nvp **result);
+int jim_nvp_name2value_nocase(Jim_Interp *interp,
+		const struct jim_nvp *nvp_table,
 		const char *name,
-		Jim_Nvp **result);
-int Jim_Nvp_value2name(Jim_Interp *interp, const Jim_Nvp *nvp_table, int value, Jim_Nvp **result);
+		struct jim_nvp **result);
+int jim_nvp_value2name(Jim_Interp *interp, const struct jim_nvp *nvp_table, int value, struct jim_nvp **result);
 
-int Jim_Nvp_name2value_obj(Jim_Interp *interp,
-		const Jim_Nvp *nvp_table,
+int jim_nvp_name2value_obj(Jim_Interp *interp,
+		const struct jim_nvp *nvp_table,
 		Jim_Obj *name_obj,
-		Jim_Nvp **result);
-int Jim_Nvp_name2value_obj_nocase(Jim_Interp *interp,
-		const Jim_Nvp *nvp_table,
+		struct jim_nvp **result);
+int jim_nvp_name2value_obj_nocase(Jim_Interp *interp,
+		const struct jim_nvp *nvp_table,
 		Jim_Obj *name_obj,
-		Jim_Nvp **result);
-int Jim_Nvp_value2name_obj(Jim_Interp *interp,
-		const Jim_Nvp *nvp_table,
+		struct jim_nvp **result);
+int jim_nvp_value2name_obj(Jim_Interp *interp,
+		const struct jim_nvp *nvp_table,
 		Jim_Obj *value_obj,
-		Jim_Nvp **result);
+		struct jim_nvp **result);
 
 /** prints a nice 'unknown' parameter error message to the 'result' */
-void Jim_SetResult_NvpUnknown(Jim_Interp *interp,
+void jim_set_result_nvp_unknown(Jim_Interp *interp,
 		Jim_Obj *param_name,
 		Jim_Obj *param_value,
-		const Jim_Nvp *nvp_table);
+		const struct jim_nvp *nvp_table);
 
 /** Debug: convert argc/argv into a printable string for printf() debug
  *
@@ -142,7 +142,7 @@ void Jim_SetResult_NvpUnknown(Jim_Interp *interp,
  *     fclose(fp);
  * \endcode
  */
-const char *Jim_Debug_ArgvString(Jim_Interp *interp, int argc, Jim_Obj *const *argv);
+const char *jim_debug_argv_string(Jim_Interp *interp, int argc, Jim_Obj *const *argv);
 
 
 /** A TCL -ish GetOpt like code.
@@ -157,25 +157,25 @@ const char *Jim_Debug_ArgvString(Jim_Interp *interp, int argc, Jim_Obj *const *a
  * Only supports tcl type options, like "-foo 123"
  */
 
-typedef struct jim_getopt {
+struct jim_getopt_info {
 	Jim_Interp *interp;
 	int argc;
 	Jim_Obj *const *argv;
 	int isconfigure;		/* non-zero if configure */
-} Jim_GetOptInfo;
+};
 
 /** GetOpt - how to.
  *
  * Example (short and incomplete):
  * \code
- *   Jim_GetOptInfo goi;
+ *   struct jim_getopt_info goi;
  *
- *   Jim_GetOpt_Setup(&goi, interp, argc, argv);
+ *   jim_getopt_setup(&goi, interp, argc, argv);
  *
  *   while (goi.argc) {
- *         e = Jim_GetOpt_Nvp(&goi, nvp_options, &n);
+ *         e = jim_getopt_nvp(&goi, nvp_options, &n);
  *         if (e != JIM_OK) {
- *               Jim_GetOpt_NvpUnknown(&goi, nvp_options, 0);
+ *               jim_getopt_nvp_unknown(&goi, nvp_options, 0);
  *               return e;
  *         }
  *
@@ -187,16 +187,16 @@ typedef struct jim_getopt {
  *             if (goi.argc < 1) {
  *                     .. not enough args error ..
  *             }
- *             Jim_GetOpt_String(&goi, &cp, NULL);
+ *             jim_getopt_string(&goi, &cp, NULL);
  *             printf("FIRSTNAME: %s\n", cp);
  *         case AGE:
- *             Jim_GetOpt_Wide(&goi, &w);
+ *             jim_getopt_wide(&goi, &w);
  *             printf("AGE: %d\n", (int)(w));
  *             break;
  *         case POLITICS:
- *             e = Jim_GetOpt_Nvp(&goi, nvp_politics, &n);
+ *             e = jim_getopt_nvp(&goi, nvp_politics, &n);
  *             if (e != JIM_OK) {
- *                 Jim_GetOpt_NvpUnknown(&goi, nvp_politics, 1);
+ *                 jim_getopt_nvp_unknown(&goi, nvp_politics, 1);
  *                 return e;
  *             }
  *         }
@@ -214,13 +214,13 @@ typedef struct jim_getopt {
  * \param argv   - argv (will be copied)
  *
  * \code
- *     Jim_GetOptInfo  goi;
+ *     struct jim_getopt_info  goi;
  *
  *     Jim_GetOptSetup(&goi, interp, argc, argv);
  * \endcode
  */
 
-int Jim_GetOpt_Setup(Jim_GetOptInfo *goi,
+int jim_getopt_setup(struct jim_getopt_info *goi,
 		Jim_Interp *interp,
 		int argc,
 		Jim_Obj *const *argv);
@@ -229,7 +229,7 @@ int Jim_GetOpt_Setup(Jim_GetOptInfo *goi,
 /** Debug - Dump parameters to stderr
  * \param goi - current parameters
  */
-void Jim_GetOpt_Debug(Jim_GetOptInfo *goi);
+void jim_getopt_debug(struct jim_getopt_info *goi);
 
 /** Remove argv[0] from the list.
  *
@@ -237,7 +237,7 @@ void Jim_GetOpt_Debug(Jim_GetOptInfo *goi);
  * \param puthere - where param is put
  *
  */
-int Jim_GetOpt_Obj(Jim_GetOptInfo *goi, Jim_Obj **puthere);
+int jim_getopt_obj(struct jim_getopt_info *goi, Jim_Obj **puthere);
 
 /** Remove argv[0] as string.
  *
@@ -245,7 +245,7 @@ int Jim_GetOpt_Obj(Jim_GetOptInfo *goi, Jim_Obj **puthere);
  * \param puthere - where param is put
  * \param len     - return its length
  */
-int Jim_GetOpt_String(Jim_GetOptInfo *goi, const char **puthere, int *len);
+int jim_getopt_string(struct jim_getopt_info *goi, const char **puthere, int *len);
 
 /** Remove argv[0] as double.
  *
@@ -253,14 +253,14 @@ int Jim_GetOpt_String(Jim_GetOptInfo *goi, const char **puthere, int *len);
  * \param puthere - where param is put.
  *
  */
-int Jim_GetOpt_Double(Jim_GetOptInfo *goi, double *puthere);
+int jim_getopt_double(struct jim_getopt_info *goi, double *puthere);
 
 /** Remove argv[0] as wide.
  *
  * \param goi     - get opt info
  * \param puthere - where param is put.
  */
-int Jim_GetOpt_Wide(Jim_GetOptInfo *goi, jim_wide *puthere);
+int jim_getopt_wide(struct jim_getopt_info *goi, jim_wide *puthere);
 
 /** Remove argv[0] as NVP.
  *
@@ -269,7 +269,7 @@ int Jim_GetOpt_Wide(Jim_GetOptInfo *goi, jim_wide *puthere);
  * \param puthere - where param is put.
  *
  */
-int Jim_GetOpt_Nvp(Jim_GetOptInfo *goi, const Jim_Nvp *lookup, Jim_Nvp **puthere);
+int jim_getopt_nvp(struct jim_getopt_info *goi, const struct jim_nvp *lookup, struct jim_nvp **puthere);
 
 /** Create an appropriate error message for an NVP.
  *
@@ -289,20 +289,20 @@ int Jim_GetOpt_Nvp(Jim_GetOptInfo *goi, const Jim_Nvp *lookup, Jim_Nvp **puthere
  *
  *  while (goi.argc) {
  *     // Get the next option
- *     e = Jim_GetOpt_Nvp(&goi, cmd_options, &n);
+ *     e = jim_getopt_nvp(&goi, cmd_options, &n);
  *     if (e != JIM_OK) {
  *          // option was not recognized
  *          // pass 'hadprefix = 0' because there is no prefix
- *          Jim_GetOpt_NvpUnknown(&goi, cmd_options, 0);
+ *          jim_getopt_nvp_unknown(&goi, cmd_options, 0);
  *          return e;
  *     }
  *
  *     switch (n->value) {
  *     case OPT_SEX:
  *          // handle:  --sex male | female | lots | needmore
- *          e = Jim_GetOpt_Nvp(&goi, &nvp_sex, &n);
+ *          e = jim_getopt_nvp(&goi, &nvp_sex, &n);
  *          if (e != JIM_OK) {
- *               Jim_GetOpt_NvpUnknown(&ogi, nvp_sex, 1);
+ *               jim_getopt_nvp_unknown(&ogi, nvp_sex, 1);
  *               return e;
  *          }
  *          printf("Code: (%d) is %s\n", n->value, n->name);
@@ -314,7 +314,7 @@ int Jim_GetOpt_Nvp(Jim_GetOptInfo *goi, const Jim_Nvp *lookup, Jim_Nvp **puthere
  * \endcode
  *
  */
-void Jim_GetOpt_NvpUnknown(Jim_GetOptInfo *goi, const Jim_Nvp *lookup, int hadprefix);
+void jim_getopt_nvp_unknown(struct jim_getopt_info *goi, const struct jim_nvp *lookup, int hadprefix);
 
 
 /** Remove argv[0] as Enum
@@ -324,6 +324,146 @@ void Jim_GetOpt_NvpUnknown(Jim_GetOptInfo *goi, const Jim_Nvp *lookup, int hadpr
  * \param puthere - where param is put.
  *
  */
-int Jim_GetOpt_Enum(Jim_GetOptInfo *goi, const char *const *lookup, int *puthere);
+int jim_getopt_enum(struct jim_getopt_info *goi, const char *const *lookup, int *puthere);
+
+/*
+ * DEPRECATED API
+ * Do not use these API anymore, as they do not comply with OpenOCD coding style
+ * They are listed here to avoid breaking build after merge of patches already queued in gerrit
+ */
+
+static inline __attribute__ ((deprecated))
+const char *Jim_Debug_ArgvString(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
+{
+	return jim_debug_argv_string(interp, argc, argv);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_GetNvp(Jim_Interp *interp, Jim_Obj *objptr, const struct jim_nvp *nvp_table, const struct jim_nvp **result)
+{
+	return jim_get_nvp(interp, objptr, nvp_table, result);
+}
+
+static inline __attribute__ ((deprecated))
+void Jim_GetOpt_Debug(struct jim_getopt_info *goi)
+{
+	jim_getopt_debug(goi);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_GetOpt_Double(struct jim_getopt_info *goi, double *puthere)
+{
+	return jim_getopt_double(goi, puthere);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_GetOpt_Enum(struct jim_getopt_info *goi, const char *const *lookup, int *puthere)
+{
+	return jim_getopt_enum(goi, lookup, puthere);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_GetOpt_Nvp(struct jim_getopt_info *goi, const struct jim_nvp *lookup, struct jim_nvp **puthere)
+{
+	return jim_getopt_nvp(goi, lookup, puthere);
+}
+
+static inline __attribute__ ((deprecated))
+void Jim_GetOpt_NvpUnknown(struct jim_getopt_info *goi, const struct jim_nvp *lookup, int hadprefix)
+{
+	jim_getopt_nvp_unknown(goi, lookup, hadprefix);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_GetOpt_Obj(struct jim_getopt_info *goi, Jim_Obj **puthere)
+{
+	return jim_getopt_obj(goi, puthere);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_GetOpt_Setup(struct jim_getopt_info *goi, Jim_Interp *interp, int argc, Jim_Obj *const *argv)
+{
+	return jim_getopt_setup(goi, interp, argc, argv);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_GetOpt_String(struct jim_getopt_info *goi, const char **puthere, int *len)
+{
+	return jim_getopt_string(goi, puthere, len);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_GetOpt_Wide(struct jim_getopt_info *goi, jim_wide *puthere)
+{
+	return jim_getopt_wide(goi, puthere);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_Nvp_name2value(Jim_Interp *interp, const struct jim_nvp *nvp_table, const char *name, struct jim_nvp **result)
+{
+	return jim_nvp_name2value(interp, nvp_table, name, result);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_Nvp_name2value_nocase(Jim_Interp *interp, const struct jim_nvp *nvp_table, const char *name,
+	struct jim_nvp **result)
+{
+	return jim_nvp_name2value_nocase(interp, nvp_table, name, result);
+}
+
+static inline __attribute__ ((deprecated))
+struct jim_nvp *Jim_Nvp_name2value_nocase_simple(const struct jim_nvp *nvp_table, const char *name)
+{
+	return jim_nvp_name2value_nocase_simple(nvp_table, name);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_Nvp_name2value_obj(Jim_Interp *interp, const struct jim_nvp *nvp_table, Jim_Obj *name_obj,
+	struct jim_nvp **result)
+{
+	return jim_nvp_name2value_obj(interp, nvp_table, name_obj, result);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_Nvp_name2value_obj_nocase(Jim_Interp *interp, const struct jim_nvp *nvp_table, Jim_Obj *name_obj,
+	struct jim_nvp **result)
+{
+	return jim_nvp_name2value_obj_nocase(interp, nvp_table, name_obj, result);
+}
+
+static inline __attribute__ ((deprecated))
+struct jim_nvp *Jim_Nvp_name2value_simple(const struct jim_nvp *nvp_table, const char *name)
+{
+	return jim_nvp_name2value_simple(nvp_table, name);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_Nvp_value2name(Jim_Interp *interp, const struct jim_nvp *nvp_table, int value, struct jim_nvp **result)
+{
+	return jim_nvp_value2name(interp, nvp_table, value, result);
+}
+
+static inline __attribute__ ((deprecated))
+int Jim_Nvp_value2name_obj(Jim_Interp *interp, const struct jim_nvp *nvp_table, Jim_Obj *value_obj,
+	struct jim_nvp **result)
+{
+	return jim_nvp_value2name_obj(interp, nvp_table, value_obj, result);
+}
+
+static inline __attribute__ ((deprecated))
+struct jim_nvp *Jim_Nvp_value2name_simple(const struct jim_nvp *nvp_table, int v)
+{
+	return jim_nvp_value2name_simple(nvp_table, v);
+}
+
+static inline __attribute__ ((deprecated))
+void Jim_SetResult_NvpUnknown(Jim_Interp *interp, Jim_Obj *param_name, Jim_Obj *param_value,
+	const struct jim_nvp *nvp_table)
+{
+	jim_set_result_nvp_unknown(interp, param_name, param_value, nvp_table);
+}
+
+typedef struct jim_getopt_info Jim_GetOptInfo __attribute__ ((deprecated));
+typedef struct jim_nvp Jim_Nvp __attribute__ ((deprecated));
 
 #endif /* OPENOCD_HELPER_JIM_NVP_H */
