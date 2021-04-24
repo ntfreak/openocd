@@ -926,22 +926,22 @@ COMMAND_HANDLER(ftdi_handle_vid_pid_command)
 
 COMMAND_HANDLER(ftdi_handle_tdo_sample_edge_command)
 {
-	Jim_Nvp *n;
-	static const Jim_Nvp nvp_ftdi_jtag_modes[] = {
+	struct jim_nvp *n;
+	static const struct jim_nvp nvp_ftdi_jtag_modes[] = {
 		{ .name = "rising", .value = JTAG_MODE },
 		{ .name = "falling", .value = JTAG_MODE_ALT },
 		{ .name = NULL, .value = -1 },
 	};
 
 	if (CMD_ARGC > 0) {
-		n = Jim_Nvp_name2value_simple(nvp_ftdi_jtag_modes, CMD_ARGV[0]);
+		n = jim_nvp_name2value_simple(nvp_ftdi_jtag_modes, CMD_ARGV[0]);
 		if (n->name == NULL)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		ftdi_jtag_mode = n->value;
 
 	}
 
-	n = Jim_Nvp_value2name_simple(nvp_ftdi_jtag_modes, ftdi_jtag_mode);
+	n = jim_nvp_value2name_simple(nvp_ftdi_jtag_modes, ftdi_jtag_mode);
 	command_print(CMD, "ftdi samples TDO on %s edge of TCK", n->name);
 
 	return ERROR_OK;

@@ -1025,7 +1025,7 @@ COMMAND_HANDLER(armv8_handle_exception_catch_command)
 	unsigned int argp = 0;
 	int retval;
 
-	static const Jim_Nvp nvp_ecatch_modes[] = {
+	static const struct jim_nvp nvp_ecatch_modes[] = {
 		{ .name = "off",       .value = 0 },
 		{ .name = "nsec_el1",  .value = (1 << 5) },
 		{ .name = "nsec_el2",  .value = (2 << 5) },
@@ -1035,7 +1035,7 @@ COMMAND_HANDLER(armv8_handle_exception_catch_command)
 		{ .name = "sec_el13",  .value = (5 << 1) },
 		{ .name = NULL, .value = -1 },
 	};
-	const Jim_Nvp *n;
+	const struct jim_nvp *n;
 
 	if (CMD_ARGC == 0) {
 		const char *sec = NULL, *nsec = NULL;
@@ -1045,11 +1045,11 @@ COMMAND_HANDLER(armv8_handle_exception_catch_command)
 		if (retval != ERROR_OK)
 			return retval;
 
-		n = Jim_Nvp_value2name_simple(nvp_ecatch_modes, edeccr & 0x0f);
+		n = jim_nvp_value2name_simple(nvp_ecatch_modes, edeccr & 0x0f);
 		if (n->name != NULL)
 			sec = n->name;
 
-		n = Jim_Nvp_value2name_simple(nvp_ecatch_modes, edeccr & 0xf0);
+		n = jim_nvp_value2name_simple(nvp_ecatch_modes, edeccr & 0xf0);
 		if (n->name != NULL)
 			nsec = n->name;
 
@@ -1063,7 +1063,7 @@ COMMAND_HANDLER(armv8_handle_exception_catch_command)
 	}
 
 	while (CMD_ARGC > argp) {
-		n = Jim_Nvp_name2value_simple(nvp_ecatch_modes, CMD_ARGV[argp]);
+		n = jim_nvp_name2value_simple(nvp_ecatch_modes, CMD_ARGV[argp]);
 		if (n->name == NULL) {
 			LOG_ERROR("Unknown option: %s", CMD_ARGV[argp]);
 			return ERROR_FAIL;
