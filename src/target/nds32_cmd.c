@@ -681,8 +681,8 @@ static int jim_nds32_bulk_write(Jim_Interp *interp, int argc, Jim_Obj * const *a
 {
 	const char *cmd_name = Jim_GetString(argv[0], NULL);
 
-	Jim_GetOptInfo goi;
-	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+	struct jim_getopt_info goi;
+	jim_getopt_setup(&goi, interp, argc - 1, argv + 1);
 
 	if (goi.argc < 3) {
 		Jim_SetResultFormatted(goi.interp,
@@ -692,12 +692,12 @@ static int jim_nds32_bulk_write(Jim_Interp *interp, int argc, Jim_Obj * const *a
 
 	int e;
 	jim_wide address;
-	e = Jim_GetOpt_Wide(&goi, &address);
+	e = jim_getopt_wide(&goi, &address);
 	if (e != JIM_OK)
 		return e;
 
 	jim_wide count;
-	e = Jim_GetOpt_Wide(&goi, &count);
+	e = jim_getopt_wide(&goi, &count);
 	if (e != JIM_OK)
 		return e;
 
@@ -708,7 +708,7 @@ static int jim_nds32_bulk_write(Jim_Interp *interp, int argc, Jim_Obj * const *a
 	jim_wide i;
 	for (i = 0; i < count; i++) {
 		jim_wide tmp;
-		e = Jim_GetOpt_Wide(&goi, &tmp);
+		e = jim_getopt_wide(&goi, &tmp);
 		if (e != JIM_OK) {
 			free(data);
 			return e;
@@ -738,8 +738,8 @@ static int jim_nds32_multi_write(Jim_Interp *interp, int argc, Jim_Obj * const *
 {
 	const char *cmd_name = Jim_GetString(argv[0], NULL);
 
-	Jim_GetOptInfo goi;
-	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+	struct jim_getopt_info goi;
+	jim_getopt_setup(&goi, interp, argc - 1, argv + 1);
 
 	if (goi.argc < 3) {
 		Jim_SetResultFormatted(goi.interp,
@@ -749,7 +749,7 @@ static int jim_nds32_multi_write(Jim_Interp *interp, int argc, Jim_Obj * const *
 
 	int e;
 	jim_wide num_of_pairs;
-	e = Jim_GetOpt_Wide(&goi, &num_of_pairs);
+	e = jim_getopt_wide(&goi, &num_of_pairs);
 	if (e != JIM_OK)
 		return e;
 
@@ -765,12 +765,12 @@ static int jim_nds32_multi_write(Jim_Interp *interp, int argc, Jim_Obj * const *
 	aice_set_command_mode(aice, AICE_COMMAND_MODE_PACK);
 	for (i = 0; i < num_of_pairs; i++) {
 		jim_wide tmp;
-		e = Jim_GetOpt_Wide(&goi, &tmp);
+		e = jim_getopt_wide(&goi, &tmp);
 		if (e != JIM_OK)
 			break;
 		address = (uint32_t)tmp;
 
-		e = Jim_GetOpt_Wide(&goi, &tmp);
+		e = jim_getopt_wide(&goi, &tmp);
 		if (e != JIM_OK)
 			break;
 		data = (uint32_t)tmp;
@@ -792,8 +792,8 @@ static int jim_nds32_bulk_read(Jim_Interp *interp, int argc, Jim_Obj * const *ar
 {
 	const char *cmd_name = Jim_GetString(argv[0], NULL);
 
-	Jim_GetOptInfo goi;
-	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+	struct jim_getopt_info goi;
+	jim_getopt_setup(&goi, interp, argc - 1, argv + 1);
 
 	if (goi.argc < 2) {
 		Jim_SetResultFormatted(goi.interp,
@@ -803,12 +803,12 @@ static int jim_nds32_bulk_read(Jim_Interp *interp, int argc, Jim_Obj * const *ar
 
 	int e;
 	jim_wide address;
-	e = Jim_GetOpt_Wide(&goi, &address);
+	e = jim_getopt_wide(&goi, &address);
 	if (e != JIM_OK)
 		return e;
 
 	jim_wide count;
-	e = Jim_GetOpt_Wide(&goi, &count);
+	e = jim_getopt_wide(&goi, &count);
 	if (e != JIM_OK)
 		return e;
 
@@ -840,8 +840,8 @@ static int jim_nds32_read_edm_sr(Jim_Interp *interp, int argc, Jim_Obj * const *
 {
 	const char *cmd_name = Jim_GetString(argv[0], NULL);
 
-	Jim_GetOptInfo goi;
-	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+	struct jim_getopt_info goi;
+	jim_getopt_setup(&goi, interp, argc - 1, argv + 1);
 
 	if (goi.argc < 1) {
 		Jim_SetResultFormatted(goi.interp,
@@ -852,7 +852,7 @@ static int jim_nds32_read_edm_sr(Jim_Interp *interp, int argc, Jim_Obj * const *
 	int e;
 	const char *edm_sr_name;
 	int edm_sr_name_len;
-	e = Jim_GetOpt_String(&goi, &edm_sr_name, &edm_sr_name_len);
+	e = jim_getopt_string(&goi, &edm_sr_name, &edm_sr_name_len);
 	if (e != JIM_OK)
 		return e;
 
@@ -888,8 +888,8 @@ static int jim_nds32_write_edm_sr(Jim_Interp *interp, int argc, Jim_Obj * const 
 {
 	const char *cmd_name = Jim_GetString(argv[0], NULL);
 
-	Jim_GetOptInfo goi;
-	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+	struct jim_getopt_info goi;
+	jim_getopt_setup(&goi, interp, argc - 1, argv + 1);
 
 	if (goi.argc < 2) {
 		Jim_SetResultFormatted(goi.interp,
@@ -900,12 +900,12 @@ static int jim_nds32_write_edm_sr(Jim_Interp *interp, int argc, Jim_Obj * const 
 	int e;
 	const char *edm_sr_name;
 	int edm_sr_name_len;
-	e = Jim_GetOpt_String(&goi, &edm_sr_name, &edm_sr_name_len);
+	e = jim_getopt_string(&goi, &edm_sr_name, &edm_sr_name_len);
 	if (e != JIM_OK)
 		return e;
 
 	jim_wide value;
-	e = Jim_GetOpt_Wide(&goi, &value);
+	e = jim_getopt_wide(&goi, &value);
 	if (e != JIM_OK)
 		return e;
 

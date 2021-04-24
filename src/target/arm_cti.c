@@ -430,7 +430,7 @@ static const struct command_registration cti_instance_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-static int cti_configure(Jim_GetOptInfo *goi, struct arm_cti *cti)
+static int cti_configure(struct jim_getopt_info *goi, struct arm_cti *cti)
 {
 	/* parse config or cget options ... */
 	while (goi->argc > 0) {
@@ -446,7 +446,7 @@ static int cti_configure(Jim_GetOptInfo *goi, struct arm_cti *cti)
 
 	return JIM_OK;
 }
-static int cti_create(Jim_GetOptInfo *goi)
+static int cti_create(struct jim_getopt_info *goi)
 {
 	struct command_context *cmd_ctx;
 	static struct arm_cti *cti;
@@ -463,7 +463,7 @@ static int cti_create(Jim_GetOptInfo *goi)
 		return JIM_ERR;
 	}
 	/* COMMAND */
-	Jim_GetOpt_Obj(goi, &new_cmd);
+	jim_getopt_obj(goi, &new_cmd);
 	/* does this command exist? */
 	cmd = Jim_GetCommand(goi->interp, new_cmd, JIM_ERRMSG);
 	if (cmd) {
@@ -518,8 +518,8 @@ static int cti_create(Jim_GetOptInfo *goi)
 
 static int jim_cti_create(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 {
-	Jim_GetOptInfo goi;
-	Jim_GetOpt_Setup(&goi, interp, argc - 1, argv + 1);
+	struct jim_getopt_info goi;
+	jim_getopt_setup(&goi, interp, argc - 1, argv + 1);
 	if (goi.argc < 2) {
 		Jim_WrongNumArgs(goi.interp, goi.argc, goi.argv,
 			"<name> [<cti_options> ...]");
