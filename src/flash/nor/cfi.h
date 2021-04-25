@@ -108,17 +108,17 @@ struct cfi_spansion_pri_ext {
 	uint8_t  pri[3];
 	uint8_t  major_version;
 	uint8_t  minor_version;
-	uint8_t  SiliconRevision; /* bits 1-0: Address Sensitive Unlock */
-	uint8_t  EraseSuspend;
-	uint8_t  BlkProt;
-	uint8_t  TmpBlkUnprotect;
-	uint8_t  BlkProtUnprot;
-	uint8_t  SimultaneousOps;
-	uint8_t  BurstMode;
-	uint8_t  PageMode;
-	uint8_t  VppMin;
-	uint8_t  VppMax;
-	uint8_t  TopBottom;
+	uint8_t  silicon_revision; /* bits 1-0: Address Sensitive Unlock */
+	uint8_t  erase_suspend;
+	uint8_t  blk_prot;
+	uint8_t  tmp_blk_unprotected;
+	uint8_t  blk_prot_unprot;
+	uint8_t  simultaneous_ops;
+	uint8_t  burst_mode;
+	uint8_t  page_mode;
+	uint8_t  vpp_min;
+	uint8_t  vpp_max;
+	uint8_t  top_bottom;
 	int _reversed_geometry;
 	uint32_t _unlock1;
 	uint32_t _unlock2;

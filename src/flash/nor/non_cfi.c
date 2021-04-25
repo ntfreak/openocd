@@ -536,17 +536,17 @@ void cfi_fixup_non_cfi(struct flash_bank *bank)
 		pri_ext->major_version = '1';
 		pri_ext->minor_version = '0';
 
-		pri_ext->SiliconRevision = 0x0;
-		pri_ext->EraseSuspend = 0x0;
-		pri_ext->BlkProt = 0x0;
-		pri_ext->TmpBlkUnprotect = 0x0;
-		pri_ext->BlkProtUnprot = 0x0;
-		pri_ext->SimultaneousOps = 0x0;
-		pri_ext->BurstMode = 0x0;
-		pri_ext->PageMode = 0x0;
-		pri_ext->VppMin = 0x0;
-		pri_ext->VppMax = 0x0;
-		pri_ext->TopBottom = 0x0;
+		pri_ext->silicon_revision = 0x0;
+		pri_ext->erase_suspend = 0x0;
+		pri_ext->blk_prot = 0x0;
+		pri_ext->tmp_blk_unprotected = 0x0;
+		pri_ext->blk_prot_unprot = 0x0;
+		pri_ext->simultaneous_ops = 0x0;
+		pri_ext->burst_mode = 0x0;
+		pri_ext->page_mode = 0x0;
+		pri_ext->vpp_min = 0x0;
+		pri_ext->vpp_max = 0x0;
+		pri_ext->top_bottom = 0x0;
 
 		pri_ext->_unlock1 = 0x5555;
 		pri_ext->_unlock2 = 0x2AAA;
