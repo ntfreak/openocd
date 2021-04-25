@@ -49,7 +49,7 @@ RESULT usbtopwr_config(uint8_t interface_index)
 	return usbtoxxx_conf_command(USB_TO_POWER, interface_index, NULL, 0);
 }
 
-RESULT usbtopwr_output(uint8_t interface_index, uint16_t mV)
+RESULT usbtopwr_output(uint8_t interface_index, uint16_t millivolt)
 {
 #if PARAM_CHECK
 	if (interface_index > 7) {
@@ -58,6 +58,6 @@ RESULT usbtopwr_output(uint8_t interface_index, uint16_t mV)
 	}
 #endif
 
-	return usbtoxxx_out_command(USB_TO_POWER, interface_index, (uint8_t *)&mV,
+	return usbtoxxx_out_command(USB_TO_POWER, interface_index, (uint8_t *)&millivolt,
 		2, 0);
 }

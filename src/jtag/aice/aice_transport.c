@@ -31,7 +31,7 @@
 
 /* */
 static int jim_newtap_expected_id(struct jim_nvp *n, struct jim_getopt_info *goi,
-		struct jtag_tap *pTap)
+		struct jtag_tap *tap)
 {
 	jim_wide w;
 	int e = jim_getopt_wide(goi, &w);
@@ -41,21 +41,21 @@ static int jim_newtap_expected_id(struct jim_nvp *n, struct jim_getopt_info *goi
 		return e;
 	}
 
-	unsigned expected_len = sizeof(uint32_t) * pTap->expected_ids_cnt;
+	unsigned expected_len = sizeof(uint32_t) * tap->expected_ids_cnt;
 	uint32_t *new_expected_ids = malloc(expected_len + sizeof(uint32_t));
 	if (new_expected_ids == NULL) {
 		Jim_SetResultFormatted(goi->interp, "no memory");
 		return JIM_ERR;
 	}
 
-	assert(pTap->expected_ids);
-	memcpy(new_expected_ids, pTap->expected_ids, expected_len);
+	assert(tap->expected_ids);
+	memcpy(new_expected_ids, tap->expected_ids, expected_len);
 
-	new_expected_ids[pTap->expected_ids_cnt] = w;
+	new_expected_ids[tap->expected_ids_cnt] = w;
 
-	free(pTap->expected_ids);
-	pTap->expected_ids = new_expected_ids;
-	pTap->expected_ids_cnt++;
+	free(tap->expected_ids);
+	tap->expected_ids = new_expected_ids;
+	tap->expected_ids_cnt++;
 
 	return JIM_OK;
 }
@@ -65,7 +65,7 @@ static int jim_newtap_expected_id(struct jim_nvp *n, struct jim_getopt_info *goi
 /* */
 static int jim_aice_newtap_cmd(struct jim_getopt_info *goi)
 {
-	struct jtag_tap *pTap;
+	struct jtag_tap *tap;
 	int x;
 	int e;
 	struct jim_nvp *n;
@@ -75,8 +75,8 @@ static int jim_aice_newtap_cmd(struct jim_getopt_info *goi)
 		{.name = NULL, .value = -1},
 	};
 
-	pTap = calloc(1, sizeof(struct jtag_tap));
-	if (!pTap) {
+	tap = calloc(1, sizeof(struct jtag_tap));
+	if (!tap) {
 		Jim_SetResultFormatted(goi->interp, "no memory");
 		return JIM_ERR;
 	}
@@ -87,41 +87,41 @@ static int jim_aice_newtap_cmd(struct jim_getopt_info *goi)
 	if (goi->argc < 3) {
 		Jim_SetResultFormatted(goi->interp,
 				"Missing CHIP TAP OPTIONS ....");
-		free(pTap);
+		free(tap);
 		return JIM_ERR;
 	}
 
 	const char *tmp;
 	jim_getopt_string(goi, &tmp, NULL);
-	pTap->chip = strdup(tmp);
+	tap->chip = strdup(tmp);
 
 	jim_getopt_string(goi, &tmp, NULL);
-	pTap->tapname = strdup(tmp);
+	tap->tapname = strdup(tmp);
 
 	/* name + dot + name + null */
-	x = strlen(pTap->chip) + 1 + strlen(pTap->tapname) + 1;
+	x = strlen(tap->chip) + 1 + strlen(tap->tapname) + 1;
 	cp = malloc(x);
-	sprintf(cp, "%s.%s", pTap->chip, pTap->tapname);
-	pTap->dotted_name = cp;
+	sprintf(cp, "%s.%s", tap->chip, tap->tapname);
+	tap->dotted_name = cp;
 
 	LOG_DEBUG("Creating New Tap, Chip: %s, Tap: %s, Dotted: %s, %d params",
-			pTap->chip, pTap->tapname, pTap->dotted_name, goi->argc);
+			tap->chip, tap->tapname, tap->dotted_name, goi->argc);
 
 	while (goi->argc) {
 		e = jim_getopt_nvp(goi, opts, &n);
 		if (e != JIM_OK) {
 			jim_getopt_nvp_unknown(goi, opts, 0);
 			free(cp);
-			free(pTap);
+			free(tap);
 			return e;
 		}
 		LOG_DEBUG("Processing option: %s", n->name);
 		switch (n->value) {
 			case NTAP_OPT_EXPECTED_ID:
-				e = jim_newtap_expected_id(n, goi, pTap);
+				e = jim_newtap_expected_id(n, goi, tap);
 				if (JIM_OK != e) {
 					free(cp);
-					free(pTap);
+					free(tap);
 					return e;
 				}
 				break;
@@ -129,9 +129,9 @@ static int jim_aice_newtap_cmd(struct jim_getopt_info *goi)
 	}			/* while (goi->argc) */
 
 	/* default is enabled-after-reset */
-	pTap->enabled = !pTap->disabled_after_reset;
+	tap->enabled = !tap->disabled_after_reset;
 
-	jtag_tap_init(pTap);
+	jtag_tap_init(tap);
 	return JIM_OK;
 }
 
