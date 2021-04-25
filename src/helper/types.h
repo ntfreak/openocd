@@ -47,16 +47,10 @@
 #ifndef __cplusplus
 
 #define false	0
-#define true		1
+#define true	1
 
-typedef int _Bool;
-#else
-typedef bool _Bool;
 #endif	/* __cplusplus */
 #endif	/* HAVE__BOOL */
-
-#define bool _Bool
-
 #endif	/* HAVE_STDBOOL_H */
 
 /// turns a macro argument into a string constant
