@@ -333,9 +333,3 @@ const char *Jim_Debug_ArgvString(Jim_Interp *interp, int argc, Jim_Obj *const *a
 
 	return Jim_String(debug_string_obj);
 }
-
-int Jim_nvpInit(Jim_Interp *interp)
-{
-	/* This is really a helper library, not an extension, but this is the easy way */
-	return JIM_OK;
-}
