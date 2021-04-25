@@ -687,10 +687,8 @@ static int jim_jtag_arp_init(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 	struct command_context *context = current_command_context(interp);
 	int e = jtag_init_inner(context);
 	if (e != ERROR_OK) {
-		Jim_Obj *eObj = Jim_NewIntObj(goi.interp, e);
-		Jim_IncrRefCount(eObj);
-		Jim_SetResultFormatted(goi.interp, "error: %#s", eObj);
-		Jim_DecrRefCount(goi.interp, eObj);
+		Jim_Obj *obj = Jim_NewIntObj(goi.interp, e);
+		Jim_SetResultFormatted(goi.interp, "error: %#s", obj);
 		return JIM_ERR;
 	}
 	return JIM_OK;
@@ -712,10 +710,8 @@ static int jim_jtag_arp_init_reset(Jim_Interp *interp, int argc, Jim_Obj *const 
 		e = swd_init_reset(context);
 
 	if (e != ERROR_OK) {
-		Jim_Obj *eObj = Jim_NewIntObj(goi.interp, e);
-		Jim_IncrRefCount(eObj);
-		Jim_SetResultFormatted(goi.interp, "error: %#s", eObj);
-		Jim_DecrRefCount(goi.interp, eObj);
+		Jim_Obj *obj = Jim_NewIntObj(goi.interp, e);
+		Jim_SetResultFormatted(goi.interp, "error: %#s", obj);
 		return JIM_ERR;
 	}
 	return JIM_OK;
