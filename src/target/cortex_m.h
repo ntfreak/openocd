@@ -196,15 +196,15 @@ struct cortex_m_common {
 	uint32_t nvic_icsr;  /* Interrupt Control State Register - shows active and pending IRQ */
 
 	/* Flash Patch and Breakpoint (FPB) */
-	int fp_num_lit;
-	int fp_num_code;
+	unsigned int fp_num_lit;
+	unsigned int fp_num_code;
 	int fp_rev;
 	bool fpb_enabled;
 	struct cortex_m_fp_comparator *fp_comparator_list;
 
 	/* Data Watchpoint and Trace (DWT) */
-	int dwt_num_comp;
-	int dwt_comp_available;
+	unsigned int dwt_num_comp;
+	unsigned int dwt_comp_available;
 	uint32_t dwt_devarch;
 	struct cortex_m_dwt_comparator *dwt_comparator_list;
 	struct reg_cache *dwt_cache;
