@@ -83,17 +83,21 @@ static struct log_capture_state *command_log_capture_start(Jim_Interp *interp)
 {
 	/* capture log output and return it. A garbage collect can
 	 * happen, so we need a reference count to this object */
-	Jim_Obj *tclOutput = Jim_NewStringObj(interp, "", 0);
-	if (NULL == tclOutput)
+	Jim_Obj *jim_output = Jim_NewStringObj(interp, "", 0);
+	if (!jim_output)
 		return NULL;
+
+	Jim_IncrRefCount(jim_output);
 
 	struct log_capture_state *state = malloc(sizeof(*state));
-	if (NULL == state)
+	if (!state) {
+		LOG_ERROR("Out of memory");
+		Jim_DecrRefCount(interp, jim_output);
 		return NULL;
+	}
 
 	state->interp = interp;
-	Jim_IncrRefCount(tclOutput);
-	state->output = tclOutput;
+	state->output = jim_output;
 
 	log_add_callback(tcl_output, state);
 
