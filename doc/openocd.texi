@@ -11087,34 +11087,6 @@ OpenOCD commands can consist of two words, e.g. "flash banks". The
 @file{startup.tcl} "unknown" proc will translate this into a Tcl proc
 called "flash_banks".
 
-@section OpenOCD specific Global Variables
-
-Real Tcl has ::tcl_platform(), and platform::identify, and many other
-variables. JimTCL, as implemented in OpenOCD creates $ocd_HOSTOS which
-holds one of the following values:
-
-@itemize @bullet
-@item @b{cygwin}   Running under Cygwin
-@item @b{darwin}   Darwin (Mac-OS) is the underlying operating system.
-@item @b{freebsd}  Running under FreeBSD
-@item @b{openbsd}  Running under OpenBSD
-@item @b{netbsd}   Running under NetBSD
-@item @b{linux}    Linux is the underlying operating system
-@item @b{mingw32}  Running under MingW32
-@item @b{winxx}    Built using Microsoft Visual Studio
-@item @b{ecos}     Running under eCos
-@item @b{other}    Unknown, none of the above.
-@end itemize
-
-Note: 'winxx' was chosen because today (March-2009) no distinction is made between Win32 and Win64.
-
-@quotation Note
-We should add support for a variable like Tcl variable
-@code{tcl_platform(platform)}, it should be called
-@code{jim_platform} (because it
-is jim, not real tcl).
-@end quotation
-
 @section Tcl RPC server
 @cindex RPC
 

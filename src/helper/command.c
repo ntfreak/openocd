@@ -1273,7 +1273,6 @@ static const struct command_registration command_builtin_handlers[] = {
 struct command_context *command_init(const char *startup_tcl, Jim_Interp *interp)
 {
 	struct command_context *context = calloc(1, sizeof(struct command_context));
-	const char *HostOs;
 
 	context->mode = COMMAND_EXEC;
 
@@ -1291,39 +1290,6 @@ struct command_context *command_init(const char *startup_tcl, Jim_Interp *interp
 	}
 
 	context->interp = interp;
-
-	/* Stick to lowercase for HostOS strings. */
-#if defined(_MSC_VER)
-	/* WinXX - is generic, the forward
-	 * looking problem is this:
-	 *
-	 *   "win32" or "win64"
-	 *
-	 * "winxx" is generic.
-	 */
-	HostOs = "winxx";
-#elif defined(__linux__)
-	HostOs = "linux";
-#elif defined(__APPLE__) || defined(__DARWIN__)
-	HostOs = "darwin";
-#elif defined(__CYGWIN__)
-	HostOs = "cygwin";
-#elif defined(__MINGW32__)
-	HostOs = "mingw32";
-#elif defined(__ECOS)
-	HostOs = "ecos";
-#elif defined(__FreeBSD__)
-	HostOs = "freebsd";
-#elif defined(__NetBSD__)
-	HostOs = "netbsd";
-#elif defined(__OpenBSD__)
-	HostOs = "openbsd";
-#else
-#warning "Unrecognized host OS..."
-	HostOs = "other";
-#endif
-	Jim_SetGlobalVariableStr(interp, "ocd_HOSTOS",
-		Jim_NewStringObj(interp, HostOs, strlen(HostOs)));
 
 	register_commands(context, NULL, command_builtin_handlers);
 
