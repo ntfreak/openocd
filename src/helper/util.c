@@ -24,7 +24,7 @@
 #include "log.h"
 #include "time_support.h"
 
-static int util_Jim_Command_ms(Jim_Interp *interp,
+static int jim_util_ms(Jim_Interp *interp,
 	int argc,
 	Jim_Obj * const *argv)
 {
@@ -45,7 +45,7 @@ static const struct command_registration util_command_handlers[] = {
 	{
 		.name = "ms",
 		.mode = COMMAND_ANY,
-		.jim_handler = util_Jim_Command_ms,
+		.jim_handler = jim_util_ms,
 		.help =
 			"Returns ever increasing milliseconds. Used to calculate differences in time.",
 		.usage = "",
