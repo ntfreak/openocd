@@ -47,7 +47,7 @@ RESULT usbtousart_status(uint8_t interface_index,
 /* USB_TO_SPI */
 RESULT usbtospi_init(uint8_t interface_index);
 RESULT usbtospi_fini(uint8_t interface_index);
-RESULT usbtospi_config(uint8_t interface_index, uint32_t kHz, uint8_t mode);
+RESULT usbtospi_config(uint8_t interface_index, uint32_t khz, uint8_t mode);
 RESULT usbtospi_io(uint8_t interface_index, uint8_t *out, uint8_t *in,
 		   uint16_t bytelen);
 
@@ -82,7 +82,7 @@ RESULT usbtolpcicp_poll_ready(uint8_t interface_index, uint8_t data,
 /* USB_TO_JTAG_LL */
 RESULT usbtojtagll_init(uint8_t interface_index);
 RESULT usbtojtagll_fini(uint8_t interface_index);
-RESULT usbtojtagll_config(uint8_t interface_index, uint32_t kHz);
+RESULT usbtojtagll_config(uint8_t interface_index, uint32_t khz);
 RESULT usbtojtagll_tms(uint8_t interface_index, uint8_t *tms, uint8_t bytelen);
 RESULT usbtojtagll_tms_clocks(uint8_t interface_index, uint32_t bytelen,
 			      uint8_t tms);
@@ -94,7 +94,7 @@ RESULT usbtojtagll_scan(uint8_t interface_index, uint8_t *data,
 /* USB_TO_JTAG_HL */
 RESULT usbtojtaghl_init(uint8_t interface_index);
 RESULT usbtojtaghl_fini(uint8_t interface_index);
-RESULT usbtojtaghl_config(uint8_t interface_index, uint32_t kHz, uint8_t ub,
+RESULT usbtojtaghl_config(uint8_t interface_index, uint32_t khz, uint8_t ub,
 			  uint8_t ua, uint16_t bb, uint16_t ba);
 RESULT usbtojtaghl_ir(uint8_t interface_index, uint8_t *ir, uint16_t bitlen,
 		      uint8_t idle, uint8_t want_ret);
@@ -108,7 +108,7 @@ RESULT usbtojtaghl_register_callback(uint8_t index, jtag_callback_t send_callbac
 /* USB_TO_JTAG_RAW */
 RESULT usbtojtagraw_init(uint8_t interface_index);
 RESULT usbtojtagraw_fini(uint8_t interface_index);
-RESULT usbtojtagraw_config(uint8_t interface_index, uint32_t kHz);
+RESULT usbtojtagraw_config(uint8_t interface_index, uint32_t khz);
 RESULT usbtojtagraw_execute(uint8_t interface_index, uint8_t *tdi,
 			    uint8_t *tms, uint8_t *tdo, uint32_t bitlen);
 
@@ -123,7 +123,7 @@ RESULT usbtoc2_readdata(uint8_t interface_index, uint8_t *buf, uint8_t len);
 /* USB_TO_I2C */
 RESULT usbtoi2c_init(uint8_t interface_index);
 RESULT usbtoi2c_fini(uint8_t interface_index);
-RESULT usbtoi2c_config(uint8_t interface_index, uint16_t kHz,
+RESULT usbtoi2c_config(uint8_t interface_index, uint16_t khz,
 		       uint16_t byte_interval, uint16_t max_dly);
 RESULT usbtoi2c_read(uint8_t interface_index, uint16_t chip_addr,
 		     uint8_t *data, uint16_t data_len, uint8_t stop,
@@ -165,7 +165,7 @@ RESULT usbtomsp430sbw_poll(uint8_t interface_index, uint32_t dr, uint32_t mask,
 RESULT usbtopwr_init(uint8_t interface_index);
 RESULT usbtopwr_fini(uint8_t interface_index);
 RESULT usbtopwr_config(uint8_t interface_index);
-RESULT usbtopwr_output(uint8_t interface_index, uint16_t mV);
+RESULT usbtopwr_output(uint8_t interface_index, uint16_t millivolt);
 
 /* USB_TO_POLL */
 RESULT usbtopoll_start(uint16_t retry_cnt, uint16_t interval_us);
@@ -190,14 +190,14 @@ RESULT usbtoswd_transact(uint8_t interface_index, uint8_t request,
 /* USB_TO_SWIM */
 RESULT usbtoswim_init(uint8_t interface_index);
 RESULT usbtoswim_fini(uint8_t interface_index);
-RESULT usbtoswim_config(uint8_t interface_index, uint8_t mHz, uint8_t cnt0,
+RESULT usbtoswim_config(uint8_t interface_index, uint8_t mhz, uint8_t cnt0,
 			uint8_t cnt1);
 RESULT usbtoswim_srst(uint8_t interface_index);
 RESULT usbtoswim_wotf(uint8_t interface_index, uint8_t *data,
 		      uint16_t bytelen, uint32_t addr);
 RESULT usbtoswim_rotf(uint8_t interface_index, uint8_t *data,
 		      uint16_t bytelen, uint32_t addr);
-RESULT usbtoswim_sync(uint8_t interface_index, uint8_t mHz);
+RESULT usbtoswim_sync(uint8_t interface_index, uint8_t mhz);
 RESULT usbtoswim_enable(uint8_t interface_index);
 
 /* USB_TO_BDM */
@@ -210,14 +210,14 @@ RESULT usbtobdm_transact(uint8_t interface_index, uint8_t *out,
 /* USB_TO_DUSI */
 RESULT usbtodusi_init(uint8_t interface_index);
 RESULT usbtodusi_fini(uint8_t interface_index);
-RESULT usbtodusi_config(uint8_t interface_index, uint32_t kHz, uint8_t mode);
+RESULT usbtodusi_config(uint8_t interface_index, uint32_t khz, uint8_t mode);
 RESULT usbtodusi_io(uint8_t interface_index, uint8_t *mo, uint8_t *mi,
 		    uint8_t *so, uint8_t *si, uint32_t bitlen);
 
 /* USB_TO_MICROWIRE */
 RESULT usbtomicrowire_init(uint8_t interface_index);
 RESULT usbtomicrowire_fini(uint8_t interface_index);
-RESULT usbtomicrowire_config(uint8_t interface_index, uint16_t kHz,
+RESULT usbtomicrowire_config(uint8_t interface_index, uint16_t khz,
 			     uint8_t sel_polarity);
 RESULT usbtomicrowire_transport(uint8_t interface_index,
 				uint32_t opcode, uint8_t opcode_bitlen,
@@ -230,7 +230,7 @@ RESULT usbtomicrowire_poll(uint8_t interface_index, uint16_t interval_us,
 /* USB_TO_PWM */
 RESULT usbtopwm_init(uint8_t interface_index);
 RESULT usbtopwm_fini(uint8_t interface_index);
-RESULT usbtopwm_config(uint8_t interface_index, uint16_t kHz, uint8_t mode);
+RESULT usbtopwm_config(uint8_t interface_index, uint16_t khz, uint8_t mode);
 RESULT usbtopwm_out(uint8_t interface_index, uint16_t count, uint16_t *rate);
 RESULT usbtopwm_in(uint8_t interface_index, uint16_t count, uint16_t *rate);
 
