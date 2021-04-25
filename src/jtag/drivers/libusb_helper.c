@@ -158,7 +158,7 @@ int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 		struct libusb_device_handle **out,
 		adapter_get_alternate_serial_fn adapter_get_alternate_serial)
 {
-	int cnt, idx, errCode;
+	int cnt, idx, err_code;
 	int retval = ERROR_FAIL;
 	bool serial_mismatch = false;
 	struct libusb_device_handle *libusb_handle = NULL;
@@ -180,11 +180,11 @@ int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 		if (jtag_usb_get_location() && !jtag_libusb_location_equal(devs[idx]))
 			continue;
 
-		errCode = libusb_open(devs[idx], &libusb_handle);
+		err_code = libusb_open(devs[idx], &libusb_handle);
 
-		if (errCode) {
+		if (err_code) {
 			LOG_ERROR("libusb_open() failed with %s",
-				  libusb_error_name(errCode));
+				  libusb_error_name(err_code));
 			continue;
 		}
 
@@ -222,13 +222,13 @@ void jtag_libusb_close(struct libusb_device_handle *dev)
 	libusb_exit(jtag_libusb_context);
 }
 
-int jtag_libusb_control_transfer(struct libusb_device_handle *dev, uint8_t requestType,
-		uint8_t request, uint16_t wValue, uint16_t wIndex, char *bytes,
+int jtag_libusb_control_transfer(struct libusb_device_handle *dev, uint8_t request_type,
+		uint8_t request, uint16_t value, uint16_t index, char *bytes,
 		uint16_t size, unsigned int timeout)
 {
 	int transferred = 0;
 
-	transferred = libusb_control_transfer(dev, requestType, request, wValue, wIndex,
+	transferred = libusb_control_transfer(dev, request_type, request, value, index,
 				(unsigned char *)bytes, size, timeout);
 
 	if (transferred < 0)
@@ -275,28 +275,28 @@ int jtag_libusb_set_configuration(struct libusb_device_handle *devh,
 		int configuration)
 {
 	struct libusb_device *udev = libusb_get_device(devh);
-	int retCode = -99;
+	int retval = -99;
 
 	struct libusb_config_descriptor *config = NULL;
 	int current_config = -1;
 
-	retCode = libusb_get_configuration(devh, &current_config);
-	if (retCode != 0)
-		return retCode;
+	retval = libusb_get_configuration(devh, &current_config);
+	if (retval != 0)
+		return retval;
 
-	retCode = libusb_get_config_descriptor(udev, configuration, &config);
-	if (retCode != 0 || config == NULL)
-		return retCode;
+	retval = libusb_get_config_descriptor(udev, configuration, &config);
+	if (retval != 0 || config == NULL)
+		return retval;
 
 	/* Only change the configuration if it is not already set to the
 	   same one. Otherwise this issues a lightweight reset and hangs
 	   LPC-Link2 with JLink firmware. */
 	if (current_config != config->bConfigurationValue)
-		retCode = libusb_set_configuration(devh, config->bConfigurationValue);
+		retval = libusb_set_configuration(devh, config->bConfigurationValue);
 
 	libusb_free_config_descriptor(config);
 
-	return retCode;
+	return retval;
 }
 
 int jtag_libusb_choose_interface(struct libusb_device_handle *devh,

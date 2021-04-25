@@ -31,7 +31,7 @@
 #define XLNX_XVC_VSEC_HDR	0x04
 #define XLNX_XVC_LEN_REG	0x0C
 #define XLNX_XVC_TMS_REG	0x10
-#define XLNX_XVC_TDx_REG	0x14
+#define XLNX_XVC_TDX_REG	0x14
 
 #define XLNX_XVC_CAP_SIZE	0x20
 #define XLNX_XVC_VSEC_ID	0x8
@@ -103,11 +103,11 @@ static int xlnx_pcie_xvc_transact(size_t num_bits, uint32_t tms, uint32_t tdi,
 	if (err != ERROR_OK)
 		return err;
 
-	err = xlnx_pcie_xvc_write_reg(XLNX_XVC_TDx_REG, tdi);
+	err = xlnx_pcie_xvc_write_reg(XLNX_XVC_TDX_REG, tdi);
 	if (err != ERROR_OK)
 		return err;
 
-	err = xlnx_pcie_xvc_read_reg(XLNX_XVC_TDx_REG, tdo);
+	err = xlnx_pcie_xvc_read_reg(XLNX_XVC_TDX_REG, tdo);
 	if (err != ERROR_OK)
 		return err;
 
