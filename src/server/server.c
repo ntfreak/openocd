@@ -609,7 +609,7 @@ static void sig_handler(int sig)
 
 
 #ifdef _WIN32
-BOOL WINAPI ControlHandler(DWORD dwCtrlType)
+BOOL WINAPI control_handler(DWORD ctrl_type)
 {
 	shutdown_openocd = SHUTDOWN_WITH_SIGNAL_CODE;
 	return TRUE;
@@ -634,12 +634,12 @@ int server_host_os_entry(void)
 	 * This is an issue if you call init in your config script */
 
 #ifdef _WIN32
-	WORD wVersionRequested;
-	WSADATA wsaData;
+	WORD version_requested;
+	WSADATA wsadata;
 
-	wVersionRequested = MAKEWORD(2, 2);
+	version_requested = MAKEWORD(2, 2);
 
-	if (WSAStartup(wVersionRequested, &wsaData) != 0) {
+	if (WSAStartup(version_requested, &wsadata) != 0) {
 		LOG_ERROR("Failed to Open Winsock");
 		return ERROR_FAIL;
 	}
@@ -659,7 +659,7 @@ int server_preinit(void)
 {
 #ifdef _WIN32
 	/* register ctrl-c handler */
-	SetConsoleCtrlHandler(ControlHandler, TRUE);
+	SetConsoleCtrlHandler(control_handler, TRUE);
 
 	signal(SIGBREAK, sig_handler);
 	signal(SIGINT, sig_handler);
@@ -698,7 +698,7 @@ int server_quit(void)
 	target_quit();
 
 #ifdef _WIN32
-	SetConsoleCtrlHandler(ControlHandler, FALSE);
+	SetConsoleCtrlHandler(control_handler, FALSE);
 
 	return ERROR_OK;
 #endif
