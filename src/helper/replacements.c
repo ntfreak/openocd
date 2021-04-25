@@ -235,14 +235,14 @@ int win_select(int max_fd, fd_set *rfds, fd_set *wfds, fd_set *efds, struct time
 				for (i = 0; i < n_handles; i++) {
 					if (WAIT_OBJECT_0 == WaitForSingleObject(handles[i], 0)) {
 						if (SAFE_FD_ISSET(handle_slot_to_fd[i], rfds)) {
-							DWORD dwBytes;
+							DWORD bytes;
 							intptr_t handle = (intptr_t) _get_osfhandle(
 									handle_slot_to_fd[i]);
 
 							if (PeekNamedPipe((HANDLE)handle, NULL, 0,
-								    NULL, &dwBytes, NULL)) {
+								    NULL, &bytes, NULL)) {
 								/* check to see if gdb pipe has data available */
-								if (dwBytes) {
+								if (bytes) {
 									FD_SET(handle_slot_to_fd[i], &aread);
 									retcode++;
 								}

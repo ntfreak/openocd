@@ -473,11 +473,11 @@ void kept_alive(void)
 /* if we sleep for extended periods of time, we must invoke keep_alive() intermittently */
 void alive_sleep(uint64_t ms)
 {
-	uint64_t napTime = 10;
-	for (uint64_t i = 0; i < ms; i += napTime) {
+	uint64_t nap_time = 10;
+	for (uint64_t i = 0; i < ms; i += nap_time) {
 		uint64_t sleep_a_bit = ms - i;
-		if (sleep_a_bit > napTime)
-			sleep_a_bit = napTime;
+		if (sleep_a_bit > nap_time)
+			sleep_a_bit = nap_time;
 
 		usleep(sleep_a_bit * 1000);
 		keep_alive();
