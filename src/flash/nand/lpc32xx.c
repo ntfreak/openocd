@@ -90,7 +90,7 @@ NAND_DEVICE_COMMAND_HANDLER(lpc32xx_nand_device_command)
 			"1000 and 20000 kHz, was %i",
 			lpc32xx_info->osc_freq);
 
-	lpc32xx_info->selected_controller = LPC32xx_NO_CONTROLLER;
+	lpc32xx_info->selected_controller = LPC32XX_NO_CONTROLLER;
 	lpc32xx_info->sw_write_protection = 0;
 	lpc32xx_info->sw_wp_lower_bound = 0x0;
 	lpc32xx_info->sw_wp_upper_bound = 0x0;
@@ -222,13 +222,13 @@ static int lpc32xx_init(struct nand_device *nand)
 	}
 
 	/* select MLC controller if none is currently selected */
-	if (lpc32xx_info->selected_controller == LPC32xx_NO_CONTROLLER) {
+	if (lpc32xx_info->selected_controller == LPC32XX_NO_CONTROLLER) {
 		LOG_DEBUG("no LPC32xx NAND flash controller selected, "
 			"using default 'slc'");
-		lpc32xx_info->selected_controller = LPC32xx_SLC_CONTROLLER;
+		lpc32xx_info->selected_controller = LPC32XX_SLC_CONTROLLER;
 	}
 
-	if (lpc32xx_info->selected_controller == LPC32xx_MLC_CONTROLLER) {
+	if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 		uint32_t mlc_icr_value = 0x0;
 		float cycle;
 		int twp, twh, trp, treh, trhz, trbwb, tcea;
@@ -304,7 +304,7 @@ static int lpc32xx_init(struct nand_device *nand)
 		retval = lpc32xx_reset(nand);
 		if (ERROR_OK != retval)
 			return ERROR_NAND_OPERATION_FAILED;
-	} else if (lpc32xx_info->selected_controller == LPC32xx_SLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		float cycle;
 		int r_setup, r_hold, r_width, r_rdy;
 		int w_setup, w_hold, w_width, w_rdy;
@@ -401,10 +401,10 @@ static int lpc32xx_reset(struct nand_device *nand)
 		return ERROR_NAND_OPERATION_FAILED;
 	}
 
-	if (lpc32xx_info->selected_controller == LPC32xx_NO_CONTROLLER) {
+	if (lpc32xx_info->selected_controller == LPC32XX_NO_CONTROLLER) {
 		LOG_ERROR("BUG: no LPC32xx NAND flash controller selected");
 		return ERROR_NAND_OPERATION_FAILED;
-	} else if (lpc32xx_info->selected_controller == LPC32xx_MLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 		/* MLC_CMD = 0xff (reset controller and NAND device) */
 		retval = target_write_u32(target, 0x200b8000, 0xff);
 		if (ERROR_OK != retval) {
@@ -417,7 +417,7 @@ static int lpc32xx_reset(struct nand_device *nand)
 				"after reset");
 			return ERROR_NAND_OPERATION_TIMEOUT;
 		}
-	} else if (lpc32xx_info->selected_controller == LPC32xx_SLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		/* SLC_CTRL = 0x6 (ECC_CLEAR, SW_RESET) */
 		retval = target_write_u32(target, 0x20020010, 0x6);
 		if (ERROR_OK != retval) {
@@ -447,17 +447,17 @@ static int lpc32xx_command(struct nand_device *nand, uint8_t command)
 		return ERROR_NAND_OPERATION_FAILED;
 	}
 
-	if (lpc32xx_info->selected_controller == LPC32xx_NO_CONTROLLER) {
+	if (lpc32xx_info->selected_controller == LPC32XX_NO_CONTROLLER) {
 		LOG_ERROR("BUG: no LPC32xx NAND flash controller selected");
 		return ERROR_NAND_OPERATION_FAILED;
-	} else if (lpc32xx_info->selected_controller == LPC32xx_MLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 		/* MLC_CMD = command */
 		retval = target_write_u32(target, 0x200b8000, command);
 		if (ERROR_OK != retval) {
 			LOG_ERROR("could not set MLC_CMD");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
-	} else if (lpc32xx_info->selected_controller == LPC32xx_SLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		/* SLC_CMD = command */
 		retval = target_write_u32(target, 0x20020008, command);
 		if (ERROR_OK != retval) {
@@ -481,17 +481,17 @@ static int lpc32xx_address(struct nand_device *nand, uint8_t address)
 		return ERROR_NAND_OPERATION_FAILED;
 	}
 
-	if (lpc32xx_info->selected_controller == LPC32xx_NO_CONTROLLER) {
+	if (lpc32xx_info->selected_controller == LPC32XX_NO_CONTROLLER) {
 		LOG_ERROR("BUG: no LPC32xx NAND flash controller selected");
 		return ERROR_NAND_OPERATION_FAILED;
-	} else if (lpc32xx_info->selected_controller == LPC32xx_MLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 		/* MLC_ADDR = address */
 		retval = target_write_u32(target, 0x200b8004, address);
 		if (ERROR_OK != retval) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
-	} else if (lpc32xx_info->selected_controller == LPC32xx_SLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		/* SLC_ADDR = address */
 		retval = target_write_u32(target, 0x20020004, address);
 		if (ERROR_OK != retval) {
@@ -515,17 +515,17 @@ static int lpc32xx_write_data(struct nand_device *nand, uint16_t data)
 		return ERROR_NAND_OPERATION_FAILED;
 	}
 
-	if (lpc32xx_info->selected_controller == LPC32xx_NO_CONTROLLER) {
+	if (lpc32xx_info->selected_controller == LPC32XX_NO_CONTROLLER) {
 		LOG_ERROR("BUG: no LPC32xx NAND flash controller selected");
 		return ERROR_NAND_OPERATION_FAILED;
-	} else if (lpc32xx_info->selected_controller == LPC32xx_MLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 		/* MLC_DATA = data */
 		retval = target_write_u32(target, 0x200b0000, data);
 		if (ERROR_OK != retval) {
 			LOG_ERROR("could not set MLC_DATA");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
-	} else if (lpc32xx_info->selected_controller == LPC32xx_SLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		/* SLC_DATA = data */
 		retval = target_write_u32(target, 0x20020000, data);
 		if (ERROR_OK != retval) {
@@ -549,10 +549,10 @@ static int lpc32xx_read_data(struct nand_device *nand, void *data)
 		return ERROR_NAND_OPERATION_FAILED;
 	}
 
-	if (lpc32xx_info->selected_controller == LPC32xx_NO_CONTROLLER) {
+	if (lpc32xx_info->selected_controller == LPC32XX_NO_CONTROLLER) {
 		LOG_ERROR("BUG: no LPC32xx NAND flash controller selected");
 		return ERROR_NAND_OPERATION_FAILED;
-	} else if (lpc32xx_info->selected_controller == LPC32xx_MLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 		/* data = MLC_DATA, use sized access */
 		if (nand->bus_width == 8) {
 			uint8_t *data8 = data;
@@ -565,7 +565,7 @@ static int lpc32xx_read_data(struct nand_device *nand, void *data)
 			LOG_ERROR("could not read MLC_DATA");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
-	} else if (lpc32xx_info->selected_controller == LPC32xx_SLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		uint32_t data32;
 
 		/* data = SLC_DATA, must use 32-bit access */
@@ -1233,10 +1233,10 @@ static int lpc32xx_write_page(struct nand_device *nand, uint32_t page,
 		return ERROR_NAND_OPERATION_FAILED;
 	}
 
-	if (lpc32xx_info->selected_controller == LPC32xx_NO_CONTROLLER) {
+	if (lpc32xx_info->selected_controller == LPC32XX_NO_CONTROLLER) {
 		LOG_ERROR("BUG: no LPC32xx NAND flash controller selected");
 		return ERROR_NAND_OPERATION_FAILED;
-	} else if (lpc32xx_info->selected_controller == LPC32xx_MLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 		if (!data && oob) {
 			LOG_ERROR("LPC32xx MLC controller can't write "
 				"OOB data only");
@@ -1256,7 +1256,7 @@ static int lpc32xx_write_page(struct nand_device *nand, uint32_t page,
 
 		retval = lpc32xx_write_page_mlc(nand, page, data, data_size,
 				oob, oob_size);
-	} else if (lpc32xx_info->selected_controller == LPC32xx_SLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		struct working_area *pworking_area;
 		if (!data && oob) {
 			/*
@@ -1584,17 +1584,17 @@ static int lpc32xx_read_page(struct nand_device *nand, uint32_t page,
 		return ERROR_NAND_OPERATION_FAILED;
 	}
 
-	if (lpc32xx_info->selected_controller == LPC32xx_NO_CONTROLLER) {
+	if (lpc32xx_info->selected_controller == LPC32XX_NO_CONTROLLER) {
 		LOG_ERROR("BUG: no LPC32xx NAND flash controller selected");
 		return ERROR_NAND_OPERATION_FAILED;
-	} else if (lpc32xx_info->selected_controller == LPC32xx_MLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 		if (data_size > (uint32_t)nand->page_size) {
 			LOG_ERROR("data size exceeds page size");
 			return ERROR_NAND_OPERATION_NOT_SUPPORTED;
 		}
 		retval = lpc32xx_read_page_mlc(nand, page, data, data_size,
 				oob, oob_size);
-	} else if (lpc32xx_info->selected_controller == LPC32xx_SLC_CONTROLLER) {
+	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		struct working_area *pworking_area;
 
 		retval = target_alloc_working_area(target,
@@ -1628,7 +1628,7 @@ static int lpc32xx_controller_ready(struct nand_device *nand, int timeout)
 	LOG_DEBUG("lpc32xx_controller_ready count start=%d", timeout);
 
 	do {
-		if (lpc32xx_info->selected_controller == LPC32xx_MLC_CONTROLLER) {
+		if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 			uint8_t status;
 
 			/* Read MLC_ISR, wait for controller to become ready */
@@ -1643,7 +1643,7 @@ static int lpc32xx_controller_ready(struct nand_device *nand, int timeout)
 					timeout);
 				return 1;
 			}
-		} else if (lpc32xx_info->selected_controller == LPC32xx_SLC_CONTROLLER) {
+		} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 			uint32_t status;
 
 			/* Read SLC_STAT and check READY bit */
@@ -1681,7 +1681,7 @@ static int lpc32xx_nand_ready(struct nand_device *nand, int timeout)
 	LOG_DEBUG("lpc32xx_nand_ready count start=%d", timeout);
 
 	do {
-		if (lpc32xx_info->selected_controller == LPC32xx_MLC_CONTROLLER) {
+		if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 			uint8_t status = 0x0;
 
 			/* Read MLC_ISR, wait for NAND flash device to
@@ -1697,7 +1697,7 @@ static int lpc32xx_nand_ready(struct nand_device *nand, int timeout)
 					timeout);
 				return 1;
 			}
-		} else if (lpc32xx_info->selected_controller == LPC32xx_SLC_CONTROLLER) {
+		} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 			uint32_t status = 0x0;
 
 			/* Read SLC_STAT and check READY bit */
@@ -1770,10 +1770,10 @@ COMMAND_HANDLER(handle_lpc32xx_select_command)
 	if (CMD_ARGC >= 2) {
 		if (strcmp(CMD_ARGV[1], "mlc") == 0) {
 			lpc32xx_info->selected_controller =
-				LPC32xx_MLC_CONTROLLER;
+				LPC32XX_MLC_CONTROLLER;
 		} else if (strcmp(CMD_ARGV[1], "slc") == 0) {
 			lpc32xx_info->selected_controller =
-				LPC32xx_SLC_CONTROLLER;
+				LPC32XX_SLC_CONTROLLER;
 		} else
 			return ERROR_COMMAND_SYNTAX_ERROR;
 	}

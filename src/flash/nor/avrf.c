@@ -38,14 +38,14 @@
 #define AVR_JTAG_INS_PROG_PAGEREAD                              0x07
 
 /* Data Registers: */
-#define AVR_JTAG_REG_Bypass_Len                                 1
-#define AVR_JTAG_REG_DeviceID_Len                               32
+#define AVR_JTAG_REG_BYPASS_LEN                                 1
+#define AVR_JTAG_REG_DEVICEID_LEN                               32
 
-#define AVR_JTAG_REG_Reset_Len                                  1
-#define AVR_JTAG_REG_JTAGID_Len                                 32
-#define AVR_JTAG_REG_ProgrammingEnable_Len                      16
-#define AVR_JTAG_REG_ProgrammingCommand_Len                     15
-#define AVR_JTAG_REG_FlashDataByte_Len                          16
+#define AVR_JTAG_REG_RESET_LEN                                  1
+#define AVR_JTAG_REG_JTAGID_LEN                                 32
+#define AVR_JTAG_REG_PROGRAMMING_ENABLE_LEN                     16
+#define AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN                    15
+#define AVR_JTAG_REG_FLASH_DATA_BYTE_LEN                        16
 
 struct avrf_type {
 	char name[15];
@@ -81,7 +81,7 @@ static const struct avrf_type avft_chips_info[] = {
 static int avr_jtag_reset(struct avr_common *avr, uint32_t reset)
 {
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_AVR_RESET);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, reset, AVR_JTAG_REG_Reset_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, reset, AVR_JTAG_REG_RESET_LEN);
 
 	return ERROR_OK;
 }
@@ -89,7 +89,7 @@ static int avr_jtag_reset(struct avr_common *avr, uint32_t reset)
 static int avr_jtag_read_jtagid(struct avr_common *avr, uint32_t *id)
 {
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_IDCODE);
-	avr_jtag_senddat(avr->jtag_info.tap, id, 0, AVR_JTAG_REG_JTAGID_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, id, 0, AVR_JTAG_REG_JTAGID_LEN);
 
 	return ERROR_OK;
 }
@@ -99,7 +99,7 @@ static int avr_jtagprg_enterprogmode(struct avr_common *avr)
 	avr_jtag_reset(avr, 1);
 
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_ENABLE);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0xA370, AVR_JTAG_REG_ProgrammingEnable_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0xA370, AVR_JTAG_REG_PROGRAMMING_ENABLE_LEN);
 
 	return ERROR_OK;
 }
@@ -107,11 +107,11 @@ static int avr_jtagprg_enterprogmode(struct avr_common *avr)
 static int avr_jtagprg_leaveprogmode(struct avr_common *avr)
 {
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2300, AVR_JTAG_REG_ProgrammingCommand_Len);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3300, AVR_JTAG_REG_ProgrammingCommand_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2300, AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3300, AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
 
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_ENABLE);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0, AVR_JTAG_REG_ProgrammingEnable_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0, AVR_JTAG_REG_PROGRAMMING_ENABLE_LEN);
 
 	avr_jtag_reset(avr, 0);
 
@@ -123,17 +123,17 @@ static int avr_jtagprg_chiperase(struct avr_common *avr)
 	uint32_t poll_value;
 
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2380, AVR_JTAG_REG_ProgrammingCommand_Len);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3180, AVR_JTAG_REG_ProgrammingCommand_Len);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3380, AVR_JTAG_REG_ProgrammingCommand_Len);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3380, AVR_JTAG_REG_ProgrammingCommand_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2380, AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3180, AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3380, AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3380, AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
 
 	do {
 		poll_value = 0;
 		avr_jtag_senddat(avr->jtag_info.tap,
 			&poll_value,
 			0x3380,
-			AVR_JTAG_REG_ProgrammingCommand_Len);
+			AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
 		if (ERROR_OK != mcu_execute_queue())
 			return ERROR_FAIL;
 		LOG_DEBUG("poll_value = 0x%04" PRIx32 "", poll_value);
@@ -152,26 +152,26 @@ static int avr_jtagprg_writeflashpage(struct avr_common *avr,
 	uint32_t poll_value;
 
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2310, AVR_JTAG_REG_ProgrammingCommand_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x2310, AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
 
 	/* load extended high byte */
 	if (ext_addressing)
 		avr_jtag_senddat(avr->jtag_info.tap,
 			NULL,
 			0x0b00 | ((addr >> 17) & 0xFF),
-			AVR_JTAG_REG_ProgrammingCommand_Len);
+			AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
 
 	/* load addr high byte */
 	avr_jtag_senddat(avr->jtag_info.tap,
 		NULL,
 		0x0700 | ((addr >> 9) & 0xFF),
-		AVR_JTAG_REG_ProgrammingCommand_Len);
+		AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
 
 	/* load addr low byte */
 	avr_jtag_senddat(avr->jtag_info.tap,
 		NULL,
 		0x0300 | ((addr >> 1) & 0xFF),
-		AVR_JTAG_REG_ProgrammingCommand_Len);
+		AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
 
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_PAGELOAD);
 
@@ -184,17 +184,17 @@ static int avr_jtagprg_writeflashpage(struct avr_common *avr,
 
 	avr_jtag_sendinstr(avr->jtag_info.tap, NULL, AVR_JTAG_INS_PROG_COMMANDS);
 
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3700, AVR_JTAG_REG_ProgrammingCommand_Len);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3500, AVR_JTAG_REG_ProgrammingCommand_Len);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3700, AVR_JTAG_REG_ProgrammingCommand_Len);
-	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3700, AVR_JTAG_REG_ProgrammingCommand_Len);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3700, AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3500, AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3700, AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
+	avr_jtag_senddat(avr->jtag_info.tap, NULL, 0x3700, AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
 
 	do {
 		poll_value = 0;
 		avr_jtag_senddat(avr->jtag_info.tap,
 			&poll_value,
 			0x3700,
-			AVR_JTAG_REG_ProgrammingCommand_Len);
+			AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
 		if (ERROR_OK != mcu_execute_queue())
 			return ERROR_FAIL;
 		LOG_DEBUG("poll_value = 0x%04" PRIx32 "", poll_value);

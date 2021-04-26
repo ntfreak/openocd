@@ -720,8 +720,8 @@ COMMAND_HANDLER(str7x_handle_disable_jtag_command)
 	struct str7x_flash_bank *str7x_info = NULL;
 
 	uint32_t flash_cmd;
-	uint16_t ProtectionLevel = 0;
-	uint16_t ProtectionRegs;
+	uint16_t protection_level = 0;
+	uint16_t protection_regs;
 
 	if (CMD_ARGC < 1)
 		return ERROR_COMMAND_SYNTAX_ERROR;
@@ -745,17 +745,17 @@ COMMAND_HANDLER(str7x_handle_disable_jtag_command)
 	target_read_u32(target, str7x_get_flash_adr(bank, FLASH_NVAPR0), &reg);
 
 	if (!(reg & str7x_info->disable_bit))
-		ProtectionLevel = 1;
+		protection_level = 1;
 
 	target_read_u32(target, str7x_get_flash_adr(bank, FLASH_NVAPR1), &reg);
-	ProtectionRegs = ~(reg >> 16);
+	protection_regs = ~(reg >> 16);
 
-	while (((ProtectionRegs) != 0) && (ProtectionLevel < 16)) {
-		ProtectionRegs >>= 1;
-		ProtectionLevel++;
+	while (((protection_regs) != 0) && (protection_level < 16)) {
+		protection_regs >>= 1;
+		protection_level++;
 	}
 
-	if (ProtectionLevel == 0) {
+	if (protection_level == 0) {
 		flash_cmd = FLASH_SPR;
 		target_write_u32(target, str7x_get_flash_adr(bank, FLASH_CR0), flash_cmd);
 		target_write_u32(target, str7x_get_flash_adr(bank, FLASH_AR), 0x4010DFB8);
@@ -767,7 +767,7 @@ COMMAND_HANDLER(str7x_handle_disable_jtag_command)
 		target_write_u32(target, str7x_get_flash_adr(bank, FLASH_CR0), flash_cmd);
 		target_write_u32(target, str7x_get_flash_adr(bank, FLASH_AR), 0x4010DFBC);
 		target_write_u32(target, str7x_get_flash_adr(bank, FLASH_DR0),
-				~(1 << (15 + ProtectionLevel)));
+				~(1 << (15 + protection_level)));
 		flash_cmd = FLASH_SPR | FLASH_WMS;
 		target_write_u32(target, str7x_get_flash_adr(bank, FLASH_CR0), flash_cmd);
 	}
