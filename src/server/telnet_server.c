@@ -470,7 +470,7 @@ static void telnet_auto_complete(struct connection *connection)
 	query[usr_cmd_len] = '\0';
 
 	/* filter commands */
-	char *query_cmd = alloc_printf("lsort [info commands {%s*}]", query);
+	char *query_cmd = alloc_printf("_telnet_autocomplete_helper {%s*}", query);
 
 	if (!query_cmd) {
 		LOG_ERROR("Out of memory");
