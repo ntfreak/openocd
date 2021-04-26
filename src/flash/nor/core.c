@@ -345,7 +345,7 @@ static int default_flash_mem_blank_check(struct flash_bank *bank)
 {
 	struct target *target = bank->target;
 	const int buffer_size = 1024;
-	uint32_t nBytes;
+	uint32_t n_bytes;
 	int retval = ERROR_OK;
 
 	if (bank->target->state != TARGET_HALTED) {
@@ -373,8 +373,8 @@ static int default_flash_mem_blank_check(struct flash_bank *bank)
 			if (retval != ERROR_OK)
 				goto done;
 
-			for (nBytes = 0; nBytes < chunk; nBytes++) {
-				if (buffer[nBytes] != bank->erased_value) {
+			for (n_bytes = 0; n_bytes < chunk; n_bytes++) {
+				if (buffer[n_bytes] != bank->erased_value) {
 					bank->sectors[i].is_erased = 0;
 					break;
 				}

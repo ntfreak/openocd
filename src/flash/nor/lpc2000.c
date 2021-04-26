@@ -281,7 +281,7 @@
 
 #define IAP_CODE_LEN 0x34
 
-#define LPC11xx_REG_SECTORS	24
+#define LPC11XX_REG_SECTORS	24
 
 typedef enum {
 	lpc2000_v1,
@@ -590,9 +590,9 @@ static int lpc2000_build_sector_list(struct flash_bank *bank)
 		unsigned int large_sectors = 0;
 		unsigned int normal_sectors = bank->size / 4096;
 
-		if (normal_sectors > LPC11xx_REG_SECTORS) {
-			large_sectors = (normal_sectors - LPC11xx_REG_SECTORS) / 8;
-			normal_sectors = LPC11xx_REG_SECTORS;
+		if (normal_sectors > LPC11XX_REG_SECTORS) {
+			large_sectors = (normal_sectors - LPC11XX_REG_SECTORS) / 8;
+			normal_sectors = LPC11XX_REG_SECTORS;
 		}
 
 		bank->num_sectors = normal_sectors + large_sectors;
@@ -601,7 +601,7 @@ static int lpc2000_build_sector_list(struct flash_bank *bank)
 
 		for (unsigned int i = 0; i < bank->num_sectors; i++) {
 			bank->sectors[i].offset = offset;
-			bank->sectors[i].size = (i < LPC11xx_REG_SECTORS ? 4 : 32) * 1024;
+			bank->sectors[i].size = (i < LPC11XX_REG_SECTORS ? 4 : 32) * 1024;
 			offset += bank->sectors[i].size;
 			bank->sectors[i].is_erased = -1;
 			bank->sectors[i].is_protected = 1;

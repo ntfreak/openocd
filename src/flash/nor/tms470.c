@@ -285,8 +285,8 @@ static int tms470_read_part_info(struct flash_bank *bank)
 
 /* ---------------------------------------------------------------------- */
 
-static uint32_t keysSet;
-static uint32_t flashKeys[4];
+static uint32_t keys_set;
+static uint32_t flash_keys[4];
 
 COMMAND_HANDLER(tms470_handle_flash_keyset_command)
 {
@@ -298,7 +298,7 @@ COMMAND_HANDLER(tms470_handle_flash_keyset_command)
 		for (i = 0; i < 4; i++) {
 			int start = (0 == strncmp(CMD_ARGV[i], "0x", 2)) ? 2 : 0;
 
-			if (1 != sscanf(&CMD_ARGV[i][start], "%" SCNx32 "", &flashKeys[i])) {
+			if (1 != sscanf(&CMD_ARGV[i][start], "%" SCNx32 "", &flash_keys[i])) {
 				command_print(CMD, "could not process flash key %s",
 					CMD_ARGV[i]);
 				LOG_ERROR("could not process flash key %s", CMD_ARGV[i]);
@@ -306,19 +306,19 @@ COMMAND_HANDLER(tms470_handle_flash_keyset_command)
 			}
 		}
 
-		keysSet = 1;
+		keys_set = 1;
 	} else if (CMD_ARGC != 0) {
 		command_print(CMD, "tms470 flash_keyset <key0> <key1> <key2> <key3>");
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 
-	if (keysSet) {
+	if (keys_set) {
 		command_print(CMD,
 			"using flash keys 0x%08" PRIx32 ", 0x%08" PRIx32 ", 0x%08" PRIx32 ", 0x%08" PRIx32 "",
-			flashKeys[0],
-			flashKeys[1],
-			flashKeys[2],
-			flashKeys[3]);
+			flash_keys[0],
+			flash_keys[1],
+			flash_keys[2],
+			flash_keys[3]);
 	} else
 		command_print(CMD, "flash keys not set");
 
@@ -471,9 +471,9 @@ static int tms470_unlock_flash(struct flash_bank *bank)
 	const uint32_t *p_key_sets[5];
 	unsigned i, key_set_count;
 
-	if (keysSet) {
+	if (keys_set) {
 		key_set_count = 5;
-		p_key_sets[0] = flashKeys;
+		p_key_sets[0] = flash_keys;
 		p_key_sets[1] = FLASH_KEYS_ALL_ONES;
 		p_key_sets[2] = FLASH_KEYS_ALL_ZEROS;
 		p_key_sets[3] = FLASH_KEYS_MIX1;
@@ -685,7 +685,7 @@ static int tms470_erase_sector(struct flash_bank *bank, int sector)
 {
 	uint32_t glbctrl, orig_fmregopt, fmbsea, fmbseb, fmmstat;
 	struct target *target = bank->target;
-	uint32_t flashAddr = bank->base + bank->sectors[sector].offset;
+	uint32_t flash_addr = bank->base + bank->sectors[sector].offset;
 	int result = ERROR_OK;
 
 	/*
@@ -722,12 +722,12 @@ static int tms470_erase_sector(struct flash_bank *bank, int sector)
 	/*
 	 * clear status register, sent erase command, kickoff erase
 	 */
-	target_write_u16(target, flashAddr, 0x0040);
-	LOG_DEBUG("write *(uint16_t *)0x%08" PRIx32 "=0x0040", flashAddr);
-	target_write_u16(target, flashAddr, 0x0020);
-	LOG_DEBUG("write *(uint16_t *)0x%08" PRIx32 "=0x0020", flashAddr);
-	target_write_u16(target, flashAddr, 0xffff);
-	LOG_DEBUG("write *(uint16_t *)0x%08" PRIx32 "=0xffff", flashAddr);
+	target_write_u16(target, flash_addr, 0x0040);
+	LOG_DEBUG("write *(uint16_t *)0x%08" PRIx32 "=0x0040", flash_addr);
+	target_write_u16(target, flash_addr, 0x0020);
+	LOG_DEBUG("write *(uint16_t *)0x%08" PRIx32 "=0x0020", flash_addr);
+	target_write_u16(target, flash_addr, 0xffff);
+	LOG_DEBUG("write *(uint16_t *)0x%08" PRIx32 "=0xffff", flash_addr);
 
 	/*
 	 * Monitor FMMSTAT, busy until clear, then check and other flags for

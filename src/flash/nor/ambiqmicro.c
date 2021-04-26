@@ -123,7 +123,7 @@ static struct {
 	uint8_t class;
 	uint8_t partno;
 	const char *partname;
-} ambiqmicroParts[6] = {
+} ambiqmicro_parts[6] = {
 	{0xFF, 0x00, "Unknown"},
 	{0x01, 0x00, "Apollo"},
 	{0x02, 0x00, "Apollo2"},
@@ -132,7 +132,7 @@ static struct {
 	{0x05, 0x00, "Apollo"},
 };
 
-static char *ambiqmicroClassname[6] = {
+static char *ambiqmicro_classname[6] = {
 	"Unknown", "Apollo", "Apollo2", "Unknown", "Unknown", "Apollo"
 };
 
@@ -173,10 +173,10 @@ static int get_ambiqmicro_info(struct flash_bank *bank, char *buf, int buf_size)
 	}
 
 	/* Check class name in range. */
-	if (ambiqmicro_info->target_class < sizeof(ambiqmicroClassname))
-		classname = ambiqmicroClassname[ambiqmicro_info->target_class];
+	if (ambiqmicro_info->target_class < sizeof(ambiqmicro_classname))
+		classname = ambiqmicro_classname[ambiqmicro_info->target_class];
 	else
-		classname = ambiqmicroClassname[0];
+		classname = ambiqmicro_classname[0];
 
 	printed = snprintf(buf,
 		buf_size,
@@ -200,24 +200,24 @@ static int ambiqmicro_read_part_info(struct flash_bank *bank)
 {
 	struct ambiqmicro_flash_bank *ambiqmicro_info = bank->driver_priv;
 	struct target *target = bank->target;
-	uint32_t PartNum = 0;
+	uint32_t part_num = 0;
 	int retval;
 
 	/*
 	 * Read Part Number.
 	 */
-	retval = target_read_u32(target, 0x40020000, &PartNum);
+	retval = target_read_u32(target, 0x40020000, &part_num);
 	if (retval != ERROR_OK) {
-		LOG_ERROR("status(0x%x):Could not read PartNum.\n", retval);
-		/* Set PartNum to default device */
-		PartNum = 0;
+		LOG_ERROR("status(0x%x):Could not read part_num.\n", retval);
+		/* Set part_num to default device */
+		part_num = 0;
 	}
-	LOG_DEBUG("Part number: 0x%" PRIx32, PartNum);
+	LOG_DEBUG("Part number: 0x%" PRIx32, part_num);
 
 	/*
 	 * Determine device class.
 	 */
-	ambiqmicro_info->target_class = (PartNum & 0xFF000000) >> 24;
+	ambiqmicro_info->target_class = (part_num & 0xFF000000) >> 24;
 
 	switch (ambiqmicro_info->target_class) {
 		case 1:		/* 1 - Apollo */
@@ -225,9 +225,9 @@ static int ambiqmicro_read_part_info(struct flash_bank *bank)
 			bank->base = bank->bank_number * 0x40000;
 			ambiqmicro_info->pagesize = 2048;
 			ambiqmicro_info->flshsiz =
-			apollo_flash_size[(PartNum & 0x00F00000) >> 20];
+			apollo_flash_size[(part_num & 0x00F00000) >> 20];
 			ambiqmicro_info->sramsiz =
-			apollo_sram_size[(PartNum & 0x000F0000) >> 16];
+			apollo_sram_size[(part_num & 0x000F0000) >> 16];
 			ambiqmicro_info->num_pages = ambiqmicro_info->flshsiz /
 			ambiqmicro_info->pagesize;
 			if (ambiqmicro_info->num_pages > 128) {
@@ -253,12 +253,12 @@ static int ambiqmicro_read_part_info(struct flash_bank *bank)
 
 	}
 
-	if (ambiqmicro_info->target_class < ARRAY_SIZE(ambiqmicroParts))
+	if (ambiqmicro_info->target_class < ARRAY_SIZE(ambiqmicro_parts))
 		ambiqmicro_info->target_name =
-			ambiqmicroParts[ambiqmicro_info->target_class].partname;
+			ambiqmicro_parts[ambiqmicro_info->target_class].partname;
 	else
 		ambiqmicro_info->target_name =
-			ambiqmicroParts[0].partname;
+			ambiqmicro_parts[0].partname;
 
 	LOG_DEBUG("num_pages: %" PRIu32 ", pagesize: %" PRIu32 ", flash: %" PRIu32 ", sram: %" PRIu32,
 		ambiqmicro_info->num_pages,

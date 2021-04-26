@@ -86,15 +86,15 @@
 
 #define PM_ACT_CFG0_EN_CLK_SPC      (1 << 3)
 
-#define PHUB_CHx_BASIC_CFG_EN       (1 << 0)
-#define PHUB_CHx_BASIC_CFG_WORK_SEP (1 << 5)
+#define PHUB_CHX_BASIC_CFG_EN       (1 << 0)
+#define PHUB_CHX_BASIC_CFG_WORK_SEP (1 << 5)
 
-#define PHUB_CHx_ACTION_CPU_REQ (1 << 0)
+#define PHUB_CHX_ACTION_CPU_REQ (1 << 0)
 
-#define PHUB_CFGMEMx_CFG0 (1 << 7)
+#define PHUB_CFGMEMX_CFG0 (1 << 7)
 
-#define PHUB_TDMEMx_ORIG_TD0_NEXT_TD_PTR_LAST (0xff << 16)
-#define PHUB_TDMEMx_ORIG_TD0_INC_SRC_ADDR     (1 << 24)
+#define PHUB_TDMEMX_ORIG_TD0_NEXT_TD_PTR_LAST (0xff << 16)
+#define PHUB_TDMEMX_ORIG_TD0_INC_SRC_ADDR     (1 << 24)
 
 #define NVL_3_ECCEN  (1 << 3)
 
@@ -1289,13 +1289,13 @@ static int psoc5lp_write(struct flash_bank *bank, const uint8_t *buffer,
 
 			retval = target_write_u32(target,
 				even_row ? PHUB_CH0_BASIC_CFG : PHUB_CH1_BASIC_CFG,
-				PHUB_CHx_BASIC_CFG_WORK_SEP | PHUB_CHx_BASIC_CFG_EN);
+				PHUB_CHX_BASIC_CFG_WORK_SEP | PHUB_CHX_BASIC_CFG_EN);
 			if (retval != ERROR_OK)
 				goto err_dma;
 
 			retval = target_write_u32(target,
 				even_row ? PHUB_CFGMEM0_CFG0 : PHUB_CFGMEM1_CFG0,
-				PHUB_CFGMEMx_CFG0);
+				PHUB_CFGMEMX_CFG0);
 			if (retval != ERROR_OK)
 				goto err_dma;
 
@@ -1307,8 +1307,8 @@ static int psoc5lp_write(struct flash_bank *bank, const uint8_t *buffer,
 
 			retval = target_write_u32(target,
 				even_row ? PHUB_TDMEM0_ORIG_TD0 : PHUB_TDMEM1_ORIG_TD0,
-				PHUB_TDMEMx_ORIG_TD0_INC_SRC_ADDR |
-				PHUB_TDMEMx_ORIG_TD0_NEXT_TD_PTR_LAST |
+				PHUB_TDMEMX_ORIG_TD0_INC_SRC_ADDR |
+				PHUB_TDMEMX_ORIG_TD0_NEXT_TD_PTR_LAST |
 				((SPC_OPCODE_LEN + 1 + row_size + 3 + SPC_OPCODE_LEN + 5) & 0xfff));
 			if (retval != ERROR_OK)
 				goto err_dma;
@@ -1325,7 +1325,7 @@ static int psoc5lp_write(struct flash_bank *bank, const uint8_t *buffer,
 
 			retval = target_write_u32(target,
 				even_row ? PHUB_CH0_ACTION : PHUB_CH1_ACTION,
-				PHUB_CHx_ACTION_CPU_REQ);
+				PHUB_CHX_ACTION_CPU_REQ);
 			if (retval != ERROR_OK)
 				goto err_dma_action;
 		}
