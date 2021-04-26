@@ -25,13 +25,13 @@
 #include "imp.h"
 #include "arm_io.h"
 
-#define AT91C_PIOx_SODR (0x30)	/**< Offset to PIO SODR. */
-#define AT91C_PIOx_CODR (0x34)	/**< Offset to PIO CODR. */
-#define AT91C_PIOx_PDSR (0x3C)	/**< Offset to PIO PDSR. */
-#define AT91C_ECCx_CR (0x00)	/**< Offset to ECC CR. */
-#define AT91C_ECCx_SR (0x08)	/**< Offset to ECC SR. */
-#define AT91C_ECCx_PR (0x0C)	/**< Offset to ECC PR. */
-#define AT91C_ECCx_NPR (0x10)	/**< Offset to ECC NPR. */
+#define AT91C_PIOX_SODR (0x30)	/**< Offset to PIO SODR. */
+#define AT91C_PIOX_CODR (0x34)	/**< Offset to PIO CODR. */
+#define AT91C_PIOX_PDSR (0x3C)	/**< Offset to PIO PDSR. */
+#define AT91C_ECCX_CR (0x00)	/**< Offset to ECC CR. */
+#define AT91C_ECCX_SR (0x08)	/**< Offset to ECC SR. */
+#define AT91C_ECCX_PR (0x0C)	/**< Offset to ECC PR. */
+#define AT91C_ECCX_NPR (0x10)	/**< Offset to ECC NPR. */
 
 /**
  * Representation of a pin on an AT91SAM9 chip.
@@ -113,7 +113,7 @@ static int at91sam9_enable(struct nand_device *nand)
 	struct at91sam9_nand *info = nand->controller_priv;
 	struct target *target = nand->target;
 
-	return target_write_u32(target, info->ce.pioc + AT91C_PIOx_CODR, 1 << info->ce.num);
+	return target_write_u32(target, info->ce.pioc + AT91C_PIOX_CODR, 1 << info->ce.num);
 }
 
 /**
@@ -127,7 +127,7 @@ static int at91sam9_disable(struct nand_device *nand)
 	struct at91sam9_nand *info = nand->controller_priv;
 	struct target *target = nand->target;
 
-	return target_write_u32(target, info->ce.pioc + AT91C_PIOx_SODR, 1 << info->ce.num);
+	return target_write_u32(target, info->ce.pioc + AT91C_PIOX_SODR, 1 << info->ce.num);
 }
 
 /**
@@ -237,7 +237,7 @@ static int at91sam9_nand_ready(struct nand_device *nand, int timeout)
 		return 0;
 
 	do {
-		target_read_u32(target, info->busy.pioc + AT91C_PIOx_PDSR, &status);
+		target_read_u32(target, info->busy.pioc + AT91C_PIOX_PDSR, &status);
 
 		if (status & (1 << info->busy.num))
 			return 1;
@@ -311,7 +311,7 @@ static int at91sam9_ecc_init(struct target *target, struct at91sam9_nand *info)
 	}
 
 	/* reset ECC parity registers */
-	return target_write_u32(target, info->ecc + AT91C_ECCx_CR, 1);
+	return target_write_u32(target, info->ecc + AT91C_ECCX_CR, 1);
 }
 
 /**
@@ -384,7 +384,7 @@ static int at91sam9_read_page(struct nand_device *nand, uint32_t page,
 	oob_data = at91sam9_oob_init(nand, oob, &oob_size);
 	retval = nand_read_data_page(nand, oob_data, oob_size);
 	if (ERROR_OK == retval && data) {
-		target_read_u32(target, info->ecc + AT91C_ECCx_SR, &status);
+		target_read_u32(target, info->ecc + AT91C_ECCX_SR, &status);
 		if (status & 1) {
 			LOG_ERROR("Error detected!");
 			if (status & 4)
@@ -394,7 +394,7 @@ static int at91sam9_read_page(struct nand_device *nand, uint32_t page,
 				uint32_t parity;
 
 				target_read_u32(target,
-					info->ecc + AT91C_ECCx_PR,
+					info->ecc + AT91C_ECCX_PR,
 					&parity);
 				uint32_t word = (parity & 0x0000FFF0) >> 4;
 				uint32_t bit = parity & 0x0F;
@@ -462,8 +462,8 @@ static int at91sam9_write_page(struct nand_device *nand, uint32_t page,
 
 	if (!oob) {
 		/* no OOB given, so read in the ECC parity from the ECC controller */
-		target_read_u32(target, info->ecc + AT91C_ECCx_PR, &parity);
-		target_read_u32(target, info->ecc + AT91C_ECCx_NPR, &nparity);
+		target_read_u32(target, info->ecc + AT91C_ECCX_PR, &parity);
+		target_read_u32(target, info->ecc + AT91C_ECCX_NPR, &nparity);
 
 		oob_data[0] = (uint8_t) parity;
 		oob_data[1] = (uint8_t) (parity >> 8);

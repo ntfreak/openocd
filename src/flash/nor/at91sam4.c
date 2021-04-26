@@ -98,10 +98,10 @@
 #define         AT91C_EFC_FCMD_STUI                 (0xE)	/* (EFC) Start Read Unique ID */
 #define         AT91C_EFC_FCMD_SPUI                 (0xF)	/* (EFC) Stop Read Unique ID */
 
-#define  offset_EFC_FMR   0
-#define  offset_EFC_FCR   4
-#define  offset_EFC_FSR   8
-#define  offset_EFC_FRR   12
+#define  OFFSET_EFC_FMR   0
+#define  OFFSET_EFC_FCR   4
+#define  OFFSET_EFC_FSR   8
+#define  OFFSET_EFC_FRR   12
 
 extern const struct flash_driver at91sam4_flash;
 
@@ -170,13 +170,13 @@ struct sam4_bank_private {
 	/* DANGER: THERE ARE DRAGONS HERE.. */
 	/* NOTE: If you add more 'ghost' pointers */
 	/* be aware that you must *manually* update */
-	/* these pointers in the function sam4_GetDetails() */
+	/* these pointers in the function sam4_get_details() */
 	/* See the comment "Here there be dragons" */
 
 	/* so we can find the chip we belong to */
-	struct sam4_chip *pChip;
+	struct sam4_chip *chip;
 	/* so we can find the original bank pointer */
-	struct flash_bank *pBank;
+	struct flash_bank *bank;
 	unsigned bank_number;
 	uint32_t controller_address;
 	uint32_t base_address;
@@ -193,7 +193,7 @@ struct sam4_chip_details {
 	/* note: If you add pointers here */
 	/* be careful about them as they */
 	/* may need to be updated inside */
-	/* the function: "sam4_GetDetails() */
+	/* the function: "sam4_get_details() */
 	/* which copy/overwrites the */
 	/* 'runtime' copy of this structure */
 	uint32_t chipid_cidr;
@@ -223,7 +223,7 @@ struct sam4_chip {
 
 struct sam4_reg_list {
 	uint32_t address;  size_t struct_offset; const char *name;
-	void (*explain_func)(struct sam4_chip *pInfo);
+	void (*explain_func)(struct sam4_chip *chip);
 };
 
 static struct sam4_chip *all_sam4_chips;
@@ -261,7 +261,7 @@ static struct sam4_chip *get_current_sam4(struct command_invocation *cmd)
 /*For the best results, nsectors are thus set to the amount of lock regions, and the sector_size*/
 /*set to the lock region size.  Page erases are used to erase 8KB sections when programming*/
 
-/* these are used to *initialize* the "pChip->details" structure. */
+/* these are used to *initialize* the "chip->details" structure. */
 static const struct sam4_chip_details all_sam4_details[] = {
 	/* Start at91sam4c* series */
 	/* at91sam4c32e - LQFP144 */
@@ -276,8 +276,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK0_BASE_C32,
 				.controller_address = 0x400e0a00,
@@ -291,8 +291,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[1] = { */
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 1,
 				.base_address = FLASH_BANK1_BASE_C32,
 				.controller_address = 0x400e0c00,
@@ -317,8 +317,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK0_BASE_C32,
 				.controller_address = 0x400e0a00,
@@ -332,8 +332,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[1] = { */
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 1,
 				.base_address = FLASH_BANK1_BASE_C32,
 				.controller_address = 0x400e0c00,
@@ -358,8 +358,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_C,
 			.controller_address = 0x400e0a00,
@@ -391,8 +391,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_C,
 			.controller_address = 0x400e0a00,
@@ -424,8 +424,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_C,
 			.controller_address = 0x400e0a00,
@@ -459,8 +459,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -494,8 +494,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -527,8 +527,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -560,8 +560,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -593,8 +593,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -626,8 +626,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -661,8 +661,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -695,8 +695,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -728,8 +728,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -761,8 +761,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -794,8 +794,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -827,8 +827,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -860,8 +860,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -893,8 +893,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -927,8 +927,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -961,8 +961,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -995,8 +995,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -1029,8 +1029,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -1063,8 +1063,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -1097,8 +1097,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[0] = {*/
 		  {
 			.probed = false,
-			.pChip  = NULL,
-			.pBank  = NULL,
+			.chip  = NULL,
+			.bank  = NULL,
 			.bank_number = 0,
 			.base_address = FLASH_BANK_BASE_S,
 			.controller_address = 0x400e0a00,
@@ -1132,8 +1132,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK0_BASE_SD,
 				.controller_address = 0x400e0a00,
@@ -1148,8 +1148,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[1] = { */
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 1,
 				.base_address = FLASH_BANK1_BASE_2048K_SD,
 				.controller_address = 0x400e0c00,
@@ -1176,8 +1176,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK0_BASE_SD,
 				.controller_address = 0x400e0a00,
@@ -1192,8 +1192,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[1] = { */
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 1,
 				.base_address = FLASH_BANK1_BASE_2048K_SD,
 				.controller_address = 0x400e0c00,
@@ -1220,8 +1220,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK0_BASE_SD,
 				.controller_address = 0x400e0a00,
@@ -1236,8 +1236,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[1] = { */
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 1,
 				.base_address = FLASH_BANK1_BASE_1024K_SD,
 				.controller_address = 0x400e0c00,
@@ -1264,8 +1264,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK0_BASE_SD,
 				.controller_address = 0x400e0a00,
@@ -1280,8 +1280,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*		.bank[1] = { */
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 1,
 				.base_address = FLASH_BANK1_BASE_1024K_SD,
 				.controller_address = 0x400e0c00,
@@ -1308,8 +1308,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 		{
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK_BASE_S,
 				.controller_address = 0x400e0a00,
@@ -1343,8 +1343,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*			.bank[0] = */
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK_BASE_S,
 				.controller_address = 0x400e0a00,
@@ -1377,8 +1377,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*			.bank[0] = */
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK_BASE_S,
 				.controller_address = 0x400e0a00,
@@ -1411,8 +1411,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*			.bank[0] = */
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK_BASE_S,
 				.controller_address = 0x400e0a00,
@@ -1445,8 +1445,8 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /*			.bank[0] = */
 			{
 				.probed = false,
-				.pChip  = NULL,
-				.pBank  = NULL,
+				.chip  = NULL,
+				.bank  = NULL,
 				.bank_number = 0,
 				.base_address = FLASH_BANK_BASE_S,
 				.controller_address = 0x400e0a00,
@@ -1485,14 +1485,14 @@ static const struct sam4_chip_details all_sam4_details[] = {
 /**
  * Get the current status of the EEFC and
  * the value of some status bits (LOCKE, PROGE).
- * @param pPrivate - info about the bank
+ * @param private  - info about the bank
  * @param v        - result goes here
  */
-static int EFC_GetStatus(struct sam4_bank_private *pPrivate, uint32_t *v)
+static int efc_get_status(struct sam4_bank_private *private, uint32_t *v)
 {
 	int r;
-	r = target_read_u32(pPrivate->pChip->target,
-			pPrivate->controller_address + offset_EFC_FSR,
+	r = target_read_u32(private->chip->target,
+			private->controller_address + OFFSET_EFC_FSR,
 			v);
 	LOG_DEBUG("Status: 0x%08x (lockerror: %d, cmderror: %d, ready: %d)",
 		(unsigned int)(*v),
@@ -1505,15 +1505,15 @@ static int EFC_GetStatus(struct sam4_bank_private *pPrivate, uint32_t *v)
 
 /**
  * Get the result of the last executed command.
- * @param pPrivate - info about the bank
+ * @param private  - info about the bank
  * @param v        - result goes here
  */
-static int EFC_GetResult(struct sam4_bank_private *pPrivate, uint32_t *v)
+static int efc_get_result(struct sam4_bank_private *private, uint32_t *v)
 {
 	int r;
 	uint32_t rv;
-	r = target_read_u32(pPrivate->pChip->target,
-			pPrivate->controller_address + offset_EFC_FRR,
+	r = target_read_u32(private->chip->target,
+			private->controller_address + OFFSET_EFC_FRR,
 			&rv);
 	if (v)
 		*v = rv;
@@ -1521,7 +1521,7 @@ static int EFC_GetResult(struct sam4_bank_private *pPrivate, uint32_t *v)
 	return r;
 }
 
-static int EFC_StartCommand(struct sam4_bank_private *pPrivate,
+static int efc_start_command(struct sam4_bank_private *private,
 	unsigned command, unsigned argument)
 {
 	uint32_t n, v;
@@ -1542,16 +1542,16 @@ do_retry:
 		case AT91C_EFC_FCMD_EPA:
 		case AT91C_EFC_FCMD_SLB:
 		case AT91C_EFC_FCMD_CLB:
-			n = (pPrivate->size_bytes / pPrivate->page_size);
+			n = (private->size_bytes / private->page_size);
 			if (argument >= n)
 				LOG_ERROR("*BUG*: Embedded flash has only %u pages", (unsigned)(n));
 			break;
 
 		case AT91C_EFC_FCMD_SFB:
 		case AT91C_EFC_FCMD_CFB:
-			if (argument >= pPrivate->pChip->details.n_gpnvms) {
+			if (argument >= private->chip->details.n_gpnvms) {
 				LOG_ERROR("*BUG*: Embedded flash has only %d GPNVMs",
-						pPrivate->pChip->details.n_gpnvms);
+						private->chip->details.n_gpnvms);
 			}
 			break;
 
@@ -1576,7 +1576,7 @@ do_retry:
 		/* Situation (2) - normal, finished reading unique id */
 	} else {
 		/* it should be "ready" */
-		EFC_GetStatus(pPrivate, &v);
+		efc_get_status(private, &v);
 		if (v & 1) {
 			/* then it is ready */
 			/* we go on */
@@ -1585,14 +1585,14 @@ do_retry:
 				/* we have done this before */
 				/* the controller is not responding. */
 				LOG_ERROR("flash controller(%d) is not ready! Error",
-					pPrivate->bank_number);
+					private->bank_number);
 				return ERROR_FAIL;
 			} else {
 				retry++;
 				LOG_ERROR("Flash controller(%d) is not ready, attempting reset",
-					pPrivate->bank_number);
+					private->bank_number);
 				/* we do that by issuing the *STOP* command */
-				EFC_StartCommand(pPrivate, AT91C_EFC_FCMD_SPUI, 0);
+				efc_start_command(private, AT91C_EFC_FCMD_SPUI, 0);
 				/* above is recursive, and further recursion is blocked by */
 				/* if (command == AT91C_EFC_FCMD_SPUI) above */
 				goto do_retry;
@@ -1602,8 +1602,8 @@ do_retry:
 
 	v = (0x5A << 24) | (argument << 8) | command;
 	LOG_DEBUG("Command: 0x%08x", ((unsigned int)(v)));
-	r = target_write_u32(pPrivate->pBank->target,
-			pPrivate->controller_address + offset_EFC_FCR, v);
+	r = target_write_u32(private->bank->target,
+			private->controller_address + OFFSET_EFC_FCR, v);
 	if (r != ERROR_OK)
 		LOG_DEBUG("Error Write failed");
 	return r;
@@ -1611,12 +1611,12 @@ do_retry:
 
 /**
  * Performs the given command and wait until its completion (or an error).
- * @param pPrivate - info about the bank
+ * @param private  - info about the bank
  * @param command  - Command to perform.
  * @param argument - Optional command argument.
  * @param status   - put command status bits here
  */
-static int EFC_PerformCommand(struct sam4_bank_private *pPrivate,
+static int efc_perform_command(struct sam4_bank_private *private,
 	unsigned command,
 	unsigned argument,
 	uint32_t *status)
@@ -1630,14 +1630,14 @@ static int EFC_PerformCommand(struct sam4_bank_private *pPrivate,
 	if (status)
 		*status = 0;
 
-	r = EFC_StartCommand(pPrivate, command, argument);
+	r = efc_start_command(private, command, argument);
 	if (r != ERROR_OK)
 		return r;
 
 	ms_end = 10000 + timeval_ms();
 
 	do {
-		r = EFC_GetStatus(pPrivate, &v);
+		r = efc_get_status(private, &v);
 		if (r != ERROR_OK)
 			return r;
 		ms_now = timeval_ms();
@@ -1657,84 +1657,84 @@ static int EFC_PerformCommand(struct sam4_bank_private *pPrivate,
 
 /**
  * Read the unique ID.
- * @param pPrivate - info about the bank
- * The unique ID is stored in the 'pPrivate' structure.
+ * @param private - info about the bank
+ * The unique ID is stored in the 'private' structure.
  */
-static int FLASHD_ReadUniqueID(struct sam4_bank_private *pPrivate)
+static int flashd_read_uid(struct sam4_bank_private *private)
 {
 	int r;
 	uint32_t v;
 	int x;
 	/* assume 0 */
-	pPrivate->pChip->cfg.unique_id[0] = 0;
-	pPrivate->pChip->cfg.unique_id[1] = 0;
-	pPrivate->pChip->cfg.unique_id[2] = 0;
-	pPrivate->pChip->cfg.unique_id[3] = 0;
+	private->chip->cfg.unique_id[0] = 0;
+	private->chip->cfg.unique_id[1] = 0;
+	private->chip->cfg.unique_id[2] = 0;
+	private->chip->cfg.unique_id[3] = 0;
 
 	LOG_DEBUG("Begin");
-	r = EFC_StartCommand(pPrivate, AT91C_EFC_FCMD_STUI, 0);
+	r = efc_start_command(private, AT91C_EFC_FCMD_STUI, 0);
 	if (r < 0)
 		return r;
 
 	for (x = 0; x < 4; x++) {
-		r = target_read_u32(pPrivate->pChip->target,
-				pPrivate->pBank->base + (x * 4),
+		r = target_read_u32(private->chip->target,
+				private->bank->base + (x * 4),
 				&v);
 		if (r < 0)
 			return r;
-		pPrivate->pChip->cfg.unique_id[x] = v;
+		private->chip->cfg.unique_id[x] = v;
 	}
 
-	r = EFC_PerformCommand(pPrivate, AT91C_EFC_FCMD_SPUI, 0, NULL);
+	r = efc_perform_command(private, AT91C_EFC_FCMD_SPUI, 0, NULL);
 	LOG_DEBUG("End: R=%d, id = 0x%08x, 0x%08x, 0x%08x, 0x%08x",
 		r,
-		(unsigned int)(pPrivate->pChip->cfg.unique_id[0]),
-		(unsigned int)(pPrivate->pChip->cfg.unique_id[1]),
-		(unsigned int)(pPrivate->pChip->cfg.unique_id[2]),
-		(unsigned int)(pPrivate->pChip->cfg.unique_id[3]));
+		(unsigned int)(private->chip->cfg.unique_id[0]),
+		(unsigned int)(private->chip->cfg.unique_id[1]),
+		(unsigned int)(private->chip->cfg.unique_id[2]),
+		(unsigned int)(private->chip->cfg.unique_id[3]));
 	return r;
 
 }
 
 /**
  * Erases the entire flash.
- * @param pPrivate - the info about the bank.
+ * @param private - the info about the bank.
  */
-static int FLASHD_EraseEntireBank(struct sam4_bank_private *pPrivate)
+static int flashd_erase_entire_bank(struct sam4_bank_private *private)
 {
 	LOG_DEBUG("Here");
-	return EFC_PerformCommand(pPrivate, AT91C_EFC_FCMD_EA, 0, NULL);
+	return efc_perform_command(private, AT91C_EFC_FCMD_EA, 0, NULL);
 }
 
 /**
  * Erases the entire flash.
- * @param pPrivate - the info about the bank.
- * @param firstPage
- * @param numPages
+ * @param private - the info about the bank.
+ * @param first_page
+ * @param num_pages
  * @param status
  */
-static int FLASHD_ErasePages(struct sam4_bank_private *pPrivate,
-							 int firstPage,
-							 int numPages,
+static int flashd_erase_pages(struct sam4_bank_private *private,
+							 int first_page,
+							 int num_pages,
 							 uint32_t *status)
 {
 	LOG_DEBUG("Here");
-	uint8_t erasePages;
-	switch (numPages)	{
+	uint8_t erase_pages;
+	switch (num_pages)	{
 		case 4:
-			erasePages = 0x00;
+			erase_pages = 0x00;
 			break;
 		case 8:
-			erasePages = 0x01;
+			erase_pages = 0x01;
 			break;
 		case 16:
-			erasePages = 0x02;
+			erase_pages = 0x02;
 			break;
 		case 32:
-			erasePages = 0x03;
+			erase_pages = 0x03;
 			break;
 		default:
-			erasePages = 0x00;
+			erase_pages = 0x00;
 			break;
 	}
 
@@ -1745,45 +1745,45 @@ static int FLASHD_ErasePages(struct sam4_bank_private *pPrivate,
 	 * number of pages to be erased. Previously (firstpage << 2) was used
 	 * to conform to this, seems it should not be shifted...
 	 */
-	return EFC_PerformCommand(pPrivate,
+	return efc_perform_command(private,
 		/* send Erase Page */
 		AT91C_EFC_FCMD_EPA,
-		(firstPage) | erasePages,
+		(first_page) | erase_pages,
 		status);
 }
 
 /**
  * Gets current GPNVM state.
- * @param pPrivate - info about the bank.
+ * @param private  - info about the bank.
  * @param gpnvm    -  GPNVM bit index.
  * @param puthere  - result stored here.
  */
 /* ------------------------------------------------------------------------------ */
-static int FLASHD_GetGPNVM(struct sam4_bank_private *pPrivate, unsigned gpnvm, unsigned *puthere)
+static int flashd_get_gpnvm(struct sam4_bank_private *private, unsigned gpnvm, unsigned *puthere)
 {
 	uint32_t v;
 	int r;
 
 	LOG_DEBUG("Here");
-	if (pPrivate->bank_number != 0) {
+	if (private->bank_number != 0) {
 		LOG_ERROR("GPNVM only works with Bank0");
 		return ERROR_FAIL;
 	}
 
-	if (gpnvm >= pPrivate->pChip->details.n_gpnvms) {
+	if (gpnvm >= private->chip->details.n_gpnvms) {
 		LOG_ERROR("Invalid GPNVM %d, max: %d, ignored",
-			gpnvm, pPrivate->pChip->details.n_gpnvms);
+			gpnvm, private->chip->details.n_gpnvms);
 		return ERROR_FAIL;
 	}
 
 	/* Get GPNVMs status */
-	r = EFC_PerformCommand(pPrivate, AT91C_EFC_FCMD_GFB, 0, NULL);
+	r = efc_perform_command(private, AT91C_EFC_FCMD_GFB, 0, NULL);
 	if (r != ERROR_OK) {
 		LOG_ERROR("Failed");
 		return r;
 	}
 
-	r = EFC_GetResult(pPrivate, &v);
+	r = efc_get_result(private, &v);
 
 	if (puthere) {
 		/* Check if GPNVM is set */
@@ -1796,59 +1796,59 @@ static int FLASHD_GetGPNVM(struct sam4_bank_private *pPrivate, unsigned gpnvm, u
 
 /**
  * Clears the selected GPNVM bit.
- * @param pPrivate info about the bank
+ * @param private info about the bank
  * @param gpnvm GPNVM index.
  * @returns 0 if successful; otherwise returns an error code.
  */
-static int FLASHD_ClrGPNVM(struct sam4_bank_private *pPrivate, unsigned gpnvm)
+static int flashd_clr_gpnvm(struct sam4_bank_private *private, unsigned gpnvm)
 {
 	int r;
 	unsigned v;
 
 	LOG_DEBUG("Here");
-	if (pPrivate->bank_number != 0) {
+	if (private->bank_number != 0) {
 		LOG_ERROR("GPNVM only works with Bank0");
 		return ERROR_FAIL;
 	}
 
-	if (gpnvm >= pPrivate->pChip->details.n_gpnvms) {
+	if (gpnvm >= private->chip->details.n_gpnvms) {
 		LOG_ERROR("Invalid GPNVM %d, max: %d, ignored",
-			gpnvm, pPrivate->pChip->details.n_gpnvms);
+			gpnvm, private->chip->details.n_gpnvms);
 		return ERROR_FAIL;
 	}
 
-	r = FLASHD_GetGPNVM(pPrivate, gpnvm, &v);
+	r = flashd_get_gpnvm(private, gpnvm, &v);
 	if (r != ERROR_OK) {
 		LOG_DEBUG("Failed: %d", r);
 		return r;
 	}
-	r = EFC_PerformCommand(pPrivate, AT91C_EFC_FCMD_CFB, gpnvm, NULL);
+	r = efc_perform_command(private, AT91C_EFC_FCMD_CFB, gpnvm, NULL);
 	LOG_DEBUG("End: %d", r);
 	return r;
 }
 
 /**
  * Sets the selected GPNVM bit.
- * @param pPrivate info about the bank
+ * @param private info about the bank
  * @param gpnvm GPNVM index.
  */
-static int FLASHD_SetGPNVM(struct sam4_bank_private *pPrivate, unsigned gpnvm)
+static int flashd_set_gpnvm(struct sam4_bank_private *private, unsigned gpnvm)
 {
 	int r;
 	unsigned v;
 
-	if (pPrivate->bank_number != 0) {
+	if (private->bank_number != 0) {
 		LOG_ERROR("GPNVM only works with Bank0");
 		return ERROR_FAIL;
 	}
 
-	if (gpnvm >= pPrivate->pChip->details.n_gpnvms) {
+	if (gpnvm >= private->chip->details.n_gpnvms) {
 		LOG_ERROR("Invalid GPNVM %d, max: %d, ignored",
-			gpnvm, pPrivate->pChip->details.n_gpnvms);
+			gpnvm, private->chip->details.n_gpnvms);
 		return ERROR_FAIL;
 	}
 
-	r = FLASHD_GetGPNVM(pPrivate, gpnvm, &v);
+	r = flashd_get_gpnvm(private, gpnvm, &v);
 	if (r != ERROR_OK)
 		return r;
 	if (v) {
@@ -1856,26 +1856,26 @@ static int FLASHD_SetGPNVM(struct sam4_bank_private *pPrivate, unsigned gpnvm)
 		r = ERROR_OK;
 	} else {
 		/* set it */
-		r = EFC_PerformCommand(pPrivate, AT91C_EFC_FCMD_SFB, gpnvm, NULL);
+		r = efc_perform_command(private, AT91C_EFC_FCMD_SFB, gpnvm, NULL);
 	}
 	return r;
 }
 
 /**
  * Returns a bit field (at most 64) of locked regions within a page.
- * @param pPrivate info about the bank
+ * @param private info about the bank
  * @param v where to store locked bits
  */
-static int FLASHD_GetLockBits(struct sam4_bank_private *pPrivate, uint32_t *v)
+static int flashd_get_lock_bits(struct sam4_bank_private *private, uint32_t *v)
 {
 	int r;
 	LOG_DEBUG("Here");
-	r = EFC_PerformCommand(pPrivate, AT91C_EFC_FCMD_GLB, 0, NULL);
+	r = efc_perform_command(private, AT91C_EFC_FCMD_GLB, 0, NULL);
 	if (r == ERROR_OK)	{
-		EFC_GetResult(pPrivate, v);
-		EFC_GetResult(pPrivate, v);
-		EFC_GetResult(pPrivate, v);
-		r = EFC_GetResult(pPrivate, v);
+		efc_get_result(private, v);
+		efc_get_result(private, v);
+		efc_get_result(private, v);
+		r = efc_get_result(private, v);
 	}
 	LOG_DEBUG("End: %d", r);
 	return r;
@@ -1883,12 +1883,12 @@ static int FLASHD_GetLockBits(struct sam4_bank_private *pPrivate, uint32_t *v)
 
 /**
  * Unlocks all the regions in the given address range.
- * @param pPrivate info about the bank
+ * @param private info about the bank
  * @param start_sector first sector to unlock
  * @param end_sector last (inclusive) to unlock
  */
 
-static int FLASHD_Unlock(struct sam4_bank_private *pPrivate,
+static int flashd_unlock(struct sam4_bank_private *private,
 	unsigned start_sector,
 	unsigned end_sector)
 {
@@ -1897,13 +1897,13 @@ static int FLASHD_Unlock(struct sam4_bank_private *pPrivate,
 	uint32_t pg;
 	uint32_t pages_per_sector;
 
-	pages_per_sector = pPrivate->sector_size / pPrivate->page_size;
+	pages_per_sector = private->sector_size / private->page_size;
 
 	/* Unlock all pages */
 	while (start_sector <= end_sector) {
 		pg = start_sector * pages_per_sector;
 
-		r = EFC_PerformCommand(pPrivate, AT91C_EFC_FCMD_CLB, pg, &status);
+		r = efc_perform_command(private, AT91C_EFC_FCMD_CLB, pg, &status);
 		if (r != ERROR_OK)
 			return r;
 		start_sector++;
@@ -1914,11 +1914,11 @@ static int FLASHD_Unlock(struct sam4_bank_private *pPrivate,
 
 /**
  * Locks regions
- * @param pPrivate - info about the bank
+ * @param private - info about the bank
  * @param start_sector - first sector to lock
  * @param end_sector   - last sector (inclusive) to lock
  */
-static int FLASHD_Lock(struct sam4_bank_private *pPrivate,
+static int flashd_lock(struct sam4_bank_private *private,
 	unsigned start_sector,
 	unsigned end_sector)
 {
@@ -1927,13 +1927,13 @@ static int FLASHD_Lock(struct sam4_bank_private *pPrivate,
 	uint32_t pages_per_sector;
 	int r;
 
-	pages_per_sector = pPrivate->sector_size / pPrivate->page_size;
+	pages_per_sector = private->sector_size / private->page_size;
 
 	/* Lock all pages */
 	while (start_sector <= end_sector) {
 		pg = start_sector * pages_per_sector;
 
-		r = EFC_PerformCommand(pPrivate, AT91C_EFC_FCMD_SLB, pg, &status);
+		r = efc_perform_command(private, AT91C_EFC_FCMD_SLB, pg, &status);
 		if (r != ERROR_OK)
 			return r;
 		start_sector++;
@@ -1945,7 +1945,7 @@ static int FLASHD_Lock(struct sam4_bank_private *pPrivate,
 
 /* begin helpful debug code */
 /* print the fieldname, the field value, in dec & hex, and return field value */
-static uint32_t sam4_reg_fieldname(struct sam4_chip *pChip,
+static uint32_t sam4_reg_fieldname(struct sam4_chip *chip,
 	const char *regname,
 	uint32_t value,
 	unsigned shift,
@@ -2106,72 +2106,72 @@ static const char *const _rc_freq[] = {
 	"4 MHz", "8 MHz", "12 MHz", "reserved"
 };
 
-static void sam4_explain_ckgr_mor(struct sam4_chip *pChip)
+static void sam4_explain_ckgr_mor(struct sam4_chip *chip)
 {
 	uint32_t v;
 	uint32_t rcen;
 
-	v = sam4_reg_fieldname(pChip, "MOSCXTEN", pChip->cfg.CKGR_MOR, 0, 1);
+	v = sam4_reg_fieldname(chip, "MOSCXTEN", chip->cfg.CKGR_MOR, 0, 1);
 	LOG_USER("(main xtal enabled: %s)", _yes_or_no(v));
-	v = sam4_reg_fieldname(pChip, "MOSCXTBY", pChip->cfg.CKGR_MOR, 1, 1);
+	v = sam4_reg_fieldname(chip, "MOSCXTBY", chip->cfg.CKGR_MOR, 1, 1);
 	LOG_USER("(main osc bypass: %s)", _yes_or_no(v));
-	rcen = sam4_reg_fieldname(pChip, "MOSCRCEN", pChip->cfg.CKGR_MOR, 3, 1);
+	rcen = sam4_reg_fieldname(chip, "MOSCRCEN", chip->cfg.CKGR_MOR, 3, 1);
 	LOG_USER("(onchip RC-OSC enabled: %s)", _yes_or_no(rcen));
-	v = sam4_reg_fieldname(pChip, "MOSCRCF", pChip->cfg.CKGR_MOR, 4, 3);
+	v = sam4_reg_fieldname(chip, "MOSCRCF", chip->cfg.CKGR_MOR, 4, 3);
 	LOG_USER("(onchip RC-OSC freq: %s)", _rc_freq[v]);
 
-	pChip->cfg.rc_freq = 0;
+	chip->cfg.rc_freq = 0;
 	if (rcen) {
 		switch (v) {
 			default:
-				pChip->cfg.rc_freq = 0;
+				chip->cfg.rc_freq = 0;
 				break;
 			case 0:
-				pChip->cfg.rc_freq = 4 * 1000 * 1000;
+				chip->cfg.rc_freq = 4 * 1000 * 1000;
 				break;
 			case 1:
-				pChip->cfg.rc_freq = 8 * 1000 * 1000;
+				chip->cfg.rc_freq = 8 * 1000 * 1000;
 				break;
 			case 2:
-				pChip->cfg.rc_freq = 12 * 1000 * 1000;
+				chip->cfg.rc_freq = 12 * 1000 * 1000;
 				break;
 		}
 	}
 
-	v = sam4_reg_fieldname(pChip, "MOSCXTST", pChip->cfg.CKGR_MOR, 8, 8);
+	v = sam4_reg_fieldname(chip, "MOSCXTST", chip->cfg.CKGR_MOR, 8, 8);
 	LOG_USER("(startup clks, time= %f uSecs)",
-		((float)(v * 1000000)) / ((float)(pChip->cfg.slow_freq)));
-	v = sam4_reg_fieldname(pChip, "MOSCSEL", pChip->cfg.CKGR_MOR, 24, 1);
+		((float)(v * 1000000)) / ((float)(chip->cfg.slow_freq)));
+	v = sam4_reg_fieldname(chip, "MOSCSEL", chip->cfg.CKGR_MOR, 24, 1);
 	LOG_USER("(mainosc source: %s)",
 		v ? "external xtal" : "internal RC");
 
-	v = sam4_reg_fieldname(pChip, "CFDEN", pChip->cfg.CKGR_MOR, 25, 1);
+	v = sam4_reg_fieldname(chip, "CFDEN", chip->cfg.CKGR_MOR, 25, 1);
 	LOG_USER("(clock failure enabled: %s)",
 		_yes_or_no(v));
 }
 
-static void sam4_explain_chipid_cidr(struct sam4_chip *pChip)
+static void sam4_explain_chipid_cidr(struct sam4_chip *chip)
 {
 	int x;
 	uint32_t v;
 	const char *cp;
 
-	sam4_reg_fieldname(pChip, "Version", pChip->cfg.CHIPID_CIDR, 0, 5);
+	sam4_reg_fieldname(chip, "Version", chip->cfg.CHIPID_CIDR, 0, 5);
 	LOG_USER_N("\n");
 
-	v = sam4_reg_fieldname(pChip, "EPROC", pChip->cfg.CHIPID_CIDR, 5, 3);
+	v = sam4_reg_fieldname(chip, "EPROC", chip->cfg.CHIPID_CIDR, 5, 3);
 	LOG_USER("%s", eproc_names[v]);
 
-	v = sam4_reg_fieldname(pChip, "NVPSIZE", pChip->cfg.CHIPID_CIDR, 8, 4);
+	v = sam4_reg_fieldname(chip, "NVPSIZE", chip->cfg.CHIPID_CIDR, 8, 4);
 	LOG_USER("%s", nvpsize[v]);
 
-	v = sam4_reg_fieldname(pChip, "NVPSIZE2", pChip->cfg.CHIPID_CIDR, 12, 4);
+	v = sam4_reg_fieldname(chip, "NVPSIZE2", chip->cfg.CHIPID_CIDR, 12, 4);
 	LOG_USER("%s", nvpsize2[v]);
 
-	v = sam4_reg_fieldname(pChip, "SRAMSIZE", pChip->cfg.CHIPID_CIDR, 16, 4);
+	v = sam4_reg_fieldname(chip, "SRAMSIZE", chip->cfg.CHIPID_CIDR, 16, 4);
 	LOG_USER("%s", sramsize[v]);
 
-	v = sam4_reg_fieldname(pChip, "ARCH", pChip->cfg.CHIPID_CIDR, 20, 8);
+	v = sam4_reg_fieldname(chip, "ARCH", chip->cfg.CHIPID_CIDR, 20, 8);
 	cp = _unknown;
 	for (x = 0; archnames[x].name; x++) {
 		if (v == archnames[x].value) {
@@ -2182,73 +2182,73 @@ static void sam4_explain_chipid_cidr(struct sam4_chip *pChip)
 
 	LOG_USER("%s", cp);
 
-	v = sam4_reg_fieldname(pChip, "NVPTYP", pChip->cfg.CHIPID_CIDR, 28, 3);
+	v = sam4_reg_fieldname(chip, "NVPTYP", chip->cfg.CHIPID_CIDR, 28, 3);
 	LOG_USER("%s", nvptype[v]);
 
-	v = sam4_reg_fieldname(pChip, "EXTID", pChip->cfg.CHIPID_CIDR, 31, 1);
+	v = sam4_reg_fieldname(chip, "EXTID", chip->cfg.CHIPID_CIDR, 31, 1);
 	LOG_USER("(exists: %s)", _yes_or_no(v));
 }
 
-static void sam4_explain_ckgr_mcfr(struct sam4_chip *pChip)
+static void sam4_explain_ckgr_mcfr(struct sam4_chip *chip)
 {
 	uint32_t v;
 
-	v = sam4_reg_fieldname(pChip, "MAINFRDY", pChip->cfg.CKGR_MCFR, 16, 1);
+	v = sam4_reg_fieldname(chip, "MAINFRDY", chip->cfg.CKGR_MCFR, 16, 1);
 	LOG_USER("(main ready: %s)", _yes_or_no(v));
 
-	v = sam4_reg_fieldname(pChip, "MAINF", pChip->cfg.CKGR_MCFR, 0, 16);
+	v = sam4_reg_fieldname(chip, "MAINF", chip->cfg.CKGR_MCFR, 0, 16);
 
-	v = (v * pChip->cfg.slow_freq) / 16;
-	pChip->cfg.mainosc_freq = v;
+	v = (v * chip->cfg.slow_freq) / 16;
+	chip->cfg.mainosc_freq = v;
 
 	LOG_USER("(%3.03f Mhz (%" PRIu32 ".%03" PRIu32 "khz slowclk)",
 		_tomhz(v),
-		(uint32_t)(pChip->cfg.slow_freq / 1000),
-		(uint32_t)(pChip->cfg.slow_freq % 1000));
+		(uint32_t)(chip->cfg.slow_freq / 1000),
+		(uint32_t)(chip->cfg.slow_freq % 1000));
 }
 
-static void sam4_explain_ckgr_plla(struct sam4_chip *pChip)
+static void sam4_explain_ckgr_plla(struct sam4_chip *chip)
 {
 	uint32_t mula, diva;
 
-	diva = sam4_reg_fieldname(pChip, "DIVA", pChip->cfg.CKGR_PLLAR, 0, 8);
+	diva = sam4_reg_fieldname(chip, "DIVA", chip->cfg.CKGR_PLLAR, 0, 8);
 	LOG_USER_N("\n");
-	mula = sam4_reg_fieldname(pChip, "MULA", pChip->cfg.CKGR_PLLAR, 16, 11);
+	mula = sam4_reg_fieldname(chip, "MULA", chip->cfg.CKGR_PLLAR, 16, 11);
 	LOG_USER_N("\n");
-	pChip->cfg.plla_freq = 0;
+	chip->cfg.plla_freq = 0;
 	if (mula == 0)
 		LOG_USER("\tPLLA Freq: (Disabled,mula = 0)");
 	else if (diva == 0)
 		LOG_USER("\tPLLA Freq: (Disabled,diva = 0)");
 	else if (diva >= 1) {
-		pChip->cfg.plla_freq = (pChip->cfg.mainosc_freq * (mula + 1) / diva);
+		chip->cfg.plla_freq = (chip->cfg.mainosc_freq * (mula + 1) / diva);
 		LOG_USER("\tPLLA Freq: %3.03f MHz",
-			_tomhz(pChip->cfg.plla_freq));
+			_tomhz(chip->cfg.plla_freq));
 	}
 }
 
-static void sam4_explain_mckr(struct sam4_chip *pChip)
+static void sam4_explain_mckr(struct sam4_chip *chip)
 {
 	uint32_t css, pres, fin = 0;
 	int pdiv = 0;
 	const char *cp = NULL;
 
-	css = sam4_reg_fieldname(pChip, "CSS", pChip->cfg.PMC_MCKR, 0, 2);
+	css = sam4_reg_fieldname(chip, "CSS", chip->cfg.PMC_MCKR, 0, 2);
 	switch (css & 3) {
 		case 0:
-			fin = pChip->cfg.slow_freq;
+			fin = chip->cfg.slow_freq;
 			cp = "slowclk";
 			break;
 		case 1:
-			fin = pChip->cfg.mainosc_freq;
+			fin = chip->cfg.mainosc_freq;
 			cp  = "mainosc";
 			break;
 		case 2:
-			fin = pChip->cfg.plla_freq;
+			fin = chip->cfg.plla_freq;
 			cp  = "plla";
 			break;
 		case 3:
-			if (pChip->cfg.CKGR_UCKR & (1 << 16)) {
+			if (chip->cfg.CKGR_UCKR & (1 << 16)) {
 				fin = 480 * 1000 * 1000;
 				cp = "upll";
 			} else {
@@ -2264,7 +2264,7 @@ static void sam4_explain_mckr(struct sam4_chip *pChip)
 	LOG_USER("%s (%3.03f Mhz)",
 		cp,
 		_tomhz(fin));
-	pres = sam4_reg_fieldname(pChip, "PRES", pChip->cfg.PMC_MCKR, 4, 3);
+	pres = sam4_reg_fieldname(chip, "PRES", chip->cfg.PMC_MCKR, 4, 3);
 	switch (pres & 0x07) {
 		case 0:
 			pdiv = 1;
@@ -2306,33 +2306,33 @@ static void sam4_explain_mckr(struct sam4_chip *pChip)
 	fin = fin / pdiv;
 	/* sam4 has a *SINGLE* clock - */
 	/* other at91 series parts have divisors for these. */
-	pChip->cfg.cpu_freq = fin;
-	pChip->cfg.mclk_freq = fin;
-	pChip->cfg.fclk_freq = fin;
+	chip->cfg.cpu_freq = fin;
+	chip->cfg.mclk_freq = fin;
+	chip->cfg.fclk_freq = fin;
 	LOG_USER("\t\tResult CPU Freq: %3.03f",
 		_tomhz(fin));
 }
 
 #if 0
-static struct sam4_chip *target2sam4(struct target *pTarget)
+static struct sam4_chip *target2sam4(struct target *target)
 {
-	struct sam4_chip *pChip;
+	struct sam4_chip *chip;
 
-	if (pTarget == NULL)
+	if (target == NULL)
 		return NULL;
 
-	pChip = all_sam4_chips;
-	while (pChip) {
-		if (pChip->target == pTarget)
+	chip = all_sam4_chips;
+	while (chip) {
+		if (chip->target == target)
 			break;	/* return below */
 		else
-			pChip = pChip->next;
+			chip = chip->next;
 	}
-	return pChip;
+	return chip;
 }
 #endif
 
-static uint32_t *sam4_get_reg_ptr(struct sam4_cfg *pCfg, const struct sam4_reg_list *pList)
+static uint32_t *sam4_get_reg_ptr(struct sam4_cfg *cfg, const struct sam4_reg_list *list)
 {
 	/* this function exists to help */
 	/* keep funky offsetof() errors */
@@ -2341,7 +2341,7 @@ static uint32_t *sam4_get_reg_ptr(struct sam4_cfg *pCfg, const struct sam4_reg_l
 	/* By using prototypes - we can detect what would */
 	/* be casting errors. */
 
-	return (uint32_t *)(void *)(((char *)(pCfg)) + pList->struct_offset);
+	return (uint32_t *)(void *)(((char *)(cfg)) + list->struct_offset);
 }
 
 
@@ -2379,106 +2379,106 @@ static struct sam4_bank_private *get_sam4_bank_private(struct flash_bank *bank)
  * Given a pointer to where it goes in the structure,
  * determine the register name, address from the all registers table.
  */
-static const struct sam4_reg_list *sam4_GetReg(struct sam4_chip *pChip, uint32_t *goes_here)
+static const struct sam4_reg_list *sam4_get_reg(struct sam4_chip *chip, uint32_t *goes_here)
 {
-	const struct sam4_reg_list *pReg;
+	const struct sam4_reg_list *reg;
 
-	pReg = &(sam4_all_regs[0]);
-	while (pReg->name) {
-		uint32_t *pPossible;
+	reg = &(sam4_all_regs[0]);
+	while (reg->name) {
+		uint32_t *possible;
 
 		/* calculate where this one go.. */
 		/* it is "possibly" this register. */
 
-		pPossible = ((uint32_t *)(void *)(((char *)(&(pChip->cfg))) + pReg->struct_offset));
+		possible = ((uint32_t *)(void *)(((char *)(&(chip->cfg))) + reg->struct_offset));
 
 		/* well? Is it this register */
-		if (pPossible == goes_here) {
+		if (possible == goes_here) {
 			/* Jump for joy! */
-			return pReg;
+			return reg;
 		}
 
 		/* next... */
-		pReg++;
+		reg++;
 	}
 	/* This is *TOTAL*PANIC* - we are totally screwed. */
 	LOG_ERROR("INVALID SAM4 REGISTER");
 	return NULL;
 }
 
-static int sam4_ReadThisReg(struct sam4_chip *pChip, uint32_t *goes_here)
+static int sam4_read_this_reg(struct sam4_chip *chip, uint32_t *goes_here)
 {
-	const struct sam4_reg_list *pReg;
+	const struct sam4_reg_list *reg;
 	int r;
 
-	pReg = sam4_GetReg(pChip, goes_here);
-	if (!pReg)
+	reg = sam4_get_reg(chip, goes_here);
+	if (!reg)
 		return ERROR_FAIL;
 
-	r = target_read_u32(pChip->target, pReg->address, goes_here);
+	r = target_read_u32(chip->target, reg->address, goes_here);
 	if (r != ERROR_OK) {
 		LOG_ERROR("Cannot read SAM4 register: %s @ 0x%08x, Err: %d",
-			pReg->name, (unsigned)(pReg->address), r);
+			reg->name, (unsigned)(reg->address), r);
 	}
 	return r;
 }
 
-static int sam4_ReadAllRegs(struct sam4_chip *pChip)
+static int sam4_read_all_regs(struct sam4_chip *chip)
 {
 	int r;
-	const struct sam4_reg_list *pReg;
+	const struct sam4_reg_list *reg;
 
-	pReg = &(sam4_all_regs[0]);
-	while (pReg->name) {
-		r = sam4_ReadThisReg(pChip,
-				sam4_get_reg_ptr(&(pChip->cfg), pReg));
+	reg = &(sam4_all_regs[0]);
+	while (reg->name) {
+		r = sam4_read_this_reg(chip,
+				sam4_get_reg_ptr(&(chip->cfg), reg));
 		if (r != ERROR_OK) {
 			LOG_ERROR("Cannot read SAM4 register: %s @ 0x%08x, Error: %d",
-				pReg->name, ((unsigned)(pReg->address)), r);
+				reg->name, ((unsigned)(reg->address)), r);
 			return r;
 		}
-		pReg++;
+		reg++;
 	}
 
 	return ERROR_OK;
 }
 
-static int sam4_GetInfo(struct sam4_chip *pChip)
+static int sam4_get_info(struct sam4_chip *chip)
 {
-	const struct sam4_reg_list *pReg;
+	const struct sam4_reg_list *reg;
 	uint32_t regval;
 	int r;
 
-	r = sam4_ReadAllRegs(pChip);
+	r = sam4_read_all_regs(chip);
 	if (r != ERROR_OK)
 		return r;
 
-	pReg = &(sam4_all_regs[0]);
-	while (pReg->name) {
+	reg = &(sam4_all_regs[0]);
+	while (reg->name) {
 		/* display all regs */
-		LOG_DEBUG("Start: %s", pReg->name);
-		regval = *sam4_get_reg_ptr(&(pChip->cfg), pReg);
+		LOG_DEBUG("Start: %s", reg->name);
+		regval = *sam4_get_reg_ptr(&(chip->cfg), reg);
 		LOG_USER("%*s: [0x%08" PRIx32 "] -> 0x%08" PRIx32,
 			REG_NAME_WIDTH,
-			pReg->name,
-			pReg->address,
+			reg->name,
+			reg->address,
 			regval);
-		if (pReg->explain_func)
-			(*(pReg->explain_func))(pChip);
-		LOG_DEBUG("End: %s", pReg->name);
-		pReg++;
+		if (reg->explain_func)
+			(*(reg->explain_func))(chip);
+		LOG_DEBUG("End: %s", reg->name);
+		reg++;
 	}
-	LOG_USER("   rc-osc: %3.03f MHz", _tomhz(pChip->cfg.rc_freq));
-	LOG_USER("  mainosc: %3.03f MHz", _tomhz(pChip->cfg.mainosc_freq));
-	LOG_USER("     plla: %3.03f MHz", _tomhz(pChip->cfg.plla_freq));
-	LOG_USER(" cpu-freq: %3.03f MHz", _tomhz(pChip->cfg.cpu_freq));
-	LOG_USER("mclk-freq: %3.03f MHz", _tomhz(pChip->cfg.mclk_freq));
+	LOG_USER("   rc-osc: %3.03f MHz", _tomhz(chip->cfg.rc_freq));
+	LOG_USER("  mainosc: %3.03f MHz", _tomhz(chip->cfg.mainosc_freq));
+	LOG_USER("     plla: %3.03f MHz", _tomhz(chip->cfg.plla_freq));
+	LOG_USER(" cpu-freq: %3.03f MHz", _tomhz(chip->cfg.cpu_freq));
+	LOG_USER("mclk-freq: %3.03f MHz", _tomhz(chip->cfg.mclk_freq));
 
 	LOG_USER(" UniqueId: 0x%08" PRIx32 " 0x%08" PRIx32 " 0x%08" PRIx32 " 0x%08"PRIx32,
-		pChip->cfg.unique_id[0],
-		pChip->cfg.unique_id[1],
-		pChip->cfg.unique_id[2],
-		pChip->cfg.unique_id[3]);
+		chip->cfg.unique_id[0],
+		chip->cfg.unique_id[1],
+		chip->cfg.unique_id[2],
+		chip->cfg.unique_id[3]);
 
 	return ERROR_OK;
 }
@@ -2488,7 +2488,7 @@ static int sam4_protect_check(struct flash_bank *bank)
 	int r;
 	uint32_t v[4] = {0};
 	unsigned x;
-	struct sam4_bank_private *pPrivate;
+	struct sam4_bank_private *private;
 
 	LOG_DEBUG("Begin");
 	if (bank->target->state != TARGET_HALTED) {
@@ -2496,21 +2496,21 @@ static int sam4_protect_check(struct flash_bank *bank)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	pPrivate = get_sam4_bank_private(bank);
-	if (!pPrivate) {
+	private = get_sam4_bank_private(bank);
+	if (!private) {
 		LOG_ERROR("no private for this bank?");
 		return ERROR_FAIL;
 	}
-	if (!(pPrivate->probed))
+	if (!(private->probed))
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
-	r = FLASHD_GetLockBits(pPrivate, v);
+	r = flashd_get_lock_bits(private, v);
 	if (r != ERROR_OK) {
 		LOG_DEBUG("Failed: %d", r);
 		return r;
 	}
 
-	for (x = 0; x < pPrivate->nsectors; x++)
+	for (x = 0; x < private->nsectors; x++)
 		bank->sectors[x].is_protected = (!!(v[x >> 5] & (1 << (x % 32))));
 	LOG_DEBUG("Done");
 	return ERROR_OK;
@@ -2518,32 +2518,32 @@ static int sam4_protect_check(struct flash_bank *bank)
 
 FLASH_BANK_COMMAND_HANDLER(sam4_flash_bank_command)
 {
-	struct sam4_chip *pChip;
+	struct sam4_chip *chip;
 
-	pChip = all_sam4_chips;
+	chip = all_sam4_chips;
 
 	/* is this an existing chip? */
-	while (pChip) {
-		if (pChip->target == bank->target)
+	while (chip) {
+		if (chip->target == bank->target)
 			break;
-		pChip = pChip->next;
+		chip = chip->next;
 	}
 
-	if (!pChip) {
+	if (!chip) {
 		/* this is a *NEW* chip */
-		pChip = calloc(1, sizeof(struct sam4_chip));
-		if (!pChip) {
+		chip = calloc(1, sizeof(struct sam4_chip));
+		if (!chip) {
 			LOG_ERROR("NO RAM!");
 			return ERROR_FAIL;
 		}
-		pChip->target = bank->target;
+		chip->target = bank->target;
 		/* insert at head */
-		pChip->next = all_sam4_chips;
-		all_sam4_chips = pChip;
-		pChip->target = bank->target;
+		chip->next = all_sam4_chips;
+		all_sam4_chips = chip;
+		chip->target = bank->target;
 		/* assumption is this runs at 32khz */
-		pChip->cfg.slow_freq = 32768;
-		pChip->probed = false;
+		chip->cfg.slow_freq = 32768;
+		chip->probed = false;
 	}
 
 	switch (bank->base) {
@@ -2558,20 +2558,20 @@ FLASH_BANK_COMMAND_HANDLER(sam4_flash_bank_command)
 		/* at91sam4sd series has the same address for bank 0 (FLASH_BANK0_BASE_SD)*/
 		case FLASH_BANK_BASE_S:
 		case FLASH_BANK_BASE_C:
-			bank->driver_priv = &(pChip->details.bank[0]);
+			bank->driver_priv = &(chip->details.bank[0]);
 			bank->bank_number = 0;
-			pChip->details.bank[0].pChip = pChip;
-			pChip->details.bank[0].pBank = bank;
+			chip->details.bank[0].chip = chip;
+			chip->details.bank[0].bank = bank;
 			break;
 
 		/* Bank 1 of at91sam4sd/at91sam4c32 series */
 		case FLASH_BANK1_BASE_1024K_SD:
 		case FLASH_BANK1_BASE_2048K_SD:
 		case FLASH_BANK1_BASE_C32:
-			bank->driver_priv = &(pChip->details.bank[1]);
+			bank->driver_priv = &(chip->details.bank[1]);
 			bank->bank_number = 1;
-			pChip->details.bank[1].pChip = pChip;
-			pChip->details.bank[1].pBank = bank;
+			chip->details.bank[1].chip = chip;
+			chip->details.bank[1].bank = bank;
 			break;
 	}
 
@@ -2595,59 +2595,59 @@ static void sam4_free_driver_priv(struct flash_bank *bank)
 	all_sam4_chips = NULL;
 }
 
-static int sam4_GetDetails(struct sam4_bank_private *pPrivate)
+static int sam4_get_details(struct sam4_bank_private *private)
 {
-	const struct sam4_chip_details *pDetails;
-	struct sam4_chip *pChip;
+	const struct sam4_chip_details *details;
+	struct sam4_chip *chip;
 	struct flash_bank *saved_banks[SAM4_MAX_FLASH_BANKS];
 	unsigned x;
 
 	LOG_DEBUG("Begin");
-	pDetails = all_sam4_details;
-	while (pDetails->name) {
+	details = all_sam4_details;
+	while (details->name) {
 		/* Compare cidr without version bits */
-		if (pDetails->chipid_cidr == (pPrivate->pChip->cfg.CHIPID_CIDR & 0xFFFFFFE0))
+		if (details->chipid_cidr == (private->chip->cfg.CHIPID_CIDR & 0xFFFFFFE0))
 			break;
 		else
-			pDetails++;
+			details++;
 	}
-	if (pDetails->name == NULL) {
+	if (details->name == NULL) {
 		LOG_ERROR("SAM4 ChipID 0x%08x not found in table (perhaps you can ID this chip?)",
-			(unsigned int)(pPrivate->pChip->cfg.CHIPID_CIDR));
+			(unsigned int)(private->chip->cfg.CHIPID_CIDR));
 		/* Help the victim, print details about the chip */
 		LOG_INFO("SAM4 CHIPID_CIDR: 0x%08" PRIx32 " decodes as follows",
-			pPrivate->pChip->cfg.CHIPID_CIDR);
-		sam4_explain_chipid_cidr(pPrivate->pChip);
+			private->chip->cfg.CHIPID_CIDR);
+		sam4_explain_chipid_cidr(private->chip);
 		return ERROR_FAIL;
 	} else {
-		LOG_DEBUG("SAM4 Found chip %s, CIDR 0x%08" PRIx32, pDetails->name, pDetails->chipid_cidr);
+		LOG_DEBUG("SAM4 Found chip %s, CIDR 0x%08" PRIx32, details->name, details->chipid_cidr);
 	}
 
 	/* DANGER: THERE ARE DRAGONS HERE */
 
-	/* get our pChip - it is going */
+	/* get our chip - it is going */
 	/* to be over-written shortly */
-	pChip = pPrivate->pChip;
+	chip = private->chip;
 
 	/* Note that, in reality: */
 	/*  */
-	/*     pPrivate = &(pChip->details.bank[0]) */
-	/* or  pPrivate = &(pChip->details.bank[1]) */
+	/*     private = &(chip->details.bank[0]) */
+	/* or  private = &(chip->details.bank[1]) */
 	/*  */
 
 	/* save the "bank" pointers */
 	for (x = 0; x < SAM4_MAX_FLASH_BANKS; x++)
-		saved_banks[x] = pChip->details.bank[x].pBank;
+		saved_banks[x] = chip->details.bank[x].bank;
 
 	/* Overwrite the "details" structure. */
-	memcpy(&(pPrivate->pChip->details),
-		pDetails,
-		sizeof(pPrivate->pChip->details));
+	memcpy(&(private->chip->details),
+		details,
+		sizeof(private->chip->details));
 
 	/* now fix the ghosted pointers */
 	for (x = 0; x < SAM4_MAX_FLASH_BANKS; x++) {
-		pChip->details.bank[x].pChip = pChip;
-		pChip->details.bank[x].pBank = saved_banks[x];
+		chip->details.bank[x].chip = chip;
+		chip->details.bank[x].bank = saved_banks[x];
 	}
 
 	/* update the *BANK*SIZE* */
@@ -2658,16 +2658,16 @@ static int sam4_GetDetails(struct sam4_bank_private *pPrivate)
 
 static int sam4_info(struct flash_bank *bank, struct command_invocation *cmd)
 {
-	struct sam4_bank_private *pPrivate;
+	struct sam4_bank_private *private;
 	int k = bank->size / 1024;
 
-	pPrivate = get_sam4_bank_private(bank);
-	if (pPrivate == NULL)
+	private = get_sam4_bank_private(bank);
+	if (private == NULL)
 		return ERROR_FAIL;
 
 	command_print_sameline(cmd, "%s bank %d: %d kB at " TARGET_ADDR_FMT,
-		pPrivate->pChip->details.name,
-		pPrivate->bank_number,
+		private->chip->details.name,
+		private->bank_number,
 		k,
 		bank->base);
 
@@ -2677,7 +2677,7 @@ static int sam4_info(struct flash_bank *bank, struct command_invocation *cmd)
 static int sam4_probe(struct flash_bank *bank)
 {
 	int r;
-	struct sam4_bank_private *pPrivate;
+	struct sam4_bank_private *private;
 
 
 	LOG_DEBUG("Begin: Bank: %u", bank->bank_number);
@@ -2686,28 +2686,28 @@ static int sam4_probe(struct flash_bank *bank)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	pPrivate = get_sam4_bank_private(bank);
-	if (!pPrivate) {
+	private = get_sam4_bank_private(bank);
+	if (!private) {
 		LOG_ERROR("Invalid/unknown bank number");
 		return ERROR_FAIL;
 	}
 
-	r = sam4_ReadAllRegs(pPrivate->pChip);
+	r = sam4_read_all_regs(private->chip);
 	if (r != ERROR_OK)
 		return r;
 
 	LOG_DEBUG("Here");
-	if (pPrivate->pChip->probed)
-		r = sam4_GetInfo(pPrivate->pChip);
+	if (private->chip->probed)
+		r = sam4_get_info(private->chip);
 	else
-		r = sam4_GetDetails(pPrivate);
+		r = sam4_get_details(private);
 	if (r != ERROR_OK)
 		return r;
 
 	/* update the flash bank size */
 	for (unsigned int x = 0; x < SAM4_MAX_FLASH_BANKS; x++) {
-		if (bank->base == pPrivate->pChip->details.bank[x].base_address) {
-			bank->size = pPrivate->pChip->details.bank[x].size_bytes;
+		if (bank->base == private->chip->details.bank[x].base_address) {
+			bank->size = private->chip->details.bank[x].size_bytes;
 			LOG_DEBUG("SAM4 Set flash bank to " TARGET_ADDR_FMT " - "
 					TARGET_ADDR_FMT ", idx %d", bank->base,
 					bank->base + bank->size, x);
@@ -2716,34 +2716,34 @@ static int sam4_probe(struct flash_bank *bank)
 	}
 
 	if (bank->sectors == NULL) {
-		bank->sectors = calloc(pPrivate->nsectors, (sizeof((bank->sectors)[0])));
+		bank->sectors = calloc(private->nsectors, (sizeof((bank->sectors)[0])));
 		if (bank->sectors == NULL) {
 			LOG_ERROR("No memory!");
 			return ERROR_FAIL;
 		}
-		bank->num_sectors = pPrivate->nsectors;
+		bank->num_sectors = private->nsectors;
 
 		for (unsigned int x = 0; x < bank->num_sectors; x++) {
-			bank->sectors[x].size = pPrivate->sector_size;
-			bank->sectors[x].offset = x * (pPrivate->sector_size);
+			bank->sectors[x].size = private->sector_size;
+			bank->sectors[x].offset = x * (private->sector_size);
 			/* mark as unknown */
 			bank->sectors[x].is_erased = -1;
 			bank->sectors[x].is_protected = -1;
 		}
 	}
 
-	pPrivate->probed = true;
+	private->probed = true;
 
 	r = sam4_protect_check(bank);
 	if (r != ERROR_OK)
 		return r;
 
 	LOG_DEBUG("Bank = %d, nbanks = %d",
-		pPrivate->bank_number, pPrivate->pChip->details.n_banks);
-	if ((pPrivate->bank_number + 1) == pPrivate->pChip->details.n_banks) {
+		private->bank_number, private->chip->details.n_banks);
+	if ((private->bank_number + 1) == private->chip->details.n_banks) {
 		/* read unique id, */
 		/* it appears to be associated with the *last* flash bank. */
-		FLASHD_ReadUniqueID(pPrivate);
+		flashd_read_uid(private);
 	}
 
 	return r;
@@ -2751,10 +2751,10 @@ static int sam4_probe(struct flash_bank *bank)
 
 static int sam4_auto_probe(struct flash_bank *bank)
 {
-	struct sam4_bank_private *pPrivate;
+	struct sam4_bank_private *private;
 
-	pPrivate = get_sam4_bank_private(bank);
-	if (pPrivate && pPrivate->probed)
+	private = get_sam4_bank_private(bank);
+	if (private && private->probed)
 		return ERROR_OK;
 
 	return sam4_probe(bank);
@@ -2763,11 +2763,11 @@ static int sam4_auto_probe(struct flash_bank *bank)
 static int sam4_erase(struct flash_bank *bank, unsigned int first,
 		unsigned int last)
 {
-	struct sam4_bank_private *pPrivate;
+	struct sam4_bank_private *private;
 	int r;
-	int pageCount;
+	int page_count;
 	/*16 pages equals 8KB - Same size as a lock region*/
-	pageCount = 16;
+	page_count = 16;
 	uint32_t status;
 
 	LOG_DEBUG("Here");
@@ -2782,20 +2782,20 @@ static int sam4_erase(struct flash_bank *bank, unsigned int first,
 		return r;
 	}
 
-	pPrivate = get_sam4_bank_private(bank);
-	if (!(pPrivate->probed))
+	private = get_sam4_bank_private(bank);
+	if (!(private->probed))
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
-	if ((first == 0) && ((last + 1) == pPrivate->nsectors)) {
+	if ((first == 0) && ((last + 1) == private->nsectors)) {
 		/* whole chip */
 		LOG_DEBUG("Here");
-		return FLASHD_EraseEntireBank(pPrivate);
+		return flashd_erase_entire_bank(private);
 	}
 	LOG_INFO("sam4 does not auto-erase while programming (Erasing relevant sectors)");
 	LOG_INFO("sam4 First: 0x%08x Last: 0x%08x", first, last);
 	for (unsigned int i = first; i <= last; i++) {
 		/*16 pages equals 8KB - Same size as a lock region*/
-		r = FLASHD_ErasePages(pPrivate, (i * pageCount), pageCount, &status);
+		r = flashd_erase_pages(private, (i * page_count), page_count, &status);
 		LOG_INFO("Erasing sector: 0x%08x", i);
 		if (r != ERROR_OK)
 			LOG_ERROR("SAM4: Error performing Erase page @ lock region number %u",
@@ -2816,7 +2816,7 @@ static int sam4_erase(struct flash_bank *bank, unsigned int first,
 static int sam4_protect(struct flash_bank *bank, int set, unsigned int first,
 		unsigned int last)
 {
-	struct sam4_bank_private *pPrivate;
+	struct sam4_bank_private *private;
 	int r;
 
 	LOG_DEBUG("Here");
@@ -2825,32 +2825,32 @@ static int sam4_protect(struct flash_bank *bank, int set, unsigned int first,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	pPrivate = get_sam4_bank_private(bank);
-	if (!(pPrivate->probed))
+	private = get_sam4_bank_private(bank);
+	if (!(private->probed))
 		return ERROR_FLASH_BANK_NOT_PROBED;
 
 	if (set)
-		r = FLASHD_Lock(pPrivate, first, last);
+		r = flashd_lock(private, first, last);
 	else
-		r = FLASHD_Unlock(pPrivate, first, last);
+		r = flashd_unlock(private, first, last);
 	LOG_DEBUG("End: r=%d", r);
 
 	return r;
 
 }
 
-static int sam4_page_read(struct sam4_bank_private *pPrivate, unsigned pagenum, uint8_t *buf)
+static int sam4_page_read(struct sam4_bank_private *private, unsigned pagenum, uint8_t *buf)
 {
 	uint32_t adr;
 	int r;
 
-	adr = pagenum * pPrivate->page_size;
-	adr = adr + pPrivate->base_address;
+	adr = pagenum * private->page_size;
+	adr = adr + private->base_address;
 
-	r = target_read_memory(pPrivate->pChip->target,
+	r = target_read_memory(private->chip->target,
 			adr,
 			4,					/* THIS*MUST*BE* in 32bit values */
-			pPrivate->page_size / 4,
+			private->page_size / 4,
 			buf);
 	if (r != ERROR_OK)
 		LOG_ERROR("SAM4: Flash program failed to read page phys address: 0x%08x",
@@ -2858,13 +2858,13 @@ static int sam4_page_read(struct sam4_bank_private *pPrivate, unsigned pagenum, 
 	return r;
 }
 
-static int sam4_set_wait(struct sam4_bank_private *pPrivate)
+static int sam4_set_wait(struct sam4_bank_private *private)
 {
 	uint32_t fmr;	/* EEFC Flash Mode Register */
 	int r;
 
 	/* Get flash mode register value */
-	r = target_read_u32(pPrivate->pChip->target, pPrivate->controller_address, &fmr);
+	r = target_read_u32(private->chip->target, private->controller_address, &fmr);
 	if (r != ERROR_OK) {
 		LOG_ERROR("Error Read failed: read flash mode register");
 		return r;
@@ -2874,33 +2874,33 @@ static int sam4_set_wait(struct sam4_bank_private *pPrivate)
 	fmr &= 0xfffff0ff;
 
 	/* set FWS (flash wait states) field in the FMR (flash mode register) */
-	fmr |= (pPrivate->flash_wait_states << 8);
+	fmr |= (private->flash_wait_states << 8);
 
 	LOG_DEBUG("Flash Mode: 0x%08x", ((unsigned int)(fmr)));
-	r = target_write_u32(pPrivate->pBank->target, pPrivate->controller_address, fmr);
+	r = target_write_u32(private->bank->target, private->controller_address, fmr);
 	if (r != ERROR_OK)
 		LOG_ERROR("Error Write failed: set flash mode register");
 
 	return r;
 }
 
-static int sam4_page_write(struct sam4_bank_private *pPrivate, unsigned pagenum, const uint8_t *buf)
+static int sam4_page_write(struct sam4_bank_private *private, unsigned pagenum, const uint8_t *buf)
 {
 	uint32_t adr;
 	uint32_t status;
 	int r;
 
-	adr = pagenum * pPrivate->page_size;
-	adr = (adr + pPrivate->base_address);
+	adr = pagenum * private->page_size;
+	adr = (adr + private->base_address);
 
 	/* 1st sector 8kBytes - page 0 - 15*/
 	/* 2nd sector 8kBytes - page 16 - 30*/
 	/* 3rd sector 48kBytes - page 31 - 127*/
 	LOG_DEBUG("Wr Page %u @ phys address: 0x%08x", pagenum, (unsigned int)(adr));
-	r = target_write_memory(pPrivate->pChip->target,
+	r = target_write_memory(private->chip->target,
 			adr,
 			4,					/* THIS*MUST*BE* in 32bit values */
-			pPrivate->page_size / 4,
+			private->page_size / 4,
 			buf);
 	if (r != ERROR_OK) {
 		LOG_ERROR("SAM4: Failed to write (buffer) page at phys address 0x%08x",
@@ -2908,7 +2908,7 @@ static int sam4_page_write(struct sam4_bank_private *pPrivate, unsigned pagenum,
 		return r;
 	}
 
-	r = EFC_PerformCommand(pPrivate,
+	r = efc_perform_command(private,
 			/* send Erase & Write Page */
 			AT91C_EFC_FCMD_WP,	/*AT91C_EFC_FCMD_EWP only works on first two 8kb sectors*/
 			pagenum,
@@ -2938,7 +2938,7 @@ static int sam4_write(struct flash_bank *bank,
 	unsigned page_end;
 	int r;
 	unsigned page_offset;
-	struct sam4_bank_private *pPrivate;
+	struct sam4_bank_private *private;
 	uint8_t *pagebuffer;
 
 	/* in case we bail further below, set this to null */
@@ -2956,36 +2956,36 @@ static int sam4_write(struct flash_bank *bank,
 		goto done;
 	}
 
-	pPrivate = get_sam4_bank_private(bank);
-	if (!(pPrivate->probed)) {
+	private = get_sam4_bank_private(bank);
+	if (!(private->probed)) {
 		r = ERROR_FLASH_BANK_NOT_PROBED;
 		goto done;
 	}
 
-	if ((offset + count) > pPrivate->size_bytes) {
+	if ((offset + count) > private->size_bytes) {
 		LOG_ERROR("Flash write error - past end of bank");
 		LOG_ERROR(" offset: 0x%08x, count 0x%08x, BankEnd: 0x%08x",
 			(unsigned int)(offset),
 			(unsigned int)(count),
-			(unsigned int)(pPrivate->size_bytes));
+			(unsigned int)(private->size_bytes));
 		r = ERROR_FAIL;
 		goto done;
 	}
 
-	pagebuffer = malloc(pPrivate->page_size);
+	pagebuffer = malloc(private->page_size);
 	if (!pagebuffer) {
-		LOG_ERROR("No memory for %d Byte page buffer", (int)(pPrivate->page_size));
+		LOG_ERROR("No memory for %d Byte page buffer", (int)(private->page_size));
 		r = ERROR_FAIL;
 		goto done;
 	}
 
-	r = sam4_set_wait(pPrivate);
+	r = sam4_set_wait(private);
 	if (r != ERROR_OK)
 		goto done;
 
 	/* what page do we start & end in? */
-	page_cur = offset / pPrivate->page_size;
-	page_end = (offset + count - 1) / pPrivate->page_size;
+	page_cur = offset / private->page_size;
+	page_end = (offset + count - 1) / private->page_size;
 
 	LOG_DEBUG("Offset: 0x%08x, Count: 0x%08x", (unsigned int)(offset), (unsigned int)(count));
 	LOG_DEBUG("Page start: %d, Page End: %d", (int)(page_cur), (int)(page_end));
@@ -3000,16 +3000,16 @@ static int sam4_write(struct flash_bank *bank,
 	/* Handle special case - all one page. */
 	if (page_cur == page_end) {
 		LOG_DEBUG("Special case, all in one page");
-		r = sam4_page_read(pPrivate, page_cur, pagebuffer);
+		r = sam4_page_read(private, page_cur, pagebuffer);
 		if (r != ERROR_OK)
 			goto done;
 
-		page_offset = (offset & (pPrivate->page_size-1));
+		page_offset = (offset & (private->page_size-1));
 		memcpy(pagebuffer + page_offset,
 			buffer,
 			count);
 
-		r = sam4_page_write(pPrivate, page_cur, pagebuffer);
+		r = sam4_page_write(private, page_cur, pagebuffer);
 		if (r != ERROR_OK)
 			goto done;
 		r = ERROR_OK;
@@ -3017,21 +3017,21 @@ static int sam4_write(struct flash_bank *bank,
 	}
 
 	/* non-aligned start */
-	page_offset = offset & (pPrivate->page_size - 1);
+	page_offset = offset & (private->page_size - 1);
 	if (page_offset) {
 		LOG_DEBUG("Not-Aligned start");
 		/* read the partial */
-		r = sam4_page_read(pPrivate, page_cur, pagebuffer);
+		r = sam4_page_read(private, page_cur, pagebuffer);
 		if (r != ERROR_OK)
 			goto done;
 
 		/* over-write with new data */
-		n = (pPrivate->page_size - page_offset);
+		n = (private->page_size - page_offset);
 		memcpy(pagebuffer + page_offset,
 			buffer,
 			n);
 
-		r = sam4_page_write(pPrivate, page_cur, pagebuffer);
+		r = sam4_page_write(private, page_cur, pagebuffer);
 		if (r != ERROR_OK)
 			goto done;
 
@@ -3043,7 +3043,7 @@ static int sam4_write(struct flash_bank *bank,
 
 	/* By checking that offset is correct here, we also
 	fix a clang warning */
-	assert(offset % pPrivate->page_size == 0);
+	assert(offset % private->page_size == 0);
 
 	/* intermediate large pages */
 	/* also - the final *terminal* */
@@ -3052,12 +3052,12 @@ static int sam4_write(struct flash_bank *bank,
 		(int)page_cur, (int)page_end, (unsigned int)(count));
 
 	while ((page_cur < page_end) &&
-			(count >= pPrivate->page_size)) {
-		r = sam4_page_write(pPrivate, page_cur, buffer);
+			(count >= private->page_size)) {
+		r = sam4_page_write(private, page_cur, buffer);
 		if (r != ERROR_OK)
 			goto done;
-		count -= pPrivate->page_size;
-		buffer += pPrivate->page_size;
+		count -= private->page_size;
+		buffer += private->page_size;
 		page_cur += 1;
 	}
 
@@ -3065,12 +3065,12 @@ static int sam4_write(struct flash_bank *bank,
 	if (count) {
 		LOG_DEBUG("Terminal partial page, count = 0x%08x", (unsigned int)(count));
 		/* we have a partial page */
-		r = sam4_page_read(pPrivate, page_cur, pagebuffer);
+		r = sam4_page_read(private, page_cur, pagebuffer);
 		if (r != ERROR_OK)
 			goto done;
 					/* data goes at start */
 		memcpy(pagebuffer, buffer, count);
-		r = sam4_page_write(pPrivate, page_cur, pagebuffer);
+		r = sam4_page_write(private, page_cur, pagebuffer);
 		if (r != ERROR_OK)
 			goto done;
 	}
@@ -3083,16 +3083,16 @@ done:
 
 COMMAND_HANDLER(sam4_handle_info_command)
 {
-	struct sam4_chip *pChip;
-	pChip = get_current_sam4(CMD);
-	if (!pChip)
+	struct sam4_chip *chip;
+	chip = get_current_sam4(CMD);
+	if (!chip)
 		return ERROR_OK;
 
 	unsigned x;
 	int r;
 
 	/* bank0 must exist before we can do anything */
-	if (pChip->details.bank[0].pBank == NULL) {
+	if (chip->details.bank[0].bank == NULL) {
 		x = 0;
 need_define:
 		command_print(CMD,
@@ -3103,8 +3103,8 @@ need_define:
 	}
 
 	/* if bank 0 is not probed, then probe it */
-	if (!(pChip->details.bank[0].probed)) {
-		r = sam4_auto_probe(pChip->details.bank[0].pBank);
+	if (!(chip->details.bank[0].probed)) {
+		r = sam4_auto_probe(chip->details.bank[0].bank);
 		if (r != ERROR_OK)
 			return ERROR_FAIL;
 	}
@@ -3115,21 +3115,21 @@ need_define:
 	/* auto-probe other banks, 0 done above */
 	for (x = 1; x < SAM4_MAX_FLASH_BANKS; x++) {
 		/* skip banks not present */
-		if (!(pChip->details.bank[x].present))
+		if (!(chip->details.bank[x].present))
 			continue;
 
-		if (pChip->details.bank[x].pBank == NULL)
+		if (chip->details.bank[x].bank == NULL)
 			goto need_define;
 
-		if (pChip->details.bank[x].probed)
+		if (chip->details.bank[x].probed)
 			continue;
 
-		r = sam4_auto_probe(pChip->details.bank[x].pBank);
+		r = sam4_auto_probe(chip->details.bank[x].bank);
 		if (r != ERROR_OK)
 			return r;
 	}
 
-	r = sam4_GetInfo(pChip);
+	r = sam4_get_info(chip);
 	if (r != ERROR_OK) {
 		LOG_DEBUG("Sam4Info, Failed %d", r);
 		return r;
@@ -3142,24 +3142,24 @@ COMMAND_HANDLER(sam4_handle_gpnvm_command)
 {
 	unsigned x, v;
 	int r, who;
-	struct sam4_chip *pChip;
+	struct sam4_chip *chip;
 
-	pChip = get_current_sam4(CMD);
-	if (!pChip)
+	chip = get_current_sam4(CMD);
+	if (!chip)
 		return ERROR_OK;
 
-	if (pChip->target->state != TARGET_HALTED) {
+	if (chip->target->state != TARGET_HALTED) {
 		LOG_ERROR("sam4 - target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (pChip->details.bank[0].pBank == NULL) {
+	if (chip->details.bank[0].bank == NULL) {
 		command_print(CMD, "Bank0 must be defined first via: flash bank %s ...",
 			at91sam4_flash.name);
 		return ERROR_FAIL;
 	}
-	if (!pChip->details.bank[0].probed) {
-		r = sam4_auto_probe(pChip->details.bank[0].pBank);
+	if (!chip->details.bank[0].probed) {
+		r = sam4_auto_probe(chip->details.bank[0].bank);
 		if (r != ERROR_OK)
 			return r;
 	}
@@ -3187,16 +3187,16 @@ COMMAND_HANDLER(sam4_handle_gpnvm_command)
 		if (who == -1) {
 showall:
 			r = ERROR_OK;
-			for (x = 0; x < pChip->details.n_gpnvms; x++) {
-				r = FLASHD_GetGPNVM(&(pChip->details.bank[0]), x, &v);
+			for (x = 0; x < chip->details.n_gpnvms; x++) {
+				r = flashd_get_gpnvm(&(chip->details.bank[0]), x, &v);
 				if (r != ERROR_OK)
 					break;
 				command_print(CMD, "sam4-gpnvm%u: %u", x, v);
 			}
 			return r;
 		}
-		if ((who >= 0) && (((unsigned)(who)) < pChip->details.n_gpnvms)) {
-			r = FLASHD_GetGPNVM(&(pChip->details.bank[0]), who, &v);
+		if ((who >= 0) && (((unsigned)(who)) < chip->details.n_gpnvms)) {
+			r = flashd_get_gpnvm(&(chip->details.bank[0]), who, &v);
 			if (r == ERROR_OK)
 				command_print(CMD, "sam4-gpnvm%u: %u", who, v);
 			return r;
@@ -3212,10 +3212,10 @@ showall:
 	}
 
 	if (0 == strcmp("set", CMD_ARGV[0]))
-		r = FLASHD_SetGPNVM(&(pChip->details.bank[0]), who);
+		r = flashd_set_gpnvm(&(chip->details.bank[0]), who);
 	else if ((0 == strcmp("clr", CMD_ARGV[0])) ||
 		 (0 == strcmp("clear", CMD_ARGV[0])))			/* quietly accept both */
-		r = FLASHD_ClrGPNVM(&(pChip->details.bank[0]), who);
+		r = flashd_clr_gpnvm(&(chip->details.bank[0]), who);
 	else {
 		command_print(CMD, "Unknown command: %s", CMD_ARGV[0]);
 		r = ERROR_COMMAND_SYNTAX_ERROR;
@@ -3225,10 +3225,10 @@ showall:
 
 COMMAND_HANDLER(sam4_handle_slowclk_command)
 {
-	struct sam4_chip *pChip;
+	struct sam4_chip *chip;
 
-	pChip = get_current_sam4(CMD);
-	if (!pChip)
+	chip = get_current_sam4(CMD);
+	if (!chip)
 		return ERROR_OK;
 
 	switch (CMD_ARGC) {
@@ -3245,7 +3245,7 @@ COMMAND_HANDLER(sam4_handle_slowclk_command)
 				command_print(CMD, "Absurd/illegal slow clock freq: %d\n", (int)(v));
 				return ERROR_COMMAND_SYNTAX_ERROR;
 			}
-			pChip->cfg.slow_freq = v;
+			chip->cfg.slow_freq = v;
 			break;
 		}
 		default:
@@ -3254,8 +3254,8 @@ COMMAND_HANDLER(sam4_handle_slowclk_command)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 	command_print(CMD, "Slowclk freq: %d.%03dkhz",
-		(int)(pChip->cfg.slow_freq / 1000),
-		(int)(pChip->cfg.slow_freq % 1000));
+		(int)(chip->cfg.slow_freq / 1000),
+		(int)(chip->cfg.slow_freq % 1000));
 	return ERROR_OK;
 }
 

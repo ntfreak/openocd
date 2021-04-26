@@ -207,24 +207,24 @@ static int fm3_erase(struct flash_bank *bank, unsigned int first,
 	struct fm3_flash_bank *fm3_info = bank->driver_priv;
 	struct target *target = bank->target;
 	int retval = ERROR_OK;
-	uint32_t u32DummyRead;
+	uint32_t u32_dummy_read;
 	int odd;
-	uint32_t u32FlashType;
-	uint32_t u32FlashSeqAddress1;
-	uint32_t u32FlashSeqAddress2;
+	uint32_t u32_flash_type;
+	uint32_t u32_flash_seq_address1;
+	uint32_t u32_flash_seq_address2;
 
 	struct working_area *write_algorithm;
 	struct reg_param reg_params[3];
 	struct armv7m_algorithm armv7m_info;
 
-	u32FlashType = (uint32_t) fm3_info->flashtype;
+	u32_flash_type = (uint32_t) fm3_info->flashtype;
 
-	if (u32FlashType == fm3_flash_type1) {
-		u32FlashSeqAddress1 = 0x00001550;
-		u32FlashSeqAddress2 = 0x00000AA8;
-	} else if (u32FlashType == fm3_flash_type2) {
-		u32FlashSeqAddress1 = 0x00000AA8;
-		u32FlashSeqAddress2 = 0x00000554;
+	if (u32_flash_type == fm3_flash_type1) {
+		u32_flash_seq_address1 = 0x00001550;
+		u32_flash_seq_address2 = 0x00000AA8;
+	} else if (u32_flash_type == fm3_flash_type2) {
+		u32_flash_seq_address1 = 0x00000AA8;
+		u32_flash_seq_address2 = 0x00000554;
 	} else {
 		LOG_ERROR("Flash/Device type unknown!");
 		return ERROR_FLASH_OPERATION_FAILED;
@@ -282,7 +282,7 @@ static int fm3_erase(struct flash_bank *bank, unsigned int first,
 		return retval;
 
 	/* dummy read of FASZR */
-	retval = target_read_u32(target, 0x40000000, &u32DummyRead);
+	retval = target_read_u32(target, 0x40000000, &u32_dummy_read);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -300,8 +300,8 @@ static int fm3_erase(struct flash_bank *bank, unsigned int first,
 	armv7m_info.common_magic = ARMV7M_COMMON_MAGIC;
 	armv7m_info.core_mode = ARM_MODE_THREAD;
 
-	init_reg_param(&reg_params[0], "r0", 32, PARAM_OUT); /* u32FlashSeqAddress1 */
-	init_reg_param(&reg_params[1], "r1", 32, PARAM_OUT); /* u32FlashSeqAddress2 */
+	init_reg_param(&reg_params[0], "r0", 32, PARAM_OUT); /* u32_flash_seq_address1 */
+	init_reg_param(&reg_params[1], "r1", 32, PARAM_OUT); /* u32_flash_seq_address2 */
 	init_reg_param(&reg_params[2], "r2", 32, PARAM_OUT); /* offset				*/
 
 	/* write code buffer and use Flash sector erase code within fm3				*/
@@ -312,8 +312,8 @@ static int fm3_erase(struct flash_bank *bank, unsigned int first,
 			if (odd)
 				offset += 4;
 
-			buf_set_u32(reg_params[0].value, 0, 32, u32FlashSeqAddress1);
-			buf_set_u32(reg_params[1].value, 0, 32, u32FlashSeqAddress2);
+			buf_set_u32(reg_params[0].value, 0, 32, u32_flash_seq_address1);
+			buf_set_u32(reg_params[1].value, 0, 32, u32_flash_seq_address2);
 			buf_set_u32(reg_params[2].value, 0, 32, offset);
 
 			retval = target_run_algorithm(target, 0, NULL, 3, reg_params,
@@ -341,7 +341,7 @@ static int fm3_erase(struct flash_bank *bank, unsigned int first,
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = target_read_u32(target, 0x40000000, &u32DummyRead); /* dummy read of FASZR */
+	retval = target_read_u32(target, 0x40000000, &u32_dummy_read); /* dummy read of FASZR */
 
 	return retval;
 }
@@ -358,22 +358,22 @@ static int fm3_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	struct reg_param reg_params[6];
 	struct armv7m_algorithm armv7m_info;
 	int retval = ERROR_OK;
-	uint32_t u32FlashType;
-	uint32_t u32FlashSeqAddress1;
-	uint32_t u32FlashSeqAddress2;
+	uint32_t u32_flash_type;
+	uint32_t u32_flash_seq_address1;
+	uint32_t u32_flash_seq_address2;
 
 	/* Increase buffer_size if needed */
 	if (buffer_size < (target->working_area_size / 2))
 		buffer_size = (target->working_area_size / 2);
 
-	u32FlashType = (uint32_t) fm3_info->flashtype;
+	u32_flash_type = (uint32_t) fm3_info->flashtype;
 
-	if (u32FlashType == fm3_flash_type1) {
-		u32FlashSeqAddress1 = 0x00001550;
-		u32FlashSeqAddress2 = 0x00000AA8;
-	} else if (u32FlashType == fm3_flash_type2) {
-		u32FlashSeqAddress1 = 0x00000AA8;
-		u32FlashSeqAddress2 = 0x00000554;
+	if (u32_flash_type == fm3_flash_type1) {
+		u32_flash_seq_address1 = 0x00001550;
+		u32_flash_seq_address2 = 0x00000AA8;
+	} else if (u32_flash_type == fm3_flash_type2) {
+		u32_flash_seq_address1 = 0x00000AA8;
+		u32_flash_seq_address2 = 0x00000554;
 	} else {
 		LOG_ERROR("Flash/Device type unknown!");
 		return ERROR_FLASH_OPERATION_FAILED;
@@ -401,8 +401,8 @@ static int fm3_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	0x55, 0xF0, 0x01, 0x05,		/*        ORRS.W   R5, R5, #1                 */
 	0x5F, 0xF0, 0x80, 0x46,		/*        MOVS.W   R6, #(fm3_FLASH_IF->FASZ)  */
 	0x35, 0x60,					/*        STR      R5, [R6]                   */
-								/*    u32DummyRead = fm3_FLASH_IF->FASZ;      */
-	0x28, 0x4D,					/*        LDR.N    R5, ??u32DummyRead         */
+								/*    u32_dummy_read = fm3_FLASH_IF->FASZ;      */
+	0x28, 0x4D,					/*        LDR.N    R5, ??u32_dummy_read         */
 	0x5F, 0xF0, 0x80, 0x46,		/*        MOVS.W   R6, #(fm3_FLASH_IF->FASZ)  */
 	0x36, 0x68,					/*        LDR      R6, [R6]                   */
 	0x2E, 0x60,					/*        STR      R6, [R5]                   */
@@ -492,8 +492,8 @@ static int fm3_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	0x55, 0xF0, 0x02, 0x05,		/*        ORRS.W   R5, R5, #2                 */
 	0x5F, 0xF0, 0x80, 0x46,		/*        MOVS.W   R6, #(fm3_FLASH_IF->FASZ)  */
 	0x35, 0x60,					/*        STR      R5, [R6]                   */
-								/*    u32DummyRead = fm3_FLASH_IF->FASZ;      */
-	0x04, 0x4D,					/*        LDR.N    R5, ??u32DummyRead         */
+								/*    u32_dummy_read = fm3_FLASH_IF->FASZ;      */
+	0x04, 0x4D,					/*        LDR.N    R5, ??u32_dummy_read         */
 	0x5F, 0xF0, 0x80, 0x46,		/*        MOVS.W   R6, #(fm3_FLASH_IF->FASZ)  */
 	0x36, 0x68,					/*        LDR      R6, [R6]                   */
 	0x2E, 0x60,					/*        STR      R6, [R5]                   */
@@ -508,7 +508,7 @@ static int fm3_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	/* SRAM basic-address + 8.These address pointers will be patched, if a    */
 	/* different start address in RAM is used (e.g. for Flash type 2)!        */
 	/* Default SRAM basic-address is 0x20000000.                              */
-	0x00, 0x00, 0x00, 0x20,     /* u32DummyRead address in RAM (0x20000000)   */
+	0x00, 0x00, 0x00, 0x20,     /* u32_dummy_read address in RAM (0x20000000)   */
 	0x04, 0x00, 0x00, 0x20      /* u32FlashResult address in RAM (0x20000004) */
 	};
 
@@ -548,7 +548,7 @@ static int fm3_write_block(struct flash_bank *bank, const uint8_t *buffer,
 		return retval;
 
 	/* Patching 'local variable address' */
-	/* Algorithm: u32DummyRead: */
+	/* Algorithm: u32_dummy_read: */
 	retval = target_write_u32(target, (write_algorithm->address + 8)
 			+ sizeof(fm3_flash_write_code) - 8, (write_algorithm->address));
 	if (retval != ERROR_OK)
@@ -595,8 +595,8 @@ static int fm3_write_block(struct flash_bank *bank, const uint8_t *buffer,
 		buf_set_u32(reg_params[0].value, 0, 32, source->address);
 		buf_set_u32(reg_params[1].value, 0, 32, address);
 		buf_set_u32(reg_params[2].value, 0, 32, thisrun_count);
-		buf_set_u32(reg_params[3].value, 0, 32, u32FlashSeqAddress1);
-		buf_set_u32(reg_params[4].value, 0, 32, u32FlashSeqAddress2);
+		buf_set_u32(reg_params[3].value, 0, 32, u32_flash_seq_address1);
+		buf_set_u32(reg_params[4].value, 0, 32, u32_flash_seq_address2);
 
 		retval = target_run_algorithm(target, 0, NULL, 6, reg_params,
 				(write_algorithm->address + 8), 0, 1000, &armv7m_info);
@@ -816,25 +816,25 @@ static int fm3_chip_erase(struct flash_bank *bank)
 	struct target *target = bank->target;
 	struct fm3_flash_bank *fm3_info2 = bank->driver_priv;
 	int retval = ERROR_OK;
-	uint32_t u32DummyRead;
-	uint32_t u32FlashType;
-	uint32_t u32FlashSeqAddress1;
-	uint32_t u32FlashSeqAddress2;
+	uint32_t u32_dummy_read;
+	uint32_t u32_flash_type;
+	uint32_t u32_flash_seq_address1;
+	uint32_t u32_flash_seq_address2;
 
 	struct working_area *write_algorithm;
 	struct reg_param reg_params[3];
 	struct armv7m_algorithm armv7m_info;
 
-	u32FlashType = (uint32_t) fm3_info2->flashtype;
+	u32_flash_type = (uint32_t) fm3_info2->flashtype;
 
-	if (u32FlashType == fm3_flash_type1) {
+	if (u32_flash_type == fm3_flash_type1) {
 		LOG_INFO("*** Erasing mb9bfxxx type");
-		u32FlashSeqAddress1 = 0x00001550;
-		u32FlashSeqAddress2 = 0x00000AA8;
-	} else if (u32FlashType == fm3_flash_type2) {
+		u32_flash_seq_address1 = 0x00001550;
+		u32_flash_seq_address2 = 0x00000AA8;
+	} else if (u32_flash_type == fm3_flash_type2) {
 		LOG_INFO("*** Erasing mb9afxxx type");
-		u32FlashSeqAddress1 = 0x00000AA8;
-		u32FlashSeqAddress2 = 0x00000554;
+		u32_flash_seq_address1 = 0x00000AA8;
+		u32_flash_seq_address2 = 0x00000554;
 	} else {
 		LOG_ERROR("Flash/Device type unknown!");
 		return ERROR_FLASH_OPERATION_FAILED;
@@ -891,7 +891,7 @@ static int fm3_chip_erase(struct flash_bank *bank)
 		return retval;
 
 	/* dummy read of FASZR */
-	retval = target_read_u32(target, 0x40000000, &u32DummyRead);
+	retval = target_read_u32(target, 0x40000000, &u32_dummy_read);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -909,11 +909,11 @@ static int fm3_chip_erase(struct flash_bank *bank)
 	armv7m_info.common_magic = ARMV7M_COMMON_MAGIC;
 	armv7m_info.core_mode = ARM_MODE_THREAD;
 
-	init_reg_param(&reg_params[0], "r0", 32, PARAM_OUT); /* u32FlashSeqAddress1 */
-	init_reg_param(&reg_params[1], "r1", 32, PARAM_OUT); /* u32FlashSeqAddress2 */
+	init_reg_param(&reg_params[0], "r0", 32, PARAM_OUT); /* u32_flash_seq_address1 */
+	init_reg_param(&reg_params[1], "r1", 32, PARAM_OUT); /* u32_flash_seq_address2 */
 
-	buf_set_u32(reg_params[0].value, 0, 32, u32FlashSeqAddress1);
-	buf_set_u32(reg_params[1].value, 0, 32, u32FlashSeqAddress2);
+	buf_set_u32(reg_params[0].value, 0, 32, u32_flash_seq_address1);
+	buf_set_u32(reg_params[1].value, 0, 32, u32_flash_seq_address2);
 
 	retval = target_run_algorithm(target, 0, NULL, 2, reg_params,
 			write_algorithm->address, 0, 100000, &armv7m_info);
@@ -928,7 +928,7 @@ static int fm3_chip_erase(struct flash_bank *bank)
 	destroy_reg_param(&reg_params[0]);
 	destroy_reg_param(&reg_params[1]);
 
-	retval = fm3_busy_wait(target, u32FlashSeqAddress2, 20000);	/* 20s timeout */
+	retval = fm3_busy_wait(target, u32_flash_seq_address2, 20000);	/* 20s timeout */
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -937,7 +937,7 @@ static int fm3_chip_erase(struct flash_bank *bank)
 	if (retval != ERROR_OK)
 		return retval;
 
-	retval = target_read_u32(target, 0x40000000, &u32DummyRead); /* dummy read of FASZR */
+	retval = target_read_u32(target, 0x40000000, &u32_dummy_read); /* dummy read of FASZR */
 
 	return retval;
 }
