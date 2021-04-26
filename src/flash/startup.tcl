@@ -6,6 +6,7 @@
 # optional args: verify, reset, exit and address
 #
 
+lappend _telnet_autocomplete_skip program_error
 proc program_error {description exit} {
 	if {$exit == 1} {
 		echo $description

@@ -119,6 +119,7 @@ proc jtag_ntrst_assert_width args {
 #
 # FIXME phase these aids out after some releases
 #
+lappend _telnet_autocomplete_skip jtag_reset
 proc jtag_reset args {
 	echo "DEPRECATED! use 'adapter \[de\]assert' not 'jtag_reset'"
 	switch $args {
@@ -135,51 +136,61 @@ proc jtag_reset args {
 	}
 }
 
+lappend _telnet_autocomplete_skip adapter_khz
 proc adapter_khz args {
 	echo "DEPRECATED! use 'adapter speed' not 'adapter_khz'"
 	eval adapter speed $args
 }
 
+lappend _telnet_autocomplete_skip adapter_name
 proc adapter_name args {
 	echo "DEPRECATED! use 'adapter name' not 'adapter_name'"
 	eval adapter name $args
 }
 
+lappend _telnet_autocomplete_skip adapter_nsrst_delay
 proc adapter_nsrst_delay args {
 	echo "DEPRECATED! use 'adapter srst delay' not 'adapter_nsrst_delay'"
 	eval adapter srst delay $args
 }
 
+lappend _telnet_autocomplete_skip adapter_nsrst_assert_width
 proc adapter_nsrst_assert_width args {
 	echo "DEPRECATED! use 'adapter srst pulse_width' not 'adapter_nsrst_assert_width'"
 	eval adapter srst pulse_width $args
 }
 
+lappend _telnet_autocomplete_skip interface
 proc interface args {
 	echo "DEPRECATED! use 'adapter driver' not 'interface'"
 	eval adapter driver $args
 }
 
+lappend _telnet_autocomplete_skip interface_transports
 proc  interface_transports args {
 	echo "DEPRECATED! use 'adapter transports' not 'interface_transports'"
 	eval adapter transports $args
 }
 
+lappend _telnet_autocomplete_skip interface_list
 proc  interface_list args {
 	echo "DEPRECATED! use 'adapter list' not 'interface_list'"
 	eval adapter list $args
 }
 
+lappend _telnet_autocomplete_skip ftdi_location
 proc ftdi_location args {
 	echo "DEPRECATED! use 'adapter usb location' not 'ftdi_location'"
 	eval adapter usb location $args
 }
 
+lappend _telnet_autocomplete_skip xds110_serial
 proc xds110_serial args {
 	echo "DEPRECATED! use 'xds110 serial' not 'xds110_serial'"
 	eval xds110 serial $args
 }
 
+lappend _telnet_autocomplete_skip xds110_supply_voltage
 proc xds110_supply_voltage args {
 	echo "DEPRECATED! use 'xds110 supply' not 'xds110_supply_voltage'"
 	eval xds110 supply $args
@@ -189,6 +200,7 @@ proc hla {cmd args} {
         tailcall "hla $cmd" {*}$args
 }
 
+lappend _telnet_autocomplete_skip "hla newtap"
 proc "hla newtap" {args} {
 	echo "DEPRECATED! use 'swj_newdap' not 'hla newtap'"
 	eval swj_newdap $args

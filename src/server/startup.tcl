@@ -9,6 +9,9 @@ proc ocd_gdb_restart {target_id} {
 	reset halt
 }
 
+lappend _telnet_autocomplete_skip prevent_cps
+lappend _telnet_autocomplete_skip POST
+lappend _telnet_autocomplete_skip Host:
 proc prevent_cps {} {
 	echo "Possible SECURITY ATTACK detected."
 	echo "It looks like somebody is sending POST or Host: commands to OpenOCD."
