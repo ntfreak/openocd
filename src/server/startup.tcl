@@ -19,3 +19,20 @@ proc prevent_cps {} {
 
 proc POST {args} { prevent_cps }
 proc Host: {args} { prevent_cps }
+
+# list of commands we don't want to appear in autocomplete
+lappend _telnet_autocomplete_skip _telnet_autocomplete_helper
+
+# helper for telnet autocomplete
+proc _telnet_autocomplete_helper pattern {
+	set cmds [info commands $pattern]
+
+	# skip matches in variable '_telnet_autocomplete_skip'
+	foreach skip $::_telnet_autocomplete_skip {
+		foreach n [lsearch -all -regexp $cmds "^$skip\$"] {
+			set cmds [lreplace $cmds $n $n]
+		}
+	}
+
+	return [lsort $cmds]
+}
