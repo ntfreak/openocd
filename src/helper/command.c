@@ -437,7 +437,11 @@ int unregister_commands_match(struct command_context *cmd_ctx, const char *forma
 			continue;
 		}
 		LOG_DEBUG("delete command \"%s\"", name);
+#if JIM_VERSION >= 80
 		Jim_DeleteCommand(interp, elem);
+#else
+		Jim_DeleteCommand(interp, name);
+#endif
 
 		help_del_command(cmd_ctx, name);
 
