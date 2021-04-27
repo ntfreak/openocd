@@ -47,7 +47,7 @@
 #define EID_SYSTEM_CALL			0x0b
 #define EID_MEMORY_MANAGEMENT	0x0c
 #define EID_UNRECOVERABLE		0x0d
-#define EID_INTERRUPTn			0x20
+#define EID_INTERRUPT_N			0x20
 
 /* Exception Entry Points */
 #define ENTRY_RESET				0x00
@@ -58,7 +58,7 @@
 #define ENTRY_SYSCALL			0x05
 #define ENTRY_DEBUG				0x06
 #define ENTRY_NMI				0x07
-#define ENTRY_INTERRUPTn		0x08
+#define ENTRY_INTERRUPT_N		0x08
 
 /* Hardware Debug Control */
 #define HWDC_R					(1<<4)	/* Reset & Hardware Failure */

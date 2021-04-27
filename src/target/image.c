@@ -123,7 +123,7 @@ static int identify_image_type(struct image *image, const char *type_string, con
 }
 
 static int image_ihex_buffer_complete_inner(struct image *image,
-	char *lpszLine,
+	char *lpsz_line,
 	struct imagesection *section)
 {
 	struct image_ihex *ihex = image->type_private;
@@ -152,7 +152,7 @@ static int image_ihex_buffer_complete_inner(struct image *image,
 		section[image->num_sections].size = 0x0;
 		section[image->num_sections].flags = 0;
 
-		while (fileio_fgets(fileio, 1023, lpszLine) == ERROR_OK) {
+		while (fileio_fgets(fileio, 1023, lpsz_line) == ERROR_OK) {
 			uint32_t count;
 			uint32_t address;
 			uint32_t record_type;
@@ -161,10 +161,10 @@ static int image_ihex_buffer_complete_inner(struct image *image,
 			size_t bytes_read = 0;
 
 			/* skip comments and blank lines */
-			if ((lpszLine[0] == '#') || (strlen(lpszLine + strspn(lpszLine, "\n\t\r ")) == 0))
+			if ((lpsz_line[0] == '#') || (strlen(lpsz_line + strspn(lpsz_line, "\n\t\r ")) == 0))
 				continue;
 
-			if (sscanf(&lpszLine[bytes_read], ":%2" SCNx32 "%4" SCNx32 "%2" SCNx32, &count,
+			if (sscanf(&lpsz_line[bytes_read], ":%2" SCNx32 "%4" SCNx32 "%2" SCNx32, &count,
 				&address, &record_type) != 3)
 				return ERROR_IMAGE_FORMAT_ERROR;
 			bytes_read += 9;
@@ -199,7 +199,7 @@ static int image_ihex_buffer_complete_inner(struct image *image,
 
 				while (count-- > 0) {
 					unsigned value;
-					sscanf(&lpszLine[bytes_read], "%2x", &value);
+					sscanf(&lpsz_line[bytes_read], "%2x", &value);
 					ihex->buffer[cooked_bytes] = (uint8_t)value;
 					cal_checksum += (uint8_t)ihex->buffer[cooked_bytes];
 					bytes_read += 2;
@@ -225,7 +225,7 @@ static int image_ihex_buffer_complete_inner(struct image *image,
 			} else if (record_type == 2) {	/* Linear Address Record */
 				uint16_t upper_address;
 
-				sscanf(&lpszLine[bytes_read], "%4hx", &upper_address);
+				sscanf(&lpsz_line[bytes_read], "%4hx", &upper_address);
 				cal_checksum += (uint8_t)(upper_address >> 8);
 				cal_checksum += (uint8_t)upper_address;
 				bytes_read += 4;
@@ -257,14 +257,14 @@ static int image_ihex_buffer_complete_inner(struct image *image,
 				/* "Start Segment Address Record" will not be supported
 				 * but we must consume it, and do not create an error.  */
 				while (count-- > 0) {
-					sscanf(&lpszLine[bytes_read], "%2" SCNx32, &dummy);
+					sscanf(&lpsz_line[bytes_read], "%2" SCNx32, &dummy);
 					cal_checksum += (uint8_t)dummy;
 					bytes_read += 2;
 				}
 			} else if (record_type == 4) {	/* Extended Linear Address Record */
 				uint16_t upper_address;
 
-				sscanf(&lpszLine[bytes_read], "%4hx", &upper_address);
+				sscanf(&lpsz_line[bytes_read], "%4hx", &upper_address);
 				cal_checksum += (uint8_t)(upper_address >> 8);
 				cal_checksum += (uint8_t)upper_address;
 				bytes_read += 4;
@@ -293,7 +293,7 @@ static int image_ihex_buffer_complete_inner(struct image *image,
 			} else if (record_type == 5) {	/* Start Linear Address Record */
 				uint32_t start_address;
 
-				sscanf(&lpszLine[bytes_read], "%8" SCNx32, &start_address);
+				sscanf(&lpsz_line[bytes_read], "%8" SCNx32, &start_address);
 				cal_checksum += (uint8_t)(start_address >> 24);
 				cal_checksum += (uint8_t)(start_address >> 16);
 				cal_checksum += (uint8_t)(start_address >> 8);
@@ -307,7 +307,7 @@ static int image_ihex_buffer_complete_inner(struct image *image,
 				return ERROR_IMAGE_FORMAT_ERROR;
 			}
 
-			sscanf(&lpszLine[bytes_read], "%2" SCNx32, &checksum);
+			sscanf(&lpsz_line[bytes_read], "%2" SCNx32, &checksum);
 
 			if ((uint8_t)checksum != (uint8_t)(~cal_checksum + 1)) {
 				/* checksum failed */
@@ -317,7 +317,7 @@ static int image_ihex_buffer_complete_inner(struct image *image,
 
 			if (end_rec) {
 				end_rec = false;
-				LOG_WARNING("continuing after end-of-file record: %.40s", lpszLine);
+				LOG_WARNING("continuing after end-of-file record: %.40s", lpsz_line);
 			}
 		}
 	}
@@ -336,23 +336,23 @@ static int image_ihex_buffer_complete_inner(struct image *image,
  */
 static int image_ihex_buffer_complete(struct image *image)
 {
-	char *lpszLine = malloc(1023);
-	if (lpszLine == NULL) {
+	char *lpsz_line = malloc(1023);
+	if (lpsz_line == NULL) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
 	struct imagesection *section = malloc(sizeof(struct imagesection) * IMAGE_MAX_SECTIONS);
 	if (section == NULL) {
-		free(lpszLine);
+		free(lpsz_line);
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
 	int retval;
 
-	retval = image_ihex_buffer_complete_inner(image, lpszLine, section);
+	retval = image_ihex_buffer_complete_inner(image, lpsz_line, section);
 
 	free(section);
-	free(lpszLine);
+	free(lpsz_line);
 
 	return retval;
 }
@@ -755,7 +755,7 @@ static int image_elf_read_section(struct image *image,
 }
 
 static int image_mot_buffer_complete_inner(struct image *image,
-	char *lpszLine,
+	char *lpsz_line,
 	struct imagesection *section)
 {
 	struct image_mot *mot = image->type_private;
@@ -784,7 +784,7 @@ static int image_mot_buffer_complete_inner(struct image *image,
 		section[image->num_sections].size = 0x0;
 		section[image->num_sections].flags = 0;
 
-		while (fileio_fgets(fileio, 1023, lpszLine) == ERROR_OK) {
+		while (fileio_fgets(fileio, 1023, lpsz_line) == ERROR_OK) {
 			uint32_t count;
 			uint32_t address;
 			uint32_t record_type;
@@ -793,11 +793,11 @@ static int image_mot_buffer_complete_inner(struct image *image,
 			uint32_t bytes_read = 0;
 
 			/* skip comments and blank lines */
-			if ((lpszLine[0] == '#') || (strlen(lpszLine + strspn(lpszLine, "\n\t\r ")) == 0))
+			if ((lpsz_line[0] == '#') || (strlen(lpsz_line + strspn(lpsz_line, "\n\t\r ")) == 0))
 				continue;
 
 			/* get record type and record length */
-			if (sscanf(&lpszLine[bytes_read], "S%1" SCNx32 "%2" SCNx32, &record_type,
+			if (sscanf(&lpsz_line[bytes_read], "S%1" SCNx32 "%2" SCNx32, &record_type,
 				&count) != 2)
 				return ERROR_IMAGE_FORMAT_ERROR;
 
@@ -809,18 +809,18 @@ static int image_mot_buffer_complete_inner(struct image *image,
 
 			if (record_type == 0) {
 				/* S0 - starting record (optional) */
-				int iValue;
+				int value;
 
 				while (count-- > 0) {
-					sscanf(&lpszLine[bytes_read], "%2x", &iValue);
-					cal_checksum += (uint8_t)iValue;
+					sscanf(&lpsz_line[bytes_read], "%2x", &value);
+					cal_checksum += (uint8_t)value;
 					bytes_read += 2;
 				}
 			} else if (record_type >= 1 && record_type <= 3) {
 				switch (record_type) {
 					case 1:
 						/* S1 - 16 bit address data record */
-						sscanf(&lpszLine[bytes_read], "%4" SCNx32, &address);
+						sscanf(&lpsz_line[bytes_read], "%4" SCNx32, &address);
 						cal_checksum += (uint8_t)(address >> 8);
 						cal_checksum += (uint8_t)address;
 						bytes_read += 4;
@@ -829,7 +829,7 @@ static int image_mot_buffer_complete_inner(struct image *image,
 
 					case 2:
 						/* S2 - 24 bit address data record */
-						sscanf(&lpszLine[bytes_read], "%6" SCNx32, &address);
+						sscanf(&lpsz_line[bytes_read], "%6" SCNx32, &address);
 						cal_checksum += (uint8_t)(address >> 16);
 						cal_checksum += (uint8_t)(address >> 8);
 						cal_checksum += (uint8_t)address;
@@ -839,7 +839,7 @@ static int image_mot_buffer_complete_inner(struct image *image,
 
 					case 3:
 						/* S3 - 32 bit address data record */
-						sscanf(&lpszLine[bytes_read], "%8" SCNx32, &address);
+						sscanf(&lpsz_line[bytes_read], "%8" SCNx32, &address);
 						cal_checksum += (uint8_t)(address >> 24);
 						cal_checksum += (uint8_t)(address >> 16);
 						cal_checksum += (uint8_t)(address >> 8);
@@ -868,7 +868,7 @@ static int image_mot_buffer_complete_inner(struct image *image,
 
 				while (count-- > 0) {
 					unsigned value;
-					sscanf(&lpszLine[bytes_read], "%2x", &value);
+					sscanf(&lpsz_line[bytes_read], "%2x", &value);
 					mot->buffer[cooked_bytes] = (uint8_t)value;
 					cal_checksum += (uint8_t)mot->buffer[cooked_bytes];
 					bytes_read += 2;
@@ -881,7 +881,7 @@ static int image_mot_buffer_complete_inner(struct image *image,
 				uint32_t dummy;
 
 				while (count-- > 0) {
-					sscanf(&lpszLine[bytes_read], "%2" SCNx32, &dummy);
+					sscanf(&lpsz_line[bytes_read], "%2" SCNx32, &dummy);
 					cal_checksum += (uint8_t)dummy;
 					bytes_read += 2;
 				}
@@ -906,7 +906,7 @@ static int image_mot_buffer_complete_inner(struct image *image,
 			}
 
 			/* account for checksum, will always be 0xFF */
-			sscanf(&lpszLine[bytes_read], "%2" SCNx32, &checksum);
+			sscanf(&lpsz_line[bytes_read], "%2" SCNx32, &checksum);
 			cal_checksum += (uint8_t)checksum;
 
 			if (cal_checksum != 0xFF) {
@@ -917,7 +917,7 @@ static int image_mot_buffer_complete_inner(struct image *image,
 
 			if (end_rec) {
 				end_rec = false;
-				LOG_WARNING("continuing after end-of-file record: %.40s", lpszLine);
+				LOG_WARNING("continuing after end-of-file record: %.40s", lpsz_line);
 			}
 		}
 	}
@@ -936,23 +936,23 @@ static int image_mot_buffer_complete_inner(struct image *image,
  */
 static int image_mot_buffer_complete(struct image *image)
 {
-	char *lpszLine = malloc(1023);
-	if (lpszLine == NULL) {
+	char *lpsz_line = malloc(1023);
+	if (lpsz_line == NULL) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
 	struct imagesection *section = malloc(sizeof(struct imagesection) * IMAGE_MAX_SECTIONS);
 	if (section == NULL) {
-		free(lpszLine);
+		free(lpsz_line);
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
 	int retval;
 
-	retval = image_mot_buffer_complete_inner(image, lpszLine, section);
+	retval = image_mot_buffer_complete_inner(image, lpsz_line, section);
 
 	free(section);
-	free(lpszLine);
+	free(lpsz_line);
 
 	return retval;
 }

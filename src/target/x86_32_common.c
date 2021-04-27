@@ -472,10 +472,10 @@ int calcaddr_physfromlin(struct target *t, target_addr_t addr, target_addr_t *ph
 	}
 
 	uint32_t cr4 = buf_get_u32(x86_32->cache->reg_list[CR4].value, 0, 32);
-	bool isPAE = cr4 & 0x00000020; /* PAE - Physical Address Extension */
+	bool is_pae = cr4 & 0x00000020; /* PAE - Physical Address Extension */
 
 	uint32_t cr3 = buf_get_u32(x86_32->cache->reg_list[CR3].value, 0, 32);
-	if (isPAE) {
+	if (is_pae) {
 		uint32_t pdpt_base = cr3 & 0xFFFFF000; /* lower 12 bits of CR3 must always be 0 */
 		uint32_t pdpt_index = (addr & 0xC0000000) >> 30; /* A[31:30] index to PDPT */
 		uint32_t pdpt_addr = pdpt_base + (8 * pdpt_index);

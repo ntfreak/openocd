@@ -96,10 +96,10 @@
 /*
  * OBCR Register bit definitions
  */
-#define OBCR_b0_and_b1            ((0x0) << 10)
-#define OBCR_b0_or_b1             ((0x1) << 10)
-#define OBCR_b1_after_b0          ((0x2) << 10)
-#define OBCR_b0_after_b1          ((0x3) << 10)
+#define OBCR_B0_AND_B1            ((0x0) << 10)
+#define OBCR_B0_OR_B1             ((0x1) << 10)
+#define OBCR_B1_AFTER_B0          ((0x2) << 10)
+#define OBCR_B0_AFTER_B1          ((0x3) << 10)
 
 #define OBCR_BP_DISABLED          (0x0)
 #define OBCR_BP_MEM_P             (0x1)
@@ -1885,17 +1885,17 @@ static int dsp563xx_remove_watchpoint(struct target *target, struct watchpoint *
 	return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 }
 
-static int dsp563xx_add_custom_watchpoint(struct target *target, uint32_t address, uint32_t memType,
+static int dsp563xx_add_custom_watchpoint(struct target *target, uint32_t address, uint32_t mem_type,
 		enum watchpoint_rw rw, enum watchpoint_condition cond)
 {
 	int err = ERROR_OK;
 	struct dsp563xx_common *dsp563xx = target_to_dsp563xx(target);
 
-	bool wasRunning = false;
+	bool was_running = false;
 	/* Only set breakpoint when halted */
 	if (target->state != TARGET_HALTED) {
 		dsp563xx_halt(target);
-		wasRunning = true;
+		was_running = true;
 	}
 
 	if (dsp563xx->hardware_breakpoint[0].used) {
@@ -1905,8 +1905,8 @@ static int dsp563xx_add_custom_watchpoint(struct target *target, uint32_t addres
 
 	uint32_t obcr_value = 0;
 	if	(err == ERROR_OK) {
-		obcr_value |= OBCR_b0_or_b1;
-		switch (memType) {
+		obcr_value |= OBCR_B0_OR_B1;
+		switch (mem_type) {
 			case MEM_X:
 				obcr_value |= OBCR_BP_MEM_X;
 				break;
@@ -1917,7 +1917,7 @@ static int dsp563xx_add_custom_watchpoint(struct target *target, uint32_t addres
 				obcr_value |= OBCR_BP_MEM_P;
 				break;
 			default:
-				LOG_ERROR("Unknown memType parameter (%" PRIu32 ")", memType);
+				LOG_ERROR("Unknown mem_type parameter (%" PRIu32 ")", mem_type);
 				err = ERROR_TARGET_INVALID;
 		}
 	}
@@ -1981,7 +1981,7 @@ static int dsp563xx_add_custom_watchpoint(struct target *target, uint32_t addres
 	if (err == ERROR_OK)
 		dsp563xx->hardware_breakpoint[0].used = BPU_WATCHPOINT;
 
-	if (err == ERROR_OK && wasRunning) {
+	if (err == ERROR_OK && was_running) {
 		/* Resume from current PC */
 		err = dsp563xx_resume(target, 1, 0x0, 0, 0);
 	}

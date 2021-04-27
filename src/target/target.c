@@ -2884,57 +2884,57 @@ COMMAND_HANDLER(handle_targets_command)
 
 /* every 300ms we check for reset & powerdropout and issue a "reset halt" if so. */
 
-static int powerDropout;
-static int srstAsserted;
+static int power_dropout;
+static int srst_asserted;
 
-static int runPowerRestore;
-static int runPowerDropout;
-static int runSrstAsserted;
-static int runSrstDeasserted;
+static int run_power_restore;
+static int run_power_dropout;
+static int run_srst_asserted;
+static int run_srst_deasserted;
 
 static int sense_handler(void)
 {
-	static int prevSrstAsserted;
-	static int prevPowerdropout;
+	static int prev_srst_asserted;
+	static int prev_power_dropout;
 
-	int retval = jtag_power_dropout(&powerDropout);
+	int retval = jtag_power_dropout(&power_dropout);
 	if (retval != ERROR_OK)
 		return retval;
 
-	int powerRestored;
-	powerRestored = prevPowerdropout && !powerDropout;
-	if (powerRestored)
-		runPowerRestore = 1;
+	int power_restored;
+	power_restored = prev_power_dropout && !power_dropout;
+	if (power_restored)
+		run_power_restore = 1;
 
 	int64_t current = timeval_ms();
-	static int64_t lastPower;
-	bool waitMore = lastPower + 2000 > current;
-	if (powerDropout && !waitMore) {
-		runPowerDropout = 1;
-		lastPower = current;
+	static int64_t last_power;
+	bool wait_more = last_power + 2000 > current;
+	if (power_dropout && !wait_more) {
+		run_power_dropout = 1;
+		last_power = current;
 	}
 
-	retval = jtag_srst_asserted(&srstAsserted);
+	retval = jtag_srst_asserted(&srst_asserted);
 	if (retval != ERROR_OK)
 		return retval;
 
-	int srstDeasserted;
-	srstDeasserted = prevSrstAsserted && !srstAsserted;
+	int srst_deasserted;
+	srst_deasserted = prev_srst_asserted && !srst_asserted;
 
-	static int64_t lastSrst;
-	waitMore = lastSrst + 2000 > current;
-	if (srstDeasserted && !waitMore) {
-		runSrstDeasserted = 1;
-		lastSrst = current;
+	static int64_t last_srst;
+	wait_more = last_srst + 2000 > current;
+	if (srst_deasserted && !wait_more) {
+		run_srst_deasserted = 1;
+		last_srst = current;
 	}
 
-	if (!prevSrstAsserted && srstAsserted)
-		runSrstAsserted = 1;
+	if (!prev_srst_asserted && srst_asserted)
+		run_srst_asserted = 1;
 
-	prevSrstAsserted = srstAsserted;
-	prevPowerdropout = powerDropout;
+	prev_srst_asserted = srst_asserted;
+	prev_power_dropout = power_dropout;
 
-	if (srstDeasserted || powerRestored) {
+	if (srst_deasserted || power_restored) {
 		/* Other than logging the event we can't do anything here.
 		 * Issuing a reset is a particularly bad idea as we might
 		 * be inside a reset already.
@@ -2965,21 +2965,21 @@ static int handle_target(void *priv)
 		 * clearing the flags after running these events.
 		 */
 		int did_something = 0;
-		if (runSrstAsserted) {
+		if (run_srst_asserted) {
 			LOG_INFO("srst asserted detected, running srst_asserted proc.");
 			Jim_Eval(interp, "srst_asserted");
 			did_something = 1;
 		}
-		if (runSrstDeasserted) {
+		if (run_srst_deasserted) {
 			Jim_Eval(interp, "srst_deasserted");
 			did_something = 1;
 		}
-		if (runPowerDropout) {
+		if (run_power_dropout) {
 			LOG_INFO("Power dropout detected, running power_dropout proc.");
 			Jim_Eval(interp, "power_dropout");
 			did_something = 1;
 		}
-		if (runPowerRestore) {
+		if (run_power_restore) {
 			Jim_Eval(interp, "power_restore");
 			did_something = 1;
 		}
@@ -2991,10 +2991,10 @@ static int handle_target(void *priv)
 
 		/* clear action flags */
 
-		runSrstAsserted = 0;
-		runSrstDeasserted = 0;
-		runPowerRestore = 0;
-		runPowerDropout = 0;
+		run_srst_asserted = 0;
+		run_srst_deasserted = 0;
+		run_power_restore = 0;
+		run_power_dropout = 0;
 
 		recursive = 0;
 	}
@@ -3020,7 +3020,7 @@ static int handle_target(void *priv)
 		target->backoff.count = 0;
 
 		/* only poll target if we've got power and srst isn't asserted */
-		if (!powerDropout && !srstAsserted) {
+		if (!power_dropout && !srst_asserted) {
 			/* polling may fail silently until the target has been examined */
 			retval = target_poll(target);
 			if (retval != ERROR_OK) {
@@ -3596,7 +3596,7 @@ COMMAND_HANDLER(handle_mw_command)
 	return target_fill_mem(target, address, fn, wordsize, value, count);
 }
 
-static COMMAND_HELPER(parse_load_image_command_CMD_ARGV, struct image *image,
+static COMMAND_HELPER(parse_load_image_command, struct image *image,
 		target_addr_t *min_address, target_addr_t *max_address)
 {
 	if (CMD_ARGC < 1 || CMD_ARGC > 5)
@@ -3637,7 +3637,7 @@ COMMAND_HANDLER(handle_load_image_command)
 	target_addr_t max_address = -1;
 	struct image image;
 
-	int retval = CALL_COMMAND_HANDLER(parse_load_image_command_CMD_ARGV,
+	int retval = CALL_COMMAND_HANDLER(parse_load_image_command,
 			&image, &min_address, &max_address);
 	if (ERROR_OK != retval)
 		return retval;
@@ -4166,44 +4166,44 @@ COMMAND_HANDLER(handle_virt2phys_command)
 	return retval;
 }
 
-static void writeData(FILE *f, const void *data, size_t len)
+static void write_data(FILE *f, const void *data, size_t len)
 {
 	size_t written = fwrite(data, 1, len, f);
 	if (written != len)
 		LOG_ERROR("failed to write %zu bytes: %s", len, strerror(errno));
 }
 
-static void writeLong(FILE *f, int l, struct target *target)
+static void write_long(FILE *f, int l, struct target *target)
 {
 	uint8_t val[4];
 
 	target_buffer_set_u32(target, val, l);
-	writeData(f, val, 4);
+	write_data(f, val, 4);
 }
 
-static void writeString(FILE *f, char *s)
+static void write_string(FILE *f, char *s)
 {
-	writeData(f, s, strlen(s));
+	write_data(f, s, strlen(s));
 }
 
 typedef unsigned char UNIT[2];  /* unit of profiling */
 
 /* Dump a gmon.out histogram file. */
-static void write_gmon(uint32_t *samples, uint32_t sampleNum, const char *filename, bool with_range,
+static void write_gmon(uint32_t *samples, uint32_t sample_num, const char *filename, bool with_range,
 			uint32_t start_address, uint32_t end_address, struct target *target, uint32_t duration_ms)
 {
 	uint32_t i;
 	FILE *f = fopen(filename, "w");
 	if (f == NULL)
 		return;
-	writeString(f, "gmon");
-	writeLong(f, 0x00000001, target); /* Version */
-	writeLong(f, 0, target); /* padding */
-	writeLong(f, 0, target); /* padding */
-	writeLong(f, 0, target); /* padding */
+	write_string(f, "gmon");
+	write_long(f, 0x00000001, target); /* Version */
+	write_long(f, 0, target); /* padding */
+	write_long(f, 0, target); /* padding */
+	write_long(f, 0, target); /* padding */
 
 	uint8_t zero = 0;  /* GMON_TAG_TIME_HIST */
-	writeData(f, &zero, 1);
+	write_data(f, &zero, 1);
 
 	/* figure out bucket size */
 	uint32_t min;
@@ -4214,7 +4214,7 @@ static void write_gmon(uint32_t *samples, uint32_t sampleNum, const char *filena
 	} else {
 		min = samples[0];
 		max = samples[0];
-		for (i = 0; i < sampleNum; i++) {
+		for (i = 0; i < sample_num; i++) {
 			if (min > samples[i])
 				min = samples[i];
 			if (max < samples[i])
@@ -4226,50 +4226,50 @@ static void write_gmon(uint32_t *samples, uint32_t sampleNum, const char *filena
 		max++;
 	}
 
-	int addressSpace = max - min;
-	assert(addressSpace >= 2);
+	int address_space = max - min;
+	assert(address_space >= 2);
 
 	/* FIXME: What is the reasonable number of buckets?
 	 * The profiling result will be more accurate if there are enough buckets. */
-	static const uint32_t maxBuckets = 128 * 1024; /* maximum buckets. */
-	uint32_t numBuckets = addressSpace / sizeof(UNIT);
-	if (numBuckets > maxBuckets)
-		numBuckets = maxBuckets;
-	int *buckets = malloc(sizeof(int) * numBuckets);
+	static const uint32_t max_buckets = 128 * 1024; /* maximum buckets. */
+	uint32_t num_buckets = address_space / sizeof(UNIT);
+	if (num_buckets > max_buckets)
+		num_buckets = max_buckets;
+	int *buckets = malloc(sizeof(int) * num_buckets);
 	if (buckets == NULL) {
 		fclose(f);
 		return;
 	}
-	memset(buckets, 0, sizeof(int) * numBuckets);
-	for (i = 0; i < sampleNum; i++) {
+	memset(buckets, 0, sizeof(int) * num_buckets);
+	for (i = 0; i < sample_num; i++) {
 		uint32_t address = samples[i];
 
 		if ((address < min) || (max <= address))
 			continue;
 
 		long long a = address - min;
-		long long b = numBuckets;
-		long long c = addressSpace;
+		long long b = num_buckets;
+		long long c = address_space;
 		int index_t = (a * b) / c; /* danger!!!! int32 overflows */
 		buckets[index_t]++;
 	}
 
 	/* append binary memory gmon.out &profile_hist_hdr ((char*)&profile_hist_hdr + sizeof(struct gmon_hist_hdr)) */
-	writeLong(f, min, target);			/* low_pc */
-	writeLong(f, max, target);			/* high_pc */
-	writeLong(f, numBuckets, target);	/* # of buckets */
-	float sample_rate = sampleNum / (duration_ms / 1000.0);
-	writeLong(f, sample_rate, target);
-	writeString(f, "seconds");
+	write_long(f, min, target);			/* low_pc */
+	write_long(f, max, target);			/* high_pc */
+	write_long(f, num_buckets, target);	/* # of buckets */
+	float sample_rate = sample_num / (duration_ms / 1000.0);
+	write_long(f, sample_rate, target);
+	write_string(f, "seconds");
 	for (i = 0; i < (15-strlen("seconds")); i++)
-		writeData(f, &zero, 1);
-	writeString(f, "s");
+		write_data(f, &zero, 1);
+	write_string(f, "s");
 
 	/*append binary memory gmon.out profile_hist_data (profile_hist_data + profile_hist_hdr.hist_size) */
 
-	char *data = malloc(2 * numBuckets);
+	char *data = malloc(2 * num_buckets);
 	if (data != NULL) {
-		for (i = 0; i < numBuckets; i++) {
+		for (i = 0; i < num_buckets; i++) {
 			int val;
 			val = buckets[i];
 			if (val > 65535)
@@ -4278,7 +4278,7 @@ static void write_gmon(uint32_t *samples, uint32_t sampleNum, const char *filena
 			data[i * 2 + 1] = (val >> 8) & 0xff;
 		}
 		free(buckets);
-		writeData(f, data, numBuckets * 2);
+		write_data(f, data, num_buckets * 2);
 		free(data);
 	} else
 		free(buckets);
@@ -4375,25 +4375,25 @@ COMMAND_HANDLER(handle_profile_command)
 static int new_int_array_element(Jim_Interp *interp, const char *varname, int idx, uint32_t val)
 {
 	char *namebuf;
-	Jim_Obj *nameObjPtr, *valObjPtr;
+	Jim_Obj *obj_name, *obj_val;
 	int result;
 
 	namebuf = alloc_printf("%s(%d)", varname, idx);
 	if (!namebuf)
 		return JIM_ERR;
 
-	nameObjPtr = Jim_NewStringObj(interp, namebuf, -1);
-	valObjPtr = Jim_NewIntObj(interp, val);
-	if (!nameObjPtr || !valObjPtr) {
+	obj_name = Jim_NewStringObj(interp, namebuf, -1);
+	obj_val = Jim_NewIntObj(interp, val);
+	if (!obj_name || !obj_val) {
 		free(namebuf);
 		return JIM_ERR;
 	}
 
-	Jim_IncrRefCount(nameObjPtr);
-	Jim_IncrRefCount(valObjPtr);
-	result = Jim_SetVariable(interp, nameObjPtr, valObjPtr);
-	Jim_DecrRefCount(interp, nameObjPtr);
-	Jim_DecrRefCount(interp, valObjPtr);
+	Jim_IncrRefCount(obj_name);
+	Jim_IncrRefCount(obj_val);
+	result = Jim_SetVariable(interp, obj_name, obj_val);
+	Jim_DecrRefCount(interp, obj_name);
+	Jim_DecrRefCount(interp, obj_val);
 	free(namebuf);
 	/* printf("%s(%d) <= 0%08x\n", varname, idx, val); */
 	return result;
@@ -4574,7 +4574,7 @@ static int target_mem2array(Jim_Interp *interp, struct target *target, int argc,
 static int get_int_array_element(Jim_Interp *interp, const char *varname, int idx, uint32_t *val)
 {
 	char *namebuf;
-	Jim_Obj *nameObjPtr, *valObjPtr;
+	Jim_Obj *obj_name, *obj_val;
 	int result;
 	long l;
 
@@ -4582,20 +4582,20 @@ static int get_int_array_element(Jim_Interp *interp, const char *varname, int id
 	if (!namebuf)
 		return JIM_ERR;
 
-	nameObjPtr = Jim_NewStringObj(interp, namebuf, -1);
-	if (!nameObjPtr) {
+	obj_name = Jim_NewStringObj(interp, namebuf, -1);
+	if (!obj_name) {
 		free(namebuf);
 		return JIM_ERR;
 	}
 
-	Jim_IncrRefCount(nameObjPtr);
-	valObjPtr = Jim_GetVariable(interp, nameObjPtr, JIM_ERRMSG);
-	Jim_DecrRefCount(interp, nameObjPtr);
+	Jim_IncrRefCount(obj_name);
+	obj_val = Jim_GetVariable(interp, obj_name, JIM_ERRMSG);
+	Jim_DecrRefCount(interp, obj_name);
 	free(namebuf);
-	if (valObjPtr == NULL)
+	if (obj_val == NULL)
 		return JIM_ERR;
 
-	result = Jim_GetLong(interp, valObjPtr, &l);
+	result = Jim_GetLong(interp, obj_val, &l);
 	/* printf("%s(%d) => 0%08x\n", varname, idx, val); */
 	*val = l;
 	return result;
@@ -5450,11 +5450,11 @@ static int jim_target_wait_state(Jim_Interp *interp, int argc, Jim_Obj *const *a
 
 	e = target_wait_state(target, n->value, a);
 	if (e != ERROR_OK) {
-		Jim_Obj *eObj = Jim_NewIntObj(interp, e);
+		Jim_Obj *obj = Jim_NewIntObj(interp, e);
 		Jim_SetResultFormatted(goi.interp,
 				"target: %s wait %s fails (%#s) %s",
 				target_name(target), n->name,
-				eObj, target_strerror_safe(e));
+				obj, target_strerror_safe(e));
 		return JIM_ERR;
 	}
 	return JIM_OK;
@@ -6063,7 +6063,7 @@ static const struct command_registration target_subcommand_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-struct FastLoad {
+struct fast_load {
 	target_addr_t address;
 	uint8_t *data;
 	int length;
@@ -6071,7 +6071,7 @@ struct FastLoad {
 };
 
 static int fastload_num;
-static struct FastLoad *fastload;
+static struct fast_load *fastload;
 
 static void free_fastload(void)
 {
@@ -6093,7 +6093,7 @@ COMMAND_HANDLER(handle_fast_load_image_command)
 
 	struct image image;
 
-	int retval = CALL_COMMAND_HANDLER(parse_load_image_command_CMD_ARGV,
+	int retval = CALL_COMMAND_HANDLER(parse_load_image_command,
 			&image, &min_address, &max_address);
 	if (ERROR_OK != retval)
 		return retval;
@@ -6108,13 +6108,13 @@ COMMAND_HANDLER(handle_fast_load_image_command)
 	image_size = 0x0;
 	retval = ERROR_OK;
 	fastload_num = image.num_sections;
-	fastload = malloc(sizeof(struct FastLoad)*image.num_sections);
+	fastload = malloc(sizeof(struct fast_load)*image.num_sections);
 	if (fastload == NULL) {
 		command_print(CMD, "out of memory");
 		image_close(&image);
 		return ERROR_FAIL;
 	}
-	memset(fastload, 0, sizeof(struct FastLoad)*image.num_sections);
+	memset(fastload, 0, sizeof(struct fast_load)*image.num_sections);
 	for (unsigned int i = 0; i < image.num_sections; i++) {
 		buffer = malloc(image.sections[i].size);
 		if (buffer == NULL) {

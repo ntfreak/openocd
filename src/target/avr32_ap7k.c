@@ -526,7 +526,7 @@ static int avr32_ap7k_target_create(struct target *target, Jim_Interp *interp)
 	struct avr32_ap7k_common *ap7k = calloc(1, sizeof(struct
 			avr32_ap7k_common));
 
-	ap7k->common_magic = AP7k_COMMON_MAGIC;
+	ap7k->common_magic = AP7K_COMMON_MAGIC;
 	target->arch_info = ap7k;
 
 	return ERROR_OK;
