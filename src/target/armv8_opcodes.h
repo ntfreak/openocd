@@ -26,13 +26,13 @@
 #define SYSTEM_CUREL_NONCH		0xF
 #define SYSTEM_AARCH64			0x1
 
-#define SYSTEM_AAR64_MODE_EL0t	0x0
-#define SYSTEM_AAR64_MODE_EL1t	0x4
-#define SYSTEM_AAR64_MODE_EL1h	0x5
-#define SYSTEM_AAR64_MODE_EL2t	0x8
-#define SYSTEM_AAR64_MODE_EL2h	0x9
-#define SYSTEM_AAR64_MODE_EL3t	0xC
-#define SYSTEM_AAR64_MODE_EL3h	0xd
+#define SYSTEM_AAR64_MODE_EL0T	0x0
+#define SYSTEM_AAR64_MODE_EL1T	0x4
+#define SYSTEM_AAR64_MODE_EL1H	0x5
+#define SYSTEM_AAR64_MODE_EL2T	0x8
+#define SYSTEM_AAR64_MODE_EL2H	0x9
+#define SYSTEM_AAR64_MODE_EL3T	0xC
+#define SYSTEM_AAR64_MODE_EL3H	0xd
 
 #define SYSTEM_DAIF			0b1101101000010001
 #define SYSTEM_DAIF_MASK		0x3C0
@@ -109,26 +109,26 @@
 #define SYSTEM_ESR_EL2			0b1110001010010000
 #define SYSTEM_ESR_EL3			0b1111001010010000
 
-#define ARMV8_MRS_DSPSR(Rt)	(0xd53b4500 | (Rt))
-#define ARMV8_MSR_DSPSR(Rt)	(0xd51b4500 | (Rt))
-#define ARMV8_MRS_DLR(Rt)	(0xd53b4520 | (Rt))
-#define ARMV8_MSR_DLR(Rt)	(0xd51b4520 | (Rt))
+#define ARMV8_MRS_DSPSR(rt)	(0xd53b4500 | (rt))
+#define ARMV8_MSR_DSPSR(rt)	(0xd51b4500 | (rt))
+#define ARMV8_MRS_DLR(rt)	(0xd53b4520 | (rt))
+#define ARMV8_MSR_DLR(rt)	(0xd51b4520 | (rt))
 
 /* T32 instruction to access coprocessor registers */
-#define ARMV8_MCR_T1(cp, CRn, opc1, CRm, opc2, Rt) ARMV4_5_MCR(cp, opc1, Rt, CRn, CRm, opc2)
-#define ARMV8_MRC_T1(cp, CRn, opc1, CRm, opc2, Rt) ARMV4_5_MRC(cp, opc1, Rt, CRn, CRm, opc2)
+#define ARMV8_MCR_T1(cp, crn, opc1, crm, opc2, rt) ARMV4_5_MCR(cp, opc1, rt, crn, crm, opc2)
+#define ARMV8_MRC_T1(cp, crn, opc1, crm, opc2, rt) ARMV4_5_MRC(cp, opc1, rt, crn, crm, opc2)
 
 /* T32 instructions to access DSPSR and DLR */
-#define ARMV8_MRC_DSPSR(Rt) ARMV8_MRC_T1(15, 4, 3, 5, 0, Rt)
-#define ARMV8_MCR_DSPSR(Rt) ARMV8_MCR_T1(15, 4, 3, 5, 0, Rt)
-#define ARMV8_MRC_DLR(Rt)	ARMV8_MRC_T1(15, 4, 3, 5, 1, Rt)
-#define ARMV8_MCR_DLR(Rt)	ARMV8_MCR_T1(15, 4, 3, 5, 1, Rt)
+#define ARMV8_MRC_DSPSR(rt) ARMV8_MRC_T1(15, 4, 3, 5, 0, rt)
+#define ARMV8_MCR_DSPSR(rt) ARMV8_MCR_T1(15, 4, 3, 5, 0, rt)
+#define ARMV8_MRC_DLR(rt)	ARMV8_MRC_T1(15, 4, 3, 5, 1, rt)
+#define ARMV8_MCR_DLR(rt)	ARMV8_MCR_T1(15, 4, 3, 5, 1, rt)
 
-#define ARMV8_DCPS1(IM)		(0xd4a00001 | (((IM) & 0xFFFF) << 5))
-#define ARMV8_DCPS2(IM)		(0xd4a00002 | (((IM) & 0xFFFF) << 5))
-#define ARMV8_DCPS3(IM)		(0xd4a00003 | (((IM) & 0xFFFF) << 5))
-#define ARMV8_DCPS(EL, IM)	(0xd4a00000 | (((IM) & 0xFFFF) << 5) | EL)
-#define ARMV8_DCPS_T1(EL)	(0xf78f8000 | EL)
+#define ARMV8_DCPS1(im)		(0xd4a00001 | (((im) & 0xFFFF) << 5))
+#define ARMV8_DCPS2(im)		(0xd4a00002 | (((im) & 0xFFFF) << 5))
+#define ARMV8_DCPS3(im)		(0xd4a00003 | (((im) & 0xFFFF) << 5))
+#define ARMV8_DCPS(el, im)	(0xd4a00000 | (((im) & 0xFFFF) << 5) | el)
+#define ARMV8_DCPS_T1(el)	(0xf78f8000 | el)
 #define ARMV8_DRPS		0xd6bf03e0
 #define ARMV8_ERET_T1		0xf3de8f00
 
@@ -137,54 +137,54 @@
 #define ARMV8_ISB				0xd5033fdf
 #define ARMV8_ISB_SY_T1				0xf3bf8f6f
 
-#define ARMV8_MRS(System, Rt)	(0xd5300000 | ((System) << 5) | (Rt))
+#define ARMV8_MRS(system, rt)	(0xd5300000 | ((system) << 5) | (rt))
 /* ARM V8 Move to system register. */
-#define ARMV8_MSR_GP(System, Rt) \
-	(0xd5100000 | ((System) << 5) | (Rt))
+#define ARMV8_MSR_GP(system, rt) \
+	(0xd5100000 | ((system) << 5) | (rt))
 /* ARM V8 Move immediate to process state field. */
-#define ARMV8_MSR_IM(Op1, CRm, Op2) \
-	(0xd500401f | ((Op1) << 16)  | ((CRm) << 8) | ((Op2) << 5))
+#define ARMV8_MSR_IM(op1, crm, op2) \
+	(0xd500401f | ((op1) << 16)  | ((crm) << 8) | ((op2) << 5))
 
-#define ARMV8_MRS_T1(R, M1, Rd, M) (0xF3E08020 | (R << 20) | (M1 << 16) | (Rd << 8) | (M << 4))
-#define ARMV8_MRS_xPSR_T1(R, Rd) (0xF3EF8000 | (R << 20) | (Rd << 8))
-#define ARMV8_MSR_GP_T1(R, M1, Rd, M) (0xF3808020 | (R << 20) | (M1 << 8) | (Rd << 16) | (M << 4))
-#define ARMV8_MSR_GP_xPSR_T1(R, Rn, mask) (0xF3808000 | (R << 20) | (Rn << 16) | (mask << 8))
+#define ARMV8_MRS_T1(r, m1, rd, m) (0xF3E08020 | (r << 20) | (m1 << 16) | (rd << 8) | (m << 4))
+#define ARMV8_MRS_xPSR_T1(r, rd) (0xF3EF8000 | (r << 20) | (rd << 8))
+#define ARMV8_MSR_GP_T1(r, m1, rd, m) (0xF3808020 | (r << 20) | (m1 << 8) | (rd << 16) | (m << 4))
+#define ARMV8_MSR_GP_xPSR_T1(r, rn, mask) (0xF3808000 | (r << 20) | (rn << 16) | (mask << 8))
 
-#define ARMV8_BKPT(Im) (0xD4200000 | ((Im & 0xffff) << 5))
-#define ARMV8_HLT(Im) (0x0D4400000 | ((Im & 0xffff) << 5))
-#define ARMV8_HLT_A1(Im) (0xE1000070 | ((Im & 0xFFF0) << 4) | (Im & 0xF))
-#define ARMV8_HLT_T1(Im) (0xba80 | (Im & 0x3f))
+#define ARMV8_BKPT(im) (0xD4200000 | ((im & 0xffff) << 5))
+#define ARMV8_HLT(im) (0x0D4400000 | ((im & 0xffff) << 5))
+#define ARMV8_HLT_A1(im) (0xE1000070 | ((im & 0xFFF0) << 4) | (im & 0xF))
+#define ARMV8_HLT_T1(im) (0xba80 | (im & 0x3f))
 
-#define ARMV8_MOVFSP_64(Rt) ((1 << 31) | 0x11000000 | (0x1f << 5) | (Rt))
-#define ARMV8_MOVTSP_64(Rt) ((1 << 31) | 0x11000000 | (Rt << 5) | (0x1F))
-#define ARMV8_MOVFSP_32(Rt) (0x11000000 | (0x1f << 5) | (Rt))
-#define ARMV8_MOVTSP_32(Rt) (0x11000000 | (Rt << 5) | (0x1F))
+#define ARMV8_MOVFSP_64(rt) ((1 << 31) | 0x11000000 | (0x1f << 5) | (rt))
+#define ARMV8_MOVTSP_64(rt) ((1 << 31) | 0x11000000 | (rt << 5) | (0x1F))
+#define ARMV8_MOVFSP_32(rt) (0x11000000 | (0x1f << 5) | (rt))
+#define ARMV8_MOVTSP_32(rt) (0x11000000 | (rt << 5) | (0x1F))
 
-#define ARMV8_LDRB_IP(Rd, Rn) (0x38401400 | (Rn << 5) | Rd)
-#define ARMV8_LDRH_IP(Rd, Rn) (0x78402400 | (Rn << 5) | Rd)
-#define ARMV8_LDRW_IP(Rd, Rn) (0xb8404400 | (Rn << 5) | Rd)
+#define ARMV8_LDRB_IP(rd, rn) (0x38401400 | (rn << 5) | rd)
+#define ARMV8_LDRH_IP(rd, rn) (0x78402400 | (rn << 5) | rd)
+#define ARMV8_LDRW_IP(rd, rn) (0xb8404400 | (rn << 5) | rd)
 
-#define ARMV8_LDRB_IP_T3(Rd, Rn) (0xf8100b01 | (Rn << 16) | (Rd << 12))
-#define ARMV8_LDRH_IP_T3(Rd, Rn) (0xf8300b02 | (Rn << 16) | (Rd << 12))
-#define ARMV8_LDRW_IP_T3(Rd, Rn) (0xf8500b04 | (Rn << 16) | (Rd << 12))
+#define ARMV8_LDRB_IP_T3(rd, rn) (0xf8100b01 | (rn << 16) | (rd << 12))
+#define ARMV8_LDRH_IP_T3(rd, rn) (0xf8300b02 | (rn << 16) | (rd << 12))
+#define ARMV8_LDRW_IP_T3(rd, rn) (0xf8500b04 | (rn << 16) | (rd << 12))
 
-#define ARMV8_STRB_IP(Rd, Rn) (0x38001400 | (Rn << 5) | Rd)
-#define ARMV8_STRH_IP(Rd, Rn) (0x78002400 | (Rn << 5) | Rd)
-#define ARMV8_STRW_IP(Rd, Rn) (0xb8004400 | (Rn << 5) | Rd)
+#define ARMV8_STRB_IP(rd, rn) (0x38001400 | (rn << 5) | rd)
+#define ARMV8_STRH_IP(rd, rn) (0x78002400 | (rn << 5) | rd)
+#define ARMV8_STRW_IP(rd, rn) (0xb8004400 | (rn << 5) | rd)
 
-#define ARMV8_STRB_IP_T3(Rd, Rn) (0xf8000b01 | (Rn << 16) | (Rd << 12))
-#define ARMV8_STRH_IP_T3(Rd, Rn) (0xf8200b02 | (Rn << 16) | (Rd << 12))
-#define ARMV8_STRW_IP_T3(Rd, Rn) (0xf8400b04 | (Rn << 16) | (Rd << 12))
+#define ARMV8_STRB_IP_T3(rd, rn) (0xf8000b01 | (rn << 16) | (rd << 12))
+#define ARMV8_STRH_IP_T3(rd, rn) (0xf8200b02 | (rn << 16) | (rd << 12))
+#define ARMV8_STRW_IP_T3(rd, rn) (0xf8400b04 | (rn << 16) | (rd << 12))
 
-#define ARMV8_MOV_GPR_VFP(Rd, Rn, Index) (0x4e083c00 | (Index << 20) | (Rn << 5) | Rd)
-#define ARMV8_MOV_VFP_GPR(Rd, Rn, Index) (0x4e081c00 | (Index << 20) | (Rn << 5) | Rd)
+#define ARMV8_MOV_GPR_VFP(rd, rn, index) (0x4e083c00 | (index << 20) | (rn << 5) | rd)
+#define ARMV8_MOV_VFP_GPR(rd, rn, index) (0x4e081c00 | (index << 20) | (rn << 5) | rd)
 
-#define ARMV8_MRS_FPCR(Rt)	(0xd53b4400 | (Rt))
-#define ARMV8_MRS_FPSR(Rt)	(0xd53b4420 | (Rt))
-#define ARMV8_MSR_FPCR(Rt)	(0xd51b4400 | (Rt))
-#define ARMV8_MSR_FPSR(Rt)	(0xd51b4420 | (Rt))
+#define ARMV8_MRS_FPCR(rt)	(0xd53b4400 | (rt))
+#define ARMV8_MRS_FPSR(rt)	(0xd53b4420 | (rt))
+#define ARMV8_MSR_FPCR(rt)	(0xd51b4400 | (rt))
+#define ARMV8_MSR_FPSR(rt)	(0xd51b4420 | (rt))
 
-#define ARMV8_SYS(System, Rt) (0xD5080000 | ((System) << 5) | Rt)
+#define ARMV8_SYS(system, rt) (0xD5080000 | ((system) << 5) | rt)
 
 enum armv8_opcode {
 	READ_REG_CTR,
