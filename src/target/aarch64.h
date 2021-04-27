@@ -46,7 +46,7 @@ struct aarch64_brp {
 	int type;
 	target_addr_t value;
 	uint32_t control;
-	uint8_t BRPn;
+	uint8_t brpn;
 };
 
 struct aarch64_common {

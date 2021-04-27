@@ -132,7 +132,7 @@ static const char *arm11_ir_to_string(uint8_t ir)
  *
  * \remarks			This adds to the JTAG command queue but does \em not execute it.
  */
-void arm11_add_IR(struct arm11_common *arm11, uint8_t instr, tap_state_t state)
+void arm11_add_ir(struct arm11_common *arm11, uint8_t instr, tap_state_t state)
 {
 	struct jtag_tap *tap = arm11->arm.target->tap;
 
@@ -153,7 +153,7 @@ void arm11_add_IR(struct arm11_common *arm11, uint8_t instr, tap_state_t state)
 }
 
 /** Verify data shifted out from Scan Chain Register (SCREG). */
-static void arm11_in_handler_SCAN_N(uint8_t *in_value)
+static void arm11_in_handler_scan_n(uint8_t *in_value)
 {
 	/* Don't expect JTAG layer to modify bits we didn't ask it to read */
 	uint8_t v = *in_value & 0x1F;
@@ -186,12 +186,12 @@ static void arm11_in_handler_SCAN_N(uint8_t *in_value)
  *					call will end in Pause-DR. The second call, due to the IR
  *					caching, will not go through Capture-DR when shifting in the
  *					new scan chain number. As a result the verification in
- *					arm11_in_handler_SCAN_N() must fail.
+ *					arm11_in_handler_scan_n() must fail.
  *
  * \remarks			This adds to the JTAG command queue but does \em not execute it.
  */
 
-int arm11_add_debug_SCAN_N(struct arm11_common *arm11,
+int arm11_add_debug_scan_n(struct arm11_common *arm11,
 	uint8_t chain, tap_state_t state)
 {
 	/* Don't needlessly switch the scan chain.
@@ -211,7 +211,7 @@ int arm11_add_debug_SCAN_N(struct arm11_common *arm11,
 #endif
 	JTAG_DEBUG("SCREG <= %d", chain);
 
-	arm11_add_IR(arm11, ARM11_SCAN_N, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_SCAN_N, ARM11_TAP_DEFAULT);
 
 	struct scan_field field;
 
@@ -225,7 +225,7 @@ int arm11_add_debug_SCAN_N(struct arm11_common *arm11,
 
 	jtag_execute_queue_noclear();
 
-	arm11_in_handler_SCAN_N(tmp);
+	arm11_in_handler_scan_n(tmp);
 
 	arm11->jtag_info.cur_scan_chain = chain;
 
@@ -250,7 +250,7 @@ int arm11_add_debug_SCAN_N(struct arm11_common *arm11,
  * is properly set up.  Depending on the instruction, you may also need
  * to ensure that the rDTR is ready before that Run-Test/Idle state.
  */
-static void arm11_add_debug_INST(struct arm11_common *arm11,
+static void arm11_add_debug_inst(struct arm11_common *arm11,
 	uint32_t inst, uint8_t *flag, tap_state_t state)
 {
 	JTAG_DEBUG("INST <= 0x%08x", (unsigned) inst);
@@ -273,15 +273,15 @@ static void arm11_add_debug_INST(struct arm11_common *arm11,
  * command queue.  It does not require the ARM11 debug TAP to be
  * in any particular state.
  */
-int arm11_read_DSCR(struct arm11_common *arm11)
+int arm11_read_dscr(struct arm11_common *arm11)
 {
 	int retval;
 
-	retval = arm11_add_debug_SCAN_N(arm11, 0x01, ARM11_TAP_DEFAULT);
+	retval = arm11_add_debug_scan_n(arm11, 0x01, ARM11_TAP_DEFAULT);
 	if (retval != ERROR_OK)
 		return retval;
 
-	arm11_add_IR(arm11, ARM11_INTEST, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_INTEST, ARM11_TAP_DEFAULT);
 
 	uint32_t dscr;
 	struct scan_field chain1_field;
@@ -311,14 +311,14 @@ int arm11_read_DSCR(struct arm11_common *arm11)
  *
  * \remarks			This is a stand-alone function that executes the JTAG command queue.
  */
-int arm11_write_DSCR(struct arm11_common *arm11, uint32_t dscr)
+int arm11_write_dscr(struct arm11_common *arm11, uint32_t dscr)
 {
 	int retval;
-	retval = arm11_add_debug_SCAN_N(arm11, 0x01, ARM11_TAP_DEFAULT);
+	retval = arm11_add_debug_scan_n(arm11, 0x01, ARM11_TAP_DEFAULT);
 	if (retval != ERROR_OK)
 		return retval;
 
-	arm11_add_IR(arm11, ARM11_EXTEST, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_EXTEST, ARM11_TAP_DEFAULT);
 
 	struct scan_field chain1_field;
 
@@ -353,7 +353,7 @@ int arm11_write_DSCR(struct arm11_common *arm11, uint32_t dscr)
  */
 int arm11_run_instr_data_prepare(struct arm11_common *arm11)
 {
-	return arm11_add_debug_SCAN_N(arm11, 0x05, ARM11_TAP_DEFAULT);
+	return arm11_add_debug_scan_n(arm11, 0x05, ARM11_TAP_DEFAULT);
 }
 
 /** Cleanup after ITR/DTR operations
@@ -372,7 +372,7 @@ int arm11_run_instr_data_prepare(struct arm11_common *arm11)
  */
 int arm11_run_instr_data_finish(struct arm11_common *arm11)
 {
-	return arm11_add_debug_SCAN_N(arm11, 0x00, ARM11_TAP_DEFAULT);
+	return arm11_add_debug_scan_n(arm11, 0x00, ARM11_TAP_DEFAULT);
 }
 
 /**
@@ -392,16 +392,16 @@ static
 int arm11_run_instr_no_data(struct arm11_common *arm11,
 	uint32_t *opcode, size_t count)
 {
-	arm11_add_IR(arm11, ARM11_ITRSEL, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_ITRSEL, ARM11_TAP_DEFAULT);
 
 	while (count--) {
-		arm11_add_debug_INST(arm11, *opcode++, NULL, TAP_IDLE);
+		arm11_add_debug_inst(arm11, *opcode++, NULL, TAP_IDLE);
 
 		int i = 0;
 		while (1) {
 			uint8_t flag;
 
-			arm11_add_debug_INST(arm11, 0, &flag, count ? TAP_IDLE : TAP_DRPAUSE);
+			arm11_add_debug_inst(arm11, 0, &flag, count ? TAP_IDLE : TAP_DRPAUSE);
 
 			CHECK_RETVAL(jtag_execute_queue());
 
@@ -463,33 +463,33 @@ int arm11_run_instr_data_to_core(struct arm11_common *arm11,
 	uint32_t *data,
 	size_t count)
 {
-	arm11_add_IR(arm11, ARM11_ITRSEL, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_ITRSEL, ARM11_TAP_DEFAULT);
 
-	arm11_add_debug_INST(arm11, opcode, NULL, TAP_DRPAUSE);
+	arm11_add_debug_inst(arm11, opcode, NULL, TAP_DRPAUSE);
 
-	arm11_add_IR(arm11, ARM11_EXTEST, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_EXTEST, ARM11_TAP_DEFAULT);
 
 	struct scan_field chain5_fields[3];
 
-	uint32_t Data;
-	uint8_t Ready;
-	uint8_t nRetry;
+	uint32_t _data;
+	uint8_t ready;
+	uint8_t n_retry;
 
-	arm11_setup_field(arm11, 32,    &Data,  NULL,           chain5_fields + 0);
-	arm11_setup_field(arm11,  1,    NULL,   &Ready,         chain5_fields + 1);
-	arm11_setup_field(arm11,  1,    NULL,   &nRetry,        chain5_fields + 2);
+	arm11_setup_field(arm11, 32,    &_data, NULL,           chain5_fields + 0);
+	arm11_setup_field(arm11,  1,    NULL,   &ready,         chain5_fields + 1);
+	arm11_setup_field(arm11,  1,    NULL,   &n_retry,       chain5_fields + 2);
 
 	while (count--) {
 		int i = 0;
 		do {
-			Data        = *data;
+			_data        = *data;
 
 			arm11_add_dr_scan_vc(arm11->arm.target->tap, ARRAY_SIZE(
 					chain5_fields), chain5_fields, TAP_IDLE);
 
 			CHECK_RETVAL(jtag_execute_queue());
 
-			JTAG_DEBUG("DTR  Ready %d  nRetry %d", Ready, nRetry);
+			JTAG_DEBUG("DTR  ready %d  n_retry %d", ready, n_retry);
 
 			int64_t then = 0;
 
@@ -504,24 +504,24 @@ int arm11_run_instr_data_to_core(struct arm11_common *arm11,
 			}
 
 			i++;
-		} while (!Ready);
+		} while (!ready);
 
 		data++;
 	}
 
-	arm11_add_IR(arm11, ARM11_INTEST, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_INTEST, ARM11_TAP_DEFAULT);
 
 	int i = 0;
 	do {
-		Data        = 0;
+		_data        = 0;
 
 		arm11_add_dr_scan_vc(arm11->arm.target->tap, ARRAY_SIZE(
 				chain5_fields), chain5_fields, TAP_DRPAUSE);
 
 		CHECK_RETVAL(jtag_execute_queue());
 
-		JTAG_DEBUG("DTR  Data %08x  Ready %d  nRetry %d",
-			(unsigned) Data, Ready, nRetry);
+		JTAG_DEBUG("DTR  _data %08x  ready %d  n_retry %d",
+			(unsigned) _data, ready, n_retry);
 
 		int64_t then = 0;
 
@@ -535,7 +535,7 @@ int arm11_run_instr_data_to_core(struct arm11_common *arm11,
 		}
 
 		i++;
-	} while (!Ready);
+	} while (!ready);
 
 	return ERROR_OK;
 }
@@ -557,7 +557,7 @@ int arm11_run_instr_data_to_core(struct arm11_common *arm11,
  *  https://lists.berlios.de/pipermail/openocd-development/2009-July/009698.html
  *  https://lists.berlios.de/pipermail/openocd-development/2009-August/009865.html
  */
-static const tap_state_t arm11_MOVE_DRPAUSE_IDLE_DRPAUSE_with_delay[] = {
+static const tap_state_t arm11_move_drpause_idle_drpause_with_delay[] = {
 	TAP_DREXIT2, TAP_DRUPDATE, TAP_IDLE, TAP_IDLE, TAP_IDLE, TAP_DRSELECT, TAP_DRCAPTURE,
 	TAP_DRSHIFT
 };
@@ -581,26 +581,26 @@ static int arm11_run_instr_data_to_core_noack_inner(struct jtag_tap *tap,
 	chain5_fields[2].out_value              = NULL;
 	chain5_fields[2].in_value               = NULL;
 
-	uint8_t *Readies;
-	unsigned readiesNum = count;
-	unsigned bytes = sizeof(*Readies)*readiesNum;
+	uint8_t *readies;
+	unsigned readies_num = count;
+	unsigned bytes = sizeof(*readies)*readies_num;
 
-	Readies = malloc(bytes);
-	if (Readies == NULL) {
+	readies = malloc(bytes);
+	if (readies == NULL) {
 		LOG_ERROR("Out of memory allocating %u bytes", bytes);
 		return ERROR_FAIL;
 	}
 
-	uint8_t *ReadyPos                        = Readies;
+	uint8_t *ready_pos                      = readies;
 	while (count--) {
 		chain5_fields[0].out_value      = (uint8_t *)(data++);
-		chain5_fields[1].in_value       = ReadyPos++;
+		chain5_fields[1].in_value       = ready_pos++;
 
 		if (count > 0) {
 			jtag_add_dr_scan(tap, ARRAY_SIZE(chain5_fields), chain5_fields,
 				TAP_DRPAUSE);
-			jtag_add_pathmove(ARRAY_SIZE(arm11_MOVE_DRPAUSE_IDLE_DRPAUSE_with_delay),
-				arm11_MOVE_DRPAUSE_IDLE_DRPAUSE_with_delay);
+			jtag_add_pathmove(ARRAY_SIZE(arm11_move_drpause_idle_drpause_with_delay),
+				arm11_move_drpause_idle_drpause_with_delay);
 		} else
 			jtag_add_dr_scan(tap, ARRAY_SIZE(chain5_fields), chain5_fields, TAP_IDLE);
 	}
@@ -609,18 +609,18 @@ static int arm11_run_instr_data_to_core_noack_inner(struct jtag_tap *tap,
 	if (retval == ERROR_OK) {
 		unsigned error_count = 0;
 
-		for (size_t i = 0; i < readiesNum; i++) {
-			if (Readies[i] != 1)
+		for (size_t i = 0; i < readies_num; i++) {
+			if (readies[i] != 1)
 				error_count++;
 		}
 
 		if (error_count > 0) {
 			LOG_ERROR("%u words out of %u not transferred",
-				error_count, readiesNum);
+				error_count, readies_num);
 			retval = ERROR_FAIL;
 		}
 	}
-	free(Readies);
+	free(readies);
 
 	return retval;
 }
@@ -649,11 +649,11 @@ int arm11_run_instr_data_to_core_noack(struct arm11_common *arm11,
 	uint32_t *data,
 	size_t count)
 {
-	arm11_add_IR(arm11, ARM11_ITRSEL, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_ITRSEL, ARM11_TAP_DEFAULT);
 
-	arm11_add_debug_INST(arm11, opcode, NULL, TAP_DRPAUSE);
+	arm11_add_debug_inst(arm11, opcode, NULL, TAP_DRPAUSE);
 
-	arm11_add_IR(arm11, ARM11_EXTEST, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_EXTEST, ARM11_TAP_DEFAULT);
 
 	int retval = arm11_run_instr_data_to_core_noack_inner(arm11->arm.target->tap,
 			opcode,
@@ -663,7 +663,7 @@ int arm11_run_instr_data_to_core_noack(struct arm11_common *arm11,
 	if (retval != ERROR_OK)
 		return retval;
 
-	arm11_add_IR(arm11, ARM11_INTEST, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_INTEST, ARM11_TAP_DEFAULT);
 
 	struct scan_field chain5_fields[3];
 
@@ -740,21 +740,21 @@ int arm11_run_instr_data_from_core(struct arm11_common *arm11,
 	uint32_t *data,
 	size_t count)
 {
-	arm11_add_IR(arm11, ARM11_ITRSEL, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_ITRSEL, ARM11_TAP_DEFAULT);
 
-	arm11_add_debug_INST(arm11, opcode, NULL, TAP_IDLE);
+	arm11_add_debug_inst(arm11, opcode, NULL, TAP_IDLE);
 
-	arm11_add_IR(arm11, ARM11_INTEST, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_INTEST, ARM11_TAP_DEFAULT);
 
 	struct scan_field chain5_fields[3];
 
-	uint32_t Data;
-	uint8_t Ready;
-	uint8_t nRetry;
+	uint32_t _data;
+	uint8_t ready;
+	uint8_t n_retry;
 
-	arm11_setup_field(arm11, 32,    NULL,   &Data,      chain5_fields + 0);
-	arm11_setup_field(arm11,  1,    NULL,   &Ready,     chain5_fields + 1);
-	arm11_setup_field(arm11,  1,    NULL,   &nRetry,    chain5_fields + 2);
+	arm11_setup_field(arm11, 32,    NULL,   &_data,     chain5_fields + 0);
+	arm11_setup_field(arm11,  1,    NULL,   &ready,     chain5_fields + 1);
+	arm11_setup_field(arm11,  1,    NULL,   &n_retry,   chain5_fields + 2);
 
 	while (count--) {
 		int i = 0;
@@ -765,8 +765,8 @@ int arm11_run_instr_data_from_core(struct arm11_common *arm11,
 
 			CHECK_RETVAL(jtag_execute_queue());
 
-			JTAG_DEBUG("DTR  Data %08x  Ready %d  nRetry %d",
-				(unsigned) Data, Ready, nRetry);
+			JTAG_DEBUG("DTR  _data %08x  ready %d  n_retry %d",
+				(unsigned) _data, ready, n_retry);
 
 			int64_t then = 0;
 
@@ -781,9 +781,9 @@ int arm11_run_instr_data_from_core(struct arm11_common *arm11,
 			}
 
 			i++;
-		} while (!Ready);
+		} while (!ready);
 
-		*data++ = Data;
+		*data++ = _data;
 	}
 
 	return ERROR_OK;
@@ -856,51 +856,51 @@ int arm11_sc7_run(struct arm11_common *arm11, struct arm11_sc7_action *actions, 
 {
 	int retval;
 
-	retval = arm11_add_debug_SCAN_N(arm11, 0x07, ARM11_TAP_DEFAULT);
+	retval = arm11_add_debug_scan_n(arm11, 0x07, ARM11_TAP_DEFAULT);
 	if (retval != ERROR_OK)
 		return retval;
 
-	arm11_add_IR(arm11, ARM11_EXTEST, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_EXTEST, ARM11_TAP_DEFAULT);
 
 	struct scan_field chain7_fields[3];
 
-	uint8_t nRW;
-	uint32_t DataOut;
-	uint8_t AddressOut;
-	uint8_t Ready;
-	uint32_t DataIn;
-	uint8_t AddressIn;
+	uint8_t n_rw;
+	uint32_t data_out;
+	uint8_t address_out;
+	uint8_t ready;
+	uint32_t data_in;
+	uint8_t address_in;
 
-	arm11_setup_field(arm11,  1, &nRW,                      &Ready,         chain7_fields + 0);
-	arm11_setup_field(arm11, 32, &DataOut,          &DataIn,        chain7_fields + 1);
-	arm11_setup_field(arm11,  7, &AddressOut,       &AddressIn,     chain7_fields + 2);
+	arm11_setup_field(arm11,  1, &n_rw,              &ready,          chain7_fields + 0);
+	arm11_setup_field(arm11, 32, &data_out,          &data_in,        chain7_fields + 1);
+	arm11_setup_field(arm11,  7, &address_out,       &address_in,     chain7_fields + 2);
 
 	for (size_t i = 0; i < count + 1; i++) {
 		if (i < count) {
-			nRW                     = actions[i].write ? 1 : 0;
-			DataOut         = actions[i].value;
-			AddressOut      = actions[i].address;
+			n_rw             = actions[i].write ? 1 : 0;
+			data_out         = actions[i].value;
+			address_out      = actions[i].address;
 		} else {
-			nRW                     = 1;
-			DataOut         = 0;
-			AddressOut      = 0;
+			n_rw             = 1;
+			data_out         = 0;
+			address_out      = 0;
 		}
 
 		/* Timeout here so we don't get stuck. */
 		int i_n = 0;
 		while (1) {
 			JTAG_DEBUG("SC7 <= c%-3d Data %08x %s",
-				(unsigned) AddressOut,
-				(unsigned) DataOut,
-				nRW ? "write" : "read");
+				(unsigned) address_out,
+				(unsigned) data_out,
+				n_rw ? "write" : "read");
 
 			arm11_add_dr_scan_vc(arm11->arm.target->tap, ARRAY_SIZE(chain7_fields),
 				chain7_fields, TAP_DRPAUSE);
 
 			CHECK_RETVAL(jtag_execute_queue());
 
-			/* 'nRW' is 'Ready' on read out */
-			if (Ready)
+			/* 'n_rw' is 'ready' on read out */
+			if (ready)
 				break;
 
 			int64_t then = 0;
@@ -918,17 +918,17 @@ int arm11_sc7_run(struct arm11_common *arm11, struct arm11_sc7_action *actions, 
 			i_n++;
 		}
 
-		if (!nRW)
-			JTAG_DEBUG("SC7 => Data %08x", (unsigned) DataIn);
+		if (!n_rw)
+			JTAG_DEBUG("SC7 => Data %08x", (unsigned) data_in);
 
 		if (i > 0) {
-			if (actions[i - 1].address != AddressIn)
+			if (actions[i - 1].address != address_in)
 				LOG_WARNING("Scan chain 7 shifted out unexpected address");
 
 			if (!actions[i - 1].write)
-				actions[i - 1].value = DataIn;
+				actions[i - 1].value = data_in;
 			else {
-				if (actions[i - 1].value != DataIn)
+				if (actions[i - 1].value != data_in)
 					LOG_WARNING("Scan chain 7 shifted out unexpected data");
 			}
 		}

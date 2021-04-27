@@ -68,14 +68,14 @@ struct cortex_a_brp {
 	int type;
 	uint32_t value;
 	uint32_t control;
-	uint8_t BRPn;
+	uint8_t brpn;
 };
 
 struct cortex_a_wrp {
 	bool used;
 	uint32_t value;
 	uint32_t control;
-	uint8_t WRPn;
+	uint8_t wrpn;
 };
 
 struct cortex_a_common {

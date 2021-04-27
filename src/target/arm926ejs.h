@@ -29,9 +29,9 @@ struct arm926ejs_common {
 	uint32_t common_magic;
 	struct armv4_5_mmu_common armv4_5_mmu;
 	int (*read_cp15)(struct target *target, uint32_t op1, uint32_t op2,
-			uint32_t CRn, uint32_t CRm, uint32_t *value);
+			uint32_t crn, uint32_t crm, uint32_t *value);
 	int (*write_cp15)(struct target *target, uint32_t op1, uint32_t op2,
-			uint32_t CRn, uint32_t CRm, uint32_t value);
+			uint32_t crn, uint32_t crm, uint32_t value);
 	uint32_t cp15_control_reg;
 	uint32_t d_fsr;
 	uint32_t i_fsr;

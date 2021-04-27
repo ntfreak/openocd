@@ -389,11 +389,11 @@ static void arm720t_deinit_target(struct target *target)
 /* FIXME remove forward decls */
 static int arm720t_mrc(struct target *target, int cpnum,
 		uint32_t op1, uint32_t op2,
-		uint32_t CRn, uint32_t CRm,
+		uint32_t crn, uint32_t crm,
 		uint32_t *value);
 static int arm720t_mcr(struct target *target, int cpnum,
 		uint32_t op1, uint32_t op2,
-		uint32_t CRn, uint32_t CRm,
+		uint32_t crn, uint32_t crm,
 		uint32_t value);
 
 static int arm720t_init_arch_info(struct target *target,
@@ -433,7 +433,7 @@ static int arm720t_target_create(struct target *target, Jim_Interp *interp)
 
 static int arm720t_mrc(struct target *target, int cpnum,
 		uint32_t op1, uint32_t op2,
-		uint32_t CRn, uint32_t CRm,
+		uint32_t crn, uint32_t crm,
 		uint32_t *value)
 {
 	if (cpnum != 15) {
@@ -443,14 +443,14 @@ static int arm720t_mrc(struct target *target, int cpnum,
 
 	/* read "to" r0 */
 	return arm720t_read_cp15(target,
-			ARMV4_5_MRC(cpnum, op1, 0, CRn, CRm, op2),
+			ARMV4_5_MRC(cpnum, op1, 0, crn, crm, op2),
 			value);
 
 }
 
 static int arm720t_mcr(struct target *target, int cpnum,
 		uint32_t op1, uint32_t op2,
-		uint32_t CRn, uint32_t CRm,
+		uint32_t crn, uint32_t crm,
 		uint32_t value)
 {
 	if (cpnum != 15) {
@@ -460,7 +460,7 @@ static int arm720t_mcr(struct target *target, int cpnum,
 
 	/* write "from" r0 */
 	return arm720t_write_cp15(target,
-			ARMV4_5_MCR(cpnum, op1, 0, CRn, CRm, op2),
+			ARMV4_5_MCR(cpnum, op1, 0, crn, crm, op2),
 			value);
 }
 

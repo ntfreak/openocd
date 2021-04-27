@@ -51,14 +51,14 @@ static int arm11_step(struct target *target, int current,
  */
 static int arm11_check_init(struct arm11_common *arm11)
 {
-	CHECK_RETVAL(arm11_read_DSCR(arm11));
+	CHECK_RETVAL(arm11_read_dscr(arm11));
 
 	if (!(arm11->dscr & DSCR_HALT_DBG_MODE)) {
 		LOG_DEBUG("DSCR %08x", (unsigned) arm11->dscr);
 		LOG_DEBUG("Bringing target into debug mode");
 
 		arm11->dscr |= DSCR_HALT_DBG_MODE;
-		CHECK_RETVAL(arm11_write_DSCR(arm11, arm11->dscr));
+		CHECK_RETVAL(arm11_write_dscr(arm11, arm11->dscr));
 
 		/* add further reset initialization here */
 
@@ -104,9 +104,9 @@ static int arm11_debug_entry(struct arm11_common *arm11)
 	/* maybe save wDTR (pending DCC write to debug SW, e.g. libdcc) */
 	arm11->is_wdtr_saved = !!(arm11->dscr & DSCR_DTR_TX_FULL);
 	if (arm11->is_wdtr_saved) {
-		arm11_add_debug_SCAN_N(arm11, 0x05, ARM11_TAP_DEFAULT);
+		arm11_add_debug_scan_n(arm11, 0x05, ARM11_TAP_DEFAULT);
 
-		arm11_add_IR(arm11, ARM11_INTEST, ARM11_TAP_DEFAULT);
+		arm11_add_ir(arm11, ARM11_INTEST, ARM11_TAP_DEFAULT);
 
 		struct scan_field chain5_fields[3];
 
@@ -126,7 +126,7 @@ static int arm11_debug_entry(struct arm11_common *arm11)
 	 * but not to issue ITRs(?).  The ARMv7 arch spec says it's required
 	 * for executing instructions via ITR.
 	 */
-	CHECK_RETVAL(arm11_write_DSCR(arm11, DSCR_ITR_EN | arm11->dscr));
+	CHECK_RETVAL(arm11_write_dscr(arm11, DSCR_ITR_EN | arm11->dscr));
 
 
 	/* From the spec:
@@ -143,14 +143,14 @@ static int arm11_debug_entry(struct arm11_common *arm11)
 		/* mcr	   15, 0, r0, cr7, cr10, {4} */
 		arm11_run_instr_no_data1(arm11, 0xee070f9a);
 
-		uint32_t dscr = arm11_read_DSCR(arm11);
+		uint32_t dscr = arm11_read_dscr(arm11);
 
 		LOG_DEBUG("DRAIN, DSCR %08x", dscr);
 
 		if (dscr & ARM11_DSCR_STICKY_IMPRECISE_DATA_ABORT) {
 			arm11_run_instr_no_data1(arm11, 0xe320f000);
 
-			dscr = arm11_read_DSCR(arm11);
+			dscr = arm11_read_dscr(arm11);
 
 			LOG_DEBUG("DRAIN, DSCR %08x (DONE)", dscr);
 
@@ -242,7 +242,7 @@ static int arm11_leave_debug_state(struct arm11_common *arm11, bool bpwp)
 	/* spec says clear wDTR and rDTR; we assume they are clear as
 	   otherwise our programming would be sloppy */
 	{
-		CHECK_RETVAL(arm11_read_DSCR(arm11));
+		CHECK_RETVAL(arm11_read_dscr(arm11));
 
 		if (arm11->dscr & (DSCR_DTR_RX_FULL | DSCR_DTR_TX_FULL)) {
 			/*
@@ -285,23 +285,23 @@ static int arm11_leave_debug_state(struct arm11_common *arm11, bool bpwp)
 	register_cache_invalidate(arm11->arm.core_cache);
 
 	/* restore DSCR */
-	CHECK_RETVAL(arm11_write_DSCR(arm11, arm11->dscr));
+	CHECK_RETVAL(arm11_write_dscr(arm11, arm11->dscr));
 
 	/* maybe restore rDTR */
 	if (arm11->is_rdtr_saved) {
-		arm11_add_debug_SCAN_N(arm11, 0x05, ARM11_TAP_DEFAULT);
+		arm11_add_debug_scan_n(arm11, 0x05, ARM11_TAP_DEFAULT);
 
-		arm11_add_IR(arm11, ARM11_EXTEST, ARM11_TAP_DEFAULT);
+		arm11_add_ir(arm11, ARM11_EXTEST, ARM11_TAP_DEFAULT);
 
 		struct scan_field chain5_fields[3];
 
-		uint8_t Ready           = 0;			/* ignored */
-		uint8_t Valid           = 0;			/* ignored */
+		uint8_t ready           = 0;			/* ignored */
+		uint8_t valid           = 0;			/* ignored */
 
 		arm11_setup_field(arm11, 32, &arm11->saved_rdtr,
 			NULL, chain5_fields + 0);
-		arm11_setup_field(arm11,  1, &Ready,    NULL, chain5_fields + 1);
-		arm11_setup_field(arm11,  1, &Valid,    NULL, chain5_fields + 2);
+		arm11_setup_field(arm11,  1, &ready,    NULL, chain5_fields + 1);
+		arm11_setup_field(arm11,  1, &valid,    NULL, chain5_fields + 2);
 
 		arm11_add_dr_scan_vc(arm11->arm.target->tap, ARRAY_SIZE(
 				chain5_fields), chain5_fields, TAP_DRPAUSE);
@@ -376,14 +376,14 @@ static int arm11_halt(struct target *target)
 		return ERROR_OK;
 	}
 
-	arm11_add_IR(arm11, ARM11_HALT, TAP_IDLE);
+	arm11_add_ir(arm11, ARM11_HALT, TAP_IDLE);
 
 	CHECK_RETVAL(jtag_execute_queue());
 
 	int i = 0;
 
 	while (1) {
-		CHECK_RETVAL(arm11_read_DSCR(arm11));
+		CHECK_RETVAL(arm11_read_dscr(arm11));
 
 		if (arm11->dscr & DSCR_CORE_HALTED)
 			break;
@@ -519,13 +519,13 @@ static int arm11_resume(struct target *target, int current,
 	/* activate all watchpoints and breakpoints */
 	CHECK_RETVAL(arm11_leave_debug_state(arm11, true));
 
-	arm11_add_IR(arm11, ARM11_RESTART, TAP_IDLE);
+	arm11_add_ir(arm11, ARM11_RESTART, TAP_IDLE);
 
 	CHECK_RETVAL(jtag_execute_queue());
 
 	int i = 0;
 	while (1) {
-		CHECK_RETVAL(arm11_read_DSCR(arm11));
+		CHECK_RETVAL(arm11_read_dscr(arm11));
 
 		LOG_DEBUG("DSCR %08x", (unsigned) arm11->dscr);
 
@@ -661,7 +661,7 @@ static int arm11_step(struct target *target, int current,
 
 		CHECK_RETVAL(arm11_leave_debug_state(arm11, handle_breakpoints));
 
-		arm11_add_IR(arm11, ARM11_RESTART, TAP_IDLE);
+		arm11_add_ir(arm11, ARM11_RESTART, TAP_IDLE);
 
 		CHECK_RETVAL(jtag_execute_queue());
 
@@ -672,7 +672,7 @@ static int arm11_step(struct target *target, int current,
 			const uint32_t mask = DSCR_CORE_RESTARTED
 				| DSCR_CORE_HALTED;
 
-			CHECK_RETVAL(arm11_read_DSCR(arm11));
+			CHECK_RETVAL(arm11_read_dscr(arm11));
 			LOG_DEBUG("DSCR %08x e", (unsigned) arm11->dscr);
 
 			if ((arm11->dscr & mask) == mask)
@@ -1151,7 +1151,7 @@ static int arm11_examine(struct target *target)
 
 	/* check IDCODE */
 
-	arm11_add_IR(arm11, ARM11_IDCODE, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_IDCODE, ARM11_TAP_DEFAULT);
 
 	struct scan_field idcode_field;
 
@@ -1161,9 +1161,9 @@ static int arm11_examine(struct target *target)
 
 	/* check DIDR */
 
-	arm11_add_debug_SCAN_N(arm11, 0x00, ARM11_TAP_DEFAULT);
+	arm11_add_debug_scan_n(arm11, 0x00, ARM11_TAP_DEFAULT);
 
-	arm11_add_IR(arm11, ARM11_INTEST, ARM11_TAP_DEFAULT);
+	arm11_add_ir(arm11, ARM11_INTEST, ARM11_TAP_DEFAULT);
 
 	struct scan_field chain0_fields[2];
 

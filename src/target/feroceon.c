@@ -373,14 +373,14 @@ static void feroceon_branch_resume_thumb(struct target *target)
 }
 
 static int feroceon_read_cp15(struct target *target, uint32_t op1,
-		uint32_t op2, uint32_t CRn, uint32_t CRm, uint32_t *value)
+		uint32_t op2, uint32_t crn, uint32_t crm, uint32_t *value)
 {
 	struct arm *arm = target->arch_info;
 	struct arm7_9_common *arm7_9 = arm->arch_info;
 	struct arm_jtag *jtag_info = &arm7_9->jtag_info;
 	int err;
 
-	arm9tdmi_clock_out(jtag_info, ARMV4_5_MRC(15, op1, 0, CRn, CRm, op2), 0, NULL, 0);
+	arm9tdmi_clock_out(jtag_info, ARMV4_5_MRC(15, op1, 0, crn, crm, op2), 0, NULL, 0);
 	arm9tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0, NULL, 1);
 	err = arm7_9_execute_sys_speed(target);
 	if (err != ERROR_OK)
@@ -396,7 +396,7 @@ static int feroceon_read_cp15(struct target *target, uint32_t op1,
 }
 
 static int feroceon_write_cp15(struct target *target, uint32_t op1,
-		uint32_t op2, uint32_t CRn, uint32_t CRm, uint32_t value)
+		uint32_t op2, uint32_t crn, uint32_t crm, uint32_t value)
 {
 	struct arm *arm = target->arch_info;
 	struct arm7_9_common *arm7_9 = arm->arch_info;
@@ -410,7 +410,7 @@ static int feroceon_write_cp15(struct target *target, uint32_t op1,
 	arm9tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0, NULL, 0);
 	arm9tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0, NULL, 0);
 
-	arm9tdmi_clock_out(jtag_info, ARMV4_5_MCR(15, op1, 0, CRn, CRm, op2), 0, NULL, 0);
+	arm9tdmi_clock_out(jtag_info, ARMV4_5_MCR(15, op1, 0, crn, crm, op2), 0, NULL, 0);
 	arm9tdmi_clock_out(jtag_info, ARMV4_5_NOP, 0, NULL, 1);
 	return arm7_9_execute_sys_speed(target);
 }

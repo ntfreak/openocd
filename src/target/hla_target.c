@@ -41,7 +41,7 @@
 #include "target_request.h"
 #include <rtt/rtt.h>
 
-#define savedDCRDR  dbgbase  /* FIXME: using target->dbgbase to preserve DCRDR */
+#define SAVED_DCRDR  dbgbase  /* FIXME: using target->dbgbase to preserve DCRDR */
 
 #define ARMV7M_SCS_DCRSR	DCB_DCRSR
 #define ARMV7M_SCS_DCRDR	DCB_DCRDR
@@ -243,7 +243,7 @@ static int adapter_debug_entry(struct target *target)
 	int retval;
 
 	/* preserve the DCRDR across halts */
-	retval = target_read_u32(target, DCB_DCRDR, &target->savedDCRDR);
+	retval = target_read_u32(target, DCB_DCRDR, &target->SAVED_DCRDR);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -405,7 +405,7 @@ static int hl_deassert_reset(struct target *target)
 	if (jtag_reset_config & RESET_HAS_SRST)
 		adapter_deassert_reset();
 
-	target->savedDCRDR = 0;  /* clear both DCC busy bits on initial resume */
+	target->SAVED_DCRDR = 0;  /* clear both DCC busy bits on initial resume */
 
 	return target->reset_halt ? ERROR_OK : target_resume(target, 1, 0, 0, 0);
 }
@@ -481,8 +481,8 @@ static int adapter_resume(struct target *target, int current,
 
 	armv7m_restore_context(target);
 
-	/* restore savedDCRDR */
-	res = target_write_u32(target, DCB_DCRDR, target->savedDCRDR);
+	/* restore SAVED_DCRDR */
+	res = target_write_u32(target, DCB_DCRDR, target->SAVED_DCRDR);
 	if (res != ERROR_OK)
 		return res;
 
@@ -564,8 +564,8 @@ static int adapter_step(struct target *target, int current,
 
 	armv7m_restore_context(target);
 
-	/* restore savedDCRDR */
-	res = target_write_u32(target, DCB_DCRDR, target->savedDCRDR);
+	/* restore SAVED_DCRDR */
+	res = target_write_u32(target, DCB_DCRDR, target->SAVED_DCRDR);
 	if (res != ERROR_OK)
 		return res;
 

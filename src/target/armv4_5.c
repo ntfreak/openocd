@@ -1033,8 +1033,8 @@ static int jim_mcrmrc(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 	int cpnum;
 	uint32_t op1;
 	uint32_t op2;
-	uint32_t CRn;
-	uint32_t CRm;
+	uint32_t crn;
+	uint32_t crm;
 	uint32_t value;
 	long l;
 
@@ -1071,7 +1071,7 @@ static int jim_mcrmrc(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 			"CRn", (int) l);
 		return JIM_ERR;
 	}
-	CRn = l;
+	crn = l;
 
 	retval = Jim_GetLong(interp, argv[4], &l);
 	if (retval != JIM_OK)
@@ -1081,7 +1081,7 @@ static int jim_mcrmrc(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 			"CRm", (int) l);
 		return JIM_ERR;
 	}
-	CRm = l;
+	crm = l;
 
 	retval = Jim_GetLong(interp, argv[5], &l);
 	if (retval != JIM_OK)
@@ -1110,14 +1110,14 @@ static int jim_mcrmrc(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 		value = l;
 
 		/* NOTE: parameters reordered! */
-		/* ARMV4_5_MCR(cpnum, op1, 0, CRn, CRm, op2) */
-		retval = arm->mcr(target, cpnum, op1, op2, CRn, CRm, value);
+		/* ARMV4_5_MCR(cpnum, op1, 0, crn, crm, op2) */
+		retval = arm->mcr(target, cpnum, op1, op2, crn, crm, value);
 		if (retval != ERROR_OK)
 			return JIM_ERR;
 	} else {
 		/* NOTE: parameters reordered! */
-		/* ARMV4_5_MRC(cpnum, op1, 0, CRn, CRm, op2) */
-		retval = arm->mrc(target, cpnum, op1, op2, CRn, CRm, &value);
+		/* ARMV4_5_MRC(cpnum, op1, 0, crn, crm, op2) */
+		retval = arm->mrc(target, cpnum, op1, op2, crn, crm, &value);
 		if (retval != ERROR_OK)
 			return JIM_ERR;
 
@@ -1690,7 +1690,7 @@ static int arm_full_context(struct target *target)
 
 static int arm_default_mrc(struct target *target, int cpnum,
 	uint32_t op1, uint32_t op2,
-	uint32_t CRn, uint32_t CRm,
+	uint32_t crn, uint32_t crm,
 	uint32_t *value)
 {
 	LOG_ERROR("%s doesn't implement MRC", target_type_name(target));
@@ -1699,7 +1699,7 @@ static int arm_default_mrc(struct target *target, int cpnum,
 
 static int arm_default_mcr(struct target *target, int cpnum,
 	uint32_t op1, uint32_t op2,
-	uint32_t CRn, uint32_t CRm,
+	uint32_t crn, uint32_t crm,
 	uint32_t value)
 {
 	LOG_ERROR("%s doesn't implement MCR", target_type_name(target));

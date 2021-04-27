@@ -799,11 +799,11 @@ int arm920t_soft_reset_halt(struct target *target)
 /* FIXME remove forward decls */
 static int arm920t_mrc(struct target *target, int cpnum,
 		uint32_t op1, uint32_t op2,
-		uint32_t CRn, uint32_t CRm,
+		uint32_t crn, uint32_t crm,
 		uint32_t *value);
 static int arm920t_mcr(struct target *target, int cpnum,
 		uint32_t op1, uint32_t op2,
-		uint32_t CRn, uint32_t CRm,
+		uint32_t crn, uint32_t crm,
 		uint32_t value);
 
 static int arm920t_init_arch_info(struct target *target,
@@ -873,7 +873,7 @@ COMMAND_HANDLER(arm920t_handle_read_cache_command)
 	uint32_t cp15_ctrl, cp15_ctrl_saved;
 	uint32_t regs[16];
 	uint32_t *regs_p[16];
-	uint32_t C15_C_D_Ind, C15_C_I_Ind;
+	uint32_t c15_c_d_ind, c15_c_i_ind;
 	int i;
 	FILE *output;
 	int segment, index_t;
@@ -933,7 +933,7 @@ COMMAND_HANDLER(arm920t_handle_read_cache_command)
 
 		/* read current victim */
 		arm920t_read_cp15_physical(target,
-			CP15PHYS_DCACHE_IDX, &C15_C_D_Ind);
+			CP15PHYS_DCACHE_IDX, &c15_c_d_ind);
 
 		/* clear interpret mode */
 		cp15c15 &= ~0x1;
@@ -992,7 +992,7 @@ COMMAND_HANDLER(arm920t_handle_read_cache_command)
 		}
 
 		/* Ra: r0 = index(31:26):SBZ(25:8):segment(7:5):SBZ(4:0) */
-		regs[0] = 0x0 | (segment << 5) | (C15_C_D_Ind << 26);
+		regs[0] = 0x0 | (segment << 5) | (c15_c_d_ind << 26);
 		arm9tdmi_write_core_regs(target, 0x1, regs);
 
 		/* set interpret mode */
@@ -1034,7 +1034,7 @@ COMMAND_HANDLER(arm920t_handle_read_cache_command)
 
 		/* read current victim */
 		arm920t_read_cp15_physical(target, CP15PHYS_ICACHE_IDX,
-			&C15_C_I_Ind);
+			&c15_c_i_ind);
 
 		/* clear interpret mode */
 		cp15c15 &= ~0x1;
@@ -1092,7 +1092,7 @@ COMMAND_HANDLER(arm920t_handle_read_cache_command)
 		}
 
 		/* Ra: r0 = index(31:26):SBZ(25:8):segment(7:5):SBZ(4:0) */
-		regs[0] = 0x0 | (segment << 5) | (C15_C_D_Ind << 26);
+		regs[0] = 0x0 | (segment << 5) | (c15_c_d_ind << 26);
 		arm9tdmi_write_core_regs(target, 0x1, regs);
 
 		/* set interpret mode */
@@ -1156,7 +1156,7 @@ COMMAND_HANDLER(arm920t_handle_read_mmu_command)
 	uint32_t *regs_p[16];
 	int i;
 	FILE *output;
-	uint32_t Dlockdown, Ilockdown;
+	uint32_t d_lockdown, i_lockdown;
 	struct arm920t_tlb_entry d_tlb[64], i_tlb[64];
 	int victim;
 	struct reg *r;
@@ -1213,13 +1213,13 @@ COMMAND_HANDLER(arm920t_handle_read_mmu_command)
 	retval = jtag_execute_queue();
 	if (retval != ERROR_OK)
 		return retval;
-	Dlockdown = regs[1];
+	d_lockdown = regs[1];
 
 	for (victim = 0; victim < 64; victim += 8) {
 		/* new lockdown value: base[31:26]:victim[25:20]:SBZ[19:1]:p[0]
 		 * base remains unchanged, victim goes through entries 0 to 63
 		 */
-		regs[1] = (Dlockdown & 0xfc000000) | (victim << 20);
+		regs[1] = (d_lockdown & 0xfc000000) | (victim << 20);
 		arm9tdmi_write_core_regs(target, 0x2, regs);
 
 		/* set interpret mode */
@@ -1256,7 +1256,7 @@ COMMAND_HANDLER(arm920t_handle_read_mmu_command)
 		/* new lockdown value: base[31:26]:victim[25:20]:SBZ[19:1]:p[0]
 		 * base remains unchanged, victim goes through entries 0 to 63
 		 */
-		regs[1] = (Dlockdown & 0xfc000000) | (victim << 20);
+		regs[1] = (d_lockdown & 0xfc000000) | (victim << 20);
 		arm9tdmi_write_core_regs(target, 0x2, regs);
 
 		/* set interpret mode */
@@ -1292,7 +1292,7 @@ COMMAND_HANDLER(arm920t_handle_read_mmu_command)
 	}
 
 	/* restore D TLB lockdown */
-	regs[1] = Dlockdown;
+	regs[1] = d_lockdown;
 	arm9tdmi_write_core_regs(target, 0x2, regs);
 
 	/* Write D TLB lockdown */
@@ -1319,13 +1319,13 @@ COMMAND_HANDLER(arm920t_handle_read_mmu_command)
 	retval = jtag_execute_queue();
 	if (retval != ERROR_OK)
 		return retval;
-	Ilockdown = regs[1];
+	i_lockdown = regs[1];
 
 	for (victim = 0; victim < 64; victim += 8) {
 		/* new lockdown value: base[31:26]:victim[25:20]:SBZ[19:1]:p[0]
 		 * base remains unchanged, victim goes through entries 0 to 63
 		 */
-		regs[1] = (Ilockdown & 0xfc000000) | (victim << 20);
+		regs[1] = (i_lockdown & 0xfc000000) | (victim << 20);
 		arm9tdmi_write_core_regs(target, 0x2, regs);
 
 		/* set interpret mode */
@@ -1362,7 +1362,7 @@ COMMAND_HANDLER(arm920t_handle_read_mmu_command)
 		/* new lockdown value: base[31:26]:victim[25:20]:SBZ[19:1]:p[0]
 		 * base remains unchanged, victim goes through entries 0 to 63
 		 */
-		regs[1] = (Dlockdown & 0xfc000000) | (victim << 20);
+		regs[1] = (d_lockdown & 0xfc000000) | (victim << 20);
 		arm9tdmi_write_core_regs(target, 0x2, regs);
 
 		/* set interpret mode */
@@ -1398,7 +1398,7 @@ COMMAND_HANDLER(arm920t_handle_read_mmu_command)
 	}
 
 	/* restore I TLB lockdown */
-	regs[1] = Ilockdown;
+	regs[1] = i_lockdown;
 	arm9tdmi_write_core_regs(target, 0x2, regs);
 
 	/* Write I TLB lockdown */
@@ -1528,7 +1528,7 @@ COMMAND_HANDLER(arm920t_handle_cache_info_command)
 
 static int arm920t_mrc(struct target *target, int cpnum,
 	uint32_t op1, uint32_t op2,
-	uint32_t CRn, uint32_t CRm,
+	uint32_t crn, uint32_t crm,
 	uint32_t *value)
 {
 	if (cpnum != 15) {
@@ -1538,13 +1538,13 @@ static int arm920t_mrc(struct target *target, int cpnum,
 
 	/* read "to" r0 */
 	return arm920t_read_cp15_interpreted(target,
-		ARMV4_5_MRC(cpnum, op1, 0, CRn, CRm, op2),
+		ARMV4_5_MRC(cpnum, op1, 0, crn, crm, op2),
 		0, value);
 }
 
 static int arm920t_mcr(struct target *target, int cpnum,
 	uint32_t op1, uint32_t op2,
-	uint32_t CRn, uint32_t CRm,
+	uint32_t crn, uint32_t crm,
 	uint32_t value)
 {
 	if (cpnum != 15) {
@@ -1554,7 +1554,7 @@ static int arm920t_mcr(struct target *target, int cpnum,
 
 	/* write "from" r0 */
 	return arm920t_write_cp15_interpreted(target,
-		ARMV4_5_MCR(cpnum, op1, 0, CRn, CRm, op2),
+		ARMV4_5_MCR(cpnum, op1, 0, crn, crm, op2),
 		0, value);
 }
 

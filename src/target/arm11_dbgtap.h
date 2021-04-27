@@ -27,12 +27,12 @@
 
 void arm11_setup_field(struct arm11_common *arm11, int num_bits,
 		void *in_data, void *out_data, struct scan_field *field);
-void arm11_add_IR(struct arm11_common *arm11,
+void arm11_add_ir(struct arm11_common *arm11,
 		uint8_t instr, tap_state_t state);
-int arm11_add_debug_SCAN_N(struct arm11_common *arm11,
+int arm11_add_debug_scan_n(struct arm11_common *arm11,
 		uint8_t chain, tap_state_t state);
-int arm11_read_DSCR(struct arm11_common *arm11);
-int arm11_write_DSCR(struct arm11_common *arm11, uint32_t dscr);
+int arm11_read_dscr(struct arm11_common *arm11);
+int arm11_write_dscr(struct arm11_common *arm11, uint32_t dscr);
 
 int arm11_run_instr_data_prepare(struct arm11_common *arm11);
 int arm11_run_instr_data_finish(struct arm11_common *arm11);
