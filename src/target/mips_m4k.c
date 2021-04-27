@@ -880,8 +880,8 @@ static int mips_m4k_set_watchpoint(struct target *target,
 	 * and exclude both load and store accesses from  watchpoint
 	 * condition evaluation
 	*/
-	int enable = EJTAG_DBCn_NOSB | EJTAG_DBCn_NOLB | EJTAG_DBCn_BE |
-			(0xff << EJTAG_DBCn_BLM_SHIFT);
+	int enable = EJTAG_DBCN_NOSB | EJTAG_DBCN_NOLB | EJTAG_DBCN_BE |
+			(0xff << EJTAG_DBCN_BLM_SHIFT);
 
 	if (watchpoint->set) {
 		LOG_WARNING("watchpoint already set");
@@ -907,13 +907,13 @@ static int mips_m4k_set_watchpoint(struct target *target,
 
 	switch (watchpoint->rw) {
 		case WPT_READ:
-			enable &= ~EJTAG_DBCn_NOLB;
+			enable &= ~EJTAG_DBCN_NOLB;
 			break;
 		case WPT_WRITE:
-			enable &= ~EJTAG_DBCn_NOSB;
+			enable &= ~EJTAG_DBCN_NOSB;
 			break;
 		case WPT_ACCESS:
-			enable &= ~(EJTAG_DBCn_NOLB | EJTAG_DBCn_NOSB);
+			enable &= ~(EJTAG_DBCN_NOLB | EJTAG_DBCN_NOSB);
 			break;
 		default:
 			LOG_ERROR("BUG: watchpoint->rw neither read, write nor access");

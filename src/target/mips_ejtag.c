@@ -296,8 +296,8 @@ static void mips_ejtag_init_mmr(struct mips_ejtag *ejtag_info)
 		ejtag_info->ejtag_dbm_offs	= EJTAG_V20_DBM_OFFS;
 		ejtag_info->ejtag_dbv_offs	= EJTAG_V20_DBV_OFFS;
 
-		ejtag_info->ejtag_iba_step_size	= EJTAG_V20_IBAn_STEP;
-		ejtag_info->ejtag_dba_step_size	= EJTAG_V20_DBAn_STEP;
+		ejtag_info->ejtag_iba_step_size	= EJTAG_V20_IBAN_STEP;
+		ejtag_info->ejtag_dba_step_size	= EJTAG_V20_DBAN_STEP;
 	} else {
 		ejtag_info->ejtag_ibs_addr	= EJTAG_V25_IBS;
 		ejtag_info->ejtag_iba0_addr	= EJTAG_V25_IBA0;
@@ -312,8 +312,8 @@ static void mips_ejtag_init_mmr(struct mips_ejtag *ejtag_info)
 		ejtag_info->ejtag_dbc_offs	= EJTAG_V25_DBC_OFFS;
 		ejtag_info->ejtag_dbv_offs	= EJTAG_V25_DBV_OFFS;
 
-		ejtag_info->ejtag_iba_step_size	= EJTAG_V25_IBAn_STEP;
-		ejtag_info->ejtag_dba_step_size	= EJTAG_V25_DBAn_STEP;
+		ejtag_info->ejtag_iba_step_size	= EJTAG_V25_IBAN_STEP;
+		ejtag_info->ejtag_dba_step_size	= EJTAG_V25_DBAN_STEP;
 	}
 }
 

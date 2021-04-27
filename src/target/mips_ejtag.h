@@ -147,33 +147,33 @@
 #define EJTAG_V20_IBA0			0xFF300100
 #define EJTAG_V20_IBC_OFFS		0x4	/* IBC Offset */
 #define EJTAG_V20_IBM_OFFS		0x8
-#define EJTAG_V20_IBAn_STEP		0x10	/* Offset for next channel */
+#define EJTAG_V20_IBAN_STEP		0x10	/* Offset for next channel */
 #define EJTAG_V20_DBS			0xFF300008
 #define EJTAG_V20_DBA0			0xFF300200
 #define EJTAG_V20_DBC_OFFS		0x4
 #define EJTAG_V20_DBM_OFFS		0x8
 #define EJTAG_V20_DBV_OFFS		0xc
-#define EJTAG_V20_DBAn_STEP		0x10
+#define EJTAG_V20_DBAN_STEP		0x10
 
 #define EJTAG_V25_IBS			0xFF301000
 #define EJTAG_V25_IBA0			0xFF301100
 #define EJTAG_V25_IBM_OFFS		0x8
 #define EJTAG_V25_IBASID_OFFS		0x10
 #define EJTAG_V25_IBC_OFFS		0x18
-#define EJTAG_V25_IBAn_STEP		0x100
+#define EJTAG_V25_IBAN_STEP		0x100
 #define EJTAG_V25_DBS			0xFF302000
 #define EJTAG_V25_DBA0			0xFF302100
 #define EJTAG_V25_DBM_OFFS		0x8
 #define EJTAG_V25_DBASID_OFFS		0x10
 #define EJTAG_V25_DBC_OFFS		0x18
 #define EJTAG_V25_DBV_OFFS		0x20
-#define EJTAG_V25_DBAn_STEP		0x100
+#define EJTAG_V25_DBAN_STEP		0x100
 
-#define	EJTAG_DBCn_NOSB			(1 << 13)
-#define	EJTAG_DBCn_NOLB			(1 << 12)
-#define	EJTAG_DBCn_BLM_MASK		0xff
-#define	EJTAG_DBCn_BLM_SHIFT	4
-#define	EJTAG_DBCn_BE			(1 << 0)
+#define	EJTAG_DBCN_NOSB			(1 << 13)
+#define	EJTAG_DBCN_NOLB			(1 << 12)
+#define	EJTAG_DBCN_BLM_MASK		0xff
+#define	EJTAG_DBCN_BLM_SHIFT	4
+#define	EJTAG_DBCN_BE			(1 << 0)
 
 #define EJTAG_VERSION_20		0
 #define EJTAG_VERSION_25		1
