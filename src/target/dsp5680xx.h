@@ -238,7 +238,7 @@
  * ----------------------------------------------------------------
  */
 #define MC568013_SIM_BASE_ADDR 0xF140
-#define MC56803x_2x_SIM_BASE_ADDR 0xF100
+#define MC56803X_2X_SIM_BASE_ADDR 0xF100
 
 #define SIM_CMD_RESET 0x10
  /**

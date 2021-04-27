@@ -501,7 +501,7 @@ static int core_move_value_to_pc(struct target *target, uint32_t value)
 	return retval;
 }
 
-static int eonce_load_TX_RX_to_r0(struct target *target)
+static int eonce_load_tx_rx_to_r0(struct target *target)
 {
 	int retval;
 
@@ -512,7 +512,7 @@ static int eonce_load_TX_RX_to_r0(struct target *target)
 	return retval;
 }
 
-static int core_load_TX_RX_high_addr_to_r0(struct target *target)
+static int core_load_tx_rx_high_addr_to_r0(struct target *target)
 {
 	int retval = 0;
 
@@ -855,7 +855,7 @@ static int eonce_pc_store(struct target *target)
 	err_check_propagate(retval);
 	retval = core_move_r4_to_y(target);
 	err_check_propagate(retval);
-	retval = eonce_load_TX_RX_to_r0(target);
+	retval = eonce_load_tx_rx_to_r0(target);
 	err_check_propagate(retval);
 	retval = core_move_y0_at_r0(target);
 	err_check_propagate(retval);
@@ -1110,7 +1110,7 @@ static int dsp5680xx_read_16_single(struct target *t, uint32_t a,
 	else
 		retval = core_move_at_r0_to_y0(target);
 	err_check_propagate(retval);
-	retval = eonce_load_TX_RX_to_r0(target);
+	retval = eonce_load_tx_rx_to_r0(target);
 	err_check_propagate(retval);
 	retval = core_move_y0_at_r0(target);
 	err_check_propagate(retval);
@@ -1147,7 +1147,7 @@ static int dsp5680xx_read_32_single(struct target *t, uint32_t a,
 		err_check_propagate(retval);
 	}
 	/* Get lower part of data to TX/RX */
-	retval = eonce_load_TX_RX_to_r0(target);
+	retval = eonce_load_tx_rx_to_r0(target);
 	err_check_propagate(retval);
 	retval = core_move_y0_at_r0_inc(target);    /* This also load TX/RX high to r0 */
 	err_check_propagate(retval);
@@ -1543,7 +1543,7 @@ static int perl_crc(const uint8_t *buff8, uint32_t word_count)
  *
  * @return
  */
-static int dsp5680xx_f_SIM_reset(struct target *target)
+static int dsp5680xx_f_sim_reset(struct target *target)
 {
 	int retval = ERROR_OK;
 
@@ -1575,7 +1575,7 @@ static int dsp5680xx_soft_reset_halt(struct target *target)
 
 	retval = dsp5680xx_halt(target);
 	err_check_propagate(retval);
-	retval = dsp5680xx_f_SIM_reset(target);
+	retval = dsp5680xx_f_sim_reset(target);
 	err_check_propagate(retval);
 	return retval;
 }
@@ -1617,7 +1617,7 @@ static int dsp5680xx_f_ex(struct target *target, uint16_t c, uint32_t address, u
 	uint32_t command = c;
 	int retval;
 
-	retval = core_load_TX_RX_high_addr_to_r0(target);
+	retval = core_load_tx_rx_high_addr_to_r0(target);
 	err_check_propagate(retval);
 	retval = core_move_long_to_r2(target, HFM_BASE_ADDR);
 	err_check_propagate(retval);
@@ -1727,7 +1727,7 @@ static int set_fm_ck_div(struct target *target)
 
 	retval = core_move_long_to_r2(target, HFM_BASE_ADDR);
 	err_check_propagate(retval);
-	retval = core_load_TX_RX_high_addr_to_r0(target);
+	retval = core_load_tx_rx_high_addr_to_r0(target);
 	err_check_propagate(retval);
 	/* read HFM_CLKD */
 	retval = core_move_at_r2_to_y0(target);
@@ -1882,7 +1882,7 @@ int dsp5680xx_f_erase(struct target *target, int first, int last)
 	 * Reset SIM
 	 *
 	 */
-	retval = dsp5680xx_f_SIM_reset(target);
+	retval = dsp5680xx_f_sim_reset(target);
 	err_check_propagate(retval);
 	/*
 	 * Set hfmdiv
@@ -2014,7 +2014,7 @@ int dsp5680xx_f_wr(struct target *t, const uint8_t *b, uint32_t a, uint32_t coun
 
 	retval = core_move_long_to_r3(target, address); /* Destination address to r3 */
 	err_check_propagate(retval);
-	core_load_TX_RX_high_addr_to_r0(target); /* TX/RX reg address to r0 */
+	core_load_tx_rx_high_addr_to_r0(target); /* TX/RX reg address to r0 */
 	err_check_propagate(retval);
 	retval = core_move_long_to_r2(target, HFM_BASE_ADDR); /* FM base address to r2 */
 	err_check_propagate(retval);

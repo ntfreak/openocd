@@ -56,38 +56,38 @@ static const char * const esirisc_exception_strings[] = {
 	[EID_SYSTEM_CALL]			= "SystemCall",
 	[EID_MEMORY_MANAGEMENT]		= "MemoryManagement",
 	[EID_UNRECOVERABLE]			= "Unrecoverable",
-	[EID_INTERRUPTn+0]			= "Interrupt0",
-	[EID_INTERRUPTn+1]			= "Interrupt1",
-	[EID_INTERRUPTn+2]			= "Interrupt2",
-	[EID_INTERRUPTn+3]			= "Interrupt3",
-	[EID_INTERRUPTn+4]			= "Interrupt4",
-	[EID_INTERRUPTn+5]			= "Interrupt5",
-	[EID_INTERRUPTn+6]			= "Interrupt6",
-	[EID_INTERRUPTn+7]			= "Interrupt7",
-	[EID_INTERRUPTn+8]			= "Interrupt8",
-	[EID_INTERRUPTn+9]			= "Interrupt9",
-	[EID_INTERRUPTn+10]			= "Interrupt10",
-	[EID_INTERRUPTn+11]			= "Interrupt11",
-	[EID_INTERRUPTn+12]			= "Interrupt12",
-	[EID_INTERRUPTn+13]			= "Interrupt13",
-	[EID_INTERRUPTn+14]			= "Interrupt14",
-	[EID_INTERRUPTn+15]			= "Interrupt15",
-	[EID_INTERRUPTn+16]			= "Interrupt16",
-	[EID_INTERRUPTn+17]			= "Interrupt17",
-	[EID_INTERRUPTn+18]			= "Interrupt18",
-	[EID_INTERRUPTn+19]			= "Interrupt19",
-	[EID_INTERRUPTn+20]			= "Interrupt20",
-	[EID_INTERRUPTn+21]			= "Interrupt21",
-	[EID_INTERRUPTn+22]			= "Interrupt22",
-	[EID_INTERRUPTn+23]			= "Interrupt23",
-	[EID_INTERRUPTn+24]			= "Interrupt24",
-	[EID_INTERRUPTn+25]			= "Interrupt25",
-	[EID_INTERRUPTn+26]			= "Interrupt26",
-	[EID_INTERRUPTn+27]			= "Interrupt27",
-	[EID_INTERRUPTn+28]			= "Interrupt28",
-	[EID_INTERRUPTn+29]			= "Interrupt29",
-	[EID_INTERRUPTn+30]			= "Interrupt30",
-	[EID_INTERRUPTn+31]			= "Interrupt31",
+	[EID_INTERRUPT_N+0]			= "Interrupt0",
+	[EID_INTERRUPT_N+1]			= "Interrupt1",
+	[EID_INTERRUPT_N+2]			= "Interrupt2",
+	[EID_INTERRUPT_N+3]			= "Interrupt3",
+	[EID_INTERRUPT_N+4]			= "Interrupt4",
+	[EID_INTERRUPT_N+5]			= "Interrupt5",
+	[EID_INTERRUPT_N+6]			= "Interrupt6",
+	[EID_INTERRUPT_N+7]			= "Interrupt7",
+	[EID_INTERRUPT_N+8]			= "Interrupt8",
+	[EID_INTERRUPT_N+9]			= "Interrupt9",
+	[EID_INTERRUPT_N+10]			= "Interrupt10",
+	[EID_INTERRUPT_N+11]			= "Interrupt11",
+	[EID_INTERRUPT_N+12]			= "Interrupt12",
+	[EID_INTERRUPT_N+13]			= "Interrupt13",
+	[EID_INTERRUPT_N+14]			= "Interrupt14",
+	[EID_INTERRUPT_N+15]			= "Interrupt15",
+	[EID_INTERRUPT_N+16]			= "Interrupt16",
+	[EID_INTERRUPT_N+17]			= "Interrupt17",
+	[EID_INTERRUPT_N+18]			= "Interrupt18",
+	[EID_INTERRUPT_N+19]			= "Interrupt19",
+	[EID_INTERRUPT_N+20]			= "Interrupt20",
+	[EID_INTERRUPT_N+21]			= "Interrupt21",
+	[EID_INTERRUPT_N+22]			= "Interrupt22",
+	[EID_INTERRUPT_N+23]			= "Interrupt23",
+	[EID_INTERRUPT_N+24]			= "Interrupt24",
+	[EID_INTERRUPT_N+25]			= "Interrupt25",
+	[EID_INTERRUPT_N+26]			= "Interrupt26",
+	[EID_INTERRUPT_N+27]			= "Interrupt27",
+	[EID_INTERRUPT_N+28]			= "Interrupt28",
+	[EID_INTERRUPT_N+29]			= "Interrupt29",
+	[EID_INTERRUPT_N+30]			= "Interrupt30",
+	[EID_INTERRUPT_N+31]			= "Interrupt31",
 };
 
 /*
@@ -508,7 +508,7 @@ static int esirisc_add_breakpoint(struct target *target, struct breakpoint *brea
 	esirisc->breakpoints_p[bp_index] = breakpoint;
 
 	/* specify instruction breakpoint address */
-	retval = esirisc_jtag_write_csr(jtag_info, CSR_DEBUG, CSR_DEBUG_IBAn + bp_index,
+	retval = esirisc_jtag_write_csr(jtag_info, CSR_DEBUG, CSR_DEBUG_IBA_N + bp_index,
 			breakpoint->address);
 	if (retval != ERROR_OK) {
 		LOG_ERROR("%s: failed to write Debug CSR: IBA", target_name(target));
@@ -634,7 +634,7 @@ static int esirisc_add_watchpoint(struct target *target, struct watchpoint *watc
 	esirisc->watchpoints_p[wp_index] = watchpoint;
 
 	/* specify data breakpoint address */
-	retval = esirisc_jtag_write_csr(jtag_info, CSR_DEBUG, CSR_DEBUG_DBAn + wp_index,
+	retval = esirisc_jtag_write_csr(jtag_info, CSR_DEBUG, CSR_DEBUG_DBA_N + wp_index,
 			watchpoint->address);
 	if (retval != ERROR_OK) {
 		LOG_ERROR("%s: failed to write Debug CSR: DBA", target_name(target));

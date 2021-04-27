@@ -20,7 +20,7 @@
 
 struct target;
 
-#define AP7k_COMMON_MAGIC	0x4150374b
+#define AP7K_COMMON_MAGIC	0x4150374b
 struct avr32_ap7k_common {
 	int common_magic;
 	struct avr32_jtag jtag;
