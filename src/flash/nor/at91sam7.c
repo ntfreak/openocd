@@ -104,11 +104,11 @@ static void at91sam7_set_flash_mode(struct flash_bank *bank, int mode);
 static uint32_t at91sam7_wait_status_busy(struct flash_bank *bank, uint32_t waitbits, int timeout);
 static int at91sam7_flash_command(struct flash_bank *bank, uint8_t cmd, uint16_t pagen);
 
-static const uint32_t MC_FMR[4] = { 0xFFFFFF60, 0xFFFFFF70, 0xFFFFFF80, 0xFFFFFF90 };
-static const uint32_t MC_FCR[4] = { 0xFFFFFF64, 0xFFFFFF74, 0xFFFFFF84, 0xFFFFFF94 };
-static const uint32_t MC_FSR[4] = { 0xFFFFFF68, 0xFFFFFF78, 0xFFFFFF88, 0xFFFFFF98 };
+static const uint32_t mc_fmr[4] = { 0xFFFFFF60, 0xFFFFFF70, 0xFFFFFF80, 0xFFFFFF90 };
+static const uint32_t mc_fcr[4] = { 0xFFFFFF64, 0xFFFFFF74, 0xFFFFFF84, 0xFFFFFF94 };
+static const uint32_t mc_fsr[4] = { 0xFFFFFF68, 0xFFFFFF78, 0xFFFFFF88, 0xFFFFFF98 };
 
-static const char *EPROC[8] = {
+static const char *eproc[8] = {
 	"Unknown", "ARM946-E", "ARM7TDMI", "Unknown", "ARM920T", "ARM926EJ-S", "Unknown", "Unknown"
 };
 
@@ -179,7 +179,7 @@ static long SRAMSIZ[16] = {
 static uint32_t at91sam7_get_flash_status(struct target *target, int bank_number)
 {
 	uint32_t fsr;
-	target_read_u32(target, MC_FSR[bank_number], &fsr);
+	target_read_u32(target, mc_fsr[bank_number], &fsr);
 
 	return fsr;
 }
@@ -290,7 +290,7 @@ static void at91sam7_set_flash_mode(struct flash_bank *bank, int mode)
 
 		LOG_DEBUG("fmcn[%i]: %i", bank->bank_number, (int)(fmcn));
 		fmr = fmcn << 16 | fws << 8;
-		target_write_u32(target, MC_FMR[bank->bank_number], fmr);
+		target_write_u32(target, mc_fmr[bank->bank_number], fmr);
 	}
 
 	at91sam7_info->flashmode = mode;
@@ -329,7 +329,7 @@ static int at91sam7_flash_command(struct flash_bank *bank, uint8_t cmd, uint16_t
 	struct target *target = bank->target;
 
 	fcr = (0x5A << 24) | ((pagen&0x3FF) << 8) | cmd;
-	target_write_u32(target, MC_FCR[bank->bank_number], fcr);
+	target_write_u32(target, mc_fcr[bank->bank_number], fcr);
 	LOG_DEBUG("Flash command: 0x%" PRIx32 ", flash bank: %i, page number: %u",
 		fcr,
 		bank->bank_number + 1,
@@ -993,7 +993,7 @@ static int get_at91sam7_info(struct flash_bank *bank, struct command_invocation 
 			"Flashsize: 0x%8.8" PRIx32 "\n",
 			at91sam7_info->cidr,
 			at91sam7_info->cidr_arch,
-			EPROC[at91sam7_info->cidr_eproc],
+			eproc[at91sam7_info->cidr_eproc],
 			at91sam7_info->cidr_version,
 			bank->size);
 

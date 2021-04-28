@@ -39,7 +39,7 @@ struct tms470_flash_bank {
 
 };
 
-static const struct flash_sector TMS470R1A256_SECTORS[] = {
+static const struct flash_sector tms470r1a256_sectors[] = {
 	{0x00000000, 0x00002000, -1, -1},
 	{0x00002000, 0x00002000, -1, -1},
 	{0x00004000, 0x00002000, -1, -1},
@@ -57,9 +57,9 @@ static const struct flash_sector TMS470R1A256_SECTORS[] = {
 };
 
 #define TMS470R1A256_NUM_SECTORS \
-	ARRAY_SIZE(TMS470R1A256_SECTORS)
+	ARRAY_SIZE(tms470r1a256_sectors)
 
-static const struct flash_sector TMS470R1A288_BANK0_SECTORS[] = {
+static const struct flash_sector tms470r1a288_bank0_sectors[] = {
 	{0x00000000, 0x00002000, -1, -1},
 	{0x00002000, 0x00002000, -1, -1},
 	{0x00004000, 0x00002000, -1, -1},
@@ -67,9 +67,9 @@ static const struct flash_sector TMS470R1A288_BANK0_SECTORS[] = {
 };
 
 #define TMS470R1A288_BANK0_NUM_SECTORS \
-	ARRAY_SIZE(TMS470R1A288_BANK0_SECTORS)
+	ARRAY_SIZE(tms470r1a288_bank0_sectors)
 
-static const struct flash_sector TMS470R1A288_BANK1_SECTORS[] = {
+static const struct flash_sector tms470r1a288_bank1_sectors[] = {
 	{0x00040000, 0x00010000, -1, -1},
 	{0x00050000, 0x00010000, -1, -1},
 	{0x00060000, 0x00010000, -1, -1},
@@ -77,9 +77,9 @@ static const struct flash_sector TMS470R1A288_BANK1_SECTORS[] = {
 };
 
 #define TMS470R1A288_BANK1_NUM_SECTORS \
-	ARRAY_SIZE(TMS470R1A288_BANK1_SECTORS)
+	ARRAY_SIZE(tms470r1a288_bank1_sectors)
 
-static const struct flash_sector TMS470R1A384_BANK0_SECTORS[] = {
+static const struct flash_sector tms470r1a384_bank0_sectors[] = {
 	{0x00000000, 0x00002000, -1, -1},
 	{0x00002000, 0x00002000, -1, -1},
 	{0x00004000, 0x00004000, -1, -1},
@@ -93,9 +93,9 @@ static const struct flash_sector TMS470R1A384_BANK0_SECTORS[] = {
 };
 
 #define TMS470R1A384_BANK0_NUM_SECTORS \
-	ARRAY_SIZE(TMS470R1A384_BANK0_SECTORS)
+	ARRAY_SIZE(tms470r1a384_bank0_sectors)
 
-static const struct flash_sector TMS470R1A384_BANK1_SECTORS[] = {
+static const struct flash_sector tms470r1a384_bank1_sectors[] = {
 	{0x00020000, 0x00008000, -1, -1},
 	{0x00028000, 0x00008000, -1, -1},
 	{0x00030000, 0x00008000, -1, -1},
@@ -103,9 +103,9 @@ static const struct flash_sector TMS470R1A384_BANK1_SECTORS[] = {
 };
 
 #define TMS470R1A384_BANK1_NUM_SECTORS \
-	ARRAY_SIZE(TMS470R1A384_BANK1_SECTORS)
+	ARRAY_SIZE(tms470r1a384_bank1_sectors)
 
-static const struct flash_sector TMS470R1A384_BANK2_SECTORS[] = {
+static const struct flash_sector tms470r1a384_bank2_sectors[] = {
 	{0x00040000, 0x00008000, -1, -1},
 	{0x00048000, 0x00008000, -1, -1},
 	{0x00050000, 0x00008000, -1, -1},
@@ -113,7 +113,7 @@ static const struct flash_sector TMS470R1A384_BANK2_SECTORS[] = {
 };
 
 #define TMS470R1A384_BANK2_NUM_SECTORS \
-	ARRAY_SIZE(TMS470R1A384_BANK2_SECTORS)
+	ARRAY_SIZE(tms470r1a384_bank2_sectors)
 
 /* ---------------------------------------------------------------------- */
 
@@ -173,10 +173,10 @@ static int tms470_read_part_info(struct flash_bank *bank)
 			bank->base = 0x00000000;
 			bank->size = 256 * 1024;
 			bank->num_sectors = TMS470R1A256_NUM_SECTORS;
-			bank->sectors = malloc(sizeof(TMS470R1A256_SECTORS));
+			bank->sectors = malloc(sizeof(tms470r1a256_sectors));
 			if (!bank->sectors)
 				return ERROR_FLASH_OPERATION_FAILED;
-			(void)memcpy(bank->sectors, TMS470R1A256_SECTORS, sizeof(TMS470R1A256_SECTORS));
+			(void)memcpy(bank->sectors, tms470r1a256_sectors, sizeof(tms470r1a256_sectors));
 			break;
 
 		case 0x2b:
@@ -187,21 +187,21 @@ static int tms470_read_part_info(struct flash_bank *bank)
 				bank->base = 0x00000000;
 				bank->size = 32 * 1024;
 				bank->num_sectors = TMS470R1A288_BANK0_NUM_SECTORS;
-				bank->sectors = malloc(sizeof(TMS470R1A288_BANK0_SECTORS));
+				bank->sectors = malloc(sizeof(tms470r1a288_bank0_sectors));
 				if (!bank->sectors)
 					return ERROR_FLASH_OPERATION_FAILED;
-				(void)memcpy(bank->sectors, TMS470R1A288_BANK0_SECTORS,
-						sizeof(TMS470R1A288_BANK0_SECTORS));
+				(void)memcpy(bank->sectors, tms470r1a288_bank0_sectors,
+						sizeof(tms470r1a288_bank0_sectors));
 			} else if ((bank->base >= 0x00040000) && (bank->base < 0x00080000)) {
 				tms470_info->ordinal = 1;
 				bank->base = 0x00040000;
 				bank->size = 256 * 1024;
 				bank->num_sectors = TMS470R1A288_BANK1_NUM_SECTORS;
-				bank->sectors = malloc(sizeof(TMS470R1A288_BANK1_SECTORS));
+				bank->sectors = malloc(sizeof(tms470r1a288_bank1_sectors));
 				if (!bank->sectors)
 					return ERROR_FLASH_OPERATION_FAILED;
-				(void)memcpy(bank->sectors, TMS470R1A288_BANK1_SECTORS,
-						sizeof(TMS470R1A288_BANK1_SECTORS));
+				(void)memcpy(bank->sectors, tms470r1a288_bank1_sectors,
+						sizeof(tms470r1a288_bank1_sectors));
 			} else {
 				LOG_ERROR("No %s flash bank contains base address " TARGET_ADDR_FMT ".",
 						part_name, bank->base);
@@ -217,31 +217,31 @@ static int tms470_read_part_info(struct flash_bank *bank)
 				bank->base = 0x00000000;
 				bank->size = 128 * 1024;
 				bank->num_sectors = TMS470R1A384_BANK0_NUM_SECTORS;
-				bank->sectors = malloc(sizeof(TMS470R1A384_BANK0_SECTORS));
+				bank->sectors = malloc(sizeof(tms470r1a384_bank0_sectors));
 				if (!bank->sectors)
 					return ERROR_FLASH_OPERATION_FAILED;
-				(void)memcpy(bank->sectors, TMS470R1A384_BANK0_SECTORS,
-						sizeof(TMS470R1A384_BANK0_SECTORS));
+				(void)memcpy(bank->sectors, tms470r1a384_bank0_sectors,
+						sizeof(tms470r1a384_bank0_sectors));
 			} else if ((bank->base >= 0x00020000) && (bank->base < 0x00040000)) {
 				tms470_info->ordinal = 1;
 				bank->base = 0x00020000;
 				bank->size = 128 * 1024;
 				bank->num_sectors = TMS470R1A384_BANK1_NUM_SECTORS;
-				bank->sectors = malloc(sizeof(TMS470R1A384_BANK1_SECTORS));
+				bank->sectors = malloc(sizeof(tms470r1a384_bank1_sectors));
 				if (!bank->sectors)
 					return ERROR_FLASH_OPERATION_FAILED;
-				(void)memcpy(bank->sectors, TMS470R1A384_BANK1_SECTORS,
-						sizeof(TMS470R1A384_BANK1_SECTORS));
+				(void)memcpy(bank->sectors, tms470r1a384_bank1_sectors,
+						sizeof(tms470r1a384_bank1_sectors));
 			} else if ((bank->base >= 0x00040000) && (bank->base < 0x00060000)) {
 				tms470_info->ordinal = 2;
 				bank->base = 0x00040000;
 				bank->size = 128 * 1024;
 				bank->num_sectors = TMS470R1A384_BANK2_NUM_SECTORS;
-				bank->sectors = malloc(sizeof(TMS470R1A384_BANK2_SECTORS));
+				bank->sectors = malloc(sizeof(tms470r1a384_bank2_sectors));
 				if (!bank->sectors)
 					return ERROR_FLASH_OPERATION_FAILED;
-				(void)memcpy(bank->sectors, TMS470R1A384_BANK2_SECTORS,
-						sizeof(TMS470R1A384_BANK2_SECTORS));
+				(void)memcpy(bank->sectors, tms470r1a384_bank2_sectors,
+						sizeof(tms470r1a384_bank2_sectors));
 			} else {
 				LOG_ERROR("No %s flash bank contains base address " TARGET_ADDR_FMT ".",
 						part_name, bank->base);
@@ -325,37 +325,37 @@ COMMAND_HANDLER(tms470_handle_flash_keyset_command)
 	return ERROR_OK;
 }
 
-static const uint32_t FLASH_KEYS_ALL_ONES[] = { 0xFFFFFFFF, 0xFFFFFFFF,
+static const uint32_t flash_keys_all_ones[] = { 0xFFFFFFFF, 0xFFFFFFFF,
 		0xFFFFFFFF, 0xFFFFFFFF,};
 
-static const uint32_t FLASH_KEYS_ALL_ZEROS[] = { 0x00000000, 0x00000000,
+static const uint32_t flash_keys_all_zeros[] = { 0x00000000, 0x00000000,
 		0x00000000, 0x00000000,};
 
-static const uint32_t FLASH_KEYS_MIX1[] = { 0xf0fff0ff, 0xf0fff0ff,
+static const uint32_t flash_keys_mix1[] = { 0xf0fff0ff, 0xf0fff0ff,
 		0xf0fff0ff, 0xf0fff0ff};
 
-static const uint32_t FLASH_KEYS_MIX2[] = { 0x0000ffff, 0x0000ffff,
+static const uint32_t flash_keys_mix2[] = { 0x0000ffff, 0x0000ffff,
 		0x0000ffff, 0x0000ffff};
 
 /* ---------------------------------------------------------------------- */
 
-static int oscMHz = 12;
+static int osc_mhz = 12;
 
 COMMAND_HANDLER(tms470_handle_osc_megahertz_command)
 {
 	if (CMD_ARGC > 1)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	else if (CMD_ARGC == 1)
-		sscanf(CMD_ARGV[0], "%d", &oscMHz);
+		sscanf(CMD_ARGV[0], "%d", &osc_mhz);
 
-	if (oscMHz <= 0) {
+	if (osc_mhz <= 0) {
 		LOG_ERROR("osc_megahertz must be positive and non-zero!");
 		command_print(CMD, "osc_megahertz must be positive and non-zero!");
-		oscMHz = 12;
+		osc_mhz = 12;
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 
-	command_print(CMD, "osc_megahertz=%d", oscMHz);
+	command_print(CMD, "osc_megahertz=%d", osc_mhz);
 
 	return ERROR_OK;
 }
@@ -474,16 +474,16 @@ static int tms470_unlock_flash(struct flash_bank *bank)
 	if (keys_set) {
 		key_set_count = 5;
 		p_key_sets[0] = flash_keys;
-		p_key_sets[1] = FLASH_KEYS_ALL_ONES;
-		p_key_sets[2] = FLASH_KEYS_ALL_ZEROS;
-		p_key_sets[3] = FLASH_KEYS_MIX1;
-		p_key_sets[4] = FLASH_KEYS_MIX2;
+		p_key_sets[1] = flash_keys_all_ones;
+		p_key_sets[2] = flash_keys_all_zeros;
+		p_key_sets[3] = flash_keys_mix1;
+		p_key_sets[4] = flash_keys_mix2;
 	} else {
 		key_set_count = 4;
-		p_key_sets[0] = FLASH_KEYS_ALL_ONES;
-		p_key_sets[1] = FLASH_KEYS_ALL_ZEROS;
-		p_key_sets[2] = FLASH_KEYS_MIX1;
-		p_key_sets[3] = FLASH_KEYS_MIX2;
+		p_key_sets[0] = flash_keys_all_ones;
+		p_key_sets[1] = flash_keys_all_zeros;
+		p_key_sets[2] = flash_keys_mix1;
+		p_key_sets[3] = flash_keys_mix2;
 	}
 
 	for (i = 0; i < key_set_count; i++) {
@@ -573,7 +573,7 @@ static int tms470_flash_initialize_internal_state_machine(struct flash_bank *ban
 	 * the plldis global.
 	 */
 	target_read_u32(target, 0xFFFFFFDC, &glbctrl);
-	sysclk = (plldis ? 1 : (glbctrl & 0x08) ? 4 : 8) * oscMHz / (1 + (glbctrl & 7));
+	sysclk = (plldis ? 1 : (glbctrl & 0x08) ? 4 : 8) * osc_mhz / (1 + (glbctrl & 7));
 	delay = (sysclk > 10) ? (sysclk + 1) / 2 : 5;
 	target_write_u32(target, 0xFFE8A018, (delay << 4) | (delay << 8));
 	LOG_DEBUG("set fmpsetup = 0x%04" PRIx32 "", (delay << 4) | (delay << 8));

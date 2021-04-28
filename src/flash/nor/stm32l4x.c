@@ -1320,10 +1320,10 @@ static int stm32l4_read_idcode(struct flash_bank *bank, uint32_t *id)
 	int retval;
 
 	/* try reading possible IDCODE registers, in the following order */
-	uint32_t DBGMCU_IDCODE[] = {DBGMCU_IDCODE_L4_G4, DBGMCU_IDCODE_G0, DBGMCU_IDCODE_L5};
+	uint32_t dbgmcu_idcode[] = {DBGMCU_IDCODE_L4_G4, DBGMCU_IDCODE_G0, DBGMCU_IDCODE_L5};
 
-	for (unsigned int i = 0; i < ARRAY_SIZE(DBGMCU_IDCODE); i++) {
-		retval = target_read_u32(bank->target, DBGMCU_IDCODE[i], id);
+	for (unsigned int i = 0; i < ARRAY_SIZE(dbgmcu_idcode); i++) {
+		retval = target_read_u32(bank->target, dbgmcu_idcode[i], id);
 		if ((retval == ERROR_OK) && ((*id & 0xfff) != 0) && ((*id & 0xfff) != 0xfff))
 			return ERROR_OK;
 	}
