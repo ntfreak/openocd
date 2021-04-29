@@ -61,6 +61,7 @@
 #include "jtag/interface.h"
 #include "transport/transport.h"
 #include "smp.h"
+#include <helper/bits.h>
 #include <helper/time_support.h>
 
 static int cortex_a_poll(struct target *target);
@@ -1686,8 +1687,9 @@ static int cortex_a_set_watchpoint(struct target *target, struct watchpoint *wat
 	int retval = ERROR_OK;
 	int wrp_i = 0;
 	uint32_t control;
-	uint8_t address_mask = ilog2(watchpoint->length);
-	uint8_t byte_address_select = 0xFF;
+	uint32_t address;
+	uint8_t address_mask;
+	uint8_t byte_address_select;
 	uint8_t load_store_access_control = 0x3;
 	struct cortex_a_common *cortex_a = target_to_cortex_a(target);
 	struct armv7a_common *armv7a = &cortex_a->armv7a_common;
@@ -1707,9 +1709,43 @@ static int cortex_a_set_watchpoint(struct target *target, struct watchpoint *wat
 		return ERROR_FAIL;
 	}
 
-	if (address_mask == 0x1 || address_mask == 0x2) {
-		LOG_WARNING("length must be a power of 2 and different than 2 and 4");
+	if (watchpoint->length == 0 || watchpoint->length > 0x80000000U ||
+			(watchpoint->length & (watchpoint->length - 1))) {
+		LOG_WARNING("watchpoint length must be a power of 2");
 		return ERROR_FAIL;
+	}
+
+	if (watchpoint->address & (watchpoint->length - 1)) {
+		LOG_WARNING("watchpoint address must be aligned at length");
+		return ERROR_FAIL;
+	}
+
+	/* FIXME: ARM DDI 0406C: address_mask is optional. What to do if it's missing?  */
+	/* handle wp length 1 and 2 through byte select */
+	switch (watchpoint->length) {
+	case 1:
+		byte_address_select = BIT(watchpoint->address & 0x3);
+		address = watchpoint->address & ~0x3;
+		address_mask = 0;
+		break;
+
+	case 2:
+		byte_address_select = 0x03 << (watchpoint->address & 0x2);
+		address = watchpoint->address & ~0x3;
+		address_mask = 0;
+		break;
+
+	case 4:
+		byte_address_select = 0x0f;
+		address = watchpoint->address;
+		address_mask = 0;
+		break;
+
+	default:
+		byte_address_select = 0xff;
+		address = watchpoint->address;
+		address_mask = ilog2(watchpoint->length);
+		break;
 	}
 
 	watchpoint->set = wrp_i + 1;
@@ -1718,7 +1754,7 @@ static int cortex_a_set_watchpoint(struct target *target, struct watchpoint *wat
 		(load_store_access_control << 3) |
 		(0x3 << 1) | 1;
 	wrp_list[wrp_i].used = 1;
-	wrp_list[wrp_i].value = (watchpoint->address & 0xFFFFFFFC);
+	wrp_list[wrp_i].value = address;
 	wrp_list[wrp_i].control = control;
 
 	retval = cortex_a_dap_write_memap_register_u32(target, armv7a->debug_base
