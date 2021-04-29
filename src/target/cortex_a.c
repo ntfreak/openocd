@@ -1802,8 +1802,12 @@ static int cortex_a_add_watchpoint(struct target *target, struct watchpoint *wat
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 	}
 
+	int retval = cortex_a_set_watchpoint(target, watchpoint);
+	if (retval != ERROR_OK)
+		return retval;
+
 	cortex_a->wrp_num_available--;
-	return cortex_a_set_watchpoint(target, watchpoint);
+	return ERROR_OK;
 }
 
 /**
@@ -3007,7 +3011,7 @@ static int cortex_a_examine_first(struct target *target)
 
 	/* Setup Watchpoint Register Pairs */
 	cortex_a->wrp_num = ((didr >> 28) & 0x0F) + 1;
-	cortex_a->wrp_num_available = cortex_a->brp_num;
+	cortex_a->wrp_num_available = cortex_a->wrp_num;
 	free(cortex_a->wrp_list);
 	cortex_a->wrp_list = calloc(cortex_a->wrp_num, sizeof(struct cortex_a_wrp));
 	for (i = 0; i < cortex_a->wrp_num; i++) {
