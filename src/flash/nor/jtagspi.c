@@ -437,8 +437,64 @@ static int jtagspi_info(struct flash_bank *bank, char *buf, int buf_size)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(jtagspi_handle_write_cmd_command)
+{
+	uint32_t cmd_id, value, size;
+
+	if (CMD_ARGC != 4)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], cmd_id);
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[1], value);
+	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[2], size);
+
+	struct flash_bank *bank;
+	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 3, &bank);
+	if (ERROR_OK != retval) {
+	    LOG_ERROR("Failed to get banks");
+	    return retval;
+	}
+
+	retval = jtagspi_write_enable(bank);
+	if (retval != ERROR_OK) {
+	    LOG_ERROR("Failed to enable write 0x%x", retval);
+	    return retval;
+	}
+
+	retval = jtagspi_cmd(bank, cmd_id, NULL, (uint8_t *) &value, size);
+	if (retval != ERROR_OK) {
+	    LOG_ERROR("Failed to send command 0x%x", retval);
+	    return retval;
+	}
+
+	return jtagspi_wait(bank, JTAGSPI_MAX_TIMEOUT);
+}
+
+static const struct command_registration jtagspi_exec_command_handlers[] = {
+	{
+		.name = "write_cmd",
+		.usage = "<cmd_id> <value> <size> <bank>",
+		.handler = jtagspi_handle_write_cmd_command,
+		.mode = COMMAND_EXEC,
+		.help = "send a generic jtag write command to spi module",
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
+static const struct command_registration jtagspi_command_handlers[] = {
+	{
+		.name = "jtagspi",
+		.mode = COMMAND_ANY,
+		.help = "jtagspi flash command group",
+		.usage = "",
+		.chain = jtagspi_exec_command_handlers,
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
 const struct flash_driver jtagspi_flash = {
 	.name = "jtagspi",
+	.commands = jtagspi_command_handlers,
 	.flash_bank_command = jtagspi_flash_bank_command,
 	.erase = jtagspi_erase,
 	.protect = jtagspi_protect,
