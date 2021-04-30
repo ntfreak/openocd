@@ -2372,7 +2372,7 @@ COMMAND_HANDLER(riscv_authdata_read)
 		uint32_t value;
 		if (r->authdata_read(target, &value) != ERROR_OK)
 			return ERROR_FAIL;
-		command_print(CMD, "0x%" PRIx32, value);
+		command_print_sameline(CMD, "0x%08" PRIx32, value);
 		return ERROR_OK;
 	} else {
 		LOG_ERROR("authdata_read is not implemented for this target.");
