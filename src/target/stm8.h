@@ -70,6 +70,4 @@ target_to_stm8(struct target *target)
 	return target->arch_info;
 }
 
-const struct command_registration stm8_command_handlers[];
-
 #endif /* OPENOCD_TARGET_STM8_H */

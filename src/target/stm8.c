@@ -2159,7 +2159,7 @@ static const struct command_registration stm8_exec_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
-const struct command_registration stm8_command_handlers[] = {
+static const struct command_registration stm8_command_handlers[] = {
 	{
 		.name = "stm8",
 		.mode = COMMAND_ANY,
