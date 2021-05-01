@@ -169,7 +169,7 @@ static int isc_enter(struct flash_bank *bank)
 		jtag_execute_queue();
 
 		status = read_status(bank);
-		if (false == status.isc_mode) {
+		if (!status.isc_mode) {
 			LOG_ERROR("*** XCF: FAILED to enter ISC mode");
 			return ERROR_FLASH_OPERATION_FAILED;
 		}
@@ -183,7 +183,7 @@ static int isc_leave(struct flash_bank *bank)
 
 	struct xcf_status status = read_status(bank);
 
-	if (false == status.isc_mode)
+	if (!status.isc_mode)
 		return ERROR_OK;
 	else {
 		struct scan_field scan;
@@ -199,7 +199,7 @@ static int isc_leave(struct flash_bank *bank)
 		alive_sleep(1);	/* device needs 50 uS to leave ISC mode */
 
 		status = read_status(bank);
-		if (true == status.isc_mode) {
+		if (status.isc_mode) {
 			LOG_ERROR("*** XCF: FAILED to leave ISC mode");
 			return ERROR_FLASH_OPERATION_FAILED;
 		}
@@ -280,7 +280,7 @@ static int isc_set_register(struct flash_bank *bank, const uint8_t *cmd,
 	scan.in_value = NULL;
 	jtag_add_dr_scan(bank->target->tap, 1, &scan, TAP_IDLE);
 
-	if (0 == timeout_ms)
+	if (timeout_ms == 0)
 		return jtag_execute_queue();
 	else
 		return isc_wait_erase_program(bank, timeout_ms);
@@ -311,7 +311,7 @@ static int isc_program_register(struct flash_bank *bank, const uint8_t *cmd,
 	scan.in_value = NULL;
 	jtag_add_ir_scan(bank->target->tap, &scan, TAP_IDLE);
 
-	if (0 == timeout_ms)
+	if (timeout_ms == 0)
 		return jtag_execute_queue();
 	else
 		return isc_wait_erase_program(bank, timeout_ms);
@@ -409,7 +409,7 @@ static bool need_bit_reverse(const uint8_t *buffer)
 	reference[18] = 0xAA;
 	reference[19] = 0x66;
 
-	if (0 == memcmp(reference, buffer, L))
+	if (memcmp(reference, buffer, L) == 0)
 		return false;
 	else
 		return true;
@@ -444,7 +444,7 @@ static int read_write_data(struct flash_bank *bank, const uint8_t *w_buffer,
 		goto EXIT;
 	}
 
-	if ((write_flag) && (0 == offset) && (count >= XCF_PAGE_SIZE))
+	if ((write_flag) && (offset == 0) && (count >= XCF_PAGE_SIZE))
 		revbit = need_bit_reverse(w_buffer);
 
 	while (count > 0) {
@@ -585,7 +585,7 @@ static int xcf_info(struct flash_bank *bank, char *buf, int buf_size)
 {
 	const struct xcf_priv *priv = bank->driver_priv;
 
-	if (false == priv->probed) {
+	if (!priv->probed) {
 		snprintf(buf, buf_size, "\nXCF flash bank not probed yet\n");
 		return ERROR_OK;
 	}
@@ -598,7 +598,7 @@ static int xcf_probe(struct flash_bank *bank)
 	struct xcf_priv *priv = bank->driver_priv;
 	uint32_t id;
 
-	if (true == priv->probed)
+	if (priv->probed)
 		free(bank->sectors);
 	priv->probed = false;
 
@@ -629,7 +629,7 @@ static int xcf_probe(struct flash_bank *bank)
 	}
 
 	bank->sectors = malloc(bank->num_sectors * sizeof(struct flash_sector));
-	if (NULL == bank->sectors) {
+	if (bank->sectors == NULL) {
 		LOG_ERROR("No memory for sector table");
 		return ERROR_FAIL;
 	}
@@ -652,7 +652,7 @@ static int xcf_auto_probe(struct flash_bank *bank)
 {
 	struct xcf_priv *priv = bank->driver_priv;
 
-	if (true == priv->probed)
+	if (priv->probed)
 		return ERROR_OK;
 	else
 		return xcf_probe(bank);
