@@ -213,7 +213,7 @@ struct flash_driver {
 	 * @param buf_size - the size of the human buffer.
 	 * @returns ERROR_OK if successful; otherwise, an error code.
 	 */
-	int (*info)(struct flash_bank *bank, char *buf, int buf_size);
+	int (*info)(struct flash_bank *bank, char *buf, size_t buf_size);
 
 	/**
 	 * A more gentle flavor of flash_driver_s::probe, performing

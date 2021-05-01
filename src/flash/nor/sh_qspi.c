@@ -851,7 +851,7 @@ static int sh_qspi_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int sh_qspi_get_info(struct flash_bank *bank, char *buf, int buf_size)
+static int sh_qspi_get_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct sh_qspi_flash_bank *info = bank->driver_priv;
 

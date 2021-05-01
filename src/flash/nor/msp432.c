@@ -975,10 +975,10 @@ static int msp432_auto_probe(struct flash_bank *bank)
 	return retval;
 }
 
-static int msp432_info(struct flash_bank *bank, char *buf, int buf_size)
+static int msp432_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct msp432_bank *msp432_bank = bank->driver_priv;
-	int printed = 0;
+	int printed;
 
 	switch (msp432_bank->device_type) {
 		case MSP432P401X_DEPR:
@@ -1024,9 +1024,10 @@ static int msp432_info(struct flash_bank *bank, char *buf, int buf_size)
 			break;
 	}
 
-	buf_size -= printed;
+	if (printed < 0)
+		return ERROR_FAIL;
 
-	if (0 > buf_size)
+	if ((size_t)printed > buf_size)
 		return ERROR_BUF_TOO_SMALL;
 
 	return ERROR_OK;

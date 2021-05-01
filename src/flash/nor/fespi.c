@@ -1017,7 +1017,7 @@ static int fespi_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int get_fespi_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_fespi_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct fespi_flash_bank *fespi_info = bank->driver_priv;
 

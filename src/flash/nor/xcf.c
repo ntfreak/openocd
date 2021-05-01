@@ -581,7 +581,7 @@ FLASH_BANK_COMMAND_HANDLER(xcf_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int xcf_info(struct flash_bank *bank, char *buf, int buf_size)
+static int xcf_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	const struct xcf_priv *priv = bank->driver_priv;
 

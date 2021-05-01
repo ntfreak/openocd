@@ -624,7 +624,7 @@ static const char *nrf5_decode_info_package(uint32_t package)
 	return "xx";
 }
 
-static int nrf5_info(struct flash_bank *bank, char *buf, int buf_size)
+static int nrf5_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct nrf5_bank *nbank = bank->driver_priv;
 	struct nrf5_info *chip = nbank->chip;

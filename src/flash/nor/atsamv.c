@@ -607,7 +607,7 @@ static int samv_write(struct flash_bank *bank, const uint8_t *buffer,
 	return ERROR_OK;
 }
 
-static int samv_get_info(struct flash_bank *bank, char *buf, int buf_size)
+static int samv_get_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct samv_flash_bank *samv_info = bank->driver_priv;
 	if (!samv_info->probed) {

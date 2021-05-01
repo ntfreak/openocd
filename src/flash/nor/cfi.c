@@ -2992,7 +2992,7 @@ int cfi_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-int cfi_get_info(struct flash_bank *bank, char *buf, int buf_size)
+int cfi_get_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	int printed;
 	struct cfi_flash_bank *cfi_info = bank->driver_priv;

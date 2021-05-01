@@ -805,7 +805,8 @@ abort_write_and_exit:
 
 }
 
-static int xmc4xxx_get_info_command(struct flash_bank *bank, char *buf, int buf_size)
+static int xmc4xxx_get_info_command(struct flash_bank *bank, char *buf,
+		size_t buf_size)
 {
 	struct xmc4xxx_flash_bank *fb = bank->driver_priv;
 	uint32_t scu_idcode;

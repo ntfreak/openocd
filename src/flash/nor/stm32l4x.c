@@ -1608,7 +1608,7 @@ static int stm32l4_auto_probe(struct flash_bank *bank)
 	return stm32l4_probe(bank);
 }
 
-static int get_stm32l4_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_stm32l4_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
 	const struct stm32l4_part_info *part_info = stm32l4_info->part_info;

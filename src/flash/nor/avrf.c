@@ -367,7 +367,7 @@ static int avrf_auto_probe(struct flash_bank *bank)
 	return avrf_probe(bank);
 }
 
-static int avrf_info(struct flash_bank *bank, char *buf, int buf_size)
+static int avrf_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct target *target = bank->target;
 	struct avr_common *avr = target->arch_info;

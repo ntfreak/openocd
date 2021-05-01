@@ -1044,7 +1044,7 @@ static int efm32x_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int get_efm32x_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_efm32x_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct efm32_info info;
 	int ret = 0;

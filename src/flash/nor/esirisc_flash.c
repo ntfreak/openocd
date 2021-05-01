@@ -487,7 +487,8 @@ static int esirisc_flash_auto_probe(struct flash_bank *bank)
 	return esirisc_flash_probe(bank);
 }
 
-static int esirisc_flash_info(struct flash_bank *bank, char *buf, int buf_size)
+static int esirisc_flash_info(struct flash_bank *bank, char *buf,
+		size_t buf_size)
 {
 	struct esirisc_flash_bank *esirisc_info = bank->driver_priv;
 

@@ -428,7 +428,8 @@ static int bluenrgx_auto_probe(struct flash_bank *bank)
 }
 
 /* This method must return a string displaying information about the bank */
-static int bluenrgx_get_info(struct flash_bank *bank, char *buf, int buf_size)
+static int bluenrgx_get_info(struct flash_bank *bank, char *buf,
+		size_t buf_size)
 {
 	struct bluenrgx_flash_bank *bluenrgx_info = bank->driver_priv;
 	int mask_number, cut_number;

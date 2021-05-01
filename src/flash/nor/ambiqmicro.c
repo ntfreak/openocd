@@ -161,7 +161,8 @@ FLASH_BANK_COMMAND_HANDLER(ambiqmicro_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int get_ambiqmicro_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_ambiqmicro_info(struct flash_bank *bank, char *buf,
+		size_t buf_size)
 {
 	struct ambiqmicro_flash_bank *ambiqmicro_info = bank->driver_priv;
 	int printed;

@@ -978,7 +978,8 @@ static int at91sam7_probe(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int get_at91sam7_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_at91sam7_info(struct flash_bank *bank, char *buf,
+		size_t buf_size)
 {
 	int printed;
 	struct at91sam7_flash_bank *at91sam7_info = bank->driver_priv;

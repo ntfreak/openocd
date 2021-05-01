@@ -875,7 +875,7 @@ static int ath79_protect_check(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int get_ath79_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_ath79_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct ath79_flash_bank *ath79_info = bank->driver_priv;
 

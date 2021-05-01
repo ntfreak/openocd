@@ -851,7 +851,7 @@ static int psoc4_auto_probe(struct flash_bank *bank)
 }
 
 
-static int get_psoc4_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_psoc4_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct target *target = bank->target;
 	struct psoc4_flash_bank *psoc4_info = bank->driver_priv;

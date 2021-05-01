@@ -2656,7 +2656,7 @@ static int sam4_GetDetails(struct sam4_bank_private *pPrivate)
 	return ERROR_OK;
 }
 
-static int sam4_info(struct flash_bank *bank, char *buf, int buf_size)
+static int sam4_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct sam4_bank_private *pPrivate;
 	int k = bank->size / 1024;

@@ -834,7 +834,7 @@ static int sim3x_auto_probe(struct flash_bank *bank)
 	}
 }
 
-static int sim3x_flash_info(struct flash_bank *bank, char *buf, int buf_size)
+static int sim3x_flash_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	int ret;
 	int printed = 0;

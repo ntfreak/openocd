@@ -1118,7 +1118,7 @@ static int tms470_protect_check(struct flash_bank *bank)
 
 /* ---------------------------------------------------------------------- */
 
-static int get_tms470_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_tms470_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	int used = 0;
 	struct tms470_flash_bank *tms470_info = bank->driver_priv;

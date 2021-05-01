@@ -2778,7 +2778,7 @@ static int kinetis_auto_probe(struct flash_bank *bank)
 	return kinetis_probe(bank);
 }
 
-static int kinetis_info(struct flash_bank *bank, char *buf, int buf_size)
+static int kinetis_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	const char *bank_class_names[] = {
 		"(ANY)", "PFlash", "FlexNVM", "FlexRAM"

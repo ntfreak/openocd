@@ -539,7 +539,8 @@ static int fm4_auto_probe(struct flash_bank *bank)
 	return fm4_probe(bank);
 }
 
-static int fm4_get_info_command(struct flash_bank *bank, char *buf, int buf_size)
+static int fm4_get_info_command(struct flash_bank *bank, char *buf,
+		size_t buf_size)
 {
 	struct fm4_flash_bank *fm4_bank = bank->driver_priv;
 	const char *name;

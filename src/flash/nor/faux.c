@@ -92,7 +92,7 @@ static int faux_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t o
 	return ERROR_OK;
 }
 
-static int faux_info(struct flash_bank *bank, char *buf, int buf_size)
+static int faux_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	snprintf(buf, buf_size, "faux flash driver");
 	return ERROR_OK;

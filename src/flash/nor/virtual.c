@@ -172,7 +172,7 @@ static int virtual_auto_probe(struct flash_bank *bank)
 	return ERROR_OK;
 }
 
-static int virtual_info(struct flash_bank *bank, char *buf, int buf_size)
+static int virtual_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct flash_bank *master_bank = virtual_get_master_bank(bank);
 

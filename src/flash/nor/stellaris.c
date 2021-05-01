@@ -479,7 +479,8 @@ FLASH_BANK_COMMAND_HANDLER(stellaris_flash_bank_command)
 	return ERROR_OK;
 }
 
-static int get_stellaris_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_stellaris_info(struct flash_bank *bank, char *buf,
+		size_t buf_size)
 {
 	int printed;
 	struct stellaris_flash_bank *stellaris_info = bank->driver_priv;

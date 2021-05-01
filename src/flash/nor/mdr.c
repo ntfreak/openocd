@@ -597,7 +597,7 @@ static int mdr_auto_probe(struct flash_bank *bank)
 	return mdr_probe(bank);
 }
 
-static int get_mdr_info(struct flash_bank *bank, char *buf, int buf_size)
+static int get_mdr_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct mdr_flash_bank *mdr_info = bank->driver_priv;
 	snprintf(buf, buf_size, "MDR32Fx - %s",

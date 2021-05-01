@@ -801,7 +801,7 @@ static int pic32mx_auto_probe(struct flash_bank *bank)
 	return pic32mx_probe(bank);
 }
 
-static int pic32mx_info(struct flash_bank *bank, char *buf, int buf_size)
+static int pic32mx_info(struct flash_bank *bank, char *buf, size_t buf_size)
 {
 	struct target *target = bank->target;
 	struct mips32_common *mips32 = target->arch_info;
