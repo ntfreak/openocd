@@ -1,0 +1,9 @@
+Verified+1: jenkins
+Code-Review+1: Christopher Head <chead@zaber.com>
+Code-Review+2: Oleksij Rempel <linux@rempel-privat.de>
+Code-Review+2: Andreas Fritiofson <andreas.fritiofson@gmail.com>
+Submitted-by: Antonio Borneo <borneo.antonio@gmail.com>
+Submitted-at: Sat, 01 May 2021 14:21:38 +0100
+Reviewed-on: http://openocd.zylin.com/6123
+Project: openocd
+Branch: refs/heads/master
