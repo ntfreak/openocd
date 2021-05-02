@@ -48,9 +48,55 @@ OpenOCD project.
 - use Unix line endings ('\\n'); do NOT use DOS endings ('\\r\\n')
 - limit adjacent empty lines to at most two (2).
 - remove any trailing empty lines at the end of source files
-- do not "comment out" code from the tree; instead, one should either:
-  -# remove it entirely (git can retrieve the old version), or
-  -# use an @c \#if/\#endif block.
+- do not "comment out" code from the tree nor put it within a block
+  @code
+  #if 0
+  ...
+  #endif
+  @endcode
+  otherwise it would never be checked at compile time and when new
+  patches get merged it could be not compilable anymore.
+  Code that is not fully working nor ready for submission should
+  instead be removed entirely (git can retrieve the old version).
+  For exceptional cases that require keeping some unused code, let
+  the compiler check it by putting it in a block
+  @code
+  if (false) {
+      /* explain why this code should be kept here */
+      ...
+  }
+  @endcode
+- in a @c switch statement align the @c switch with the @c case label
+  @code
+  switch (dev_id) {
+  case 0x0123:
+      size = 0x10000;
+      break;
+  case 0x0412:
+      size = 0x20000;
+      break;
+  default:
+      size = 0x40000;
+      break;
+  }
+  @endcode
+- in an <tt> if / then / else </tt> statement, if only one of the conditions
+  require curly brackets due to multi-statement block, put the curly brackets
+  also to the other condition
+  @code
+  if (x > 0)
+      a = 12 + x;
+  else
+      a = 24;
+  @endcode
+  @code
+  if (x > 0) {
+      a = 12 + x;
+  } else {
+      a = 24;
+      x = 0;
+  }
+  @endcode
 
 Finally, try to avoid lines of code that are longer than 72-80 columns:
 
@@ -60,6 +106,7 @@ Finally, try to avoid lines of code that are longer than 72-80 columns:
 - a few lines may be wider than this limit (typically format strings), but:
   - all C compilers will concatenate series of string constants.
   - all long string constants should be split across multiple lines.
+  - do never exceed 120 columns.
 
 @section stylenames Naming Rules
 
@@ -104,11 +151,15 @@ or variable length arrays on the stack. non-MMU hosts(uClinux) and
 pthreads require modest and predictable stack usage.
 
 @section styletypes Type Guidelines
-- use native types (@c int or @c unsigned) if the type is not important
+- use native types (@c int or <tt> unsigned int </tt>) if the type is not important
   - if size matters, use the types from \<stdint.h\> or \<inttypes.h\>:
     - @c int8_t, @c int16_t, @c int32_t, or @c int64_t: signed types of specified size
     - @c uint8_t, @c uint16_t, @c uint32_t, or @c uint64_t: unsigned types of specified size
+    - use the associated @c printf and @c scanf formatting strings for these types
+      (e.g. @c PRId8, PRIx16, SCNu8, ...)
   - do @b NOT redefine @c uN types from "types.h"
+  - use type @c target_addr_t for target's address values
+  - prefer type <tt> unsigned int </tt> to type @c unsigned
 
 @section stylefunc Functions
 
@@ -143,6 +194,20 @@ More directly, do @b not combine these kinds of statements:
 // Combined statements should be avoided
 if ((result = foo()) != ERROR_OK)
 	return result;
+@endcode
+- Do not compare @c bool values with @c true or @c false but use the
+  value directly
+@code
+if (!is_enabled)
+    ...
+@endcode
+- Avoid comparing pointers with @c NULL
+@code
+buf = malloc(buf_size);
+if (!buf) {
+    LOG_ERROR("Out of memory");
+    return ERROR_FAIL;
+}
 @endcode
 
  */
