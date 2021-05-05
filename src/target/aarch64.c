@@ -988,25 +988,26 @@ static int aarch64_debug_entry(struct target *target)
 	/* Examine debug reason */
 	armv8_dpm_report_dscr(dpm, dscr);
 
-	/* save address of instruction that triggered the watchpoint? */
+	/* save the memory address that triggered the watchpoint */
 	if (target->debug_reason == DBG_REASON_WATCHPOINT) {
 		uint32_t tmp;
-		uint64_t wfar = 0;
 
 		retval = mem_ap_read_atomic_u32(armv8->debug_ap,
-				armv8->debug_base + CPUV8_DBG_WFAR1,
-				&tmp);
+				armv8->debug_base + CPUV8_DBG_EDWAR0, &tmp);
 		if (retval != ERROR_OK)
 			return retval;
-		wfar = tmp;
-		wfar = (wfar << 32);
-		retval = mem_ap_read_atomic_u32(armv8->debug_ap,
-				armv8->debug_base + CPUV8_DBG_WFAR0,
-				&tmp);
-		if (retval != ERROR_OK)
-			return retval;
-		wfar |= tmp;
-		armv8_dpm_report_wfar(&armv8->dpm, wfar);
+		target_addr_t edwar = tmp;
+
+		/* EDWAR[63:32] has unknown content in aarch32 state */
+		if (core_state == ARM_STATE_AARCH64) {
+			retval = mem_ap_read_atomic_u32(armv8->debug_ap,
+					armv8->debug_base + CPUV8_DBG_EDWAR1, &tmp);
+			if (retval != ERROR_OK)
+				return retval;
+			edwar |= ((target_addr_t)tmp) << 32;
+		}
+
+		armv8->dpm.wp_addr = edwar;
 	}
 
 	retval = armv8_dpm_read_current_registers(&armv8->dpm);
@@ -1853,7 +1854,7 @@ int aarch64_hit_watchpoint(struct target *target,
 
 	struct armv8_common *armv8 = target_to_armv8(target);
 
-	uint64_t exception_address;
+	target_addr_t exception_address;
 	struct watchpoint *wp;
 
 	exception_address = armv8->dpm.wp_addr;
@@ -1861,23 +1862,11 @@ int aarch64_hit_watchpoint(struct target *target,
 	if (exception_address == 0xFFFFFFFF)
 		return ERROR_FAIL;
 
-	/**********************************************************/
-	/* see if a watchpoint address matches a value read from  */
-	/* the EDWAR register. Testing shows that on some ARM CPUs*/
-	/* the EDWAR value needs to have 8 added to it so we add  */
-	/* that check as well not sure if that is a core bug)     */
-	/**********************************************************/
-	for (exception_address = armv8->dpm.wp_addr; exception_address <= (armv8->dpm.wp_addr + 8);
-		exception_address += 8) {
-		for (wp = target->watchpoints; wp; wp = wp->next) {
-			if ((exception_address >= wp->address) && (exception_address < (wp->address + wp->length))) {
-				*hit_watchpoint = wp;
-				if (exception_address != armv8->dpm.wp_addr)
-					LOG_DEBUG("watchpoint hit required EDWAR to be increased by 8");
-				return ERROR_OK;
-			}
+	for (wp = target->watchpoints; wp; wp = wp->next)
+		if (exception_address >= wp->address && exception_address < (wp->address + wp->length)) {
+			*hit_watchpoint = wp;
+			return ERROR_OK;
 		}
-	}
 
 	return ERROR_FAIL;
 }
