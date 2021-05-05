@@ -1279,27 +1279,6 @@ static int dpmv8_remove_watchpoint(struct target *target, struct watchpoint *wp)
 	return retval;
 }
 
-void armv8_dpm_report_wfar(struct arm_dpm *dpm, uint64_t addr)
-{
-	switch (dpm->arm->core_state) {
-		case ARM_STATE_ARM:
-		case ARM_STATE_AARCH64:
-			addr -= 8;
-			break;
-		case ARM_STATE_THUMB:
-		case ARM_STATE_THUMB_EE:
-			addr -= 4;
-			break;
-		case ARM_STATE_JAZELLE:
-			/* ?? */
-			break;
-		default:
-			LOG_DEBUG("Unknown core_state");
-			break;
-	}
-	dpm->wp_addr = addr;
-}
-
 /*
  * Handle exceptions taken in debug state. This happens mostly for memory
  * accesses that violated a MMU policy. Taking an exception while in debug

@@ -1169,7 +1169,7 @@ int armv8_arch_state(struct target *target)
 		armv8_show_fault_registers(target);
 
 	if (target->debug_reason == DBG_REASON_WATCHPOINT)
-		LOG_USER("Watchpoint triggered at PC " TARGET_ADDR_FMT, armv8->dpm.wp_addr);
+		LOG_USER("Watchpoint triggered at " TARGET_ADDR_FMT, armv8->dpm.wp_addr);
 
 	return ERROR_OK;
 }
