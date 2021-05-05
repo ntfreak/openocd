@@ -571,8 +571,7 @@ int armv7a_arch_state(struct target *target)
 	if (arm->core_mode == ARM_MODE_ABT)
 		armv7a_show_fault_registers(target);
 	if (target->debug_reason == DBG_REASON_WATCHPOINT)
-		LOG_USER("Watchpoint triggered at PC %#08x",
-			(unsigned) armv7a->dpm.wp_pc);
+		LOG_USER("Watchpoint triggered at PC " TARGET_ADDR_FMT, armv7a->dpm.wp_addr);
 
 	return ERROR_OK;
 }

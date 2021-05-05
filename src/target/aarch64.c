@@ -1856,7 +1856,7 @@ int aarch64_hit_watchpoint(struct target *target,
 	uint64_t exception_address;
 	struct watchpoint *wp;
 
-	exception_address = armv8->dpm.wp_pc;
+	exception_address = armv8->dpm.wp_addr;
 
 	if (exception_address == 0xFFFFFFFF)
 		return ERROR_FAIL;
@@ -1867,12 +1867,12 @@ int aarch64_hit_watchpoint(struct target *target,
 	/* the EDWAR value needs to have 8 added to it so we add  */
 	/* that check as well not sure if that is a core bug)     */
 	/**********************************************************/
-	for (exception_address = armv8->dpm.wp_pc; exception_address <= (armv8->dpm.wp_pc + 8);
+	for (exception_address = armv8->dpm.wp_addr; exception_address <= (armv8->dpm.wp_addr + 8);
 		exception_address += 8) {
 		for (wp = target->watchpoints; wp; wp = wp->next) {
 			if ((exception_address >= wp->address) && (exception_address < (wp->address + wp->length))) {
 				*hit_watchpoint = wp;
-				if (exception_address != armv8->dpm.wp_pc)
+				if (exception_address != armv8->dpm.wp_addr)
 					LOG_DEBUG("watchpoint hit required EDWAR to be increased by 8");
 				return ERROR_OK;
 			}
