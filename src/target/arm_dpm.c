@@ -1010,7 +1010,7 @@ void arm_dpm_report_wfar(struct arm_dpm *dpm, uint32_t addr)
 			/* ?? */
 			break;
 	}
-	dpm->wp_pc = addr;
+	dpm->wp_addr = addr;
 }
 
 /*----------------------------------------------------------------------*/

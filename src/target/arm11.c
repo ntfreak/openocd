@@ -355,8 +355,7 @@ static int arm11_arch_state(struct target *target)
 	/* REVISIT also display ARM11-specific MMU and cache status ... */
 
 	if (target->debug_reason == DBG_REASON_WATCHPOINT)
-		LOG_USER("Watchpoint triggered at PC %#08x",
-			(unsigned) arm11->dpm.wp_pc);
+		LOG_USER("Watchpoint triggered at PC " TARGET_ADDR_FMT, arm11->dpm.wp_addr);
 
 	return retval;
 }
