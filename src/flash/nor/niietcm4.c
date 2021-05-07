@@ -1206,8 +1206,6 @@ static int niietcm4_erase(struct flash_bank *bank, unsigned int first,
 		retval = niietcm4_opstatus_check(bank);
 		if (retval != ERROR_OK)
 			return retval;
-
-		bank->sectors[i].is_erased = 1;
 	}
 
 	return retval;

@@ -305,8 +305,6 @@ static int max32xxx_erase(struct flash_bank *bank, unsigned int first,
 			max32xxx_flash_op_post(bank);
 			return ERROR_FLASH_OPERATION_FAILED;
 		}
-
-		bank->sectors[banknr].is_erased = 1;
 	}
 
 	if (!erased) {
@@ -775,10 +773,6 @@ COMMAND_HANDLER(max32xxx_handle_mass_erase_command)
 		return retval;
 
 	if (max32xxx_mass_erase(bank) == ERROR_OK) {
-		/* set all sectors as erased */
-		for (unsigned i = 0; i < bank->num_sectors; i++)
-			bank->sectors[i].is_erased = 1;
-
 		command_print(CMD, "max32xxx mass erase complete");
 	} else
 		command_print(CMD, "max32xxx mass erase failed");

@@ -649,8 +649,6 @@ static int stm32x_erase(struct flash_bank *bank, unsigned int first,
 		retval = stm32x_wait_status_busy(bank, FLASH_ERASE_TIMEOUT);
 		if (retval != ERROR_OK)
 			return retval;
-
-		bank->sectors[i].is_erased = 1;
 	}
 
 	retval = target_write_u32(target, stm32x_get_flash_reg(bank, STM32_FLASH_CR), FLASH_LOCK);
@@ -1569,10 +1567,6 @@ COMMAND_HANDLER(stm32x_handle_mass_erase_command)
 
 	retval = stm32x_mass_erase(bank);
 	if (retval == ERROR_OK) {
-		/* set all sectors as erased */
-		for (unsigned int i = 0; i < bank->num_sectors; i++)
-			bank->sectors[i].is_erased = 1;
-
 		command_print(CMD, "stm32x mass erase complete");
 	} else {
 		command_print(CMD, "stm32x mass erase failed");

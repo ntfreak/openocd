@@ -512,7 +512,6 @@ static int stm32x_erase(struct flash_bank *bank, unsigned int first,
 			LOG_ERROR("erase time-out or operation error sector %u", i);
 			goto flash_lock;
 		}
-		bank->sectors[i].is_erased = 1;
 	}
 
 flash_lock:
@@ -1088,10 +1087,6 @@ COMMAND_HANDLER(stm32x_handle_mass_erase_command)
 
 	retval = stm32x_mass_erase(bank);
 	if (retval == ERROR_OK) {
-		/* set all sectors as erased */
-		for (unsigned int i = 0; i < bank->num_sectors; i++)
-			bank->sectors[i].is_erased = 1;
-
 		command_print(CMD, "stm32h7x mass erase complete");
 	} else {
 		command_print(CMD, "stm32h7x mass erase failed");

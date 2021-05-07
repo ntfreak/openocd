@@ -892,9 +892,7 @@ static int cfi_intel_erase(struct flash_bank *bank, unsigned int first,
 		if (retval != ERROR_OK)
 			return retval;
 
-		if (status == 0x80)
-			bank->sectors[i].is_erased = 1;
-		else {
+		if (status != 0x80) {
 			retval = cfi_send_command(bank, 0xff, cfi_flash_address(bank, 0, 0x0));
 			if (retval != ERROR_OK)
 				return retval;
@@ -949,9 +947,7 @@ static int cfi_spansion_erase(struct flash_bank *bank, unsigned int first,
 		if (retval != ERROR_OK)
 			return retval;
 
-		if (cfi_spansion_wait_status_busy(bank, cfi_info->block_erase_timeout) == ERROR_OK)
-			bank->sectors[i].is_erased = 1;
-		else {
+		if (cfi_spansion_wait_status_busy(bank, cfi_info->block_erase_timeout) != ERROR_OK) {
 			retval = cfi_send_command(bank, 0xf0, cfi_flash_address(bank, 0, 0x0));
 			if (retval != ERROR_OK)
 				return retval;

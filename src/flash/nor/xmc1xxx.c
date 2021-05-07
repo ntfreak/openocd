@@ -140,9 +140,6 @@ static int xmc1xxx_erase(struct flash_bank *bank, unsigned int first,
 		goto err_run;
 	}
 
-	for (unsigned int sector = first; sector <= last; sector++)
-		bank->sectors[sector].is_erased = 1;
-
 err_run:
 	for (i = 0; i < ARRAY_SIZE(reg_params); i++)
 		destroy_reg_param(&reg_params[i]);

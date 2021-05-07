@@ -300,9 +300,6 @@ static int str9x_erase(struct flash_bank *bank, unsigned int first,
 			break;
 	}
 
-	for (unsigned int i = first; i <= last; i++)
-		bank->sectors[i].is_erased = 1;
-
 	return ERROR_OK;
 }
 

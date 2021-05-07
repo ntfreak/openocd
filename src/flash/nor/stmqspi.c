@@ -589,10 +589,6 @@ COMMAND_HANDLER(stmqspi_handle_mass_erase_command)
 
 	duration_measure(&bench);
 	if (retval == ERROR_OK) {
-		/* set all sectors as erased */
-		for (sector = 0; sector < bank->num_sectors; sector++)
-			bank->sectors[sector].is_erased = 1;
-
 		command_print(CMD, "stmqspi mass erase completed in %fs (%0.3f KiB/s)",
 			duration_elapsed(&bench),
 			duration_kbps(&bench, bank->size));

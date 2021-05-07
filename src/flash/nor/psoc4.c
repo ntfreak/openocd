@@ -520,16 +520,9 @@ static int psoc4_mass_erase(struct flash_bank *bank)
 
 	/* Call "Erase All" system ROM API */
 	uint32_t param = 0;
-	retval = psoc4_sysreq(bank, PSOC4_CMD_ERASE_ALL,
+	return psoc4_sysreq(bank, PSOC4_CMD_ERASE_ALL,
 			0,
 			&param, sizeof(param), NULL);
-
-	if (retval == ERROR_OK)
-		/* set all sectors as erased */
-		for (unsigned int i = 0; i < bank->num_sectors; i++)
-			bank->sectors[i].is_erased = 1;
-
-	return retval;
 }
 
 

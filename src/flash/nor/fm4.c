@@ -177,8 +177,6 @@ static int fm4_flash_erase(struct flash_bank *bank, unsigned int first,
 			goto err_run_ret;
 		} else
 			retval = ERROR_OK;
-
-		bank->sectors[sector].is_erased = 1;
 	}
 
 err_run_ret:

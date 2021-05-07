@@ -744,9 +744,6 @@ static int psoc6_erase(struct flash_bank *bank, unsigned int first,
 			if (hr != ERROR_OK)
 				goto exit_free_wa;
 
-			for (unsigned int i = first; i < first + rows_in_sector; i++)
-				bank->sectors[i].is_erased = 1;
-
 			first += rows_in_sector;
 		} else {
 			/* Perform Row Erase otherwise */
@@ -754,7 +751,6 @@ static int psoc6_erase(struct flash_bank *bank, unsigned int first,
 			if (hr != ERROR_OK)
 				goto exit_free_wa;
 
-			bank->sectors[first].is_erased = 1;
 			first += 1;
 		}
 	}

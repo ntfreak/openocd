@@ -318,10 +318,6 @@ COMMAND_HANDLER(stm32lx_handle_mass_erase_command)
 
 	retval = stm32lx_mass_erase(bank);
 	if (retval == ERROR_OK) {
-		/* set all sectors as erased */
-		for (unsigned int i = 0; i < bank->num_sectors; i++)
-			bank->sectors[i].is_erased = 1;
-
 		command_print(CMD, "stm32lx mass erase complete");
 	} else {
 		command_print(CMD, "stm32lx mass erase failed");

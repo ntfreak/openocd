@@ -197,7 +197,6 @@ static int mdr_erase(struct flash_bank *bank, unsigned int first,
 			if (retval != ERROR_OK)
 				goto reset_pg_and_lock;
 		}
-		bank->sectors[i].is_erased = 1;
 	}
 
 reset_pg_and_lock:

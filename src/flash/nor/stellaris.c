@@ -894,8 +894,6 @@ static int stellaris_erase(struct flash_bank *bank, unsigned int first,
 			target_write_u32(target, FLASH_CRIS, 0);
 			return ERROR_FLASH_OPERATION_FAILED;
 		}
-
-		bank->sectors[banknr].is_erased = 1;
 	}
 
 	return ERROR_OK;
@@ -1326,13 +1324,9 @@ COMMAND_HANDLER(stellaris_handle_mass_erase_command)
 	if (ERROR_OK != retval)
 		return retval;
 
-	if (stellaris_mass_erase(bank) == ERROR_OK) {
-		/* set all sectors as erased */
-		for (unsigned int i = 0; i < bank->num_sectors; i++)
-			bank->sectors[i].is_erased = 1;
-
+	if (stellaris_mass_erase(bank) == ERROR_OK)
 		command_print(CMD, "stellaris mass erase complete");
-	} else
+	else
 		command_print(CMD, "stellaris mass erase failed");
 
 	return ERROR_OK;
