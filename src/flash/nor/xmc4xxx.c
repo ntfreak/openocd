@@ -577,8 +577,6 @@ static int xmc4xxx_erase(struct flash_bank *bank, unsigned int first,
 
 		if (res != ERROR_OK)
 			goto clear_status_and_exit;
-
-		bank->sectors[i].is_erased = 1;
 	}
 
 clear_status_and_exit:

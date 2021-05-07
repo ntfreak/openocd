@@ -588,18 +588,13 @@ COMMAND_HANDLER(stmqspi_handle_mass_erase_command)
 	retval = wait_till_ready(bank, SPI_MASS_ERASE_TIMEOUT);
 
 	duration_measure(&bench);
-	if (retval == ERROR_OK) {
-		/* set all sectors as erased */
-		for (sector = 0; sector < bank->num_sectors; sector++)
-			bank->sectors[sector].is_erased = 1;
-
+	if (retval == ERROR_OK)
 		command_print(CMD, "stmqspi mass erase completed in %fs (%0.3f KiB/s)",
 			duration_elapsed(&bench),
 			duration_kbps(&bench, bank->size));
-	} else {
+	else
 		command_print(CMD, "stmqspi mass erase not completed even after %fs",
 			duration_elapsed(&bench));
-	}
 
 err:
 	/* Switch to memory mapped mode before return to prompt */

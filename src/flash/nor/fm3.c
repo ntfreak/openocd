@@ -328,7 +328,6 @@ static int fm3_erase(struct flash_bank *bank, unsigned int first,
 			if (retval != ERROR_OK)
 				return retval;
 		}
-		bank->sectors[sector].is_erased = 1;
 	}
 
 	target_free_working_area(target, write_algorithm);
@@ -953,10 +952,6 @@ COMMAND_HANDLER(fm3_handle_chip_erase_command)
 		return retval;
 
 	if (fm3_chip_erase(bank) == ERROR_OK) {
-		/* set all sectors as erased */
-		for (unsigned int i = 0; i < bank->num_sectors; i++)
-			bank->sectors[i].is_erased = 1;
-
 		command_print(CMD, "fm3 chip erase complete");
 	} else {
 		command_print(CMD, "fm3 chip erase failed");

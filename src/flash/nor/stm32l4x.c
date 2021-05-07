@@ -1001,8 +1001,6 @@ static int stm32l4_erase(struct flash_bank *bank, unsigned int first,
 		retval = stm32l4_wait_status_busy(bank, FLASH_ERASE_TIMEOUT);
 		if (retval != ERROR_OK)
 			break;
-
-		bank->sectors[i].is_erased = 1;
 	}
 
 err_lock:
@@ -1704,15 +1702,10 @@ COMMAND_HANDLER(stm32l4_handle_mass_erase_command)
 		return retval;
 
 	retval = stm32l4_mass_erase(bank);
-	if (retval == ERROR_OK) {
-		/* set all sectors as erased */
-		for (unsigned int i = 0; i < bank->num_sectors; i++)
-			bank->sectors[i].is_erased = 1;
-
+	if (retval == ERROR_OK)
 		command_print(CMD, "stm32l4x mass erase complete");
-	} else {
+	else
 		command_print(CMD, "stm32l4x mass erase failed");
-	}
 
 	return retval;
 }

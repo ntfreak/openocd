@@ -353,7 +353,6 @@ static int pic32mx_erase(struct flash_bank *bank, unsigned int first,
 			return ERROR_FLASH_OPERATION_FAILED;
 		if (status & NVMCON_LVDERR)
 			return ERROR_FLASH_OPERATION_FAILED;
-		bank->sectors[i].is_erased = 1;
 	}
 
 	return ERROR_OK;

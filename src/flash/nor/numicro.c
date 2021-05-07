@@ -1532,8 +1532,6 @@ static int numicro_erase(struct flash_bank *bank, unsigned int first,
 			retval = target_write_u32(target, NUMICRO_FLASH_ISPCON, (status | ISPCON_ISPFF));
 			if (retval != ERROR_OK)
 				return retval;
-		} else {
-			bank->sectors[i].is_erased = 1;
 		}
 	}
 

@@ -1000,8 +1000,6 @@ static int kinetis_ke_erase(struct flash_bank *bank, unsigned int first,
 			return ERROR_FLASH_OPERATION_FAILED;
 		}
 
-		bank->sectors[i].is_erased = 1;
-
 		if (i == 2)
 			fcf_erased = true;
 	}

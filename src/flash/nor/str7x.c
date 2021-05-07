@@ -376,9 +376,6 @@ static int str7x_erase(struct flash_bank *bank, unsigned int first,
 	if (err != ERROR_OK)
 		return err;
 
-	for (unsigned int i = first; i <= last; i++)
-		bank->sectors[i].is_erased = 1;
-
 	return ERROR_OK;
 }
 

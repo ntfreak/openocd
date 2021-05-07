@@ -130,15 +130,9 @@ static int dsp5680xx_flash_protect(struct flash_bank *bank, int set,
 
 	if (set)
 		retval = dsp5680xx_f_lock(bank->target);
-	else {
+	else
 		retval = dsp5680xx_f_unlock(bank->target);
-		if (retval == ERROR_OK) {
-			/* mark all as erased */
-			for (int i = 0; i <= (HFM_SECTOR_COUNT - 1); i++)
-				/* FM does not recognize it as erased if erased via JTAG. */
-				bank->sectors[i].is_erased = 1;
-		}
-	}
+
 	return retval;
 }
 
@@ -156,8 +150,6 @@ static int dsp5680xx_flash_protect(struct flash_bank *bank, int set,
 static int dsp5680xx_flash_write(struct flash_bank *bank, const uint8_t *buffer,
 				 uint32_t offset, uint32_t count)
 {
-	int retval;
-
 	if ((offset + count / 2) > bank->size) {
 		LOG_ERROR("%s: Flash bank cannot fit data.", __func__);
 		return ERROR_FAIL;
@@ -171,17 +163,7 @@ static int dsp5680xx_flash_write(struct flash_bank *bank, const uint8_t *buffer,
 		LOG_ERROR("%s: Writing to odd addresses not supported for this target", __func__);
 		return ERROR_FAIL;
 	}
-	retval = dsp5680xx_f_wr(bank->target, buffer, bank->base + offset / 2, count, 0);
-	uint32_t addr_word;
-
-	for (addr_word = bank->base + offset / 2; addr_word < count / 2;
-			addr_word += (HFM_SECTOR_SIZE / 2)) {
-		if (retval == ERROR_OK)
-			bank->sectors[addr_word / (HFM_SECTOR_SIZE / 2)].is_erased = 0;
-		else
-			bank->sectors[addr_word / (HFM_SECTOR_SIZE / 2)].is_erased = -1;
-	}
-	return retval;
+	return dsp5680xx_f_wr(bank->target, buffer, bank->base + offset / 2, count, 0);
 }
 
 static int dsp5680xx_probe(struct flash_bank *bank)
@@ -206,22 +188,7 @@ static int dsp5680xx_probe(struct flash_bank *bank)
 static int dsp5680xx_flash_erase(struct flash_bank *bank, unsigned int first,
 		unsigned int last)
 {
-	int retval;
-
-	retval = dsp5680xx_f_erase(bank->target, (uint32_t) first, (uint32_t) last);
-	if ((!(first | last)) || ((first == 0) && (last == (HFM_SECTOR_COUNT - 1))))
-		last = HFM_SECTOR_COUNT - 1;
-	if (retval == ERROR_OK)
-		for (unsigned int i = first; i <= last; i++)
-			bank->sectors[i].is_erased = 1;
-	else
-		/**
-		 * If an error occurred unknown status
-		 *is set even though some sector could have been correctly erased.
-		 */
-		for (unsigned int i = first; i <= last; i++)
-			bank->sectors[i].is_erased = -1;
-	return retval;
+	return dsp5680xx_f_erase(bank->target, (uint32_t) first, (uint32_t) last);
 }
 
 /**
@@ -241,16 +208,14 @@ static int dsp5680xx_flash_erase_check(struct flash_bank *bank)
 	uint32_t i;
 
 	for (i = 0; i < HFM_SECTOR_COUNT; i++) {
-		if (bank->sectors[i].is_erased == -1) {
-			retval = dsp5680xx_f_erase_check(bank->target, &erased, i);
-			if (retval != ERROR_OK) {
-				bank->sectors[i].is_erased = -1;
-			} else {
-				if (erased)
-					bank->sectors[i].is_erased = 1;
-				else
-					bank->sectors[i].is_erased = 0;
-			}
+		retval = dsp5680xx_f_erase_check(bank->target, &erased, i);
+		if (retval != ERROR_OK) {
+			bank->sectors[i].is_erased = -1;
+		} else {
+			if (erased)
+				bank->sectors[i].is_erased = 1;
+			else
+				bank->sectors[i].is_erased = 0;
 		}
 	}
 	return retval;

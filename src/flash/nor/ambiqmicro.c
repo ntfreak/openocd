@@ -782,13 +782,9 @@ COMMAND_HANDLER(ambiqmicro_handle_mass_erase_command)
 	if (ERROR_OK != retval)
 		return retval;
 
-	if (ambiqmicro_mass_erase(bank) == ERROR_OK) {
-		/* set all sectors as erased */
-		for (unsigned int i = 0; i < bank->num_sectors; i++)
-			bank->sectors[i].is_erased = 1;
-
+	if (ambiqmicro_mass_erase(bank) == ERROR_OK)
 		command_print(CMD, "ambiqmicro mass erase complete");
-	} else
+	else
 		command_print(CMD, "ambiqmicro mass erase failed");
 
 	return ERROR_OK;

@@ -382,8 +382,6 @@ static int em357_erase(struct flash_bank *bank, unsigned int first,
 		retval = em357_wait_status_busy(bank, 100);
 		if (retval != ERROR_OK)
 			return retval;
-
-		bank->sectors[i].is_erased = 1;
 	}
 
 	retval = target_write_u32(target, EM357_FLASH_CR, FLASH_LOCK);
@@ -877,13 +875,9 @@ COMMAND_HANDLER(em357_handle_mass_erase_command)
 		return retval;
 
 	retval = em357_mass_erase(bank);
-	if (retval == ERROR_OK) {
-		/* set all sectors as erased */
-		for (unsigned int i = 0; i < bank->num_sectors; i++)
-			bank->sectors[i].is_erased = 1;
-
+	if (retval == ERROR_OK)
 		command_print(CMD, "em357 mass erase complete");
-	} else
+	else
 		command_print(CMD, "em357 mass erase failed");
 
 	return retval;
