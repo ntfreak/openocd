@@ -3181,6 +3181,7 @@ static void cortex_a_deinit_target(struct target *target)
 					dscr & ~DSCR_HALT_DBG_MODE);
 	}
 
+	free(cortex_a->wrp_list);
 	free(cortex_a->brp_list);
 	arm_free_reg_cache(dpm->arm);
 	free(dpm->dbp);
