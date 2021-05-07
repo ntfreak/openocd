@@ -727,6 +727,11 @@ static int cortex_m_soft_reset_halt(struct target *target)
 	 * core, not the peripherals */
 	LOG_DEBUG("soft_reset_halt is discouraged, please use 'reset halt' instead.");
 
+	if (!cortex_m->vectreset_supported) {
+		LOG_ERROR("VECTRESET is not supported on this Cortex-M core: soft reset aborted");
+		return ERROR_FAIL;
+	}
+
 	/* Set C_DEBUGEN */
 	retval = cortex_m_write_debug_halt_mask(target, 0, C_STEP | C_MASKINTS);
 	if (retval != ERROR_OK)
