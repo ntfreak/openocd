@@ -342,7 +342,8 @@ static struct command *register_command(struct command_context *context,
 		return NULL;
 	}
 
-	LOG_DEBUG("registering '%s'...", full_name);
+	if (false) /* too noisy with debug_level 3 */
+		LOG_DEBUG("registering '%s'...", full_name);
 	int retval = Jim_CreateCommand(context->interp, full_name,
 				jim_command_dispatch, c, command_free);
 	if (retval != JIM_OK) {
@@ -440,7 +441,8 @@ int unregister_commands_match(struct command_context *cmd_ctx, const char *forma
 			Jim_DecrRefCount(interp, elem);
 			continue;
 		}
-		LOG_DEBUG("delete command \"%s\"", name);
+		if (false) /* too noisy with debug_level 3 */
+			LOG_DEBUG("delete command \"%s\"", name);
 #if JIM_VERSION >= 80
 		Jim_DeleteCommand(interp, elem);
 #else
