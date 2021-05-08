@@ -1,0 +1,9 @@
+Verified+1: jenkins
+Code-Review+1: Antonio Borneo <borneo.antonio@gmail.com>
+Code-Review+2: Oleksij Rempel <linux@rempel-privat.de>
+Code-Review+1: Tomas Vanek <vanekt@fbl.cz>
+Submitted-by: Antonio Borneo <borneo.antonio@gmail.com>
+Submitted-at: Sat, 08 May 2021 09:48:36 +0100
+Reviewed-on: http://openocd.zylin.com/6158
+Project: openocd
+Branch: refs/heads/master
