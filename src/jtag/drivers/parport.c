@@ -136,13 +136,13 @@ static bb_value_t parport_read(void)
 
 static int parport_swdio_read(void)
 {
-	int value;
+	int input_value;
 	
-	value = parport_read();
+	input_value = parport_read();
 	
-	LOG_DEBUG_IO("parport_swdio_read: %d", value);
+	LOG_DEBUG_IO("input_value: %d", input_value);
 	
-	return value;
+	return input_value;
 }
 
 static inline void parport_write_data(void)
