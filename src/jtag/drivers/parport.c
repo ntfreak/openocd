@@ -103,6 +103,8 @@ static uint16_t parport_port;
 static bool parport_exit;
 static uint32_t parport_toggling_time_ns = 1000;
 static int wait_states;
+static bool swdio_input_mode = 0;
+static bool swdio_last_output = 0;
 
 /* interface variables
  */
@@ -130,6 +132,17 @@ static bb_value_t parport_read(void)
 		return BB_HIGH;
 	else
 		return BB_LOW;
+}
+
+static int parport_swdio_read(void)
+{
+	int value;
+	
+	value = parport_read();
+	
+	LOG_DEBUG_IO("parport_swdio_read: %d", value);
+	
+	return value;
 }
 
 static inline void parport_write_data(void)
@@ -171,6 +184,74 @@ static int parport_write(int tck, int tms, int tdi)
 		parport_write_data();
 
 	return ERROR_OK;
+}
+
+static int parport_swd_write(int swclk, int swdio)
+{
+	int i = wait_states + 1;
+	swclk = !swclk;
+	
+	swdio_last_output = swdio;
+	
+	if(swclk)
+	{
+		dataport_value |= cable->TCK_MASK;
+	}
+	else
+	{
+		dataport_value &= ~cable->TCK_MASK;
+	}
+	
+	if(!swdio_input_mode)
+	{
+		if(swdio)
+		{
+			dataport_value |= cable->TDI_MASK;
+		}
+		else
+		{
+			dataport_value &= ~cable->TDI_MASK;
+		}
+	}
+	
+	while (i-- > 0)
+	{
+		parport_write_data();
+	}
+	
+	LOG_DEBUG_IO("swclk=%d, swdio_output=%d, swdio_input=%d, swdio_mode=%s", swclk, swdio, parport_read(), swdio_input_mode?"INPUT":"OUTPUT");
+	
+	return ERROR_OK;
+}
+
+static void parport_swdio_drive(bool is_output)
+{
+	int i = wait_states + 1;
+	
+	LOG_DEBUG_IO("swdio_mode=%s", is_output?"OUTPUT":"INPUT");
+	
+	if(is_output)
+	{
+		if(swdio_last_output)
+		{
+			dataport_value |= cable->TDI_MASK;
+		}
+		else
+		{
+			dataport_value &= ~cable->TDI_MASK;
+		}
+	}
+	else
+	{
+		dataport_value |= cable->TDI_MASK;
+	}
+	
+	while (i-- > 0)
+	{
+		parport_write_data();
+	}
+	
+	swdio_input_mode = !is_output;
 }
 
 /* (1) assert or (0) deassert reset lines */
@@ -261,6 +342,10 @@ static struct bitbang_interface parport_bitbang = {
 		.read = &parport_read,
 		.write = &parport_write,
 		.blink = &parport_led,
+		
+		.swdio_read = &parport_swdio_read,
+		.swdio_drive = &parport_swdio_drive,
+		.swd_write = &parport_swd_write,
 	};
 
 static int parport_init(void)
@@ -511,6 +596,8 @@ static const struct command_registration parport_command_handlers[] = {
 	COMMAND_REGISTRATION_DONE
 };
 
+static const char * const parport_transports[] = { "jtag", "swd", NULL };
+
 static struct jtag_interface parport_interface = {
 	.supported = DEBUG_CAP_TMS_SEQ,
 	.execute_queue = bitbang_execute_queue,
@@ -518,7 +605,7 @@ static struct jtag_interface parport_interface = {
 
 struct adapter_driver parport_adapter_driver = {
 	.name = "parport",
-	.transports = jtag_only,
+	.transports = parport_transports,
 	.commands = parport_command_handlers,
 
 	.init = parport_init,
@@ -529,4 +616,5 @@ struct adapter_driver parport_adapter_driver = {
 	.speed_div = parport_speed_div,
 
 	.jtag_ops = &parport_interface,
+	.swd_ops = &bitbang_swd,
 };
