@@ -718,7 +718,7 @@ static int stm32lx_read_id_code(struct target *target, uint32_t *id)
 {
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 	int retval;
-	if (armv7m->arm.is_armv6m == true)
+	if (armv7m->arm.arch == 6)
 		retval = target_read_u32(target, DBGMCU_IDCODE_L0, id);
 	else
 	/* read stm32 device id register */
