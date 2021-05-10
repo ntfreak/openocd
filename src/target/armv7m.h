@@ -184,7 +184,7 @@ enum {
 #define ARMV7M_COMMON_MAGIC 0x2A452A45
 
 struct armv7m_common {
-	struct arm	arm;
+	struct arm arm;
 
 	int common_magic;
 	int exception_number;
