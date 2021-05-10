@@ -504,7 +504,7 @@ static int cortex_m_debug_entry(struct target *target)
 
 	/* examine PE security state */
 	bool secure_state = false;
-	if (armv7m->arm.is_armv8m) {
+	if (armv7m->arm.arch == ARM_ARCH_V8M) {
 		uint32_t dscsr;
 
 		retval = mem_ap_read_u32(armv7m->debug_ap, DCB_DSCSR, &dscsr);
@@ -1645,7 +1645,7 @@ static int cortex_m_read_memory(struct target *target, target_addr_t address,
 {
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 
-	if (armv7m->arm.is_armv6m) {
+	if (armv7m->arm.arch == ARM_ARCH_V6M) {
 		/* armv6m does not handle unaligned memory access */
 		if (((size == 4) && (address & 0x3u)) || ((size == 2) && (address & 0x1u)))
 			return ERROR_TARGET_UNALIGNED_ACCESS;
@@ -1659,7 +1659,7 @@ static int cortex_m_write_memory(struct target *target, target_addr_t address,
 {
 	struct armv7m_common *armv7m = target_to_armv7m(target);
 
-	if (armv7m->arm.is_armv6m) {
+	if (armv7m->arm.arch == ARM_ARCH_V6M) {
 		/* armv6m does not handle unaligned memory access */
 		if (((size == 4) && (address & 0x3u)) || ((size == 2) && (address & 0x1u)))
 			return ERROR_TARGET_UNALIGNED_ACCESS;
@@ -2005,7 +2005,7 @@ int cortex_m_examine(struct target *target)
 		unsigned int core = (cpuid >> 4) & 0xf;
 
 		/* Check if it is an ARMv8-M core */
-		armv7m->arm.is_armv8m = true;
+		armv7m->arm.arch = ARM_ARCH_V8M;
 
 		switch (cpuid & ARM_CPUID_PARTNO_MASK) {
 			case CORTEX_M23_PARTNO:
@@ -2021,7 +2021,7 @@ int cortex_m_examine(struct target *target)
 				core = 55;
 				break;
 			default:
-				armv7m->arm.is_armv8m = false;
+				armv7m->arm.arch = ARM_ARCH_V7M;
 				break;
 		}
 
@@ -2039,9 +2039,6 @@ int cortex_m_examine(struct target *target)
 			}
 		}
 		LOG_DEBUG("cpuid: 0x%8.8" PRIx32 "", cpuid);
-
-		/* VECTRESET is supported only on ARMv7-M cores */
-		cortex_m->vectreset_supported = !armv7m->arm.is_armv8m && !armv7m->arm.is_armv6m;
 
 		if (core == 4) {
 			target_read_u32(target, MVFR0, &mvfr0);
@@ -2066,8 +2063,11 @@ int cortex_m_examine(struct target *target)
 			}
 		} else if (core == 0) {
 			/* Cortex-M0 does not support unaligned memory access */
-			armv7m->arm.is_armv6m = true;
+			armv7m->arm.arch = ARM_ARCH_V6M;
 		}
+
+		/* VECTRESET is supported only on ARMv7-M cores */
+		cortex_m->vectreset_supported = armv7m->arm.arch == ARM_ARCH_V7M;
 
 		/* Check for FPU, otherwise mark FPU register as non-existent */
 		if (armv7m->fp_feature == FP_NONE)

@@ -60,6 +60,15 @@ enum arm_core_type {
 	ARM_CORE_TYPE_M_PROFILE,
 };
 
+/** ARM Architecture specifying the version and the profile */
+enum arm_arch {
+	ARM_ARCH_UNKNOWN,
+	ARM_ARCH_V4,
+	ARM_ARCH_V6M,
+	ARM_ARCH_V7M,
+	ARM_ARCH_V8M,
+};
+
 /**
  * Represent state of an ARM core.
  *
@@ -191,14 +200,8 @@ struct arm {
 	/** Record the current core state: ARM, Thumb, or otherwise. */
 	enum arm_state core_state;
 
-	/** Flag reporting unavailability of the BKPT instruction. */
-	bool is_armv4;
-
-	/** Flag reporting armv6m based core. */
-	bool is_armv6m;
-
-	/** Flag reporting armv8m based core. */
-	bool is_armv8m;
+	/* arm architecture version */
+	enum arm_arch arch;
 
 	/** Floating point or VFP version, 0 if disabled. */
 	int arm_vfp_version;
