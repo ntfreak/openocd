@@ -763,7 +763,11 @@ int mem_ap_init(struct adiv5_ap *ap)
 
 	ap->tar_valid = false;
 	ap->csw_value = 0;      /* force csw and tar write */
-	retval = mem_ap_setup_transfer(ap, CSW_8BIT | CSW_ADDRINC_PACKED, 0);
+	retval = mem_ap_setup_transfer(ap, CSW_32BIT | CSW_ADDRINC_PACKED, 0);
+	if (retval != ERROR_OK)
+		return retval;
+
+	retval = dap_run(dap);
 	if (retval != ERROR_OK)
 		return retval;
 
