@@ -3264,6 +3264,68 @@ Specifies the TCP/IP address of the SystemVerilog DPI server interface.
 @end deffn
 
 
+@deffn {Interface Driver} {buspirate}
+
+This driver is for the Bus Pirate (see @url{http://dangerousprototypes.com/docs/Bus_Pirate}) and compatible devices.
+It uses a simple data protocol over a serial port connection.
+
+Most hardware development boards have a UART, a real serial port, or a virtual USB serial device, so this driver
+allows you to start building your own JTAG adapter without the complexity of a custom USB connection.
+
+@deffn {Config Command} {buspirate_port} serial_port
+Specify the serial port's filename. For example:
+@example
+buspirate_port /dev/ttyUSB0
+@end example
+@end deffn
+
+@deffn {Config Command} {buspirate_speed} (normal|fast)
+Set the communication speed to 115k (normal) or 1M (fast). For example:
+@example
+buspirate_mode normal
+@end example
+@end deffn
+
+@deffn {Config Command} {buspirate_mode} (normal|open-drain)
+Set the Bus Pirate output mode.
+@itemize @minus
+@item In normal mode (push/pull), do not enable the pull-ups, and do not connect I/O header pin VPU to JTAG VREF.
+@item In open drain mode, you will then need to enable the pull-ups.
+@end itemize
+For example:
+@example
+buspirate_mode normal
+@end example
+@end deffn
+
+@deffn {Config Command} {buspirate_pullup} (0|1)
+Whether to connect (1) or not (0) the I/O header pin VPU (JTAG VREF)
+to the pull-up/pull-down resistors on MOSI (JTAG TDI), CLK (JTAG TCK), MISO (JTAG TDO) and CS (JTAG TMS).
+For example:
+@example
+buspirate_pullup 0
+@end example
+@end deffn
+
+@deffn {Config Command} {buspirate_vreg} (0|1)
+Whether to enable (1) or disable (0) the built-in voltage regulator,
+which can be used to supply power to a test circuit through
+I/O header pins +3V3 and +5V. For example:
+@example
+buspirate_vreg 0
+@end example
+@end deffn
+
+@deffn {Command} {buspirate_led} (0|1)
+Turns the Bus Pirate's LED on (1) or off (0). For example:
+@end deffn
+@example
+buspirate_led 1
+@end example
+
+@end deffn
+
+
 @section Transport Configuration
 @cindex Transport
 As noted earlier, depending on the version of OpenOCD you use,
