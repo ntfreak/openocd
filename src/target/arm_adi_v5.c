@@ -379,6 +379,13 @@ static int mem_ap_write(struct adiv5_ap *ap, const uint8_t *buffer, uint32_t siz
 		if (retval != ERROR_OK)
 			break;
 
+		/* Workaround to prevent DAP from locking due to CSW/TAR back to back
+		 * writes that cause a WAIT response from the DAP in some devices
+		 * (e.g. Renesas RZ/G2L) */
+		retval = dap_run(dap);
+		if (retval != ERROR_OK)
+			return retval;
+
 		retval = mem_ap_setup_tar(ap, address ^ addr_xor);
 		if (retval != ERROR_OK)
 			return retval;
@@ -511,6 +518,13 @@ static int mem_ap_read(struct adiv5_ap *ap, uint8_t *buffer, uint32_t size, uint
 		}
 		if (retval != ERROR_OK)
 			break;
+
+		/* Workaround to prevent DAP from locking due to CSW/TAR back to back
+		 * writes that cause a WAIT response from the DAP in some devices
+		 * (e.g. Renesas RZ/G2L) */
+		retval = dap_run(dap);
+		if (retval != ERROR_OK)
+			return retval;
 
 		retval = mem_ap_setup_tar(ap, address);
 		if (retval != ERROR_OK)
@@ -764,6 +778,13 @@ int mem_ap_init(struct adiv5_ap *ap)
 	ap->tar_valid = false;
 	ap->csw_value = 0;      /* force csw and tar write */
 	retval = mem_ap_setup_transfer(ap, CSW_8BIT | CSW_ADDRINC_PACKED, 0);
+	if (retval != ERROR_OK)
+		return retval;
+
+	/* Workaround to prevent DAP from locking due to CSW/TAR back to back
+	 * writes that cause a WAIT response from the DAP in some devices
+	 * (e.g. Renesas RZ/G2L) */
+	retval = dap_run(dap);
 	if (retval != ERROR_OK)
 		return retval;
 
