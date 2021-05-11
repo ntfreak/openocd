@@ -2040,9 +2040,6 @@ int cortex_m_examine(struct target *target)
 		}
 		LOG_DEBUG("cpuid: 0x%8.8" PRIx32 "", cpuid);
 
-		/* VECTRESET is supported only on ARMv7-M cores */
-		cortex_m->vectreset_supported = !armv7m->arm.is_armv8m && !armv7m->arm.is_armv6m;
-
 		if (core == 4) {
 			target_read_u32(target, MVFR0, &mvfr0);
 			target_read_u32(target, MVFR1, &mvfr1);
@@ -2068,6 +2065,9 @@ int cortex_m_examine(struct target *target)
 			/* Cortex-M0 does not support unaligned memory access */
 			armv7m->arm.is_armv6m = true;
 		}
+
+		/* VECTRESET is supported only on ARMv7-M cores */
+		cortex_m->vectreset_supported = !armv7m->arm.is_armv8m && !armv7m->arm.is_armv6m;
 
 		/* Check for FPU, otherwise mark FPU register as non-existent */
 		if (armv7m->fp_feature == FP_NONE)
