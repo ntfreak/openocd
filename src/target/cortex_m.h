@@ -42,12 +42,91 @@
 
 #define CPUID		0xE000ED00
 
-#define ARM_CPUID_PARTNO_MASK	0xFFF0
+#define ARM_CPUID_PARTNO_POS    4
+#define ARM_CPUID_PARTNO_MASK	(0xFFF << ARM_CPUID_PARTNO_POS)
 
-#define CORTEX_M23_PARTNO	0xD200
-#define CORTEX_M33_PARTNO	0xD210
-#define CORTEX_M35P_PARTNO	0xD310
-#define CORTEX_M55_PARTNO	0xD220
+enum cortex_m_partno {
+	CORTEX_M0_PARTNO   = 0xC20,
+	CORTEX_M1_PARTNO   = 0xC21,
+	CORTEX_M3_PARTNO   = 0xC23,
+	CORTEX_M4_PARTNO   = 0xC24,
+	CORTEX_M7_PARTNO   = 0xC27,
+	CORTEX_M0P_PARTNO  = 0xC60,
+	CORTEX_M23_PARTNO  = 0xD20,
+	CORTEX_M33_PARTNO  = 0xD21,
+	CORTEX_M35P_PARTNO = 0xD31,
+	CORTEX_M55_PARTNO  = 0xD22,
+};
+
+#define CORTEX_M_F_HAS_FPV4               BIT(0)
+#define CORTEX_M_F_HAS_FPV5               BIT(1)
+#define CORTEX_M_F_TAR_AUTOINCR_BLOCK_4K  BIT(2)
+
+struct cortex_m_part_info {
+	enum cortex_m_partno partno;
+	const char *name;
+	enum arm_arch arch;
+	uint32_t flags;
+};
+
+static const struct cortex_m_part_info cortex_m_parts[] = {
+	{
+		.partno = CORTEX_M0_PARTNO,
+		.name = "Cortex-M0",
+		.arch = ARM_ARCH_V6M,
+	},
+	{
+		.partno = CORTEX_M0P_PARTNO,
+		.name = "Cortex-M0+",
+		.arch = ARM_ARCH_V6M,
+	},
+	{
+		.partno = CORTEX_M1_PARTNO,
+		.name = "Cortex-M1",
+		.arch = ARM_ARCH_V7M,
+	},
+	{
+		.partno = CORTEX_M3_PARTNO,
+		.name = "Cortex-M3",
+		.arch = ARM_ARCH_V7M,
+		.flags = CORTEX_M_F_TAR_AUTOINCR_BLOCK_4K,
+	},
+	{
+		.partno = CORTEX_M4_PARTNO,
+		.name = "Cortex-M4",
+		.arch = ARM_ARCH_V7M,
+		.flags = CORTEX_M_F_HAS_FPV4 | CORTEX_M_F_TAR_AUTOINCR_BLOCK_4K,
+	},
+	{
+		.partno = CORTEX_M7_PARTNO,
+		.name = "Cortex-M7",
+		.arch = ARM_ARCH_V7M,
+		.flags = CORTEX_M_F_HAS_FPV5,
+	},
+	{
+		.partno = CORTEX_M23_PARTNO,
+		.name = "Cortex-M23",
+		.arch = ARM_ARCH_V8M,
+	},
+	{
+		.partno = CORTEX_M33_PARTNO,
+		.name = "Cortex-M33",
+		.arch = ARM_ARCH_V8M,
+		.flags = CORTEX_M_F_HAS_FPV5,
+	},
+	{
+		.partno = CORTEX_M35P_PARTNO,
+		.name = "Cortex-M35P",
+		.arch = ARM_ARCH_V8M,
+		.flags = CORTEX_M_F_HAS_FPV5,
+	},
+	{
+		.partno = CORTEX_M55_PARTNO,
+		.name = "Cortex-M55",
+		.arch = ARM_ARCH_V8M,
+		.flags = CORTEX_M_F_HAS_FPV5,
+	},
+};
 
 /* Debug Control Block */
 #define DCB_DHCSR	0xE000EDF0
