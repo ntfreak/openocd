@@ -781,7 +781,7 @@ static int arm9tdmi_target_create(struct target *target, Jim_Interp *interp)
 	struct arm7_9_common *arm7_9 = calloc(1, sizeof(struct arm7_9_common));
 
 	arm9tdmi_init_arch_info(target, arm7_9, target->tap);
-	arm7_9->arm.is_armv4 = true;
+	arm7_9->arm.arch = ARM_ARCH_V4;
 
 	return ERROR_OK;
 }
