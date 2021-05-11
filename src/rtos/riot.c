@@ -416,7 +416,7 @@ static int riot_create(struct target *target)
 	/* Stacking is different depending on architecture */
 	struct armv7m_common *armv7m_target = target_to_armv7m(target);
 
-	if (armv7m_target->arm.is_armv6m)
+	if (armv7m_target->arm.arch == ARM_ARCH_V6M)
 		stacking_info = &rtos_riot_cortex_m0_stacking;
 	else if (is_armv7m(armv7m_target))
 		stacking_info = &rtos_riot_cortex_m34_stacking;

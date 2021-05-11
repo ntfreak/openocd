@@ -1347,7 +1347,7 @@ int armv4_5_run_algorithm_inner(struct target *target,
 	}
 
 	/* armv5 and later can terminate with BKPT instruction; less overhead */
-	if (!exit_point && arm->is_armv4) {
+	if (!exit_point && arm->arch == ARM_ARCH_V4) {
 		LOG_ERROR("ARMv4 target needs HW breakpoint location");
 		return ERROR_FAIL;
 	}
@@ -1568,7 +1568,7 @@ int arm_checksum_memory(struct target *target,
 	int timeout = 20000 * (1 + (count / (1024 * 1024)));
 
 	/* armv4 must exit using a hardware breakpoint */
-	if (arm->is_armv4)
+	if (arm->arch == ARM_ARCH_V4)
 		exit_var = crc_algorithm->address + sizeof(arm_crc_code_le) - 8;
 
 	retval = target_run_algorithm(target, 0, NULL, 2, reg_params,
@@ -1649,7 +1649,7 @@ int arm_blank_check_memory(struct target *target,
 	buf_set_u32(reg_params[2].value, 0, 32, erased_value);
 
 	/* armv4 must exit using a hardware breakpoint */
-	if (arm->is_armv4)
+	if (arm->arch == ARM_ARCH_V4)
 		exit_var = check_algorithm->address + sizeof(check_code_le) - 4;
 
 	retval = target_run_algorithm(target, 0, NULL, 3, reg_params,
