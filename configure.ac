@@ -20,6 +20,7 @@ AC_CONFIG_HEADERS([config.h])
 
 AC_LANG([C])
 AC_PROG_CC
+gl_EARLY
 # autoconf 2.70 obsoletes AC_PROG_CC_C99 and includes it in AC_PROG_CC
 m4_version_prereq([2.70],[],[AC_PROG_CC_C99])
 AM_PROG_CC_C_O
@@ -88,6 +89,8 @@ AC_CHECK_FUNCS([gettimeofday])
 AC_CHECK_FUNCS([usleep])
 AC_CHECK_FUNCS([vasprintf])
 AC_CHECK_FUNCS([realpath])
+
+gl_INIT
 
 # guess-rev.sh only exists in the repository, not in the released archives
 AC_MSG_CHECKING([whether to build a release])
@@ -770,6 +773,7 @@ AC_SUBST(EXTRA_DIST_NEWS, ["$(echo $srcdir/NEWS-*)"])
 
 AC_CONFIG_FILES([
   Makefile
+  src/gnulib/Makefile
 ])
 AC_OUTPUT
 
