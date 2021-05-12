@@ -1518,6 +1518,12 @@ sub process {
 			next;
 		}
 
+		# Ignore gnulib sources. These come unmodified from gnulib which has
+		# different style guide than OpenOCD.
+		if ($realfile =~ m@^src/gnulib/@) {
+			next;
+		}
+
 		$here .= "FILE: $realfile:$realline:" if ($realcnt != 0);
 
 		my $hereline = "$here\n$rawline\n";
