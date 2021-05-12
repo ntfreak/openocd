@@ -28,6 +28,8 @@ SUBDIRS += jimtcl
 DIST_SUBDIRS += jimtcl
 endif
 
+ACLOCAL_AMFLAGS = -I m4
+
 # common flags used in openocd build
 AM_CFLAGS = $(GCC_WARNINGS)
 
