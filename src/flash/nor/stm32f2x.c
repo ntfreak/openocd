@@ -29,7 +29,7 @@
 #include "imp.h"
 #include <helper/binarybuffer.h>
 #include <target/algorithm.h>
-#include <target/armv7m.h>
+#include <target/cortex_m.h>
 
 /* Regarding performance:
  *
@@ -968,25 +968,17 @@ static int stm32x_get_device_id(struct flash_bank *bank, uint32_t *device_id)
 	 * Only effects Rev A silicon */
 
 	struct target *target = bank->target;
-	uint32_t cpuid;
+	struct cortex_m_common *cortex_m = target_to_cm(target);
 
 	/* read stm32 device id register */
 	int retval = target_read_u32(target, 0xE0042000, device_id);
 	if (retval != ERROR_OK)
 		return retval;
 
-	if ((*device_id & 0xfff) == 0x411) {
-		/* read CPUID reg to check core type */
-		retval = target_read_u32(target, 0xE000ED00, &cpuid);
-		if (retval != ERROR_OK)
-			return retval;
-
-		/* check for cortex_m4 */
-		if (((cpuid >> 4) & 0xFFF) == 0xC24) {
-			*device_id &= ~((0xFFFF << 16) | 0xfff);
-			*device_id |= (0x1000 << 16) | 0x413;
-			LOG_INFO("stm32f4x errata detected - fixing incorrect MCU_IDCODE");
-		}
+	if ((*device_id & 0xfff) == 0x411 && cortex_m->core_info->partno == CORTEX_M4_PARTNO) {
+		*device_id &= ~((0xFFFF << 16) | 0xfff);
+		*device_id |= (0x1000 << 16) | 0x413;
+		LOG_INFO("stm32f4x errata detected - fixing incorrect MCU_IDCODE");
 	}
 	return retval;
 }
