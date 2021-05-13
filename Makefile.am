@@ -2,6 +2,8 @@
 # have all needed files, that a GNU package needs
 AUTOMAKE_OPTIONS = gnu 1.6
 
+.DELETE_ON_ERROR:
+
 # make sure we pass the correct jimtcl flags to distcheck
 DISTCHECK_CONFIGURE_FLAGS = --disable-install-jim
 
