@@ -684,6 +684,13 @@ target_addr_t target_address_max(struct target *target);
  */
 unsigned target_address_bits(struct target *target);
 
+/**
+ * Return the number of data bits this target supports.
+ *
+ * This routine is a wrapper for target->type->data_bits.
+ */
+unsigned target_data_bits(struct target *target);
+
 /** Return the *name* of this targets current state */
 const char *target_state_name(struct target *target);
 

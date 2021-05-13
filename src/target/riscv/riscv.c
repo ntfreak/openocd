@@ -2818,6 +2818,14 @@ static unsigned riscv_xlen_nonconst(struct target *target)
 	return riscv_xlen(target);
 }
 
+static unsigned riscv_data_bits(struct target *target)
+{
+	RISCV_INFO(r);
+	if (r->data_bits)
+		return r->data_bits(target);
+	return riscv_xlen(target);
+}
+
 struct target_type riscv_target = {
 	.name = "riscv",
 
@@ -2862,6 +2870,7 @@ struct target_type riscv_target = {
 	.commands = riscv_command_handlers,
 
 	.address_bits = riscv_xlen_nonconst,
+	.data_bits = riscv_data_bits
 };
 
 /*** RISC-V Interface ***/

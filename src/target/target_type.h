@@ -295,6 +295,11 @@ struct target_type {
 	 * typically be 32 for 32-bit targets, and 64 for 64-bit targets. If not
 	 * implemented, it's assumed to be 32. */
 	unsigned (*address_bits)(struct target *target);
+
+	/* Return the number of system bus data bits this target supports. This
+	 * will typically be 32 for 32-bit targets, and 64 for 64-bit targets. If
+	 * not implemented, it's assumed to be 32. */
+	unsigned (*data_bits)(struct target *target);
 };
 
 #endif /* OPENOCD_TARGET_TARGET_TYPE_H */
