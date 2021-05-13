@@ -637,6 +637,7 @@ m4_define([PROCESS_ADAPTERS], [
 			AC_MSG_ERROR([$3 is required for the ADAPTER_DESC([adapter])])
 		])
 		ADAPTER_VAR([adapter])=no
+		AC_DEFINE([BUILD_]ADAPTER_SYM([adapter]), [0], [0 if you do not want the ]ADAPTER_DESC([adapter]).)
 	])
 	AM_CONDITIONAL(ADAPTER_SYM([adapter]), [test "x$ADAPTER_VAR([adapter])" != "xno"])
   ])
@@ -756,6 +757,7 @@ AS_IF([test "x${gcc_wextra}" = "xyes"], [
   GCC_WARNINGS="${GCC_WARNINGS} -Wcast-align"
   GCC_WARNINGS="${GCC_WARNINGS} -Wredundant-decls"
   GCC_WARNINGS="${GCC_WARNINGS} -Wpointer-arith"
+  GCC_WARNINGS="${GCC_WARNINGS} -Wundef"
 ])
 AS_IF([test "x${gcc_werror}" = "xyes"], [
   GCC_WARNINGS="${GCC_WARNINGS} -Werror"
