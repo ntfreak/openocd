@@ -53,27 +53,23 @@ doc/openocd.toc
 doc/openocd.tp
 doc/openocd.vr
 doc/version.texi
-texinfo.tex
 src/openocd
 src/openocd.exe
 
 # configure/autotools output
+/build-aux/
 aclocal.m4
 autom4te.cache
-compile
-config.*
+config.h
+config.log
+config.status
 configure
-depcomp
 doxygen
 doxygen.log
 Doxyfile
-install-sh
 libtool
-ltmain.sh
 Makefile
 !contrib/loaders/**/Makefile
-mdate-sh
-missing
 stamp-h1
 stamp-vti
 INSTALL
