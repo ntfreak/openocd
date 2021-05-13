@@ -1351,8 +1351,10 @@ static int stm32l4_probe(struct flash_bank *bank)
 	device_id = stm32l4_info->idcode & 0xFFF;
 
 	for (unsigned int n = 0; n < ARRAY_SIZE(stm32l4_parts); n++) {
-		if (device_id == stm32l4_parts[n].id)
+		if (device_id == stm32l4_parts[n].id) {
 			stm32l4_info->part_info = &stm32l4_parts[n];
+			break;
+		}
 	}
 
 	if (!stm32l4_info->part_info) {
