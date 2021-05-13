@@ -29,7 +29,7 @@
 #include "imp.h"
 #include <helper/binarybuffer.h>
 #include <target/algorithm.h>
-#include <target/armv7m.h>
+#include <target/cortex_m.h>
 
 /* stm32x register locations */
 
@@ -623,34 +623,27 @@ cleanup:
 
 static int stm32x_get_device_id(struct flash_bank *bank, uint32_t *device_id)
 {
-	/* This check the device CPUID core register to detect
-	 * the M0 from the M3 devices. */
-
 	struct target *target = bank->target;
-	uint32_t cpuid, device_id_register = 0;
+	struct cortex_m_common *cortex_m = target_to_cm(target);
+	uint32_t device_id_register = 0;
 
-	/* Get the CPUID from the ARM Core
-	 * http://infocenter.arm.com/help/topic/com.arm.doc.ddi0432c/DDI0432C_cortex_m0_r0p0_trm.pdf 4.2.1 */
-	int retval = target_read_u32(target, 0xE000ED00, &cpuid);
-	if (retval != ERROR_OK)
-		return retval;
-
-	if (((cpuid >> 4) & 0xFFF) == 0xC20) {
-		/* 0xC20 is M0 devices */
+	switch (cortex_m->core_info->partno) {
+	case CORTEX_M0_PARTNO: /* STM32F0x devices */
 		device_id_register = 0x40015800;
-	} else if (((cpuid >> 4) & 0xFFF) == 0xC23) {
-		/* 0xC23 is M3 devices */
+		break;
+	case CORTEX_M3_PARTNO: /* STM32F1x devices */
 		device_id_register = 0xE0042000;
-	} else if (((cpuid >> 4) & 0xFFF) == 0xC24) {
-		/* 0xC24 is M4 devices */
+		break;
+	case CORTEX_M4_PARTNO: /* STM32F3x devices */
 		device_id_register = 0xE0042000;
-	} else {
+		break;
+	default:
 		LOG_ERROR("Cannot identify target as a stm32x");
 		return ERROR_FAIL;
 	}
 
 	/* read stm32 device id register */
-	retval = target_read_u32(target, device_id_register, device_id);
+	int retval = target_read_u32(target, device_id_register, device_id);
 	if (retval != ERROR_OK)
 		return retval;
 
@@ -660,27 +653,25 @@ static int stm32x_get_device_id(struct flash_bank *bank, uint32_t *device_id)
 static int stm32x_get_flash_size(struct flash_bank *bank, uint16_t *flash_size_in_kb)
 {
 	struct target *target = bank->target;
-	uint32_t cpuid, flash_size_reg;
+	struct cortex_m_common *cortex_m = target_to_cm(target);
+	uint32_t flash_size_reg;
 
-	int retval = target_read_u32(target, 0xE000ED00, &cpuid);
-	if (retval != ERROR_OK)
-		return retval;
-
-	if (((cpuid >> 4) & 0xFFF) == 0xC20) {
-		/* 0xC20 is M0 devices */
+	switch (cortex_m->core_info->partno) {
+	case CORTEX_M0_PARTNO: /* STM32F0x devices */
 		flash_size_reg = 0x1FFFF7CC;
-	} else if (((cpuid >> 4) & 0xFFF) == 0xC23) {
-		/* 0xC23 is M3 devices */
+		break;
+	case CORTEX_M3_PARTNO: /* STM32F1x devices */
 		flash_size_reg = 0x1FFFF7E0;
-	} else if (((cpuid >> 4) & 0xFFF) == 0xC24) {
-		/* 0xC24 is M4 devices */
+		break;
+	case CORTEX_M4_PARTNO: /* STM32F3x devices */
 		flash_size_reg = 0x1FFFF7CC;
-	} else {
+		break;
+	default:
 		LOG_ERROR("Cannot identify target as a stm32x");
 		return ERROR_FAIL;
 	}
 
-	retval = target_read_u16(target, flash_size_reg, flash_size_in_kb);
+	int retval = target_read_u16(target, flash_size_reg, flash_size_in_kb);
 	if (retval != ERROR_OK)
 		return retval;
 
