@@ -144,12 +144,13 @@ static void command_log_capture_finish(struct log_capture_state *state)
  * Use the internal jimtcl API Jim_CreateCommandObj, not exported by jim.h,
  * and override the bugged API through preprocessor's macro.
  * This workaround works only when jimtcl is compiled as OpenOCD submodule.
+ * It's broken on macOS, so it's currently restricted on Linux only.
  * If jimtcl is linked-in from a precompiled library, either static or dynamic,
  * the symbol Jim_CreateCommandObj is not exported and the build will use the
  * bugged API.
  * To be removed when OpenOCD will switch to jimtcl 0.81
  */
-#if JIM_VERSION == 80
+#if JIM_VERSION == 80 && defined __linux__
 static int workaround_createcommand(Jim_Interp *interp, const char *cmdName,
 	Jim_CmdProc *cmdProc, void *privData, Jim_DelCmdProc *delProc);
 int Jim_CreateCommandObj(Jim_Interp *interp, Jim_Obj *cmdNameObj,
@@ -168,7 +169,7 @@ static int workaround_createcommand(Jim_Interp *interp, const char *cmdName,
 	return retval;
 }
 #define Jim_CreateCommand workaround_createcommand
-#endif /* JIM_VERSION == 80 */
+#endif /* JIM_VERSION == 80 && defined __linux__*/
 /* FIXME: end of workaround for memory leak in jimtcl 0.80 */
 
 static int command_retval_set(Jim_Interp *interp, int retval)
