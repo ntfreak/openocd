@@ -31,10 +31,3 @@ noinst_LTLIBRARIES += %D%/librtos.la
 	%D%/rtos_riot_stackings.h \
 	%D%/rtos_ucos_iii_stackings.h \
 	%D%/nuttx_header.h
-
-%C%_librtos_la_CFLAGS = $(AM_CFLAGS)
-
-if IS_MINGW
-# FD_* macros are sloppy with their signs on MinGW32 platform
-%C%_librtos_la_CFLAGS += -Wno-sign-compare
-endif
