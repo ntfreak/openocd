@@ -1,7 +1,5 @@
 noinst_LTLIBRARIES += %D%/libhelper.la
 
-%C%_libhelper_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBUSB1_CFLAGS)
-
 %C%_libhelper_la_SOURCES = \
 	%D%/binarybuffer.c \
 	%D%/options.c \
