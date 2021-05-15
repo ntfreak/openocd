@@ -330,7 +330,7 @@ static int armv7m_read_core_reg(struct target *target, struct reg *r,
 	if (r->size <= 8) {
 		/* any 8-bit or shorter register is packed */
 		uint32_t offset = 0;	/* silence false gcc warning */
-		unsigned int reg32_id;
+		unsigned int reg32_id = 0;	/* silence false gcc warning */
 
 		bool is_packed = armv7m_map_reg_packing(num, &reg32_id, &offset);
 		assert(is_packed);
@@ -395,7 +395,7 @@ static int armv7m_write_core_reg(struct target *target, struct reg *r,
 	if (r->size <= 8) {
 		/* any 8-bit or shorter register is packed */
 		uint32_t offset = 0;	/* silence false gcc warning */
-		unsigned int reg32_id;
+		unsigned int reg32_id = 0;	/* silence false gcc warning */
 
 		bool is_packed = armv7m_map_reg_packing(num, &reg32_id, &offset);
 		assert(is_packed);
