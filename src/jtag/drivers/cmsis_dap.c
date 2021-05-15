@@ -679,8 +679,8 @@ static void cmsis_dap_swd_read_process(struct cmsis_dap *dap, int timeout_ms)
 
 	uint8_t *resp = dap->response;
 	if (resp[0] != CMD_DAP_TFER) {
-		LOG_ERROR("CMSIS-DAP command mismatch. Expected 0x%" PRIx8
-			 " received 0x%" PRIx8, CMD_DAP_TFER, resp[0]);
+		LOG_ERROR("CMSIS-DAP command mismatch. Expected 0x%x received 0x%" PRIx8,
+			CMD_DAP_TFER, resp[0]);
 		queued_retval = ERROR_FAIL;
 		goto skip;
 	}
