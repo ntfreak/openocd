@@ -329,11 +329,17 @@ static int armv7m_read_core_reg(struct target *target, struct reg *r,
 
 	if (r->size <= 8) {
 		/* any 8-bit or shorter register is packed */
-		uint32_t offset = 0;	/* silence false gcc warning */
+		uint32_t offset;
 		unsigned int reg32_id;
 
 		bool is_packed = armv7m_map_reg_packing(num, &reg32_id, &offset);
-		assert(is_packed);
+		if (!is_packed) {
+			/* We should not get here as all 8-bit or shorter registers
+			 * are packed */
+			assert(false);
+			/* assert() does nothing if NDEBUG is defined */
+			return ERROR_FAIL;
+		}
 		struct reg *r32 = &armv7m->arm.core_cache->reg_list[reg32_id];
 
 		/* Read 32-bit container register if not cached */
@@ -394,11 +400,17 @@ static int armv7m_write_core_reg(struct target *target, struct reg *r,
 
 	if (r->size <= 8) {
 		/* any 8-bit or shorter register is packed */
-		uint32_t offset = 0;	/* silence false gcc warning */
+		uint32_t offset;
 		unsigned int reg32_id;
 
 		bool is_packed = armv7m_map_reg_packing(num, &reg32_id, &offset);
-		assert(is_packed);
+		if (!is_packed) {
+			/* We should not get here as all 8-bit or shorter registers
+			 * are packed */
+			assert(false);
+			/* assert() does nothing if NDEBUG is defined */
+			return ERROR_FAIL;
+		}
 		struct reg *r32 = &armv7m->arm.core_cache->reg_list[reg32_id];
 
 		if (!r32->valid) {
