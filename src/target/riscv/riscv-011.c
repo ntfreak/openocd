@@ -70,8 +70,6 @@
 #define get_field(reg, mask) (((reg) & (mask)) / ((mask) & ~((mask) << 1)))
 #define set_field(reg, mask, val) (((reg) & ~(mask)) | (((val) * ((mask) & ~((mask) << 1))) & (mask)))
 
-#define DIM(x)		(sizeof(x)/sizeof(*x))
-
 /* Constants for legacy SiFive hardware breakpoints. */
 #define CSR_BPCONTROL_X			(1<<0)
 #define CSR_BPCONTROL_W			(1<<1)
@@ -1634,7 +1632,7 @@ static riscv_error_t handle_halt_routine(struct target *target)
 
 	/* Read S0 from dscratch */
 	unsigned int csr[] = {CSR_DSCRATCH0, CSR_DPC, CSR_DCSR};
-	for (unsigned int i = 0; i < DIM(csr); i++) {
+	for (unsigned int i = 0; i < ARRAY_SIZE(csr); i++) {
 		scans_add_write32(scans, 0, csrr(S0, csr[i]), true);
 		scans_add_read(scans, SLOT0, false);
 	}

@@ -86,8 +86,6 @@ static int	riscv013_test_compliance(struct target *target);
 #define get_field(reg, mask) (((reg) & (mask)) / ((mask) & ~((mask) << 1)))
 #define set_field(reg, mask, val) (((reg) & ~(mask)) | (((val) * ((mask) & ~((mask) << 1))) & (mask)))
 
-#define DIM(x)		(sizeof(x)/sizeof(*x))
-
 #define CSR_DCSR_CAUSE_SWBP		1
 #define CSR_DCSR_CAUSE_TRIGGER	2
 #define CSR_DCSR_CAUSE_DEBUGINT	3
@@ -358,7 +356,7 @@ static void decode_dmi(char *text, unsigned address, unsigned data)
 	};
 
 	text[0] = 0;
-	for (unsigned i = 0; i < DIM(description); i++) {
+	for (unsigned i = 0; i < ARRAY_SIZE(description); i++) {
 		if (description[i].address == address) {
 			uint64_t mask = description[i].mask;
 			unsigned value = get_field(data, mask);
