@@ -102,8 +102,6 @@ static const struct FreeRTOS_params FreeRTOS_params_list[] = {
 	},
 };
 
-#define FREERTOS_NUM_PARAMS ((int)(sizeof(FreeRTOS_params_list)/sizeof(struct FreeRTOS_params)))
-
 static bool FreeRTOS_detect_rtos(struct target *target);
 static int FreeRTOS_create(struct target *target);
 static int FreeRTOS_update_threads(struct rtos *rtos);
@@ -547,16 +545,12 @@ static bool FreeRTOS_detect_rtos(struct target *target)
 
 static int FreeRTOS_create(struct target *target)
 {
-	int i = 0;
-	while ((i < FREERTOS_NUM_PARAMS) &&
-			(0 != strcmp(FreeRTOS_params_list[i].target_name, target->type->name))) {
-		i++;
-	}
-	if (i >= FREERTOS_NUM_PARAMS) {
-		LOG_ERROR("Could not find target in FreeRTOS compatibility list");
-		return -1;
-	}
+	for (unsigned int i = 0; i < ARRAY_SIZE(FreeRTOS_params_list); i++)
+		if (strcmp(FreeRTOS_params_list[i].target_name, target->type->name) == 0) {
+			target->rtos->rtos_specific_params = (void *)&FreeRTOS_params_list[i];
+			return 0;
+		}
 
-	target->rtos->rtos_specific_params = (void *) &FreeRTOS_params_list[i];
-	return 0;
+	LOG_ERROR("Could not find target in FreeRTOS compatibility list");
+	return -1;
 }

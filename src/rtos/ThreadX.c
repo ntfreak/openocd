@@ -65,7 +65,7 @@ static const struct ThreadX_thread_state ThreadX_thread_states[] = {
 	{ 13, "Waiting - Mutex" },
 };
 
-#define THREADX_NUM_STATES (sizeof(ThreadX_thread_states)/sizeof(struct ThreadX_thread_state))
+#define THREADX_NUM_STATES ARRAY_SIZE(ThreadX_thread_states)
 
 #define ARM926EJS_REGISTERS_SIZE_SOLICITED (11 * 4)
 static const struct stack_register_offset rtos_threadx_arm926ejs_stack_offsets_solicited[] = {
@@ -178,8 +178,6 @@ static const struct ThreadX_params ThreadX_params_list[] = {
 	is_thread_id_valid_arm926ejs,		/* fn_is_thread_id_valid */
 	},
 };
-
-#define THREADX_NUM_PARAMS ((int)(sizeof(ThreadX_params_list)/sizeof(struct ThreadX_params)))
 
 enum ThreadX_symbol_values {
 	ThreadX_VAL_tx_thread_current_ptr = 0,
@@ -599,18 +597,14 @@ static int ThreadX_get_thread_detail(struct rtos *rtos,
 
 static int ThreadX_create(struct target *target)
 {
-	int i = 0;
-	while ((i < THREADX_NUM_PARAMS) &&
-			(0 != strcmp(ThreadX_params_list[i].target_name, target->type->name))) {
-		i++;
-	}
-	if (i >= THREADX_NUM_PARAMS) {
-		LOG_ERROR("Could not find target in ThreadX compatibility list");
-		return -1;
-	}
+	for (unsigned int i = 0; i < ARRAY_SIZE(ThreadX_params_list); i++)
+		if (strcmp(ThreadX_params_list[i].target_name, target->type->name) == 0) {
+			target->rtos->rtos_specific_params = (void *)&ThreadX_params_list[i];
+			target->rtos->current_thread = 0;
+			target->rtos->thread_details = NULL;
+			return 0;
+		}
 
-	target->rtos->rtos_specific_params = (void *) &ThreadX_params_list[i];
-	target->rtos->current_thread = 0;
-	target->rtos->thread_details = NULL;
-	return 0;
+	LOG_ERROR("Could not find target in ThreadX compatibility list");
+	return -1;
 }
