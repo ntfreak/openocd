@@ -74,7 +74,7 @@ static const char * const chibios_thread_states[] = { "READY", "CURRENT",
 "WTEXIT", "WTOREVT", "WTANDEVT", "SNDMSGQ", "SNDMSG", "WTMSG", "FINAL"
 };
 
-#define CHIBIOS_NUM_STATES (sizeof(chibios_thread_states)/sizeof(char *))
+#define CHIBIOS_NUM_STATES ARRAY_SIZE(chibios_thread_states)
 
 /* Maximum ChibiOS thread name. There is no real limit set by ChibiOS but 64
  * chars ought to be enough.
@@ -100,7 +100,6 @@ static struct chibios_params chibios_params_list[] = {
 	NULL,									/* stacking_info */
 	}
 };
-#define CHIBIOS_NUM_PARAMS ((int)(sizeof(chibios_params_list)/sizeof(struct chibios_params)))
 
 static bool chibios_detect_rtos(struct target *target);
 static int chibios_create(struct target *target);
@@ -529,17 +528,13 @@ static bool chibios_detect_rtos(struct target *target)
 
 static int chibios_create(struct target *target)
 {
-	int i = 0;
-	while ((i < CHIBIOS_NUM_PARAMS) &&
-			(0 != strcmp(chibios_params_list[i].target_name, target->type->name))) {
-		i++;
-	}
-	if (i >= CHIBIOS_NUM_PARAMS) {
-		LOG_WARNING("Could not find target \"%s\" in ChibiOS compatibility "
-				"list", target->type->name);
-		return -1;
-	}
+	for (unsigned int i = 0; i < ARRAY_SIZE(chibios_params_list); i++)
+		if (strcmp(chibios_params_list[i].target_name, target->type->name) == 0) {
+			target->rtos->rtos_specific_params = (void *)&chibios_params_list[i];
+			return 0;
+		}
 
-	target->rtos->rtos_specific_params = (void *) &chibios_params_list[i];
-	return 0;
+	LOG_WARNING("Could not find target \"%s\" in ChibiOS compatibility "
+				"list", target->type->name);
+	return -1;
 }
