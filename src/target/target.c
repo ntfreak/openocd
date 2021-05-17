@@ -5375,7 +5375,7 @@ static int jim_target_reset(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 		target_reset_examined(target);
 
 	/* determine if we should halt or not. */
-	target->reset_halt = !!a;
+	target->reset_halt = a;
 	/* When this happens - all workareas are invalid. */
 	target_free_all_working_areas_restore(target, 0);
 
