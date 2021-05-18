@@ -29,26 +29,6 @@
 #define CACHE_LEVEL_HAS_D_CACHE		0x2
 #define CACHE_LEVEL_HAS_I_CACHE		0x1
 
-static int armv8_d_cache_sanity_check(struct armv8_common *armv8)
-{
-	struct armv8_cache_common *armv8_cache = &armv8->armv8_mmu.armv8_cache;
-
-	if (armv8_cache->d_u_cache_enabled)
-		return ERROR_OK;
-
-	return ERROR_TARGET_INVALID;
-}
-
-static int armv8_i_cache_sanity_check(struct armv8_common *armv8)
-{
-	struct armv8_cache_common *armv8_cache = &armv8->armv8_mmu.armv8_cache;
-
-	if (armv8_cache->i_cache_enabled)
-		return ERROR_OK;
-
-	return ERROR_TARGET_INVALID;
-}
-
 static int armv8_cache_d_inner_flush_level(struct armv8_common *armv8, struct armv8_cachesize *size, int cl)
 {
 	struct arm_dpm *dpm = armv8->arm.dpm;
@@ -85,10 +65,6 @@ static int armv8_cache_d_inner_clean_inval_all(struct armv8_common *armv8)
 	int cl;
 	int retval;
 
-	retval = armv8_d_cache_sanity_check(armv8);
-	if (retval != ERROR_OK)
-		return retval;
-
 	retval = dpm->prepare(dpm);
 	if (retval != ERROR_OK)
 		goto done;
@@ -118,10 +94,6 @@ int armv8_cache_d_inner_flush_virt(struct armv8_common *armv8, target_addr_t va,
 	uint64_t linelen = armv8_cache->dminline;
 	target_addr_t va_line, va_end;
 	int retval;
-
-	retval = armv8_d_cache_sanity_check(armv8);
-	if (retval != ERROR_OK)
-		return retval;
 
 	retval = dpm->prepare(dpm);
 	if (retval != ERROR_OK)
@@ -157,10 +129,6 @@ int armv8_cache_i_inner_inval_virt(struct armv8_common *armv8, target_addr_t va,
 	uint64_t linelen = armv8_cache->iminline;
 	target_addr_t va_line, va_end;
 	int retval;
-
-	retval = armv8_i_cache_sanity_check(armv8);
-	if (retval != ERROR_OK)
-		return retval;
 
 	retval = dpm->prepare(dpm);
 	if (retval != ERROR_OK)
