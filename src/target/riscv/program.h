@@ -5,7 +5,6 @@
 
 #include "riscv.h"
 
-#define RISCV_MAX_DEBUG_BUFFER_SIZE 32
 #define RISCV_REGISTER_COUNT 32
 #define RISCV_DSCRATCH_COUNT 2
 
@@ -15,7 +14,8 @@
 struct riscv_program {
 	struct target *target;
 
-	uint32_t debug_buffer[RISCV_MAX_DEBUG_BUFFER_SIZE];
+	uint32_t *debug_buffer;
+	size_t debug_buffer_alloc_size;
 
 	/* Number of 32-bit instructions in the program. */
 	size_t instruction_count;

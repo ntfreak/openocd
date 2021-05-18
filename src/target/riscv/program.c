@@ -16,15 +16,19 @@
 /* Program interface. */
 int riscv_program_init(struct riscv_program *p, struct target *target)
 {
-	memset(p, 0, sizeof(*p));
 	p->target = target;
 	p->instruction_count = 0;
 	p->target_xlen = riscv_xlen(target);
 	for (size_t i = 0; i < RISCV_REGISTER_COUNT; ++i)
 		p->writes_xreg[i] = 0;
 
-	for (size_t i = 0; i < RISCV_MAX_DEBUG_BUFFER_SIZE; ++i)
-		p->debug_buffer[i] = -1;
+	size_t need_size = riscv_debug_buffer_size(target);
+	if (p->debug_buffer == NULL || p->debug_buffer_alloc_size < need_size) {
+		p->debug_buffer_alloc_size = need_size;
+		p->debug_buffer = realloc(p->debug_buffer, need_size * sizeof(uint32_t));
+	}
+	for (size_t i = 0; i < p->debug_buffer_alloc_size; ++i)
+			p->debug_buffer[i] = -1;
 
 	return ERROR_OK;
 }
