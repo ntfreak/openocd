@@ -2481,6 +2481,8 @@ static int aarch64_write_phys_memory(struct target *target,
 	target_addr_t address, uint32_t size,
 	uint32_t count, const uint8_t *buffer)
 {
+	struct aarch64_common *aarch64 = target_to_aarch64(target);
+	struct armv8_common *armv8 = &aarch64->armv8_common;
 	int retval = ERROR_COMMAND_SYNTAX_ERROR;
 
 	if (count && buffer) {
@@ -2488,7 +2490,20 @@ static int aarch64_write_phys_memory(struct target *target,
 		retval = aarch64_mmu_modify(target, 0);
 		if (retval != ERROR_OK)
 			return retval;
-		return aarch64_write_cpu_memory(target, address, size, count, buffer);
+
+		armv8_cache_d_inner_flush_virt(armv8, address & 0xFFFFFFFFFFFFFFFE,
+				size*count);
+
+		retval =  aarch64_write_cpu_memory(target, address, size, count, buffer);
+		if (retval != ERROR_OK)
+			return retval;
+
+		armv8_cache_d_inner_flush_virt(armv8, address & 0xFFFFFFFFFFFFFFFE,
+				size*count);
+		armv8_cache_i_inner_inval_virt(armv8, address & 0xFFFFFFFFFFFFFFFE,
+				size*count);
+
+		return ERROR_OK;
 	}
 
 	return retval;
@@ -2499,6 +2514,8 @@ static int aarch64_write_memory(struct target *target, target_addr_t address,
 {
 	int mmu_enabled = 0;
 	int retval;
+	struct aarch64_common *aarch64 = target_to_aarch64(target);
+	struct armv8_common *armv8 = &aarch64->armv8_common;
 
 	/* determine if MMU was enabled on target stop */
 	retval = aarch64_mmu(target, &mmu_enabled);
@@ -2511,7 +2528,20 @@ static int aarch64_write_memory(struct target *target, target_addr_t address,
 		if (retval != ERROR_OK)
 			return retval;
 	}
-	return aarch64_write_cpu_memory(target, address, size, count, buffer);
+
+	armv8_cache_d_inner_flush_virt(armv8, address & 0xFFFFFFFFFFFFFFFE,
+			size*count);
+
+	retval =  aarch64_write_cpu_memory(target, address, size, count, buffer);
+	if (retval != ERROR_OK)
+		return retval;
+
+	armv8_cache_d_inner_flush_virt(armv8, address & 0xFFFFFFFFFFFFFFFE,
+			size*count);
+	armv8_cache_i_inner_inval_virt(armv8, address & 0xFFFFFFFFFFFFFFFE,
+			size*count);
+
+	return ERROR_OK;
 }
 
 static int aarch64_handle_target_request(void *priv)
