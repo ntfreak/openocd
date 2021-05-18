@@ -23,6 +23,7 @@ int riscv_program_init(struct riscv_program *p, struct target *target)
 	for (size_t i = 0; i < RISCV_REGISTER_COUNT; ++i)
 		p->writes_xreg[i] = 0;
 
+	assert(RISCV_MAX_DEBUG_BUFFER_SIZE >= riscv_debug_buffer_size(target));
 	for (size_t i = 0; i < RISCV_MAX_DEBUG_BUFFER_SIZE; ++i)
 		p->debug_buffer[i] = -1;
 
