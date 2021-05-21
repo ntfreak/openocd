@@ -100,6 +100,8 @@ char *alloc_vprintf(const char *fmt, va_list ap);
 char *alloc_printf(const char *fmt, ...)
 	__attribute__ ((format (PRINTF_ATTRIBUTE_FORMAT, 1, 2)));
 
+char *find_nonprint_char(char *buf, unsigned buf_len);
+
 extern int debug_level;
 
 /* Avoid fn call and building parameter list if we're not outputting the information.

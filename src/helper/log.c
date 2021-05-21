@@ -518,3 +518,16 @@ void log_socket_error(const char *socket_desc)
 	LOG_ERROR("Error on socket '%s': errno==%d, message: %s.", socket_desc, error_code, strerror(error_code));
 #endif
 }
+
+/**
+ * Find the first non-printable character in the char buffer, return a pointer to it.
+ * If no such character exists, return NULL.
+ */
+char *find_nonprint_char(char *buf, unsigned buf_len)
+{
+	for (unsigned int i = 0; i < buf_len; i++) {
+		if (!isprint(buf[i]))
+			return buf + i;
+	}
+	return NULL;
+}
