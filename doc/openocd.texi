@@ -8153,7 +8153,7 @@ file (which is normally the server's standard output).
 
 @deffn {Command} {echo} [-n] message
 Logs a message at "user" priority.
-Output @var{message} to stdout.
+Output @var{message} to stderr.
 Option "-n" suppresses trailing newline.
 @example
 echo "Downloading kernel -- please wait"
