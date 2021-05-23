@@ -457,7 +457,7 @@ static inline void list_splice_tail_init(struct list_head *list,
  * Prepares a pos entry for use as a start point in list_for_each_entry_continue().
  */
 #define list_prepare_entry(pos, head, member) \
-	((pos) ? : list_entry(head, typeof(*pos), member))
+	((pos) ? pos : list_entry(head, typeof(*pos), member))
 
 /**
  * list_for_each_entry_continue - continue iteration over list of given type
