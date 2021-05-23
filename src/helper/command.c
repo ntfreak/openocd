@@ -1223,7 +1223,6 @@ static const struct command_registration command_builtin_handlers[] = {
 		.handler = jim_echo,
 		.mode = COMMAND_ANY,
 		.help = "Logs a message at \"user\" priority. "
-			"Output message to stdout. "
 			"Option \"-n\" suppresses trailing newline",
 		.usage = "[-n] string",
 	},
