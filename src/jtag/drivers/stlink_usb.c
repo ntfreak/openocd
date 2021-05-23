@@ -3904,7 +3904,7 @@ static int stlink_dap_op_queue_dp_read(struct adiv5_dap *dap, unsigned reg,
 	if (retval != ERROR_OK)
 		return retval;
 
-	data = data ? : &dummy;
+	data = data ? data : &dummy;
 	if (stlink_dap_handle->version.flags & STLINK_F_QUIRK_JTAG_DP_READ
 		&& stlink_dap_handle->st_mode == STLINK_MODE_DEBUG_JTAG) {
 		/* Quirk required in JTAG. Read RDBUFF to get the data */
@@ -3969,7 +3969,7 @@ static int stlink_dap_op_queue_ap_read(struct adiv5_ap *ap, unsigned reg,
 		if (retval != ERROR_OK)
 			return retval;
 	}
-	data = data ? : &dummy;
+	data = data ? data : &dummy;
 	retval = stlink_read_dap_register(stlink_dap_handle, ap->ap_num, reg,
 				 data);
 	dap->stlink_flush_ap_write = false;

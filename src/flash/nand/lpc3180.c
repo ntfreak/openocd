@@ -139,9 +139,9 @@ static int lpc3180_init(struct nand_device *nand)
 {
 	struct lpc3180_nand_controller *lpc3180_info = nand->controller_priv;
 	struct target *target = nand->target;
-	int bus_width = nand->bus_width ? : 8;
-	int address_cycles = nand->address_cycles ? : 3;
-	int page_size = nand->page_size ? : 512;
+	int bus_width = nand->bus_width ? nand->bus_width : 8;
+	int address_cycles = nand->address_cycles ? nand->address_cycles : 3;
+	int page_size = nand->page_size ? nand->page_size : 512;
 
 	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("target must be halted to use LPC3180 NAND flash controller");

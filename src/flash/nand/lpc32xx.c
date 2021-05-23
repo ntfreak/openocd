@@ -191,9 +191,9 @@ static int lpc32xx_init(struct nand_device *nand)
 {
 	struct lpc32xx_nand_controller *lpc32xx_info = nand->controller_priv;
 	struct target *target = nand->target;
-	int bus_width = nand->bus_width ? : 8;
-	int address_cycles = nand->address_cycles ? : 3;
-	int page_size = nand->page_size ? : 512;
+	int bus_width = nand->bus_width ? nand->bus_width : 8;
+	int address_cycles = nand->address_cycles ? nand->address_cycles : 3;
+	int page_size = nand->page_size ? nand->page_size : 512;
 	int retval;
 
 	if (target->state != TARGET_HALTED) {

@@ -62,7 +62,7 @@ static int jim_adapter_name(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 		return JIM_ERR;
 	}
 	const char *name = adapter_driver ? adapter_driver->name : NULL;
-	Jim_SetResultString(goi.interp, name ? : "undefined", -1);
+	Jim_SetResultString(goi.interp, name ? name : "undefined", -1);
 	return JIM_OK;
 }
 

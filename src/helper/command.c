@@ -867,9 +867,9 @@ static COMMAND_HELPER(command_help_show, struct help_entry *c,
 					stage_msg = " (?mode error?)";
 					break;
 			}
-			msg = alloc_printf("%s%s", c->help ? : "", stage_msg);
+			msg = alloc_printf("%s%s", c->help ? c->help : "", stage_msg);
 		} else
-			msg = alloc_printf("%s", c->help ? : "");
+			msg = alloc_printf("%s", c->help ? c->help : "");
 
 		if (NULL != msg) {
 			command_help_show_wrap(msg, n + 3, n + 3);

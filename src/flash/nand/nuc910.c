@@ -183,7 +183,7 @@ static int nuc910_nand_init(struct nand_device *nand)
 {
 	struct nuc910_nand_controller *nuc910_nand = nand->controller_priv;
 	struct target *target = nand->target;
-	int bus_width = nand->bus_width ? : 8;
+	int bus_width = nand->bus_width ? nand->bus_width : 8;
 	int result;
 
 	result = validate_target_state(nand);

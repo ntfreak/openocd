@@ -1455,7 +1455,7 @@ void jtag_tap_init(struct jtag_tap *tap)
 	unsigned ir_len_bytes;
 
 	/* if we're autoprobing, cope with potentially huge ir_length */
-	ir_len_bits = tap->ir_length ? : JTAG_IRLEN_MAX;
+	ir_len_bits = tap->ir_length ? tap->ir_length : JTAG_IRLEN_MAX;
 	ir_len_bytes = DIV_ROUND_UP(ir_len_bits, 8);
 
 	tap->expected = calloc(1, ir_len_bytes);

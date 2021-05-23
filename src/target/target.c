@@ -5165,7 +5165,7 @@ no_params:
 				if (goi->argc != 0)
 					goto no_params;
 			}
-			Jim_SetResultString(goi->interp, target->gdb_port_override ? : "undefined", -1);
+			Jim_SetResultString(goi->interp, target->gdb_port_override ? target->gdb_port_override : "undefined", -1);
 			/* loop for more */
 			break;
 
