@@ -84,7 +84,7 @@ static const char * const eCos_symbol_list[] = {
 	NULL
 };
 
-const struct rtos_type eCos_rtos = {
+const struct rtos_type ecos_rtos = {
 	.name = "eCos",
 
 	.detect_rtos = eCos_detect_rtos,

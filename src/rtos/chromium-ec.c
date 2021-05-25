@@ -36,7 +36,7 @@ static const struct chromium_ec_params chromium_ec_params_list[] = {
 		.task_offset_sp = 0,
 		.task_offset_events = 4,
 		.task_offset_runtime = 8,
-		.stacking = &rtos_standard_Cortex_M3_stacking,
+		.stacking = &rtos_standard_cortex_m3_stacking,
 
 	},
 	{
@@ -46,7 +46,7 @@ static const struct chromium_ec_params chromium_ec_params_list[] = {
 		.task_offset_sp = 0,
 		.task_offset_events = 4,
 		.task_offset_runtime = 8,
-		.stacking = &rtos_standard_Cortex_M3_stacking,
+		.stacking = &rtos_standard_cortex_m3_stacking,
 	},
 };
 

@@ -25,7 +25,7 @@
 
 #include <rtos/rtos.h>
 
-extern const struct rtos_register_stacking rtos_uCOS_III_Cortex_M_stacking;
-extern const struct rtos_register_stacking rtos_uCOS_III_eSi_RISC_stacking;
+extern const struct rtos_register_stacking rtos_ucos_iii_cortex_m_stacking;
+extern const struct rtos_register_stacking rtos_ucos_iii_esi_risc_stacking;
 
 #endif /* OPENOCD_RTOS_RTOS_UCOS_III_STACKINGS_H */

@@ -32,7 +32,7 @@ static int64_t rtos_riot_cortex_m_stack_align(struct target *target,
 	int64_t stack_ptr)
 {
 	const int XPSR_OFFSET = 0x40;
-	return rtos_Cortex_M_stack_align(target, stack_data, stacking,
+	return rtos_cortex_m_stack_align(target, stack_data, stacking,
 		stack_ptr, XPSR_OFFSET);
 }
 

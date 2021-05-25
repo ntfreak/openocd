@@ -193,7 +193,7 @@ static int64_t zephyr_cortex_m_stack_align(struct target *target,
 		const uint8_t *stack_data,
 		const struct rtos_register_stacking *stacking, int64_t stack_ptr)
 {
-	return rtos_Cortex_M_stack_align(target, stack_data, stacking,
+	return rtos_cortex_m_stack_align(target, stack_data, stacking,
 			stack_ptr, ARM_XPSR_OFFSET);
 }
 

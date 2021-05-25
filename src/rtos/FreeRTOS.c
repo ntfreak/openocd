@@ -31,18 +31,14 @@
 #include "target/armv7m.h"
 #include "target/cortex_m.h"
 
-
-
 #define FREERTOS_MAX_PRIORITIES	63
-
-#define FreeRTOS_STRUCT(int_type, ptr_type, list_prev_offset)
 
 /* FIXME: none of the _width parameters are actually observed properly!
  * you WILL need to edit more if you actually attempt to target a 8/16/64
  * bit target!
  */
 
-struct FreeRTOS_params {
+struct freertos_params {
 	const char *target_name;
 	const unsigned char thread_count_width;
 	const unsigned char pointer_width;
@@ -57,7 +53,7 @@ struct FreeRTOS_params {
 	const struct rtos_register_stacking *stacking_info_cm4f_fpu;
 };
 
-static const struct FreeRTOS_params FreeRTOS_params_list[] = {
+static const struct freertos_params freertos_params_list[] = {
 	{
 	"cortex_m",			/* target_name */
 	4,						/* thread_count_width; */
@@ -68,9 +64,9 @@ static const struct FreeRTOS_params FreeRTOS_params_list[] = {
 	12,						/* list_elem_content_offset */
 	0,						/* thread_stack_offset; */
 	52,						/* thread_name_offset; */
-	&rtos_standard_Cortex_M3_stacking,	/* stacking_info */
-	&rtos_standard_Cortex_M4F_stacking,
-	&rtos_standard_Cortex_M4F_FPU_stacking,
+	&rtos_standard_cortex_m3_stacking,	/* stacking_info */
+	&rtos_standard_cortex_m4f_stacking,
+	&rtos_standard_cortex_m4f_fpu_stacking,
 	},
 	{
 	"hla_target",			/* target_name */
@@ -82,9 +78,9 @@ static const struct FreeRTOS_params FreeRTOS_params_list[] = {
 	12,						/* list_elem_content_offset */
 	0,						/* thread_stack_offset; */
 	52,						/* thread_name_offset; */
-	&rtos_standard_Cortex_M3_stacking,	/* stacking_info */
-	&rtos_standard_Cortex_M4F_stacking,
-	&rtos_standard_Cortex_M4F_FPU_stacking,
+	&rtos_standard_cortex_m3_stacking,	/* stacking_info */
+	&rtos_standard_cortex_m4f_stacking,
+	&rtos_standard_cortex_m4f_fpu_stacking,
 	},
 	{
 	"nds32_v3",			/* target_name */
@@ -96,30 +92,30 @@ static const struct FreeRTOS_params FreeRTOS_params_list[] = {
 	12,						/* list_elem_content_offset */
 	0,						/* thread_stack_offset; */
 	52,						/* thread_name_offset; */
-	&rtos_standard_NDS32_N1068_stacking,	/* stacking_info */
-	&rtos_standard_Cortex_M4F_stacking,
-	&rtos_standard_Cortex_M4F_FPU_stacking,
+	&rtos_standard_nds32_n1068_stacking,	/* stacking_info */
+	&rtos_standard_cortex_m4f_stacking,
+	&rtos_standard_cortex_m4f_fpu_stacking,
 	},
 };
 
-static bool FreeRTOS_detect_rtos(struct target *target);
-static int FreeRTOS_create(struct target *target);
-static int FreeRTOS_update_threads(struct rtos *rtos);
-static int FreeRTOS_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
+static bool freertos_detect_rtos(struct target *target);
+static int freertos_create(struct target *target);
+static int freertos_update_threads(struct rtos *rtos);
+static int freertos_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 		struct rtos_reg **reg_list, int *num_regs);
-static int FreeRTOS_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[]);
+static int freertos_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[]);
 
-struct rtos_type FreeRTOS_rtos = {
+struct rtos_type freertos_rtos = {
 	.name = "FreeRTOS",
 
-	.detect_rtos = FreeRTOS_detect_rtos,
-	.create = FreeRTOS_create,
-	.update_threads = FreeRTOS_update_threads,
-	.get_thread_reg_list = FreeRTOS_get_thread_reg_list,
-	.get_symbol_list_to_lookup = FreeRTOS_get_symbol_list_to_lookup,
+	.detect_rtos = freertos_detect_rtos,
+	.create = freertos_create,
+	.update_threads = freertos_update_threads,
+	.get_thread_reg_list = freertos_get_thread_reg_list,
+	.get_symbol_list_to_lookup = freertos_get_symbol_list_to_lookup,
 };
 
-enum FreeRTOS_symbol_values {
+enum freertos_symbol_values {
 	FREERTOS_VAL_PX_CURRENT_TCB = 0,
 	FREERTOS_VAL_PX_READY_TASKS_LISTS = 1,
 	FREERTOS_VAL_X_DELAYED_TASK_LIST1 = 2,
@@ -138,7 +134,7 @@ struct symbols {
 	bool optional;
 };
 
-static const struct symbols FreeRTOS_symbol_list[] = {
+static const struct symbols freertos_symbol_list[] = {
 	{ "pxCurrentTCB", false },
 	{ "pxReadyTasksLists", false },
 	{ "xDelayedTaskList1", false },
@@ -158,16 +154,16 @@ static const struct symbols FreeRTOS_symbol_list[] = {
 /* may be problems reading if sizes are not 32 bit long integers. */
 /* test mallocs for failure */
 
-static int FreeRTOS_update_threads(struct rtos *rtos)
+static int freertos_update_threads(struct rtos *rtos)
 {
 	int retval;
 	unsigned int tasks_found = 0;
-	const struct FreeRTOS_params *param;
+	const struct freertos_params *param;
 
 	if (rtos->rtos_specific_params == NULL)
 		return -1;
 
-	param = (const struct FreeRTOS_params *) rtos->rtos_specific_params;
+	param = (const struct freertos_params *) rtos->rtos_specific_params;
 
 	if (rtos->symbols == NULL) {
 		LOG_ERROR("No symbols for FreeRTOS");
@@ -400,11 +396,11 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 	return 0;
 }
 
-static int FreeRTOS_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
+static int freertos_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 		struct rtos_reg **reg_list, int *num_regs)
 {
 	int retval;
-	const struct FreeRTOS_params *param;
+	const struct freertos_params *param;
 	int64_t stack_ptr = 0;
 
 	if (rtos == NULL)
@@ -416,7 +412,7 @@ static int FreeRTOS_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	if (rtos->rtos_specific_params == NULL)
 		return -1;
 
-	param = (const struct FreeRTOS_params *) rtos->rtos_specific_params;
+	param = (const struct freertos_params *) rtos->rtos_specific_params;
 
 	/* Read the stack pointer */
 	uint32_t pointer_casts_are_bad;
@@ -456,15 +452,15 @@ static int FreeRTOS_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 
 	if (cm4_fpu_enabled == 1) {
 		/* Read the LR to decide between stacking with or without FPU */
-		uint32_t LR_svc = 0;
+		uint32_t lr_svc = 0;
 		retval = target_read_u32(rtos->target,
 				stack_ptr + 0x20,
-				&LR_svc);
+				&lr_svc);
 		if (retval != ERROR_OK) {
 			LOG_OUTPUT("Error reading stack frame from FreeRTOS thread");
 			return retval;
 		}
-		if ((LR_svc & 0x10) == 0)
+		if ((lr_svc & 0x10) == 0)
 			return rtos_generic_stack_read(rtos->target, param->stacking_info_cm4f_fpu, stack_ptr, reg_list, num_regs);
 		else
 			return rtos_generic_stack_read(rtos->target, param->stacking_info_cm4f, stack_ptr, reg_list, num_regs);
@@ -472,15 +468,15 @@ static int FreeRTOS_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 		return rtos_generic_stack_read(rtos->target, param->stacking_info_cm3, stack_ptr, reg_list, num_regs);
 }
 
-static int FreeRTOS_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
+static int freertos_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
 	unsigned int i;
 	*symbol_list = calloc(
-			ARRAY_SIZE(FreeRTOS_symbol_list), sizeof(struct symbol_table_elem));
+			ARRAY_SIZE(freertos_symbol_list), sizeof(struct symbol_table_elem));
 
-	for (i = 0; i < ARRAY_SIZE(FreeRTOS_symbol_list); i++) {
-		(*symbol_list)[i].symbol_name = FreeRTOS_symbol_list[i].name;
-		(*symbol_list)[i].optional = FreeRTOS_symbol_list[i].optional;
+	for (i = 0; i < ARRAY_SIZE(freertos_symbol_list); i++) {
+		(*symbol_list)[i].symbol_name = freertos_symbol_list[i].name;
+		(*symbol_list)[i].optional = freertos_symbol_list[i].optional;
 	}
 
 	return 0;
@@ -488,15 +484,15 @@ static int FreeRTOS_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_l
 
 #if 0
 
-static int FreeRTOS_set_current_thread(struct rtos *rtos, threadid_t thread_id)
+static int freertos_set_current_thread(struct rtos *rtos, threadid_t thread_id)
 {
 	return 0;
 }
 
-static int FreeRTOS_get_thread_ascii_info(struct rtos *rtos, threadid_t thread_id, char **info)
+static int freertos_get_thread_ascii_info(struct rtos *rtos, threadid_t thread_id, char **info)
 {
 	int retval;
-	const struct FreeRTOS_params *param;
+	const struct freertos_params *param;
 
 	if (rtos == NULL)
 		return -1;
@@ -507,7 +503,7 @@ static int FreeRTOS_get_thread_ascii_info(struct rtos *rtos, threadid_t thread_i
 	if (rtos->rtos_specific_params == NULL)
 		return -3;
 
-	param = (const struct FreeRTOS_params *) rtos->rtos_specific_params;
+	param = (const struct freertos_params *) rtos->rtos_specific_params;
 
 #define FREERTOS_THREAD_NAME_STR_SIZE (200)
 	char tmp_str[FREERTOS_THREAD_NAME_STR_SIZE];
@@ -533,7 +529,7 @@ static int FreeRTOS_get_thread_ascii_info(struct rtos *rtos, threadid_t thread_i
 
 #endif
 
-static bool FreeRTOS_detect_rtos(struct target *target)
+static bool freertos_detect_rtos(struct target *target)
 {
 	if ((target->rtos->symbols != NULL) &&
 			(target->rtos->symbols[FREERTOS_VAL_PX_READY_TASKS_LISTS].address != 0)) {
@@ -543,11 +539,11 @@ static bool FreeRTOS_detect_rtos(struct target *target)
 	return false;
 }
 
-static int FreeRTOS_create(struct target *target)
+static int freertos_create(struct target *target)
 {
-	for (unsigned int i = 0; i < ARRAY_SIZE(FreeRTOS_params_list); i++)
-		if (strcmp(FreeRTOS_params_list[i].target_name, target->type->name) == 0) {
-			target->rtos->rtos_specific_params = (void *)&FreeRTOS_params_list[i];
+	for (unsigned int i = 0; i < ARRAY_SIZE(freertos_params_list); i++)
+		if (strcmp(freertos_params_list[i].target_name, target->type->name) == 0) {
+			target->rtos->rtos_specific_params = (void *)&freertos_params_list[i];
 			return 0;
 		}
 

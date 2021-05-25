@@ -25,15 +25,15 @@
 
 #include "rtos.h"
 
-extern const struct rtos_register_stacking rtos_standard_Cortex_M3_stacking;
-extern const struct rtos_register_stacking rtos_standard_Cortex_M4F_stacking;
-extern const struct rtos_register_stacking rtos_standard_Cortex_M4F_FPU_stacking;
-extern const struct rtos_register_stacking rtos_standard_Cortex_R4_stacking;
-extern const struct rtos_register_stacking rtos_standard_NDS32_N1068_stacking;
+extern const struct rtos_register_stacking rtos_standard_cortex_m3_stacking;
+extern const struct rtos_register_stacking rtos_standard_cortex_m4f_stacking;
+extern const struct rtos_register_stacking rtos_standard_cortex_m4f_fpu_stacking;
+extern const struct rtos_register_stacking rtos_standard_cortex_r4_stacking;
+extern const struct rtos_register_stacking rtos_standard_nds32_n1068_stacking;
 int64_t rtos_generic_stack_align8(struct target *target,
 	const uint8_t *stack_data, const struct rtos_register_stacking *stacking,
 	int64_t stack_ptr);
-int64_t rtos_Cortex_M_stack_align(struct target *target,
+int64_t rtos_cortex_m_stack_align(struct target *target,
 	const uint8_t *stack_data, const struct rtos_register_stacking *stacking,
 	int64_t stack_ptr, size_t xpsr_offset);
 
