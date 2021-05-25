@@ -101,18 +101,18 @@ static const char * const uCOS_III_symbol_list[] = {
 };
 
 enum uCOS_III_symbol_values {
-	uCOS_III_VAL_OSRunning,
-	uCOS_III_VAL_OSTCBCurPtr,
-	uCOS_III_VAL_OSTaskDbgListPtr,
-	uCOS_III_VAL_OSTaskQty,
+	UCOS_III_VAL_OS_RUNNING,
+	UCOS_III_VAL_OS_TCB_CUR_PTR,
+	UCOS_III_VAL_OS_TASK_DBG_LIST_PTR,
+	UCOS_III_VAL_OS_TASK_QTY,
 
 	/* also see: contrib/rtos-helpers/uCOS-III-openocd.c */
-	uCOS_III_VAL_OS_TCB_StkPtr_offset,
-	uCOS_III_VAL_OS_TCB_NamePtr_offset,
-	uCOS_III_VAL_OS_TCB_TaskState_offset,
-	uCOS_III_VAL_OS_TCB_Prio_offset,
-	uCOS_III_VAL_OS_TCB_DbgPrevPtr_offset,
-	uCOS_III_VAL_OS_TCB_DbgNextPtr_offset,
+	UCOS_III_VAL_OS_TCB_STK_PTR_OFFSET,
+	UCOS_III_VAL_OS_TCB_NAME_PTR_OFFSET,
+	UCOS_III_VAL_OS_TCB_TASK_STATE_OFFSET,
+	UCOS_III_VAL_OS_TCB_PRIO_OFFSET,
+	UCOS_III_VAL_OS_TCB_DBG_PREV_PTR_OFFSET,
+	UCOS_III_VAL_OS_TCB_DBG_NEXT_PTR_OFFSET,
 };
 
 static const char * const uCOS_III_thread_state_list[] = {
@@ -173,7 +173,7 @@ static int uCOS_III_find_last_thread_address(struct rtos *rtos, symbol_address_t
 	symbol_address_t thread_list_address = 0;
 
 	retval = target_read_memory(rtos->target,
-			rtos->symbols[uCOS_III_VAL_OSTaskDbgListPtr].address,
+			rtos->symbols[UCOS_III_VAL_OS_TASK_DBG_LIST_PTR].address,
 			params->pointer_width,
 			1,
 			(void *)&thread_list_address);
@@ -212,27 +212,27 @@ static int uCOS_III_update_thread_offsets(struct rtos *rtos)
 		symbol_address_t *thread_offset;
 	} thread_offset_maps[] = {
 		{
-			uCOS_III_VAL_OS_TCB_StkPtr_offset,
+			UCOS_III_VAL_OS_TCB_STK_PTR_OFFSET,
 			&params->thread_stack_offset,
 		},
 		{
-			uCOS_III_VAL_OS_TCB_NamePtr_offset,
+			UCOS_III_VAL_OS_TCB_NAME_PTR_OFFSET,
 			&params->thread_name_offset,
 		},
 		{
-			uCOS_III_VAL_OS_TCB_TaskState_offset,
+			UCOS_III_VAL_OS_TCB_TASK_STATE_OFFSET,
 			&params->thread_state_offset,
 		},
 		{
-			uCOS_III_VAL_OS_TCB_Prio_offset,
+			UCOS_III_VAL_OS_TCB_PRIO_OFFSET,
 			&params->thread_priority_offset,
 		},
 		{
-			uCOS_III_VAL_OS_TCB_DbgPrevPtr_offset,
+			UCOS_III_VAL_OS_TCB_DBG_PREV_PTR_OFFSET,
 			&params->thread_prev_offset,
 		},
 		{
-			uCOS_III_VAL_OS_TCB_DbgNextPtr_offset,
+			UCOS_III_VAL_OS_TCB_DBG_NEXT_PTR_OFFSET,
 			&params->thread_next_offset,
 		},
 	};
@@ -258,7 +258,7 @@ static int uCOS_III_update_thread_offsets(struct rtos *rtos)
 static bool uCOS_III_detect_rtos(struct target *target)
 {
 	return target->rtos->symbols != NULL &&
-			target->rtos->symbols[uCOS_III_VAL_OSRunning].address != 0;
+			target->rtos->symbols[UCOS_III_VAL_OS_RUNNING].address != 0;
 }
 
 static int uCOS_III_reset_handler(struct target *target, enum target_reset_mode reset_mode, void *priv)
@@ -312,7 +312,7 @@ static int uCOS_III_update_threads(struct rtos *rtos)
 	uint8_t rtos_running;
 
 	retval = target_read_u8(rtos->target,
-			rtos->symbols[uCOS_III_VAL_OSRunning].address,
+			rtos->symbols[UCOS_III_VAL_OS_RUNNING].address,
 			&rtos_running);
 	if (retval != ERROR_OK) {
 		LOG_ERROR("uCOS-III: failed to read RTOS running");
@@ -350,7 +350,7 @@ static int uCOS_III_update_threads(struct rtos *rtos)
 	symbol_address_t current_thread_address = 0;
 
 	retval = target_read_memory(rtos->target,
-			rtos->symbols[uCOS_III_VAL_OSTCBCurPtr].address,
+			rtos->symbols[UCOS_III_VAL_OS_TCB_CUR_PTR].address,
 			params->pointer_width,
 			1,
 			(void *)&current_thread_address);
@@ -361,7 +361,7 @@ static int uCOS_III_update_threads(struct rtos *rtos)
 
 	/* read number of tasks */
 	retval = target_read_u16(rtos->target,
-			rtos->symbols[uCOS_III_VAL_OSTaskQty].address,
+			rtos->symbols[UCOS_III_VAL_OS_TASK_QTY].address,
 			(void *)&rtos->thread_count);
 	if (retval != ERROR_OK) {
 		LOG_ERROR("uCOS-III: failed to read thread count");

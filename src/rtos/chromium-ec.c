@@ -62,13 +62,13 @@ static const char * const chromium_ec_symbol_list[] = {
 };
 
 enum chromium_ec_symbol_values {
-	CHROMIUM_EC_VAL_start_called = 0,
-	CHROMIUM_EC_VAL_current_task,
-	CHROMIUM_EC_VAL_tasks,
-	CHROMIUM_EC_VAL_tasks_enabled,
-	CHROMIUM_EC_VAL_tasks_ready,
-	CHROMIUM_EC_VAL_task_names,
-	CHROMIUM_EC_VAL_build_info,
+	CHROMIUM_EC_VAL_START_CALLED = 0,
+	CHROMIUM_EC_VAL_CURRENT_TASK,
+	CHROMIUM_EC_VAL_TASKS,
+	CHROMIUM_EC_VAL_TASKS_ENABLED,
+	CHROMIUM_EC_VAL_TASKS_READY,
+	CHROMIUM_EC_VAL_TASK_NAMES,
+	CHROMIUM_EC_VAL_BUILD_INFO,
 
 	CHROMIUM_EC_VAL_COUNT,
 };
@@ -84,7 +84,7 @@ static bool chromium_ec_detect_rtos(struct target *target)
 	if (!target || !target->rtos || !target->rtos->symbols)
 		return false;
 
-	for (sym = CHROMIUM_EC_VAL_start_called;
+	for (sym = CHROMIUM_EC_VAL_START_CALLED;
 	     sym < CHROMIUM_EC_VAL_COUNT; sym++) {
 		if (target->rtos->symbols[sym].address) {
 			LOG_DEBUG("Chromium-EC: Symbol \"%s\" found",
@@ -97,7 +97,7 @@ static bool chromium_ec_detect_rtos(struct target *target)
 	}
 
 	ret = target_read_buffer(target,
-				 target->rtos->symbols[CHROMIUM_EC_VAL_build_info].address,
+				 target->rtos->symbols[CHROMIUM_EC_VAL_BUILD_INFO].address,
 				 sizeof(build_info_buf),
 				 (uint8_t *)build_info_buf);
 
@@ -107,7 +107,7 @@ static bool chromium_ec_detect_rtos(struct target *target)
 	LOG_INFO("Chromium-EC: Buildinfo: %s", build_info_buf);
 
 	return target->rtos->symbols &&
-	       target->rtos->symbols[CHROMIUM_EC_VAL_start_called].address;
+	       target->rtos->symbols[CHROMIUM_EC_VAL_START_CALLED].address;
 }
 
 static int chromium_ec_create(struct target *target)
@@ -143,7 +143,7 @@ static int chromium_ec_get_current_task_ptr(struct rtos *rtos, uint32_t *current
 		return ERROR_FAIL;
 
 	return target_read_u32(rtos->target,
-			       rtos->symbols[CHROMIUM_EC_VAL_current_task].address,
+			       rtos->symbols[CHROMIUM_EC_VAL_CURRENT_TASK].address,
 			       current_task);
 }
 
@@ -153,7 +153,7 @@ static int chromium_ec_get_num_tasks(struct rtos *rtos, int *num_tasks)
 	int ret, t, found;
 
 	ret = target_read_u32(rtos->target,
-			      rtos->symbols[CHROMIUM_EC_VAL_tasks_enabled].address,
+			      rtos->symbols[CHROMIUM_EC_VAL_TASKS_ENABLED].address,
 			      &tasks_enabled);
 	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to determine #of tasks");
@@ -213,7 +213,7 @@ static int chromium_ec_update_threads(struct rtos *rtos)
 
 	/* One check if task switching has started ... */
 	start_called = 0;
-	ret = target_read_u32(rtos->target, rtos->symbols[CHROMIUM_EC_VAL_start_called].address,
+	ret = target_read_u32(rtos->target, rtos->symbols[CHROMIUM_EC_VAL_START_CALLED].address,
 			      &start_called);
 	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to load start_called");
@@ -241,7 +241,7 @@ static int chromium_ec_update_threads(struct rtos *rtos)
 	}
 
 	tasks_enabled = 0;
-	ret = target_read_u32(rtos->target, rtos->symbols[CHROMIUM_EC_VAL_tasks_enabled].address,
+	ret = target_read_u32(rtos->target, rtos->symbols[CHROMIUM_EC_VAL_TASKS_ENABLED].address,
 			      &tasks_enabled);
 	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to load tasks_enabled");
@@ -249,14 +249,14 @@ static int chromium_ec_update_threads(struct rtos *rtos)
 	}
 
 	tasks_ready = 0;
-	ret = target_read_u32(rtos->target, rtos->symbols[CHROMIUM_EC_VAL_tasks_ready].address,
+	ret = target_read_u32(rtos->target, rtos->symbols[CHROMIUM_EC_VAL_TASKS_READY].address,
 			      &tasks_ready);
 	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to load tasks_ready");
 		return ret;
 	}
 
-	thread_ptr = rtos->symbols[CHROMIUM_EC_VAL_tasks].address;
+	thread_ptr = rtos->symbols[CHROMIUM_EC_VAL_TASKS].address;
 
 	tasks_found = 0;
 	for (t = 0; t < CROS_EC_MAX_TASKS; t++) {
@@ -268,7 +268,7 @@ static int chromium_ec_update_threads(struct rtos *rtos)
 
 		rtos->thread_details[tasks_found].threadid = thread_ptr;
 		ret = target_read_u32(rtos->target,
-					 rtos->symbols[CHROMIUM_EC_VAL_task_names].address +
+					 rtos->symbols[CHROMIUM_EC_VAL_TASK_NAMES].address +
 					 params->ptr_size * t, &name_ptr);
 		if (ret != ERROR_OK) {
 			LOG_ERROR("Failed to read name_ptr");
@@ -348,7 +348,7 @@ static int chromium_ec_get_thread_reg_list(struct rtos *rtos,
 		return ERROR_FAIL;
 
 	ret = target_read_u32(rtos->target,
-			   rtos->symbols[CHROMIUM_EC_VAL_tasks].address +
+			   rtos->symbols[CHROMIUM_EC_VAL_TASKS].address +
 			   params->task_offset_next * t,
 			   &stack_ptr);
 	if (ret != ERROR_OK) {
