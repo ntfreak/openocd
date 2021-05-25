@@ -35,20 +35,20 @@ static const struct rtos_register_stacking *get_stacking_info_arm926ejs(const st
 static int is_thread_id_valid(const struct rtos *rtos, int64_t thread_id);
 static int is_thread_id_valid_arm926ejs(const struct rtos *rtos, int64_t thread_id);
 
-static bool ThreadX_detect_rtos(struct target *target);
-static int ThreadX_create(struct target *target);
-static int ThreadX_update_threads(struct rtos *rtos);
-static int ThreadX_get_thread_reg_list(struct rtos *rtos, int64_t thread_id, struct rtos_reg **reg_list, int *num_regs);
-static int ThreadX_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[]);
+static bool threadx_detect_rtos(struct target *target);
+static int threadx_create(struct target *target);
+static int threadx_update_threads(struct rtos *rtos);
+static int threadx_get_thread_reg_list(struct rtos *rtos, int64_t thread_id, struct rtos_reg **reg_list, int *num_regs);
+static int threadx_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[]);
 
 
 
-struct ThreadX_thread_state {
+struct threadx_thread_state {
 	int value;
 	const char *desc;
 };
 
-static const struct ThreadX_thread_state ThreadX_thread_states[] = {
+static const struct threadx_thread_state threadx_thread_states[] = {
 	{ 0,  "Ready" },
 	{ 1,  "Completed" },
 	{ 2,  "Terminated" },
@@ -65,7 +65,7 @@ static const struct ThreadX_thread_state ThreadX_thread_states[] = {
 	{ 13, "Waiting - Mutex" },
 };
 
-#define THREADX_NUM_STATES ARRAY_SIZE(ThreadX_thread_states)
+#define THREADX_NUM_STATES ARRAY_SIZE(threadx_thread_states)
 
 #define ARM926EJS_REGISTERS_SIZE_SOLICITED (11 * 4)
 static const struct stack_register_offset rtos_threadx_arm926ejs_stack_offsets_solicited[] = {
@@ -127,7 +127,7 @@ static const struct rtos_register_stacking rtos_threadx_arm926ejs_stacking[] = {
 },
 };
 
-struct ThreadX_params {
+struct threadx_params {
 	const char *target_name;
 	unsigned char pointer_width;
 	unsigned char thread_stack_offset;
@@ -140,7 +140,7 @@ struct ThreadX_params {
 	int (*fn_is_thread_id_valid)(const struct rtos *rtos, int64_t thread_id);
 };
 
-static const struct ThreadX_params ThreadX_params_list[] = {
+static const struct threadx_params threadx_params_list[] = {
 	{
 	"cortex_m",				/* target_name */
 	4,							/* pointer_width; */
@@ -148,7 +148,7 @@ static const struct ThreadX_params ThreadX_params_list[] = {
 	40,							/* thread_name_offset; */
 	48,							/* thread_state_offset; */
 	136,						/* thread_next_offset */
-	&rtos_standard_Cortex_M3_stacking,	/* stacking_info */
+	&rtos_standard_cortex_m3_stacking,	/* stacking_info */
 	1,							/* stacking_info_nb */
 	NULL,						/* fn_get_stacking_info */
 	NULL,						/* fn_is_thread_id_valid */
@@ -160,7 +160,7 @@ static const struct ThreadX_params ThreadX_params_list[] = {
 	40,							/* thread_name_offset; */
 	48,							/* thread_state_offset; */
 	136,						/* thread_next_offset */
-	&rtos_standard_Cortex_R4_stacking,	/* stacking_info */
+	&rtos_standard_cortex_r4_stacking,	/* stacking_info */
 	1,							/* stacking_info_nb */
 	NULL,						/* fn_get_stacking_info */
 	NULL,						/* fn_is_thread_id_valid */
@@ -179,32 +179,32 @@ static const struct ThreadX_params ThreadX_params_list[] = {
 	},
 };
 
-enum ThreadX_symbol_values {
+enum threadx_symbol_values {
 	THREADX_VAL_TX_THREAD_CURRENT_PTR = 0,
 	THREADX_VAL_TX_THREAD_CREATED_PTR = 1,
 	THREADX_VAL_TX_THREAD_CREATED_COUNT = 2,
 };
 
-static const char * const ThreadX_symbol_list[] = {
+static const char * const threadx_symbol_list[] = {
 	"_tx_thread_current_ptr",
 	"_tx_thread_created_ptr",
 	"_tx_thread_created_count",
 	NULL
 };
 
-const struct rtos_type ThreadX_rtos = {
+const struct rtos_type threadx_rtos = {
 	.name = "ThreadX",
 
-	.detect_rtos = ThreadX_detect_rtos,
-	.create = ThreadX_create,
-	.update_threads = ThreadX_update_threads,
-	.get_thread_reg_list = ThreadX_get_thread_reg_list,
-	.get_symbol_list_to_lookup = ThreadX_get_symbol_list_to_lookup,
+	.detect_rtos = threadx_detect_rtos,
+	.create = threadx_create,
+	.update_threads = threadx_update_threads,
+	.get_thread_reg_list = threadx_get_thread_reg_list,
+	.get_symbol_list_to_lookup = threadx_get_symbol_list_to_lookup,
 };
 
 static const struct rtos_register_stacking *get_stacking_info(const struct rtos *rtos, int64_t stack_ptr)
 {
-	const struct ThreadX_params *param = (const struct ThreadX_params *) rtos->rtos_specific_params;
+	const struct threadx_params *param = (const struct threadx_params *) rtos->rtos_specific_params;
 
 	if (param->fn_get_stacking_info != NULL)
 		return param->fn_get_stacking_info(rtos, stack_ptr);
@@ -214,12 +214,12 @@ static const struct rtos_register_stacking *get_stacking_info(const struct rtos 
 
 static int is_thread_id_valid(const struct rtos *rtos, int64_t thread_id)
 {
-	const struct ThreadX_params *param;
+	const struct threadx_params *param;
 
 	if (rtos->rtos_specific_params == NULL)
 		return 0; /* invalid */
 
-	param = (const struct ThreadX_params *) rtos->rtos_specific_params;
+	param = (const struct threadx_params *) rtos->rtos_specific_params;
 
 	if (param->fn_is_thread_id_valid != NULL)
 		return param->fn_is_thread_id_valid(rtos, thread_id);
@@ -229,7 +229,7 @@ static int is_thread_id_valid(const struct rtos *rtos, int64_t thread_id)
 
 static const struct rtos_register_stacking *get_stacking_info_arm926ejs(const struct rtos *rtos, int64_t stack_ptr)
 {
-	const struct ThreadX_params *param = (const struct ThreadX_params *) rtos->rtos_specific_params;
+	const struct threadx_params *param = (const struct threadx_params *) rtos->rtos_specific_params;
 	int	retval;
 	uint32_t flag;
 
@@ -256,12 +256,12 @@ static int is_thread_id_valid_arm926ejs(const struct rtos *rtos, int64_t thread_
 	return (thread_id != 0 && thread_id != 1);
 }
 
-static int ThreadX_update_threads(struct rtos *rtos)
+static int threadx_update_threads(struct rtos *rtos)
 {
 	int retval;
 	int tasks_found = 0;
 	int thread_list_size = 0;
-	const struct ThreadX_params *param;
+	const struct threadx_params *param;
 
 	if (rtos == NULL)
 		return -1;
@@ -269,7 +269,7 @@ static int ThreadX_update_threads(struct rtos *rtos)
 	if (rtos->rtos_specific_params == NULL)
 		return -3;
 
-	param = (const struct ThreadX_params *) rtos->rtos_specific_params;
+	param = (const struct threadx_params *) rtos->rtos_specific_params;
 
 	if (rtos->symbols == NULL) {
 		LOG_ERROR("No symbols for ThreadX");
@@ -395,13 +395,13 @@ static int ThreadX_update_threads(struct rtos *rtos)
 		}
 
 		for (i = 0; (i < THREADX_NUM_STATES) &&
-				(ThreadX_thread_states[i].value != thread_status); i++) {
+				(threadx_thread_states[i].value != thread_status); i++) {
 			/* empty */
 		}
 
 		const char *state_desc;
 		if  (i < THREADX_NUM_STATES)
-			state_desc = ThreadX_thread_states[i].desc;
+			state_desc = threadx_thread_states[i].desc;
 		else
 			state_desc = "Unknown state";
 
@@ -431,11 +431,11 @@ static int ThreadX_update_threads(struct rtos *rtos)
 	return 0;
 }
 
-static int ThreadX_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
+static int threadx_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 		struct rtos_reg **reg_list, int *num_regs)
 {
 	int retval;
-	const struct ThreadX_params *param;
+	const struct threadx_params *param;
 
 	if (rtos == NULL)
 		return -1;
@@ -446,7 +446,7 @@ static int ThreadX_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	if (rtos->rtos_specific_params == NULL)
 		return -3;
 
-	param = (const struct ThreadX_params *) rtos->rtos_specific_params;
+	param = (const struct threadx_params *) rtos->rtos_specific_params;
 
 	/* Read the stack pointer */
 	int64_t stack_ptr = 0;
@@ -477,19 +477,19 @@ static int ThreadX_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	return rtos_generic_stack_read(rtos->target, stacking_info, stack_ptr, reg_list, num_regs);
 }
 
-static int ThreadX_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
+static int threadx_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
 	unsigned int i;
 	*symbol_list = calloc(
-			ARRAY_SIZE(ThreadX_symbol_list), sizeof(struct symbol_table_elem));
+			ARRAY_SIZE(threadx_symbol_list), sizeof(struct symbol_table_elem));
 
-	for (i = 0; i < ARRAY_SIZE(ThreadX_symbol_list); i++)
-		(*symbol_list)[i].symbol_name = ThreadX_symbol_list[i];
+	for (i = 0; i < ARRAY_SIZE(threadx_symbol_list); i++)
+		(*symbol_list)[i].symbol_name = threadx_symbol_list[i];
 
 	return 0;
 }
 
-static bool ThreadX_detect_rtos(struct target *target)
+static bool threadx_detect_rtos(struct target *target)
 {
 	if ((target->rtos->symbols != NULL) &&
 			(target->rtos->symbols[THREADX_VAL_TX_THREAD_CREATED_PTR].address != 0)) {
@@ -501,12 +501,12 @@ static bool ThreadX_detect_rtos(struct target *target)
 
 #if 0
 
-static int ThreadX_set_current_thread(struct rtos *rtos, threadid_t thread_id)
+static int threadx_set_current_thread(struct rtos *rtos, threadid_t thread_id)
 {
 	return 0;
 }
 
-static int ThreadX_get_thread_detail(struct rtos *rtos,
+static int threadx_get_thread_detail(struct rtos *rtos,
 	threadid_t thread_id,
 	struct thread_detail *detail)
 {
@@ -516,7 +516,7 @@ static int ThreadX_get_thread_detail(struct rtos *rtos,
 #define THREADX_THREAD_NAME_STR_SIZE (200)
 	char tmp_str[THREADX_THREAD_NAME_STR_SIZE];
 
-	const struct ThreadX_params *param;
+	const struct threadx_params *param;
 
 	if (rtos == NULL)
 		return -1;
@@ -527,7 +527,7 @@ static int ThreadX_get_thread_detail(struct rtos *rtos,
 	if (rtos->rtos_specific_params == NULL)
 		return -3;
 
-	param = (const struct ThreadX_params *) rtos->rtos_specific_params;
+	param = (const struct threadx_params *) rtos->rtos_specific_params;
 
 	if (rtos->symbols == NULL) {
 		LOG_ERROR("No symbols for ThreadX");
@@ -576,13 +576,13 @@ static int ThreadX_get_thread_detail(struct rtos *rtos,
 	}
 
 	for (i = 0; (i < THREADX_NUM_STATES) &&
-			(ThreadX_thread_states[i].value != thread_status); i++) {
+			(threadx_thread_states[i].value != thread_status); i++) {
 		/* empty */
 	}
 
 	char *state_desc;
 	if  (i < THREADX_NUM_STATES)
-		state_desc = ThreadX_thread_states[i].desc;
+		state_desc = threadx_thread_states[i].desc;
 	else
 		state_desc = "Unknown state";
 
@@ -595,11 +595,11 @@ static int ThreadX_get_thread_detail(struct rtos *rtos,
 
 #endif
 
-static int ThreadX_create(struct target *target)
+static int threadx_create(struct target *target)
 {
-	for (unsigned int i = 0; i < ARRAY_SIZE(ThreadX_params_list); i++)
-		if (strcmp(ThreadX_params_list[i].target_name, target->type->name) == 0) {
-			target->rtos->rtos_specific_params = (void *)&ThreadX_params_list[i];
+	for (unsigned int i = 0; i < ARRAY_SIZE(threadx_params_list); i++)
+		if (strcmp(threadx_params_list[i].target_name, target->type->name) == 0) {
+			target->rtos->rtos_specific_params = (void *)&threadx_params_list[i];
 			target->rtos->current_thread = 0;
 			target->rtos->thread_details = NULL;
 			return 0;

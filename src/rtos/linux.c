@@ -260,7 +260,7 @@ static int linux_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list
 
 static char *linux_ps_command(struct target *target);
 
-const struct rtos_type Linux_os = {
+const struct rtos_type linux_rtos = {
 	.name = "linux",
 	.detect_rtos = linux_os_detect,
 	.create = linux_os_create,
@@ -431,8 +431,8 @@ static int get_current(struct target *target, int create)
 		buf = reg_list[13]->value;
 		val = get_buffer(target, buf);
 		ti_addr = (val & 0xffffe000);
-		uint32_t TS_addr = ti_addr + 0xc;
-		retval = fill_buffer(target, TS_addr, buffer);
+		uint32_t ts_addr = ti_addr + 0xc;
+		retval = fill_buffer(target, ts_addr, buffer);
 
 		if (retval == ERROR_OK) {
 			uint32_t TS = get_buffer(target, buffer);
@@ -1163,7 +1163,7 @@ static int linux_thread_extra_info(struct target *target,
 	return ERROR_OK;
 }
 
-static int linux_gdb_T_packet(struct connection *connection,
+static int linux_gdb_t_packet(struct connection *connection,
 	struct target *target, char const *packet, int packet_size)
 {
 	int64_t threadid;
@@ -1304,7 +1304,7 @@ static int linux_thread_packet(struct connection *connection, char const *packet
 	switch (packet[0]) {
 		case 'T':		/* Is thread alive?*/
 
-			linux_gdb_T_packet(connection, target, packet, packet_size);
+			linux_gdb_t_packet(connection, target, packet, packet_size);
 			break;
 		case 'H':		/* Set current thread */
 			/*  ( 'c' for step and continue, 'g' for all other operations )*/

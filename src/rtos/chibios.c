@@ -62,9 +62,9 @@ struct chibios_chdebug {
 	uint8_t   cf_off_time;            /**< @brief Offset of @p p_time field.  */
 };
 
-#define GET_CH_KERNEL_MAJOR(codedVersion) ((codedVersion >> 11) & 0x1f)
-#define GET_CH_KERNEL_MINOR(codedVersion) ((codedVersion >> 6) & 0x1f)
-#define GET_CH_KERNEL_PATCH(codedVersion) ((codedVersion >> 0) & 0x3f)
+#define GET_CH_KERNEL_MAJOR(coded_version) ((coded_version >> 11) & 0x1f)
+#define GET_CH_KERNEL_MINOR(coded_version) ((coded_version >> 6) & 0x1f)
+#define GET_CH_KERNEL_PATCH(coded_version) ((coded_version >> 0) & 0x3f)
 
 /**
  * @brief ChibiOS thread states.
@@ -184,10 +184,10 @@ static int chibios_update_memory_signature(struct rtos *rtos)
 	}
 
 	/* Convert endianness of version field */
-	const uint8_t *versionTarget = (const uint8_t *)
+	const uint8_t *versiontarget = (const uint8_t *)
 										&signature->ch_version;
 	signature->ch_version = rtos->target->endianness == TARGET_LITTLE_ENDIAN ?
-			le_to_h_u32(versionTarget) : be_to_h_u32(versionTarget);
+			le_to_h_u32(versiontarget) : be_to_h_u32(versiontarget);
 
 	const uint16_t ch_version = signature->ch_version;
 	LOG_INFO("Successfully loaded memory map of ChibiOS/RT target "

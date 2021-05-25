@@ -25,6 +25,6 @@
 
 #include "rtos.h"
 
-extern const struct rtos_register_stacking rtos_embkernel_Cortex_M_stacking;
+extern const struct rtos_register_stacking rtos_embkernel_cortex_m_stacking;
 
 #endif /* OPENOCD_RTOS_RTOS_EMBKERNEL_STACKINGS_H */
