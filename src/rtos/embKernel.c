@@ -49,12 +49,12 @@ struct rtos_type embKernel_rtos = {
 };
 
 enum {
-	SYMBOL_ID_sCurrentTask = 0,
-	SYMBOL_ID_sListReady = 1,
-	SYMBOL_ID_sListSleep = 2,
-	SYMBOL_ID_sListSuspended = 3,
-	SYMBOL_ID_sMaxPriorities = 4,
-	SYMBOL_ID_sCurrentTaskCount = 5,
+	SYMBOL_ID_S_CURRENT_TASK = 0,
+	SYMBOL_ID_S_LIST_READY = 1,
+	SYMBOL_ID_S_LIST_SLEEP = 2,
+	SYMBOL_ID_S_LIST_SUSPENDED = 3,
+	SYMBOL_ID_S_MAX_PRIORITIES = 4,
+	SYMBOL_ID_S_CURRENT_TASK_COUNT = 5,
 };
 
 static const char * const embKernel_symbol_list[] = {
@@ -111,7 +111,7 @@ static const struct embKernel_params embKernel_params_list[] = {
 static bool embKernel_detect_rtos(struct target *target)
 {
 	if (target->rtos->symbols != NULL) {
-		if (target->rtos->symbols[SYMBOL_ID_sCurrentTask].address != 0)
+		if (target->rtos->symbols[SYMBOL_ID_S_CURRENT_TASK].address != 0)
 			return true;
 	}
 	return false;
@@ -198,7 +198,7 @@ static int embKernel_update_threads(struct rtos *rtos)
 		return -4;
 	}
 
-	if (rtos->symbols[SYMBOL_ID_sCurrentTask].address == 0) {
+	if (rtos->symbols[SYMBOL_ID_S_CURRENT_TASK].address == 0) {
 		LOG_ERROR("Don't have the thread list head");
 		return -2;
 	}
@@ -208,7 +208,7 @@ static int embKernel_update_threads(struct rtos *rtos)
 
 	param = (const struct embKernel_params *) rtos->rtos_specific_params;
 
-	retval = target_read_buffer(rtos->target, rtos->symbols[SYMBOL_ID_sCurrentTask].address, param->pointer_width,
+	retval = target_read_buffer(rtos->target, rtos->symbols[SYMBOL_ID_S_CURRENT_TASK].address, param->pointer_width,
 			(uint8_t *) &rtos->current_thread);
 	if (retval != ERROR_OK) {
 		LOG_ERROR("Error reading current thread in embKernel thread list");
@@ -216,13 +216,13 @@ static int embKernel_update_threads(struct rtos *rtos)
 	}
 
 	int64_t max_used_priority = 0;
-	retval = target_read_buffer(rtos->target, rtos->symbols[SYMBOL_ID_sMaxPriorities].address, param->pointer_width,
+	retval = target_read_buffer(rtos->target, rtos->symbols[SYMBOL_ID_S_MAX_PRIORITIES].address, param->pointer_width,
 			(uint8_t *) &max_used_priority);
 	if (retval != ERROR_OK)
 		return retval;
 
 	int thread_list_size = 0;
-	retval = target_read_buffer(rtos->target, rtos->symbols[SYMBOL_ID_sCurrentTaskCount].address,
+	retval = target_read_buffer(rtos->target, rtos->symbols[SYMBOL_ID_S_CURRENT_TASK_COUNT].address,
 			param->thread_count_width, (uint8_t *) &thread_list_size);
 
 	if (retval != ERROR_OK) {
@@ -243,7 +243,7 @@ static int embKernel_update_threads(struct rtos *rtos)
 		/* Get first item in queue */
 		int64_t iterable = 0;
 		retval = target_read_buffer(rtos->target,
-				rtos->symbols[SYMBOL_ID_sListReady].address + (pri * param->rtos_list_size), param->pointer_width,
+				rtos->symbols[SYMBOL_ID_S_LIST_READY].address + (pri * param->rtos_list_size), param->pointer_width,
 				(uint8_t *) &iterable);
 		if (retval != ERROR_OK)
 			return retval;
@@ -261,7 +261,7 @@ static int embKernel_update_threads(struct rtos *rtos)
 	}
 	/* Look for sleeping tasks */
 	int64_t iterable = 0;
-	retval = target_read_buffer(rtos->target, rtos->symbols[SYMBOL_ID_sListSleep].address, param->pointer_width,
+	retval = target_read_buffer(rtos->target, rtos->symbols[SYMBOL_ID_S_LIST_SLEEP].address, param->pointer_width,
 			(uint8_t *) &iterable);
 	if (retval != ERROR_OK)
 		return retval;
@@ -279,7 +279,7 @@ static int embKernel_update_threads(struct rtos *rtos)
 
 	/* Look for suspended tasks  */
 	iterable = 0;
-	retval = target_read_buffer(rtos->target, rtos->symbols[SYMBOL_ID_sListSuspended].address, param->pointer_width,
+	retval = target_read_buffer(rtos->target, rtos->symbols[SYMBOL_ID_S_LIST_SUSPENDED].address, param->pointer_width,
 			(uint8_t *) &iterable);
 	if (retval != ERROR_OK)
 		return retval;

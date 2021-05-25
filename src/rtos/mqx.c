@@ -49,8 +49,8 @@
 
 /* types */
 enum mqx_symbols {
-	mqx_VAL_mqx_kernel_data,
-	mqx_VAL_MQX_init_struct,
+	MQX_VAL_MQX_KERNEL_DATA,
+	MQX_VAL_MQX_INIT_STRUCT,
 };
 
 enum mqx_arch {
@@ -200,7 +200,7 @@ static int mqx_is_scheduler_running(
 
 	/* get '_mqx_kernel_data' symbol */
 	if (ERROR_OK != mqx_get_symbol(
-		rtos, mqx_VAL_mqx_kernel_data, &kernel_data_symbol
+		rtos, MQX_VAL_MQX_KERNEL_DATA, &kernel_data_symbol
 	)) {
 		return ERROR_FAIL;
 	}
@@ -252,7 +252,7 @@ static bool mqx_detect_rtos(
 {
 	if (
 		(target->rtos->symbols != NULL) &&
-		(target->rtos->symbols[mqx_VAL_mqx_kernel_data].address != 0)
+		(target->rtos->symbols[MQX_VAL_MQX_KERNEL_DATA].address != 0)
 	) {
 		return true;
 	}
@@ -303,7 +303,7 @@ static int mqx_update_threads(
 		return ERROR_FAIL;
 	/* get kernel_data symbol */
 	if (ERROR_OK != mqx_get_symbol(
-		rtos, mqx_VAL_mqx_kernel_data, &kernel_data_addr
+		rtos, MQX_VAL_MQX_KERNEL_DATA, &kernel_data_addr
 	)) {
 		return ERROR_FAIL;
 	}
@@ -472,7 +472,7 @@ static int mqx_get_thread_reg_list(
 		return ERROR_FAIL;
 	/* get kernel_data symbol */
 	if (ERROR_OK != mqx_get_symbol(
-		rtos, mqx_VAL_mqx_kernel_data, &kernel_data_addr
+		rtos, MQX_VAL_MQX_KERNEL_DATA, &kernel_data_addr
 	)) {
 		return ERROR_FAIL;
 	}

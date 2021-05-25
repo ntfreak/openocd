@@ -180,9 +180,9 @@ static const struct ThreadX_params ThreadX_params_list[] = {
 };
 
 enum ThreadX_symbol_values {
-	ThreadX_VAL_tx_thread_current_ptr = 0,
-	ThreadX_VAL_tx_thread_created_ptr = 1,
-	ThreadX_VAL_tx_thread_created_count = 2,
+	THREADX_VAL_TX_THREAD_CURRENT_PTR = 0,
+	THREADX_VAL_TX_THREAD_CREATED_PTR = 1,
+	THREADX_VAL_TX_THREAD_CREATED_COUNT = 2,
 };
 
 static const char * const ThreadX_symbol_list[] = {
@@ -276,14 +276,14 @@ static int ThreadX_update_threads(struct rtos *rtos)
 		return -4;
 	}
 
-	if (rtos->symbols[ThreadX_VAL_tx_thread_created_count].address == 0) {
+	if (rtos->symbols[THREADX_VAL_TX_THREAD_CREATED_COUNT].address == 0) {
 		LOG_ERROR("Don't have the number of threads in ThreadX");
 		return -2;
 	}
 
 	/* read the number of threads */
 	retval = target_read_buffer(rtos->target,
-			rtos->symbols[ThreadX_VAL_tx_thread_created_count].address,
+			rtos->symbols[THREADX_VAL_TX_THREAD_CREATED_COUNT].address,
 			4,
 			(uint8_t *)&thread_list_size);
 
@@ -297,7 +297,7 @@ static int ThreadX_update_threads(struct rtos *rtos)
 
 	/* read the current thread id */
 	retval = target_read_buffer(rtos->target,
-			rtos->symbols[ThreadX_VAL_tx_thread_current_ptr].address,
+			rtos->symbols[THREADX_VAL_TX_THREAD_CURRENT_PTR].address,
 			4,
 			(uint8_t *)&rtos->current_thread);
 
@@ -334,7 +334,7 @@ static int ThreadX_update_threads(struct rtos *rtos)
 	/* Read the pointer to the first thread */
 	int64_t thread_ptr = 0;
 	retval = target_read_buffer(rtos->target,
-			rtos->symbols[ThreadX_VAL_tx_thread_created_ptr].address,
+			rtos->symbols[THREADX_VAL_TX_THREAD_CREATED_PTR].address,
 			param->pointer_width,
 			(uint8_t *)&thread_ptr);
 	if (retval != ERROR_OK) {
@@ -492,7 +492,7 @@ static int ThreadX_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_li
 static bool ThreadX_detect_rtos(struct target *target)
 {
 	if ((target->rtos->symbols != NULL) &&
-			(target->rtos->symbols[ThreadX_VAL_tx_thread_created_ptr].address != 0)) {
+			(target->rtos->symbols[THREADX_VAL_TX_THREAD_CREATED_PTR].address != 0)) {
 		/* looks like ThreadX */
 		return true;
 	}

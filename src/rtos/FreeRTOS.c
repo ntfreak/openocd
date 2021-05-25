@@ -120,17 +120,17 @@ struct rtos_type FreeRTOS_rtos = {
 };
 
 enum FreeRTOS_symbol_values {
-	FreeRTOS_VAL_pxCurrentTCB = 0,
-	FreeRTOS_VAL_pxReadyTasksLists = 1,
-	FreeRTOS_VAL_xDelayedTaskList1 = 2,
-	FreeRTOS_VAL_xDelayedTaskList2 = 3,
-	FreeRTOS_VAL_pxDelayedTaskList = 4,
-	FreeRTOS_VAL_pxOverflowDelayedTaskList = 5,
-	FreeRTOS_VAL_xPendingReadyList = 6,
-	FreeRTOS_VAL_xTasksWaitingTermination = 7,
-	FreeRTOS_VAL_xSuspendedTaskList = 8,
-	FreeRTOS_VAL_uxCurrentNumberOfTasks = 9,
-	FreeRTOS_VAL_uxTopUsedPriority = 10,
+	FREERTOS_VAL_PX_CURRENT_TCB = 0,
+	FREERTOS_VAL_PX_READY_TASKS_LISTS = 1,
+	FREERTOS_VAL_X_DELAYED_TASK_LIST1 = 2,
+	FREERTOS_VAL_X_DELAYED_TASK_LIST2 = 3,
+	FREERTOS_VAL_PX_DELAYED_TASK_LIST = 4,
+	FREERTOS_VAL_PX_OVERFLOW_DELAYED_TASK_LIST = 5,
+	FREERTOS_VAL_X_PENDING_READY_LIST = 6,
+	FREERTOS_VAL_X_TASKS_WAITING_TERMINATION = 7,
+	FREERTOS_VAL_X_SUSPENDED_TASK_LIST = 8,
+	FREERTOS_VAL_UX_CURRENT_NUMBER_OF_TASKS = 9,
+	FREERTOS_VAL_UX_TOP_USED_PRIORITY = 10,
 };
 
 struct symbols {
@@ -174,17 +174,17 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 		return -3;
 	}
 
-	if (rtos->symbols[FreeRTOS_VAL_uxCurrentNumberOfTasks].address == 0) {
+	if (rtos->symbols[FREERTOS_VAL_UX_CURRENT_NUMBER_OF_TASKS].address == 0) {
 		LOG_ERROR("Don't have the number of threads in FreeRTOS");
 		return -2;
 	}
 
 	uint32_t thread_list_size = 0;
 	retval = target_read_u32(rtos->target,
-			rtos->symbols[FreeRTOS_VAL_uxCurrentNumberOfTasks].address,
+			rtos->symbols[FREERTOS_VAL_UX_CURRENT_NUMBER_OF_TASKS].address,
 			&thread_list_size);
 	LOG_DEBUG("FreeRTOS: Read uxCurrentNumberOfTasks at 0x%" PRIx64 ", value %" PRIu32,
-										rtos->symbols[FreeRTOS_VAL_uxCurrentNumberOfTasks].address,
+										rtos->symbols[FREERTOS_VAL_UX_CURRENT_NUMBER_OF_TASKS].address,
 										thread_list_size);
 
 	if (retval != ERROR_OK) {
@@ -198,7 +198,7 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 	/* read the current thread */
 	uint32_t pointer_casts_are_bad;
 	retval = target_read_u32(rtos->target,
-			rtos->symbols[FreeRTOS_VAL_pxCurrentTCB].address,
+			rtos->symbols[FREERTOS_VAL_PX_CURRENT_TCB].address,
 			&pointer_casts_are_bad);
 	if (retval != ERROR_OK) {
 		LOG_ERROR("Error reading current thread in FreeRTOS thread list");
@@ -206,7 +206,7 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 	}
 	rtos->current_thread = pointer_casts_are_bad;
 	LOG_DEBUG("FreeRTOS: Read pxCurrentTCB at 0x%" PRIx64 ", value 0x%" PRIx64,
-										rtos->symbols[FreeRTOS_VAL_pxCurrentTCB].address,
+										rtos->symbols[FREERTOS_VAL_PX_CURRENT_TCB].address,
 										rtos->current_thread);
 
 	if ((thread_list_size  == 0) || (rtos->current_thread == 0)) {
@@ -243,18 +243,18 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 	}
 
 	/* Find out how many lists are needed to be read from pxReadyTasksLists, */
-	if (rtos->symbols[FreeRTOS_VAL_uxTopUsedPriority].address == 0) {
+	if (rtos->symbols[FREERTOS_VAL_UX_TOP_USED_PRIORITY].address == 0) {
 		LOG_ERROR("FreeRTOS: uxTopUsedPriority is not defined, consult the OpenOCD manual for a work-around");
 		return ERROR_FAIL;
 	}
 	uint32_t top_used_priority = 0;
 	retval = target_read_u32(rtos->target,
-			rtos->symbols[FreeRTOS_VAL_uxTopUsedPriority].address,
+			rtos->symbols[FREERTOS_VAL_UX_TOP_USED_PRIORITY].address,
 			&top_used_priority);
 	if (retval != ERROR_OK)
 		return retval;
 	LOG_DEBUG("FreeRTOS: Read uxTopUsedPriority at 0x%" PRIx64 ", value %" PRIu32,
-										rtos->symbols[FreeRTOS_VAL_uxTopUsedPriority].address,
+										rtos->symbols[FREERTOS_VAL_UX_TOP_USED_PRIORITY].address,
 										top_used_priority);
 	if (top_used_priority > FREERTOS_MAX_PRIORITIES) {
 		LOG_ERROR("FreeRTOS top used priority is unreasonably big, not proceeding: %" PRIu32,
@@ -278,14 +278,14 @@ static int FreeRTOS_update_threads(struct rtos *rtos)
 
 	unsigned int num_lists;
 	for (num_lists = 0; num_lists < config_max_priorities; num_lists++)
-		list_of_lists[num_lists] = rtos->symbols[FreeRTOS_VAL_pxReadyTasksLists].address +
+		list_of_lists[num_lists] = rtos->symbols[FREERTOS_VAL_PX_READY_TASKS_LISTS].address +
 			num_lists * param->list_width;
 
-	list_of_lists[num_lists++] = rtos->symbols[FreeRTOS_VAL_xDelayedTaskList1].address;
-	list_of_lists[num_lists++] = rtos->symbols[FreeRTOS_VAL_xDelayedTaskList2].address;
-	list_of_lists[num_lists++] = rtos->symbols[FreeRTOS_VAL_xPendingReadyList].address;
-	list_of_lists[num_lists++] = rtos->symbols[FreeRTOS_VAL_xSuspendedTaskList].address;
-	list_of_lists[num_lists++] = rtos->symbols[FreeRTOS_VAL_xTasksWaitingTermination].address;
+	list_of_lists[num_lists++] = rtos->symbols[FREERTOS_VAL_X_DELAYED_TASK_LIST1].address;
+	list_of_lists[num_lists++] = rtos->symbols[FREERTOS_VAL_X_DELAYED_TASK_LIST2].address;
+	list_of_lists[num_lists++] = rtos->symbols[FREERTOS_VAL_X_PENDING_READY_LIST].address;
+	list_of_lists[num_lists++] = rtos->symbols[FREERTOS_VAL_X_SUSPENDED_TASK_LIST].address;
+	list_of_lists[num_lists++] = rtos->symbols[FREERTOS_VAL_X_TASKS_WAITING_TERMINATION].address;
 
 	for (unsigned int i = 0; i < num_lists; i++) {
 		if (list_of_lists[i] == 0)
@@ -536,7 +536,7 @@ static int FreeRTOS_get_thread_ascii_info(struct rtos *rtos, threadid_t thread_i
 static bool FreeRTOS_detect_rtos(struct target *target)
 {
 	if ((target->rtos->symbols != NULL) &&
-			(target->rtos->symbols[FreeRTOS_VAL_pxReadyTasksLists].address != 0)) {
+			(target->rtos->symbols[FREERTOS_VAL_PX_READY_TASKS_LISTS].address != 0)) {
 		/* looks like FreeRTOS */
 		return true;
 	}
