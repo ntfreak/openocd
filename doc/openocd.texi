@@ -7277,6 +7277,13 @@ Unlocks the entire stm32 device.
 The @var{num} parameter is a value shown by @command{flash banks}.
 @end deffn
 
+@deffn Command {stm32l4x flashloader} num [@option{enable} | @option{disable}]
+Enables or disables the flashloader usage (enabled by default),
+when disabled it will fall back to direct memory access to program the Flash or OTP memories.
+if neither @option{enabled} nor @option{disable} are specified, the command will display
+the current configuration.
+@end deffn
+
 @deffn {Command} {stm32l4x mass_erase} num
 Mass erases the entire stm32l4x device.
 The @var{num} parameter is a value shown by @command{flash banks}.

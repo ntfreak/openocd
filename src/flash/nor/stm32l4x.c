@@ -115,6 +115,7 @@
 /* Erase time can be as high as 25ms, 10x this and assume it's toast... */
 
 #define FLASH_ERASE_TIMEOUT 250
+#define FLASH_WRITE_TIMEOUT 50
 
 
 /* relevant STM32L4 flags ****************************************************/
@@ -219,6 +220,7 @@ struct stm32l4_flash_bank {
 	const struct stm32l4_part_info *part_info;
 	const uint32_t *flash_regs;
 	bool otp_enabled;
+	bool use_flashloader;
 	enum stm32l4_rdp rdp;
 	bool tzen;
 	uint32_t optr;
@@ -541,6 +543,7 @@ FLASH_BANK_COMMAND_HANDLER(stm32l4_flash_bank_command)
 	stm32l4_info->probed = false;
 	stm32l4_info->otp_enabled = false;
 	stm32l4_info->user_bank_size = bank->size;
+	stm32l4_info->use_flashloader = true;
 
 	return ERROR_OK;
 }
@@ -1340,6 +1343,49 @@ static int stm32l4_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	return retval;
 }
 
+/* Count is in double-words */
+static int stm32l4_write_block_without_loader(struct flash_bank *bank, const uint8_t *buffer,
+				uint32_t offset, uint32_t count)
+{
+	struct target *target = bank->target;
+	uint32_t address = bank->base + offset;
+	int retval = ERROR_OK;
+
+	/* wait for BSY bit */
+	retval = stm32l4_wait_status_busy(bank, FLASH_WRITE_TIMEOUT);
+	if (retval != ERROR_OK)
+		return retval;
+
+	/* set PG in FLASH_CR */
+	retval = stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, FLASH_PG);
+	if (retval != ERROR_OK)
+		return retval;
+
+
+	/* write directly to flash memory */
+	const uint8_t *src = buffer;
+	while (count--) {
+		retval = target_write_memory(target, address, 4, 2, src);
+		if (retval != ERROR_OK)
+			return retval;
+
+		/* wait for BSY bit */
+		retval = stm32l4_wait_status_busy(bank, FLASH_WRITE_TIMEOUT);
+		if (retval != ERROR_OK)
+			return retval;
+
+		src += 8;
+		address += 8;
+	}
+
+	/* reset PG in FLASH_CR */
+	retval = stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, 0);
+	if (retval != ERROR_OK)
+		return retval;
+
+	return retval;
+}
+
 static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 	uint32_t offset, uint32_t count)
 {
@@ -1411,14 +1457,22 @@ static int stm32l4_write(struct flash_bank *bank, const uint8_t *buffer,
 	if (retval != ERROR_OK)
 		goto err_lock;
 
-	/* For TrustZone enabled devices, when TZEN is set and RDP level is 0.5,
-	 * the debug is possible only in non-secure state.
-	 * Thus means the flashloader will run in non-secure mode,
-	 * and the workarea need to be in non-secure RAM */
-	if (stm32l4_info->tzen && (stm32l4_info->rdp == RDP_LEVEL_0_5))
-		LOG_INFO("RDP level is 0.5, the work-area should reside in non-secure RAM");
+	if (stm32l4_info->use_flashloader) {
+		/* For TrustZone enabled devices, when TZEN is set and RDP level is 0.5,
+		 * the debug is possible only in non-secure state.
+		 * Thus means the flashloader will run in non-secure mode,
+		 * and the workarea need to be in non-secure RAM */
+		if (stm32l4_info->tzen && (stm32l4_info->rdp == RDP_LEVEL_0_5))
+			LOG_INFO("RDP level is 0.5, the work-area should reside in non-secure RAM");
 
-	retval = stm32l4_write_block(bank, buffer, offset, count / 8);
+		retval = stm32l4_write_block(bank, buffer, offset, count / 8);
+	}
+
+	if (!stm32l4_info->use_flashloader || retval == ERROR_TARGET_RESOURCE_NOT_AVAILABLE) {
+		LOG_INFO("falling back to single memory accesses");
+		retval = stm32l4_write_block_without_loader(bank, buffer, offset, count / 8);
+	}
+
 
 err_lock:
 	retval2 = stm32l4_write_flash_reg_by_index(bank, STM32_FLASH_CR_INDEX, FLASH_LOCK);
@@ -1986,6 +2040,26 @@ COMMAND_HANDLER(stm32l4_handle_trustzone_command)
 	return stm32l4_perform_obl_launch(bank);
 }
 
+COMMAND_HANDLER(stm32l4_handle_flashloader_command)
+{
+	if (CMD_ARGC < 1 || CMD_ARGC > 2)
+		return ERROR_COMMAND_SYNTAX_ERROR;
+
+	struct flash_bank *bank;
+	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
+	if (retval != ERROR_OK)
+		return retval;
+
+	struct stm32l4_flash_bank *stm32l4_info = bank->driver_priv;
+
+	if (CMD_ARGC == 2)
+		COMMAND_PARSE_ENABLE(CMD_ARGV[1], stm32l4_info->use_flashloader);
+
+	LOG_INFO("FlashLoader usage is %s", stm32l4_info->use_flashloader ? "enabled" : "disabled");
+
+	return ERROR_OK;
+}
+
 COMMAND_HANDLER(stm32l4_handle_option_load_command)
 {
 	if (CMD_ARGC != 1)
@@ -2189,6 +2263,13 @@ static const struct command_registration stm32l4_exec_command_handlers[] = {
 		.mode = COMMAND_EXEC,
 		.usage = "bank_id",
 		.help = "Unlock entire protected flash device.",
+	},
+	{
+		.name = "flashloader",
+		.handler = stm32l4_handle_flashloader_command,
+		.mode = COMMAND_EXEC,
+		.usage = "<bank_id> [enable|disable]",
+		.help = "Configure the flashloader usage",
 	},
 	{
 		.name = "mass_erase",
