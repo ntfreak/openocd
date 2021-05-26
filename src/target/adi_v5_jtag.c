@@ -574,6 +574,13 @@ static int jtagdp_overrun_check(struct adiv5_dap *dap)
 					retval = ERROR_JTAG_DEVICE_ERROR;
 					break;
 				}
+				LOG_INFO("DAP transaction stalled during replay (WAIT) - resending");
+				/* clear the sticky overrun condition */
+				retval = adi_jtag_scan_inout_check_u32(dap, JTAG_DP_DPACC,
+						DP_CTRL_STAT, DPAP_WRITE,
+						dap->dp_ctrl_stat | SSTICKYORUN, NULL, 0);
+				if (retval != ERROR_OK)
+					break;
 			} while (timeval_ms() - time_now < 1000);
 
 			if (retval == ERROR_OK) {
