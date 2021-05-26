@@ -22,6 +22,13 @@
 #include "rtos_standard_stackings.h"
 #include "target/armv7m.h"
 
+/* For Cortex-M eCos applications the actual thread context register layout can
+ * be different between active threads of an application depending on whether
+ * the FPU is in use, configured for lazy FPU context saving, etc. */
+
+/* Default fixed thread register context description used for older eCos
+ * application builds without the necessary symbolic information describing the
+ * actual configuration-dependent offsets. */
 static const struct stack_register_offset rtos_ecos_cortex_m3_stack_offsets[ARMV7M_NUM_CORE_REGS] = {
 	{ ARMV7M_R0,   0x0c, 32 },		/* r0   */
 	{ ARMV7M_R1,   0x10, 32 },		/* r1   */
