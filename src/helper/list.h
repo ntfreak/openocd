@@ -10,6 +10,8 @@
  *   list_prepare_entry;
  * - expand READ_ONCE, WRITE_ONCE, smp_load_acquire, smp_store_release;
  * - make comments compatible with doxygen.
+ *
+ * There is an example of using this file in contrib/list_example.c.
  */
 
 #ifndef OPENOCD_HELPER_LIST_H
