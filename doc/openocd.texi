@@ -4841,6 +4841,16 @@ and neither store nor return those values.
 @end itemize
 @end deffn
 
+@deffn {Command} {$target_name reg2array} arrayname register [register ...]
+Load target register values into a Tcl array. The array contains the register
+numbers and their corresponding values.
+
+@itemize
+@item @var{arrayname} ... name of an array variable
+@item @var{register} ... register number
+@end itemize
+@end deffn
+
 @deffn {Command} {$target_name cget} queryparm
 Each configuration parameter accepted by
 @command{$target_name configure}

@@ -67,6 +67,8 @@ static int target_array2mem(Jim_Interp *interp, struct target *target,
 		int argc, Jim_Obj * const *argv);
 static int target_mem2array(Jim_Interp *interp, struct target *target,
 		int argc, Jim_Obj * const *argv);
+static int target_reg2array(Jim_Interp *interp, struct target *target,
+		int argc, Jim_Obj * const *argv);
 static int target_register_user_commands(struct command_context *cmd_ctx);
 static int target_get_gdb_fileio_info_default(struct target *target,
 		struct gdb_fileio_info *fileio_info);
@@ -4554,6 +4556,65 @@ static int target_mem2array(Jim_Interp *interp, struct target *target, int argc,
 	return e;
 }
 
+static int jim_reg2array(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
+{
+	struct command_context *context;
+	struct target *target;
+
+	context = current_command_context(interp);
+	assert(context != NULL);
+
+	target = get_current_target(context);
+	if (target == NULL) {
+		LOG_ERROR("reg2array: no current target");
+		return JIM_ERR;
+	}
+
+	return target_reg2array(interp, target, argc - 1, argv + 1);
+}
+
+static int target_reg2array(Jim_Interp *interp, struct target *target,
+		int argc, Jim_Obj * const *argv)
+{
+	/*
+	 * argv[1]: name of array to store the register values.
+	 * argv[2..N]: register indices.
+	 */
+
+	if (argc < 2) {
+		Jim_WrongNumArgs(interp, 0, argv, "arrayname register [register ...]");
+		return JIM_ERR;
+	}
+
+	int len;
+	const char *varname = Jim_GetString(argv[0], &len);
+
+	for (int i = 0; i < argc - 1; i++) {
+		long reg_num;
+
+		if (Jim_GetLong(interp, argv[i + 1], &reg_num) != JIM_OK)
+			return JIM_ERR;
+
+		struct reg *reg = register_get_by_number(target->reg_cache, reg_num,
+			true);
+
+		if (!reg) {
+			Jim_SetResult(interp, Jim_NewEmptyStringObj(interp));
+			Jim_AppendStrings(interp, Jim_GetResult(interp),
+				"reg2array: cannot read register", NULL);
+			return ERROR_FAIL;
+		}
+
+		new_int_array_element(interp, varname, reg_num,
+			buf_get_u32(reg->value, 0, 32));
+	}
+
+	Jim_SetResult(interp, Jim_NewEmptyStringObj(interp));
+
+	return ERROR_OK;
+}
+
+
 static int get_int_array_element(Jim_Interp *interp, const char *varname, int idx, uint32_t *val)
 {
 	char *namebuf;
@@ -5222,6 +5283,13 @@ static int jim_target_mem2array(Jim_Interp *interp,
 	return target_mem2array(interp, target, argc - 1, argv + 1);
 }
 
+static int jim_target_reg2array(Jim_Interp *interp,
+		int argc, Jim_Obj * const *argv)
+{
+	struct target *target = Jim_CmdPrivData(interp);
+	return target_reg2array(interp, target, argc - 1, argv + 1);
+}
+
 static int jim_target_array2mem(Jim_Interp *interp,
 		int argc, Jim_Obj *const *argv)
 {
@@ -5585,6 +5653,13 @@ static const struct command_registration target_instance_command_handlers[] = {
 		.help = "Loads Tcl array of 8/16/32 bit numbers "
 			"from target memory",
 		.usage = "arrayname bitwidth address count",
+	},
+	{
+		.name = "reg2array",
+		.mode = COMMAND_EXEC,
+		.jim_handler = jim_target_reg2array,
+		.help = "Load target register values into a Tcl array",
+		.usage = "arrayname register [register ...]",
 	},
 	{
 		.name = "eventlist",
@@ -6655,6 +6730,13 @@ static const struct command_registration target_exec_command_handlers[] = {
 		.handler = handle_test_image_command,
 		.mode = COMMAND_EXEC,
 		.usage = "filename [offset [type]]",
+	},
+	{
+		.name = "reg2array",
+		.mode = COMMAND_EXEC,
+		.jim_handler = jim_reg2array,
+		.help = "Load target register values into a Tcl array",
+		.usage = "arrayname register [register ...]",
 	},
 	{
 		.name = "mem2array",
