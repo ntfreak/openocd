@@ -4851,6 +4851,15 @@ numbers and their corresponding values.
 @end itemize
 @end deffn
 
+@deffn {Command} {$target_name array2reg} arrayname
+Write register values from a Tcl array to the target. The array must contain
+register numbers and their corresponding values.
+
+@itemize
+@item @var{arrayname} ... name of an array variable
+@end itemize
+@end deffn
+
 @deffn {Command} {$target_name cget} queryparm
 Each configuration parameter accepted by
 @command{$target_name configure}
