@@ -85,6 +85,17 @@ struct command_invocation {
 };
 
 /**
+ * Return true if the command @c cmd is registered by OpenOCD.
+ */
+bool jimcmd_is_oocd_command(Jim_Cmd *cmd);
+
+/**
+ * Return the pointer to the command's private data specified during the
+ * registration of command @a cmd .
+ */
+void *jimcmd_privdata(Jim_Cmd *cmd);
+
+/**
  * Command handlers may be defined with more parameters than the base
  * set provided by command.c.  This macro uses C99 magic to allow
  * defining all such derivative types using this macro.

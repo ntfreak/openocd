@@ -62,12 +62,12 @@ static inline bool jimcmd_is_proc(Jim_Cmd *cmd)
 	return cmd->isproc;
 }
 
-static inline bool jimcmd_is_ocd_command(Jim_Cmd *cmd)
+bool jimcmd_is_oocd_command(Jim_Cmd *cmd)
 {
 	return !cmd->isproc && cmd->u.native.cmdProc == jim_command_dispatch;
 }
 
-static inline void *jimcmd_privdata(Jim_Cmd *cmd)
+void *jimcmd_privdata(Jim_Cmd *cmd)
 {
 	return cmd->isproc ? NULL : cmd->u.native.privData;
 }
@@ -261,7 +261,7 @@ static struct command *command_find_from_name(Jim_Interp *interp, const char *na
 	Jim_IncrRefCount(jim_name);
 	Jim_Cmd *cmd = Jim_GetCommand(interp, jim_name, JIM_NONE);
 	Jim_DecrRefCount(interp, jim_name);
-	if (!cmd || jimcmd_is_proc(cmd) || !jimcmd_is_ocd_command(cmd))
+	if (!cmd || jimcmd_is_proc(cmd) || !jimcmd_is_oocd_command(cmd))
 		return NULL;
 
 	return jimcmd_privdata(cmd);
@@ -1021,7 +1021,7 @@ static int jim_command_mode(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 		Jim_Cmd *cmd = Jim_GetCommand(interp, s, JIM_NONE);
 		Jim_DecrRefCount(interp, s);
 		free(full_name);
-		if (!cmd || !(jimcmd_is_proc(cmd) || jimcmd_is_ocd_command(cmd))) {
+		if (!cmd || !(jimcmd_is_proc(cmd) || jimcmd_is_oocd_command(cmd))) {
 			Jim_SetResultString(interp, "unknown", -1);
 			return JIM_OK;
 		}

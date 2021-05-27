@@ -500,22 +500,18 @@ static void telnet_auto_complete(struct connection *connection)
 		bool ignore_cmd = false;
 		Jim_Cmd *jim_cmd = Jim_GetCommand(command_context->interp, elem, JIM_NONE);
 
-		if (!jim_cmd)
+		if (!jim_cmd) {
+			/* Why we are here? Let's ignore it! */
 			ignore_cmd = true;
-		else {
-			if (!jim_cmd->isproc) {
-				/* ignore commands without handler
-				 * and those with COMMAND_CONFIG mode */
-				/* FIXME it's better to use jimcmd_is_ocd_command(jim_cmd)
-				 * or command_find_from_name(command_context->interp, name) */
-				struct command *cmd = jim_cmd->u.native.privData;
-				if (!cmd)
-					ignore_cmd = true;
-				/* make Valgrind happy by checking that cmd is not NULL  */
-				else if (cmd != NULL && !cmd->handler && !cmd->jim_handler)
-					ignore_cmd = true;
-				else if (cmd != NULL && cmd->mode == COMMAND_CONFIG)
-					ignore_cmd = true;
+		} else if (jimcmd_is_oocd_command(jim_cmd)) {
+			struct command *cmd = jimcmd_privdata(jim_cmd);
+
+			if (cmd && !cmd->handler && !cmd->jim_handler) {
+				/* Initial part of a multi-word command. Ignore it! */
+				ignore_cmd = true;
+			} else if (cmd && cmd->mode == COMMAND_CONFIG) {
+				/* Not executable after config phase. Ignore it! */
+				ignore_cmd = true;
 			}
 		}
 
