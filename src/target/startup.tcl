@@ -31,13 +31,13 @@ proc ocd_process_reset_inner { MODE } {
 
 	# If this target must be halted...
 	set halt -1
-	if { 0 == [string compare $MODE halt] } {
+	if { [string compare $MODE halt] == 0 } {
 		set halt 1
 	}
-	if { 0 == [string compare $MODE init] } {
+	if { [string compare $MODE init] == 0 } {
 		set halt 1;
 	}
-	if { 0 == [string compare $MODE run ] } {
+	if { [string compare $MODE run ] == 0 } {
 		set halt 0;
 	}
 	if { $halt < 0 } {
@@ -130,14 +130,14 @@ proc ocd_process_reset_inner { MODE } {
 			# Did we succeed?
 			set s [$t curstate]
 
-			if { 0 != [string compare $s "halted" ] } {
+			if { [string compare $s "halted" ] != 0 } {
 				return -code error [format "TARGET: %s - Not halted" $t]
 			}
 		}
 	}
 
 	#Pass 2 - if needed "init"
-	if { 0 == [string compare init $MODE] } {
+	if { [string compare init $MODE] == 0 } {
 		foreach t $targets {
 			if {[using_jtag] && ![jtag tapisenabled [$t cget -chain-position]]} {
 				continue
