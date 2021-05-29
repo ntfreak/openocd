@@ -30,18 +30,17 @@ proc ocd_process_reset_inner { MODE } {
 	set targets [target names]
 
 	# If this target must be halted...
-	set halt -1
-	if { 0 == [string compare $MODE halt] } {
-		set halt 1
-	}
-	if { 0 == [string compare $MODE init] } {
-		set halt 1;
-	}
-	if { 0 == [string compare $MODE run ] } {
-		set halt 0;
-	}
-	if { $halt < 0 } {
-		return -code error "Invalid mode: $MODE, must be one of: halt, init, or run";
+	switch $MODE {
+		halt -
+		init {
+			set halt 1
+		}
+		run {
+			set halt 0
+		}
+		default {
+			return -code error "Invalid mode: $MODE, must be one of: halt, init, or run";
+		}
 	}
 
 	# Target event handlers *might* change which TAPs are enabled
@@ -130,14 +129,14 @@ proc ocd_process_reset_inner { MODE } {
 			# Did we succeed?
 			set s [$t curstate]
 
-			if { 0 != [string compare $s "halted" ] } {
+			if { $s != "halted" } {
 				return -code error [format "TARGET: %s - Not halted" $t]
 			}
 		}
 	}
 
 	#Pass 2 - if needed "init"
-	if { 0 == [string compare init $MODE] } {
+	if { $MODE == "init" } {
 		foreach t $targets {
 			if {[using_jtag] && ![jtag tapisenabled [$t cget -chain-position]]} {
 				continue
