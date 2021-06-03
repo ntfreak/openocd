@@ -64,7 +64,7 @@ enum cortex_a_dacrfixup_mode {
 };
 
 struct cortex_a_brp {
-	int used;
+	bool used;
 	int type;
 	uint32_t value;
 	uint32_t control;
