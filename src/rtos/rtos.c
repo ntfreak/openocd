@@ -266,7 +266,16 @@ int rtos_qsymbol(struct connection *connection, char const *packet, int packet_s
 			cur_sym[0] = '\x00';
 		}
 	}
+
+	LOG_DEBUG("RTOS: Address of symbol '%s' is 0x%" PRIx64, cur_sym, addr);
+
 	next_sym = next_symbol(os, cur_sym, addr);
+
+	/* Should never happen unless the debugger misbehaves */
+	if (next_sym == NULL) {
+		LOG_WARNING("RTOS: Debugger sent us qSymbol with '%s' that we did not ask for", cur_sym);
+		goto done;
+	}
 
 	if (!next_sym->symbol_name) {
 		/* No more symbols need looking up */
@@ -290,6 +299,8 @@ int rtos_qsymbol(struct connection *connection, char const *packet, int packet_s
 		LOG_ERROR("ERROR: RTOS symbol '%s' name is too long for GDB!", next_sym->symbol_name);
 		goto done;
 	}
+
+	LOG_DEBUG("RTOS: Requesting symbol lookup of '%s' from the debugger", next_sym->symbol_name);
 
 	reply_len = snprintf(reply, sizeof(reply), "qSymbol:");
 	reply_len += hexify(reply + reply_len,
