@@ -43,10 +43,10 @@
 /*#define DEBUG_WAIT*/
 
 /* JTAG instructions/registers for JTAG-DP and SWJ-DP */
-#define JTAG_DP_ABORT		0x8
-#define JTAG_DP_DPACC		0xA
-#define JTAG_DP_APACC		0xB
-#define JTAG_DP_IDCODE		0xE
+#define JTAG_DP_ABORT		0xF8
+#define JTAG_DP_DPACC		0xFA
+#define JTAG_DP_APACC		0xFB
+#define JTAG_DP_IDCODE		0xFE
 
 /* three-bit ACK values for DPACC and APACC reads */
 #define JTAG_ACK_OK_FAULT	0x2
