@@ -4856,6 +4856,21 @@ set_reg @{pc 0 sp 0x1000@}
 @end example
 @end deffn
 
+@deffn {Command} {$target_name get_reg} list
+Get register values from the target and return them as Tcl dictionary with pairs
+of register names and values.
+
+@itemize
+@item @var{list} ... List of register names
+@end itemize
+
+For example, the following command retrieves the values from the program
+counter (pc) and stack pointer (sp) register:
+
+@example
+get_reg @{pc sp@}
+@end example
+@end deffn
 
 @deffn {Command} {$target_name cget} queryparm
 Each configuration parameter accepted by
@@ -11211,6 +11226,9 @@ Convert a Tcl array to memory locations and write the values
 @item @b{set_reg} <@var{dict}>
 
 Set target register values from a Tcl dictionary
+@item @b{get_reg} <@var{list}>
+
+Retrieve target register values and return a Tcl dictionary
 @item @b{flash banks} <@var{driver}> <@var{base}> <@var{size}> <@var{chip_width}> <@var{bus_width}> <@var{target}> [@option{driver options} ...]
 
 Return information about the flash banks
