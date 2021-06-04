@@ -4822,6 +4822,69 @@ void target_handle_event(struct target *target, enum target_event e)
 	}
 }
 
+static int target_set_reg(Jim_Interp *interp, struct target *target,
+		int argc, Jim_Obj *const *argv)
+{
+	if (argc != 1) {
+		Jim_WrongNumArgs(interp, 0, argv, "<dict>");
+		return JIM_ERR;
+	}
+
+	int tmp;
+	Jim_Obj **dict = Jim_DictPairs(interp, argv[0], &tmp);
+
+	if (!dict)
+		return JIM_ERR;
+
+	const unsigned int length = tmp;
+
+	for (unsigned int i = 0; i < length; i += 2) {
+		const char *reg_name = dict[i]->bytes;
+		const char *reg_value = dict[i + 1]->bytes;
+		struct reg *reg = register_get_by_name(target->reg_cache, reg_name,
+			false);
+
+		if (!reg || !reg->exist) {
+			Jim_SetResultFormatted(interp, "Unknown register '%s'", reg_name);
+			return JIM_ERR;
+		}
+
+		uint8_t *buf = malloc(DIV_ROUND_UP(reg->size, 8));
+
+		if (!buf)
+			return ERROR_FAIL;
+
+		str_to_buf(reg_value, strlen(reg_value), buf, reg->size, 0);
+		int retval = reg->type->set(reg, buf);
+		free(buf);
+
+		if (retval != ERROR_OK) {
+			return retval;
+		}
+	}
+
+	return JIM_OK;
+}
+
+static int jim_set_reg(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
+{
+	struct command_context *context;
+	struct target *target;
+
+	context = current_command_context(interp);
+	assert(context != NULL);
+
+	target = get_current_target(context);
+
+	if (!target) {
+		LOG_ERROR("set_reg: no current target");
+		return JIM_ERR;
+	}
+
+	return target_set_reg(interp, target, argc-1, argv + 1);
+}
+
+
 /**
  * Returns true only if the target has a handler for the specified event.
  */
@@ -5244,6 +5307,15 @@ static int jim_target_array2mem(Jim_Interp *interp,
 	return target_array2mem(interp, target, argc - 1, argv + 1);
 }
 
+static int jim_target_set_reg(Jim_Interp *interp,
+		int argc, Jim_Obj *const *argv)
+{
+	struct command_context *cmd_ctx = current_command_context(interp);
+	assert(cmd_ctx);
+	struct target *target = get_current_target(cmd_ctx);
+	return target_set_reg(interp, target, argc - 1, argv + 1);
+}
+
 static int jim_target_tap_disabled(Jim_Interp *interp)
 {
 	Jim_SetResultFormatted(interp, "[TAP is disabled]");
@@ -5598,6 +5670,13 @@ static const struct command_registration target_instance_command_handlers[] = {
 		.help = "Loads Tcl array of 8/16/32 bit numbers "
 			"from target memory",
 		.usage = "arrayname bitwidth address count",
+	},
+	{
+		.name = "set_reg",
+		.mode = COMMAND_EXEC,
+		.jim_handler = jim_target_set_reg,
+		.help = "Set target register values",
+		.usage = "dict",
 	},
 	{
 		.name = "eventlist",
@@ -6684,6 +6763,13 @@ static const struct command_registration target_exec_command_handlers[] = {
 		.help = "convert a TCL array to memory locations "
 			"and write the 8/16/32 bit values",
 		.usage = "arrayname bitwidth address count",
+	},
+	{
+		.name = "set_reg",
+		.mode = COMMAND_EXEC,
+		.jim_handler = jim_set_reg,
+		.help = "Set target register values",
+		.usage = "dict",
 	},
 	{
 		.name = "reset_nag",
