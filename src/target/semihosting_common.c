@@ -226,18 +226,28 @@ int semihosting_common(struct target *target)
 				return retval;
 			else {
 				int fd = semihosting_get_field(target, 0, fields);
-				if (semihosting->is_fileio) {
-					if (fd == 0 || fd == 1 || fd == 2) {
+				/* Do not allow to close OpenOCD's own standard streams */
+				if (fd == 0 || fd == 1 || fd == 2) {
+					LOG_DEBUG("ignoring semihosting attempt to close %s",
+							(fd == 0) ? "stdin" :
+							(fd == 1) ? "stdout" : "stderr");
+					/* Just pretend success */
+					if (semihosting->is_fileio) {
 						semihosting->result = 0;
-						break;
+					} else {
+						semihosting->result = 0;
+						semihosting->sys_errno = 0;
 					}
+					break;
+				}
+				/* Close the descriptor */
+				if (semihosting->is_fileio) {
 					semihosting->hit_fileio = true;
 					fileio_info->identifier = "close";
 					fileio_info->param_1 = fd;
 				} else {
 					semihosting->result = close(fd);
 					semihosting->sys_errno = errno;
-
 					LOG_DEBUG("close(%d)=%d", fd, (int)semihosting->result);
 				}
 			}
