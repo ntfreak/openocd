@@ -1,0 +1,8 @@
+Verified+1: jenkins
+Code-Review+2: Andreas Fritiofson <andreas.fritiofson@gmail.com>
+Code-Review+1: Tim Newsome <tim@sifive.com>
+Submitted-by: Antonio Borneo <borneo.antonio@gmail.com>
+Submitted-at: Fri, 04 Jun 2021 17:41:48 +0100
+Reviewed-on: http://openocd.zylin.com/6280
+Project: openocd
+Branch: refs/heads/master
