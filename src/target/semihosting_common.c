@@ -615,6 +615,7 @@ int semihosting_common(struct target *target)
 					return retval;
 				int fd = semihosting_get_field(target, 0, fields);
 				semihosting->result = isatty(fd);
+				semihosting->sys_errno = errno;
 				LOG_DEBUG("isatty(%d)=%d", fd, (int)semihosting->result);
 			}
 			break;
