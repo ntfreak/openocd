@@ -3046,20 +3046,16 @@ static int handle_target(void *priv)
 
 COMMAND_HANDLER(handle_reg_command)
 {
-	struct target *target;
-	struct reg *reg = NULL;
-	unsigned count = 0;
-	char *value;
-
 	LOG_DEBUG("-");
 
-	target = get_current_target(CMD_CTX);
+	struct target *target = get_current_target(CMD_CTX);
+	struct reg *reg = NULL;
 
 	/* list all available registers for the current target */
 	if (CMD_ARGC == 0) {
 		struct reg_cache *cache = target->reg_cache;
 
-		count = 0;
+		unsigned int count = 0;
 		while (cache) {
 			unsigned i;
 
@@ -3072,7 +3068,7 @@ COMMAND_HANDLER(handle_reg_command)
 					continue;
 				/* only print cached values if they are valid */
 				if (reg->valid) {
-					value = buf_to_hex_str(reg->value,
+					char *value = buf_to_hex_str(reg->value,
 							reg->size);
 					command_print(CMD,
 							"(%i) %s (/%" PRIu32 "): 0x%s%s",
@@ -3100,7 +3096,7 @@ COMMAND_HANDLER(handle_reg_command)
 		COMMAND_PARSE_NUMBER(uint, CMD_ARGV[0], num);
 
 		struct reg_cache *cache = target->reg_cache;
-		count = 0;
+		unsigned int count = 0;
 		while (cache) {
 			unsigned i;
 			for (i = 0; i < cache->num_regs; i++) {
@@ -3138,9 +3134,14 @@ COMMAND_HANDLER(handle_reg_command)
 		if ((CMD_ARGC == 2) && (strcmp(CMD_ARGV[1], "force") == 0))
 			reg->valid = 0;
 
-		if (reg->valid == 0)
-			reg->type->get(reg);
-		value = buf_to_hex_str(reg->value, reg->size);
+		if (reg->valid == 0) {
+			int retval = reg->type->get(reg);
+			if (retval != ERROR_OK) {
+				LOG_ERROR("Could not read register '%s'", reg->name);
+				return retval;
+			}
+		}
+		char *value = buf_to_hex_str(reg->value, reg->size);
 		command_print(CMD, "%s (/%i): 0x%s", reg->name, (int)(reg->size), value);
 		free(value);
 		return ERROR_OK;
@@ -3153,15 +3154,18 @@ COMMAND_HANDLER(handle_reg_command)
 			return ERROR_FAIL;
 		str_to_buf(CMD_ARGV[1], strlen(CMD_ARGV[1]), buf, reg->size, 0);
 
-		reg->type->set(reg, buf);
-
-		value = buf_to_hex_str(reg->value, reg->size);
-		command_print(CMD, "%s (/%i): 0x%s", reg->name, (int)(reg->size), value);
-		free(value);
+		int retval = reg->type->set(reg, buf);
+		if (retval != ERROR_OK) {
+			LOG_ERROR("Could not write to register '%s'", reg->name);
+		} else {
+			char *value = buf_to_hex_str(reg->value, reg->size);
+			command_print(CMD, "%s (/%i): 0x%s", reg->name, (int)(reg->size), value);
+			free(value);
+		}
 
 		free(buf);
 
-		return ERROR_OK;
+		return retval;
 	}
 
 	return ERROR_COMMAND_SYNTAX_ERROR;
