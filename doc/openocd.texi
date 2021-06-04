@@ -4841,6 +4841,22 @@ and neither store nor return those values.
 @end itemize
 @end deffn
 
+@deffn {Command} {$target_name set_reg} dict
+Set register values of the target.
+
+@itemize
+@item @var{dict} ... Tcl dictionary with pairs of register names and values.
+@end itemize
+
+For example, the following command sets the value 0 to the program counter (pc)
+register and 0x1000 to the stack pointer (sp) register:
+
+@example
+set_reg @{pc 0 sp 0x1000@}
+@end example
+@end deffn
+
+
 @deffn {Command} {$target_name cget} queryparm
 Each configuration parameter accepted by
 @command{$target_name configure}
@@ -11190,6 +11206,10 @@ Read memory and return as a Tcl array for script processing
 @item @b{array2mem} <@var{varname}> <@var{width}> <@var{addr}> <@var{nelems}>
 
 Convert a Tcl array to memory locations and write the values
+
+@item @b{set_reg} <@var{dict}>
+
+Set target register values from a Tcl dictionary
 @item @b{flash banks} <@var{driver}> <@var{base}> <@var{size}> <@var{chip_width}> <@var{bus_width}> <@var{target}> [@option{driver options} ...]
 
 Return information about the flash banks
