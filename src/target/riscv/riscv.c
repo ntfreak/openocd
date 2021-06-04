@@ -1704,7 +1704,7 @@ static int riscv_run_algorithm(struct target *target, int num_mem_params,
 	}
 
 	/* Save registers */
-	struct reg *reg_pc = register_get_by_name(target->reg_cache, "pc", 1);
+	struct reg *reg_pc = register_get_by_name(target->reg_cache, "pc", true);
 	if (!reg_pc || reg_pc->type->get(reg_pc) != ERROR_OK)
 		return ERROR_FAIL;
 	uint64_t saved_pc = buf_get_u64(reg_pc->value, 0, reg_pc->size);
@@ -1713,7 +1713,7 @@ static int riscv_run_algorithm(struct target *target, int num_mem_params,
 	uint64_t saved_regs[32];
 	for (int i = 0; i < num_reg_params; i++) {
 		LOG_DEBUG("save %s", reg_params[i].reg_name);
-		struct reg *r = register_get_by_name(target->reg_cache, reg_params[i].reg_name, 0);
+		struct reg *r = register_get_by_name(target->reg_cache, reg_params[i].reg_name, false);
 		if (!r) {
 			LOG_ERROR("Couldn't find register named '%s'", reg_params[i].reg_name);
 			return ERROR_FAIL;
@@ -1747,7 +1747,7 @@ static int riscv_run_algorithm(struct target *target, int num_mem_params,
 
 	LOG_DEBUG("Disabling Interrupts");
 	struct reg *reg_mstatus = register_get_by_name(target->reg_cache,
-			"mstatus", 1);
+			"mstatus", true);
 	if (!reg_mstatus) {
 		LOG_ERROR("Couldn't find mstatus!");
 		return ERROR_FAIL;
@@ -1828,7 +1828,7 @@ static int riscv_run_algorithm(struct target *target, int num_mem_params,
 	for (int i = 0; i < num_reg_params; i++) {
 		if (reg_params[i].direction == PARAM_IN ||
 				reg_params[i].direction == PARAM_IN_OUT) {
-			struct reg *r = register_get_by_name(target->reg_cache, reg_params[i].reg_name, 0);
+			struct reg *r = register_get_by_name(target->reg_cache, reg_params[i].reg_name, false);
 			if (r->type->get(r) != ERROR_OK) {
 				LOG_ERROR("get(%s) failed", r->name);
 				return ERROR_FAIL;
@@ -1836,7 +1836,7 @@ static int riscv_run_algorithm(struct target *target, int num_mem_params,
 			buf_cpy(r->value, reg_params[i].value, reg_params[i].size);
 		}
 		LOG_DEBUG("restore %s", reg_params[i].reg_name);
-		struct reg *r = register_get_by_name(target->reg_cache, reg_params[i].reg_name, 0);
+		struct reg *r = register_get_by_name(target->reg_cache, reg_params[i].reg_name, false);
 		buf_set_u64(buf, 0, info->xlen[0], saved_regs[r->number]);
 		if (r->type->set(r, buf) != ERROR_OK) {
 			LOG_ERROR("set(%s) failed", r->name);

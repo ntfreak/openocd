@@ -1402,7 +1402,7 @@ static int dsp563xx_run_algorithm(struct target *target,
 
 		struct reg *reg = register_get_by_name(dsp563xx->core_cache,
 				reg_params[i].reg_name,
-				0);
+				false);
 
 		if (!reg) {
 			LOG_ERROR("BUG: register '%s' not found", reg_params[i].reg_name);
@@ -1444,7 +1444,7 @@ static int dsp563xx_run_algorithm(struct target *target,
 
 			struct reg *reg = register_get_by_name(dsp563xx->core_cache,
 					reg_params[i].reg_name,
-					0);
+					false);
 			if (!reg) {
 				LOG_ERROR("BUG: register '%s' not found", reg_params[i].reg_name);
 				continue;

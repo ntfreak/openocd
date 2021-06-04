@@ -2342,7 +2342,7 @@ int target_profiling_default(struct target *target, uint32_t *samples,
 
 	uint32_t sample_count = 0;
 	/* hopefully it is safe to cache! We want to stop/restart as quickly as possible. */
-	struct reg *reg = register_get_by_name(target->reg_cache, "pc", 1);
+	struct reg *reg = register_get_by_name(target->reg_cache, "pc", true);
 
 	int retval = ERROR_OK;
 	for (;;) {
@@ -3134,7 +3134,7 @@ COMMAND_HANDLER(handle_reg_command)
 		}
 	} else {
 		/* access a single register by its name */
-		reg = register_get_by_name(target->reg_cache, CMD_ARGV[0], 1);
+		reg = register_get_by_name(target->reg_cache, CMD_ARGV[0], true);
 
 		if (!reg)
 			goto not_found;

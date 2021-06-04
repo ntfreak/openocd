@@ -1380,7 +1380,7 @@ int armv4_5_run_algorithm_inner(struct target *target,
 		if (reg_params[i].direction == PARAM_IN)
 			continue;
 
-		struct reg *reg = register_get_by_name(arm->core_cache, reg_params[i].reg_name, 0);
+		struct reg *reg = register_get_by_name(arm->core_cache, reg_params[i].reg_name, false);
 		if (!reg) {
 			LOG_ERROR("BUG: register '%s' not found", reg_params[i].reg_name);
 			return ERROR_COMMAND_SYNTAX_ERROR;
@@ -1452,7 +1452,7 @@ int armv4_5_run_algorithm_inner(struct target *target,
 
 			struct reg *reg = register_get_by_name(arm->core_cache,
 					reg_params[i].reg_name,
-					0);
+					false);
 			if (!reg) {
 				LOG_ERROR("BUG: register '%s' not found", reg_params[i].reg_name);
 				retval = ERROR_COMMAND_SYNTAX_ERROR;

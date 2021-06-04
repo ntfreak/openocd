@@ -559,7 +559,7 @@ int armv7m_start_algorithm(struct target *target,
 			continue;
 
 		struct reg *reg =
-			register_get_by_name(armv7m->arm.core_cache, reg_params[i].reg_name, 0);
+			register_get_by_name(armv7m->arm.core_cache, reg_params[i].reg_name, false);
 /*		uint32_t regvalue; */
 
 		if (!reg) {
@@ -675,7 +675,7 @@ int armv7m_wait_algorithm(struct target *target,
 		if (reg_params[i].direction != PARAM_OUT) {
 			struct reg *reg = register_get_by_name(armv7m->arm.core_cache,
 					reg_params[i].reg_name,
-					0);
+					false);
 
 			if (!reg) {
 				LOG_ERROR("BUG: register '%s' not found", reg_params[i].reg_name);

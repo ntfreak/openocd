@@ -473,7 +473,7 @@ int mips32_run_algorithm(struct target *target, int num_mem_params,
 		if (reg_params[i].direction == PARAM_IN)
 			continue;
 
-		struct reg *reg = register_get_by_name(mips32->core_cache, reg_params[i].reg_name, 0);
+		struct reg *reg = register_get_by_name(mips32->core_cache, reg_params[i].reg_name, false);
 
 		if (!reg) {
 			LOG_ERROR("BUG: register '%s' not found", reg_params[i].reg_name);
@@ -507,7 +507,7 @@ int mips32_run_algorithm(struct target *target, int num_mem_params,
 
 	for (int i = 0; i < num_reg_params; i++) {
 		if (reg_params[i].direction != PARAM_OUT) {
-			struct reg *reg = register_get_by_name(mips32->core_cache, reg_params[i].reg_name, 0);
+			struct reg *reg = register_get_by_name(mips32->core_cache, reg_params[i].reg_name, false);
 			if (!reg) {
 				LOG_ERROR("BUG: register '%s' not found", reg_params[i].reg_name);
 				return ERROR_COMMAND_SYNTAX_ERROR;
