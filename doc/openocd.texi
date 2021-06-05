@@ -11212,7 +11212,7 @@ should be passed in to the proc in question.
 
 @section Internal low-level Commands
 
-By "low-level," we mean commands that a human would typically not
+By "low-level", we mean commands that a human would typically not
 invoke directly.
 
 @itemize @bullet
