@@ -33,29 +33,29 @@
 #define FLASH_DQ5 0x20		/* Time limit exceeding flag bit (TLOV) position */
 
 enum fm3_variant {
-	mb9bfxx1,	/* Flash Type '1' */
-	mb9bfxx2,
-	mb9bfxx3,
-	mb9bfxx4,
-	mb9bfxx5,
-	mb9bfxx6,
-	mb9bfxx7,
-	mb9bfxx8,
+	MB9BFXX1,	/* Flash Type '1' */
+	MB9BFXX2,
+	MB9BFXX3,
+	MB9BFXX4,
+	MB9BFXX5,
+	MB9BFXX6,
+	MB9BFXX7,
+	MB9BFXX8,
 
-	mb9afxx1,	/* Flash Type '2' */
-	mb9afxx2,
-	mb9afxx3,
-	mb9afxx4,
-	mb9afxx5,
-	mb9afxx6,
-	mb9afxx7,
-	mb9afxx8,
+	MB9AFXX1,	/* Flash Type '2' */
+	MB9AFXX2,
+	MB9AFXX3,
+	MB9AFXX4,
+	MB9AFXX5,
+	MB9AFXX6,
+	MB9AFXX7,
+	MB9AFXX8,
 };
 
 enum fm3_flash_type {
-	fm3_no_flash_type = 0,
-	fm3_flash_type1   = 1,
-	fm3_flash_type2   = 2
+	FM3_NO_FLASH_TYPE = 0,
+	FM3_FLASH_TYPE1   = 1,
+	FM3_FLASH_TYPE2   = 2
 };
 
 struct fm3_flash_bank {
@@ -76,53 +76,53 @@ FLASH_BANK_COMMAND_HANDLER(fm3_flash_bank_command)
 
 	/* Flash type '1' */
 	if (strcmp(CMD_ARGV[5], "mb9bfxx1.cpu") == 0) {
-		fm3_info->variant = mb9bfxx1;
-		fm3_info->flashtype = fm3_flash_type1;
+		fm3_info->variant = MB9BFXX1;
+		fm3_info->flashtype = FM3_FLASH_TYPE1;
 	} else if (strcmp(CMD_ARGV[5], "mb9bfxx2.cpu") == 0) {
-		fm3_info->variant = mb9bfxx2;
-		fm3_info->flashtype = fm3_flash_type1;
+		fm3_info->variant = MB9BFXX2;
+		fm3_info->flashtype = FM3_FLASH_TYPE1;
 	} else if (strcmp(CMD_ARGV[5], "mb9bfxx3.cpu") == 0) {
-		fm3_info->variant = mb9bfxx3;
-		fm3_info->flashtype = fm3_flash_type1;
+		fm3_info->variant = MB9BFXX3;
+		fm3_info->flashtype = FM3_FLASH_TYPE1;
 	} else if (strcmp(CMD_ARGV[5], "mb9bfxx4.cpu") == 0) {
-		fm3_info->variant = mb9bfxx4;
-		fm3_info->flashtype = fm3_flash_type1;
+		fm3_info->variant = MB9BFXX4;
+		fm3_info->flashtype = FM3_FLASH_TYPE1;
 	} else if (strcmp(CMD_ARGV[5], "mb9bfxx5.cpu") == 0) {
-		fm3_info->variant = mb9bfxx5;
-		fm3_info->flashtype = fm3_flash_type1;
+		fm3_info->variant = MB9BFXX5;
+		fm3_info->flashtype = FM3_FLASH_TYPE1;
 	} else if (strcmp(CMD_ARGV[5], "mb9bfxx6.cpu") == 0) {
-		fm3_info->variant = mb9bfxx6;
-		fm3_info->flashtype = fm3_flash_type1;
+		fm3_info->variant = MB9BFXX6;
+		fm3_info->flashtype = FM3_FLASH_TYPE1;
 	} else if (strcmp(CMD_ARGV[5], "mb9bfxx7.cpu") == 0) {
-		fm3_info->variant = mb9bfxx7;
-		fm3_info->flashtype = fm3_flash_type1;
+		fm3_info->variant = MB9BFXX7;
+		fm3_info->flashtype = FM3_FLASH_TYPE1;
 	} else if (strcmp(CMD_ARGV[5], "mb9bfxx8.cpu") == 0) {
-		fm3_info->variant = mb9bfxx8;
-		fm3_info->flashtype = fm3_flash_type1;
+		fm3_info->variant = MB9BFXX8;
+		fm3_info->flashtype = FM3_FLASH_TYPE1;
 	} else if (strcmp(CMD_ARGV[5], "mb9afxx1.cpu") == 0) {	/* Flash type '2' */
-		fm3_info->variant = mb9afxx1;
-		fm3_info->flashtype = fm3_flash_type2;
+		fm3_info->variant = MB9AFXX1;
+		fm3_info->flashtype = FM3_FLASH_TYPE2;
 	} else if (strcmp(CMD_ARGV[5], "mb9afxx2.cpu") == 0) {
-		fm3_info->variant = mb9afxx2;
-		fm3_info->flashtype = fm3_flash_type2;
+		fm3_info->variant = MB9AFXX2;
+		fm3_info->flashtype = FM3_FLASH_TYPE2;
 	} else if (strcmp(CMD_ARGV[5], "mb9afxx3.cpu") == 0) {
-		fm3_info->variant = mb9afxx3;
-		fm3_info->flashtype = fm3_flash_type2;
+		fm3_info->variant = MB9AFXX3;
+		fm3_info->flashtype = FM3_FLASH_TYPE2;
 	} else if (strcmp(CMD_ARGV[5], "mb9afxx4.cpu") == 0) {
-		fm3_info->variant = mb9afxx4;
-		fm3_info->flashtype = fm3_flash_type2;
+		fm3_info->variant = MB9AFXX4;
+		fm3_info->flashtype = FM3_FLASH_TYPE2;
 	} else if (strcmp(CMD_ARGV[5], "mb9afxx5.cpu") == 0) {
-		fm3_info->variant = mb9afxx5;
-		fm3_info->flashtype = fm3_flash_type2;
+		fm3_info->variant = MB9AFXX5;
+		fm3_info->flashtype = FM3_FLASH_TYPE2;
 	} else if (strcmp(CMD_ARGV[5], "mb9afxx6.cpu") == 0) {
-		fm3_info->variant = mb9afxx6;
-		fm3_info->flashtype = fm3_flash_type2;
+		fm3_info->variant = MB9AFXX6;
+		fm3_info->flashtype = FM3_FLASH_TYPE2;
 	} else if (strcmp(CMD_ARGV[5], "mb9afxx7.cpu") == 0) {
-		fm3_info->variant = mb9afxx7;
-		fm3_info->flashtype = fm3_flash_type2;
+		fm3_info->variant = MB9AFXX7;
+		fm3_info->flashtype = FM3_FLASH_TYPE2;
 	} else if (strcmp(CMD_ARGV[5], "mb9afxx8.cpu") == 0) {
-		fm3_info->variant = mb9afxx8;
-		fm3_info->flashtype = fm3_flash_type2;
+		fm3_info->variant = MB9AFXX8;
+		fm3_info->flashtype = FM3_FLASH_TYPE2;
 	}
 
 	/* unknown Flash type */
@@ -219,10 +219,10 @@ static int fm3_erase(struct flash_bank *bank, unsigned int first,
 
 	u32_flash_type = (uint32_t) fm3_info->flashtype;
 
-	if (u32_flash_type == fm3_flash_type1) {
+	if (u32_flash_type == FM3_FLASH_TYPE1) {
 		u32_flash_seq_address1 = 0x00001550;
 		u32_flash_seq_address2 = 0x00000AA8;
-	} else if (u32_flash_type == fm3_flash_type2) {
+	} else if (u32_flash_type == FM3_FLASH_TYPE2) {
 		u32_flash_seq_address1 = 0x00000AA8;
 		u32_flash_seq_address2 = 0x00000554;
 	} else {
@@ -368,10 +368,10 @@ static int fm3_write_block(struct flash_bank *bank, const uint8_t *buffer,
 
 	u32_flash_type = (uint32_t) fm3_info->flashtype;
 
-	if (u32_flash_type == fm3_flash_type1) {
+	if (u32_flash_type == FM3_FLASH_TYPE1) {
 		u32_flash_seq_address1 = 0x00001550;
 		u32_flash_seq_address2 = 0x00000AA8;
-	} else if (u32_flash_type == fm3_flash_type2) {
+	} else if (u32_flash_type == FM3_FLASH_TYPE2) {
 		u32_flash_seq_address1 = 0x00000AA8;
 		u32_flash_seq_address2 = 0x00000554;
 	} else {
@@ -673,8 +673,8 @@ static int fm3_probe(struct flash_bank *bank)
 	bank->sectors[1].is_erased = -1;
 	bank->sectors[1].is_protected = -1;
 
-	if ((fm3_info->variant == mb9bfxx1)
-	    || (fm3_info->variant == mb9afxx1)) {
+	if ((fm3_info->variant == MB9BFXX1)
+	    || (fm3_info->variant == MB9AFXX1)) {
 		num_pages = 3;
 		bank->size = 64 * 1024; /* bytes */
 		bank->num_sectors = num_pages;
@@ -685,18 +685,18 @@ static int fm3_probe(struct flash_bank *bank)
 		bank->sectors[2].is_protected = -1;
 	}
 
-	if ((fm3_info->variant == mb9bfxx2)
-		|| (fm3_info->variant == mb9bfxx4)
-		|| (fm3_info->variant == mb9bfxx5)
-		|| (fm3_info->variant == mb9bfxx6)
-		|| (fm3_info->variant == mb9bfxx7)
-		|| (fm3_info->variant == mb9bfxx8)
-		|| (fm3_info->variant == mb9afxx2)
-		|| (fm3_info->variant == mb9afxx4)
-		|| (fm3_info->variant == mb9afxx5)
-		|| (fm3_info->variant == mb9afxx6)
-		|| (fm3_info->variant == mb9afxx7)
-		|| (fm3_info->variant == mb9afxx8)) {
+	if ((fm3_info->variant == MB9BFXX2)
+		|| (fm3_info->variant == MB9BFXX4)
+		|| (fm3_info->variant == MB9BFXX5)
+		|| (fm3_info->variant == MB9BFXX6)
+		|| (fm3_info->variant == MB9BFXX7)
+		|| (fm3_info->variant == MB9BFXX8)
+		|| (fm3_info->variant == MB9AFXX2)
+		|| (fm3_info->variant == MB9AFXX4)
+		|| (fm3_info->variant == MB9AFXX5)
+		|| (fm3_info->variant == MB9AFXX6)
+		|| (fm3_info->variant == MB9AFXX7)
+		|| (fm3_info->variant == MB9AFXX8)) {
 		num_pages = 3;
 		bank->size = 128 * 1024; /* bytes */
 		bank->num_sectors = num_pages;
@@ -707,16 +707,16 @@ static int fm3_probe(struct flash_bank *bank)
 		bank->sectors[2].is_protected = -1;
 	}
 
-	if ((fm3_info->variant == mb9bfxx4)
-		|| (fm3_info->variant == mb9bfxx5)
-		|| (fm3_info->variant == mb9bfxx6)
-		|| (fm3_info->variant == mb9bfxx7)
-		|| (fm3_info->variant == mb9bfxx8)
-		|| (fm3_info->variant == mb9afxx4)
-		|| (fm3_info->variant == mb9afxx5)
-		|| (fm3_info->variant == mb9afxx6)
-		|| (fm3_info->variant == mb9afxx7)
-		|| (fm3_info->variant == mb9afxx8)) {
+	if ((fm3_info->variant == MB9BFXX4)
+		|| (fm3_info->variant == MB9BFXX5)
+		|| (fm3_info->variant == MB9BFXX6)
+		|| (fm3_info->variant == MB9BFXX7)
+		|| (fm3_info->variant == MB9BFXX8)
+		|| (fm3_info->variant == MB9AFXX4)
+		|| (fm3_info->variant == MB9AFXX5)
+		|| (fm3_info->variant == MB9AFXX6)
+		|| (fm3_info->variant == MB9AFXX7)
+		|| (fm3_info->variant == MB9AFXX8)) {
 		num_pages = 4;
 		bank->size = 256 * 1024; /* bytes */
 		bank->num_sectors = num_pages;
@@ -727,14 +727,14 @@ static int fm3_probe(struct flash_bank *bank)
 		bank->sectors[3].is_protected = -1;
 	}
 
-	if ((fm3_info->variant == mb9bfxx5)
-		|| (fm3_info->variant == mb9bfxx6)
-		|| (fm3_info->variant == mb9bfxx7)
-		|| (fm3_info->variant == mb9bfxx8)
-		|| (fm3_info->variant == mb9afxx5)
-		|| (fm3_info->variant == mb9afxx6)
-		|| (fm3_info->variant == mb9afxx7)
-		|| (fm3_info->variant == mb9afxx8)) {
+	if ((fm3_info->variant == MB9BFXX5)
+		|| (fm3_info->variant == MB9BFXX6)
+		|| (fm3_info->variant == MB9BFXX7)
+		|| (fm3_info->variant == MB9BFXX8)
+		|| (fm3_info->variant == MB9AFXX5)
+		|| (fm3_info->variant == MB9AFXX6)
+		|| (fm3_info->variant == MB9AFXX7)
+		|| (fm3_info->variant == MB9AFXX8)) {
 		num_pages = 5;
 		bank->size = 384 * 1024; /* bytes */
 		bank->num_sectors = num_pages;
@@ -745,12 +745,12 @@ static int fm3_probe(struct flash_bank *bank)
 		bank->sectors[4].is_protected = -1;
 	}
 
-	if ((fm3_info->variant == mb9bfxx6)
-		|| (fm3_info->variant == mb9bfxx7)
-		|| (fm3_info->variant == mb9bfxx8)
-		|| (fm3_info->variant == mb9afxx6)
-		|| (fm3_info->variant == mb9afxx7)
-		|| (fm3_info->variant == mb9afxx8)) {
+	if ((fm3_info->variant == MB9BFXX6)
+		|| (fm3_info->variant == MB9BFXX7)
+		|| (fm3_info->variant == MB9BFXX8)
+		|| (fm3_info->variant == MB9AFXX6)
+		|| (fm3_info->variant == MB9AFXX7)
+		|| (fm3_info->variant == MB9AFXX8)) {
 		num_pages = 6;
 		bank->size = 512 * 1024; /* bytes */
 		bank->num_sectors = num_pages;
@@ -761,10 +761,10 @@ static int fm3_probe(struct flash_bank *bank)
 		bank->sectors[5].is_protected = -1;
 	}
 
-	if ((fm3_info->variant == mb9bfxx7)
-		|| (fm3_info->variant == mb9bfxx8)
-		|| (fm3_info->variant == mb9afxx7)
-		|| (fm3_info->variant == mb9afxx8)) {
+	if ((fm3_info->variant == MB9BFXX7)
+		|| (fm3_info->variant == MB9BFXX8)
+		|| (fm3_info->variant == MB9AFXX7)
+		|| (fm3_info->variant == MB9AFXX8)) {
 		num_pages = 8;
 		bank->size = 768 * 1024; /* bytes */
 		bank->num_sectors = num_pages;
@@ -780,8 +780,8 @@ static int fm3_probe(struct flash_bank *bank)
 		bank->sectors[7].is_protected = -1;
 	}
 
-	if ((fm3_info->variant == mb9bfxx8)
-		|| (fm3_info->variant == mb9afxx8)) {
+	if ((fm3_info->variant == MB9BFXX8)
+		|| (fm3_info->variant == MB9AFXX8)) {
 		num_pages = 10;
 		bank->size = 1024 * 1024; /* bytes */
 		bank->num_sectors = num_pages;
@@ -827,11 +827,11 @@ static int fm3_chip_erase(struct flash_bank *bank)
 
 	u32_flash_type = (uint32_t) fm3_info2->flashtype;
 
-	if (u32_flash_type == fm3_flash_type1) {
+	if (u32_flash_type == FM3_FLASH_TYPE1) {
 		LOG_INFO("*** Erasing mb9bfxxx type");
 		u32_flash_seq_address1 = 0x00001550;
 		u32_flash_seq_address2 = 0x00000AA8;
-	} else if (u32_flash_type == fm3_flash_type2) {
+	} else if (u32_flash_type == FM3_FLASH_TYPE2) {
 		LOG_INFO("*** Erasing mb9afxxx type");
 		u32_flash_seq_address1 = 0x00000AA8;
 		u32_flash_seq_address2 = 0x00000554;

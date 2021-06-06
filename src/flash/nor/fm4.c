@@ -28,17 +28,17 @@
 #define WDG_LCK (WDG_BASE + 0xC00)
 
 enum fm4_variant {
-	mb9bfx64,
-	mb9bfx65,
-	mb9bfx66,
-	mb9bfx67,
-	mb9bfx68,
+	MB9BFX64,
+	MB9BFX65,
+	MB9BFX66,
+	MB9BFX67,
+	MB9BFX68,
 
-	s6e2cx8,
-	s6e2cx9,
-	s6e2cxa,
+	S6E2CX8,
+	S6E2CX9,
+	S6E2CXA,
 
-	s6e2dx,
+	S6E2DX,
 };
 
 struct fm4_flash_bank {
@@ -350,19 +350,19 @@ static int mb9bf_probe(struct flash_bank *bank)
 	uint32_t flash_addr = bank->base;
 
 	switch (fm4_bank->variant) {
-	case mb9bfx64:
+	case MB9BFX64:
 		bank->num_sectors = 8;
 		break;
-	case mb9bfx65:
+	case MB9BFX65:
 		bank->num_sectors = 10;
 		break;
-	case mb9bfx66:
+	case MB9BFX66:
 		bank->num_sectors = 12;
 		break;
-	case mb9bfx67:
+	case MB9BFX67:
 		bank->num_sectors = 16;
 		break;
-	case mb9bfx68:
+	case MB9BFX68:
 		bank->num_sectors = 20;
 		break;
 	default:
@@ -421,13 +421,13 @@ static int s6e2cc_probe(struct flash_bank *bank)
 	}
 
 	switch (fm4_bank->variant) {
-	case s6e2cx8:
+	case S6E2CX8:
 		num_sectors = (fm4_bank->macro_nr == 0) ? 20 : 0;
 		break;
-	case s6e2cx9:
+	case S6E2CX9:
 		num_sectors = (fm4_bank->macro_nr == 0) ? 20 : 12;
 		break;
-	case s6e2cxa:
+	case S6E2CXA:
 		num_sectors = 20;
 		break;
 	default:
@@ -503,19 +503,19 @@ static int fm4_probe(struct flash_bank *bank)
 	}
 
 	switch (fm4_bank->variant) {
-	case mb9bfx64:
-	case mb9bfx65:
-	case mb9bfx66:
-	case mb9bfx67:
-	case mb9bfx68:
+	case MB9BFX64:
+	case MB9BFX65:
+	case MB9BFX66:
+	case MB9BFX67:
+	case MB9BFX68:
 		retval = mb9bf_probe(bank);
 		break;
-	case s6e2cx8:
-	case s6e2cx9:
-	case s6e2cxa:
+	case S6E2CX8:
+	case S6E2CX9:
+	case S6E2CXA:
 		retval = s6e2cc_probe(bank);
 		break;
-	case s6e2dx:
+	case S6E2DX:
 		retval = s6e2dh_probe(bank);
 		break;
 	default:
@@ -550,31 +550,31 @@ static int fm4_get_info_command(struct flash_bank *bank, struct command_invocati
 	}
 
 	switch (fm4_bank->variant) {
-	case mb9bfx64:
+	case MB9BFX64:
 		name = "MB9BFx64";
 		break;
-	case mb9bfx65:
+	case MB9BFX65:
 		name = "MB9BFx65";
 		break;
-	case mb9bfx66:
+	case MB9BFX66:
 		name = "MB9BFx66";
 		break;
-	case mb9bfx67:
+	case MB9BFX67:
 		name = "MB9BFx67";
 		break;
-	case mb9bfx68:
+	case MB9BFX68:
 		name = "MB9BFx68";
 		break;
-	case s6e2cx8:
+	case S6E2CX8:
 		name = "S6E2Cx8";
 		break;
-	case s6e2cx9:
+	case S6E2CX9:
 		name = "S6E2Cx9";
 		break;
-	case s6e2cxa:
+	case S6E2CXA:
 		name = "S6E2CxA";
 		break;
-	case s6e2dx:
+	case S6E2DX:
 		name = "S6E2Dx";
 		break;
 	default:
@@ -583,9 +583,9 @@ static int fm4_get_info_command(struct flash_bank *bank, struct command_invocati
 	}
 
 	switch (fm4_bank->variant) {
-	case s6e2cx8:
-	case s6e2cx9:
-	case s6e2cxa:
+	case S6E2CX8:
+	case S6E2CX9:
+	case S6E2CXA:
 		command_print_sameline(cmd, "%s MainFlash Macro #%i", name, fm4_bank->macro_nr);
 		break;
 	default:
@@ -617,15 +617,15 @@ static int mb9bf_bank_setup(struct flash_bank *bank, const char *variant)
 	struct fm4_flash_bank *fm4_bank = bank->driver_priv;
 
 	if (fm4_name_match(variant, "MB9BFx64")) {
-		fm4_bank->variant = mb9bfx64;
+		fm4_bank->variant = MB9BFX64;
 	} else if (fm4_name_match(variant, "MB9BFx65")) {
-		fm4_bank->variant = mb9bfx65;
+		fm4_bank->variant = MB9BFX65;
 	} else if (fm4_name_match(variant, "MB9BFx66")) {
-		fm4_bank->variant = mb9bfx66;
+		fm4_bank->variant = MB9BFX66;
 	} else if (fm4_name_match(variant, "MB9BFx67")) {
-		fm4_bank->variant = mb9bfx67;
+		fm4_bank->variant = MB9BFX67;
 	} else if (fm4_name_match(variant, "MB9BFx68")) {
-		fm4_bank->variant = mb9bfx68;
+		fm4_bank->variant = MB9BFX68;
 	} else {
 		LOG_WARNING("MB9BF variant %s not recognized.", variant);
 		return ERROR_FLASH_OPER_UNSUPPORTED;
@@ -639,11 +639,11 @@ static int s6e2cc_bank_setup(struct flash_bank *bank, const char *variant)
 	struct fm4_flash_bank *fm4_bank = bank->driver_priv;
 
 	if (fm4_name_match(variant, "S6E2Cx8")) {
-		fm4_bank->variant = s6e2cx8;
+		fm4_bank->variant = S6E2CX8;
 	} else if (fm4_name_match(variant, "S6E2Cx9")) {
-		fm4_bank->variant = s6e2cx9;
+		fm4_bank->variant = S6E2CX9;
 	} else if (fm4_name_match(variant, "S6E2CxA")) {
-		fm4_bank->variant = s6e2cxa;
+		fm4_bank->variant = S6E2CXA;
 	} else {
 		LOG_WARNING("S6E2CC variant %s not recognized.", variant);
 		return ERROR_FLASH_OPER_UNSUPPORTED;
@@ -677,7 +677,7 @@ FLASH_BANK_COMMAND_HANDLER(fm4_flash_bank_command)
 	else if (fm4_name_match(variant, "S6E2Cx"))
 		ret = s6e2cc_bank_setup(bank, variant);
 	else if (fm4_name_match(variant, "S6E2Dx")) {
-		fm4_bank->variant = s6e2dx;
+		fm4_bank->variant = S6E2DX;
 		ret = ERROR_OK;
 	} else {
 		LOG_WARNING("Family %s not recognized.", variant);
