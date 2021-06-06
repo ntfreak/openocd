@@ -202,7 +202,7 @@ communication between users:
 @section OpenOCD IRC
 
 Support can also be found on irc:
-@uref{irc://irc.freenode.net/openocd}
+@uref{irc://irc.libera.chat/openocd}
 
 @node Developers
 @chapter OpenOCD Developer Resources
