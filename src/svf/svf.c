@@ -989,35 +989,35 @@ static int svf_run_command(struct command_context *cmd_ctx, char *cmd_str)
 				break;
 			}
 			xxr_para_tmp = &svf_para.hdr_para;
-			goto XXR_common;
+			goto xxr_common;
 		case HIR:
 			if (svf_tap_is_specified) {
 				padding_command_skipped = 1;
 				break;
 			}
 			xxr_para_tmp = &svf_para.hir_para;
-			goto XXR_common;
+			goto xxr_common;
 		case TDR:
 			if (svf_tap_is_specified) {
 				padding_command_skipped = 1;
 				break;
 			}
 			xxr_para_tmp = &svf_para.tdr_para;
-			goto XXR_common;
+			goto xxr_common;
 		case TIR:
 			if (svf_tap_is_specified) {
 				padding_command_skipped = 1;
 				break;
 			}
 			xxr_para_tmp = &svf_para.tir_para;
-			goto XXR_common;
+			goto xxr_common;
 		case SDR:
 			xxr_para_tmp = &svf_para.sdr_para;
-			goto XXR_common;
+			goto xxr_common;
 		case SIR:
 			xxr_para_tmp = &svf_para.sir_para;
-			goto XXR_common;
-XXR_common:
+			goto xxr_common;
+xxr_common:
 			/* XXR length [TDI (tdi)] [TDO (tdo)][MASK (mask)] [SMASK (smask)] */
 			if ((num_of_argu > 10) || (num_of_argu % 2)) {
 				LOG_ERROR("invalid parameter of %s", argus[0]);
