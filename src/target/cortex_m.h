@@ -77,7 +77,7 @@ struct cortex_m_part_info {
 #define DCB_DEMCR	0xE000EDFC
 #define DCB_DSCSR	0xE000EE08
 
-#define DCRSR_WnR	BIT(16)
+#define DCRSR_WNR	BIT(16)
 
 #define DWT_CTRL	0xE0001000
 #define DWT_CYCCNT	0xE0001004

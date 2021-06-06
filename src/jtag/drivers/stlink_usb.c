@@ -2286,7 +2286,7 @@ static int stlink_usb_write_reg(void *handle, unsigned int regsel, uint32_t val)
 		if (res != ERROR_OK)
 			return res;
 
-		return stlink_usb_write_debug_reg(h, DCB_DCRSR, DCRSR_WnR | (regsel & 0x7f));
+		return stlink_usb_write_debug_reg(h, DCB_DCRSR, DCRSR_WNR | (regsel & 0x7f));
 		/* FIXME: poll DHCSR.S_REGRDY after write DCRSR */
 	}
 
