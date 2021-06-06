@@ -72,7 +72,7 @@
 #define FMTDR(a, b)				(0x6A000049 | ((a) << 20) | ((b) << 15))
 
 /* break instructions */
-extern const int NDS32_BREAK_16;
-extern const int NDS32_BREAK_32;
+#define NDS32_BREAK_16			(0x00EA)
+#define NDS32_BREAK_32			(0x0A000064)
 
 #endif /* OPENOCD_TARGET_NDS32_INSN_H */

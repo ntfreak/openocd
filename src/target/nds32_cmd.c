@@ -28,12 +28,12 @@
 extern struct nds32_edm_operation nds32_edm_ops[NDS32_EDM_OPERATION_MAX_NUM];
 extern uint32_t nds32_edm_ops_num;
 
-static const char *const NDS_MEMORY_ACCESS_NAME[] = {
+static const char *const nds_memory_access_name[] = {
 	"BUS",
 	"CPU",
 };
 
-static const char *const NDS_MEMORY_SELECT_NAME[] = {
+static const char *const nds_memory_select_name[] = {
 	"AUTO",
 	"MEM",
 	"ILM",
@@ -84,13 +84,13 @@ COMMAND_HANDLER(handle_nds32_memory_access_command)
 			memory->access_channel = NDS_MEMORY_ACC_CPU;
 
 		LOG_DEBUG("memory access channel is changed to %s",
-				NDS_MEMORY_ACCESS_NAME[memory->access_channel]);
+				nds_memory_access_name[memory->access_channel]);
 
 		aice_memory_access(aice, memory->access_channel);
 	} else {
 		command_print(CMD, "%s: memory access channel: %s",
 				target_name(target),
-				NDS_MEMORY_ACCESS_NAME[memory->access_channel]);
+				nds_memory_access_name[memory->access_channel]);
 	}
 
 	return ERROR_OK;
@@ -147,7 +147,7 @@ COMMAND_HANDLER(handle_nds32_memory_mode_command)
 
 	command_print(CMD, "%s: memory mode: %s",
 			target_name(target),
-			NDS_MEMORY_SELECT_NAME[nds32->memory.mode]);
+			nds_memory_select_name[nds32->memory.mode]);
 
 	return ERROR_OK;
 }

@@ -27,9 +27,6 @@
 #include "nds32_tlb.h"
 #include "nds32_disassembler.h"
 
-const int NDS32_BREAK_16 = 0x00EA;      /* 0xEA00 */
-const int NDS32_BREAK_32 = 0x0A000064;  /* 0x6400000A */
-
 struct nds32_edm_operation nds32_edm_ops[NDS32_EDM_OPERATION_MAX_NUM];
 uint32_t nds32_edm_ops_num;
 
@@ -47,7 +44,7 @@ const char *nds32_debug_type_name[11] = {
 	"LOAD STORE GLOBAL STOP",
 };
 
-static const int NDS32_LM_SIZE_TABLE[16] = {
+static const int nds32_lm_size_table[16] = {
 	4 * 1024,
 	8 * 1024,
 	16 * 1024,
@@ -61,7 +58,7 @@ static const int NDS32_LM_SIZE_TABLE[16] = {
 	2 * 1024,
 };
 
-static const int NDS32_LINE_SIZE_TABLE[6] = {
+static const int nds32_line_size_table[6] = {
 	0,
 	8,
 	16,
@@ -1622,11 +1619,11 @@ int nds32_config(struct nds32 *nds32)
 	uint32_t size_index;
 	nds32_get_mapped_reg(nds32, MR6, &value_mr6);
 	size_index = (value_mr6 >> 1) & 0xF;
-	nds32->memory.ilm_size = NDS32_LM_SIZE_TABLE[size_index];
+	nds32->memory.ilm_size = nds32_lm_size_table[size_index];
 
 	nds32_get_mapped_reg(nds32, MR7, &value_mr7);
 	size_index = (value_mr7 >> 1) & 0xF;
-	nds32->memory.dlm_size = NDS32_LM_SIZE_TABLE[size_index];
+	nds32->memory.dlm_size = nds32_lm_size_table[size_index];
 
 	return ERROR_OK;
 }
@@ -1697,8 +1694,8 @@ int nds32_cache_sync(struct target *target, target_addr_t address, uint32_t leng
 	struct nds32 *nds32 = target_to_nds32(target);
 	struct nds32_cache *dcache = &(nds32->memory.dcache);
 	struct nds32_cache *icache = &(nds32->memory.icache);
-	uint32_t dcache_line_size = NDS32_LINE_SIZE_TABLE[dcache->line_size];
-	uint32_t icache_line_size = NDS32_LINE_SIZE_TABLE[icache->line_size];
+	uint32_t dcache_line_size = nds32_line_size_table[dcache->line_size];
+	uint32_t icache_line_size = nds32_line_size_table[icache->line_size];
 	uint32_t cur_address;
 	int result;
 	uint32_t start_line, end_line;
