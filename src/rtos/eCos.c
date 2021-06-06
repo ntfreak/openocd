@@ -27,18 +27,18 @@
 #include "helper/types.h"
 #include "rtos_ecos_stackings.h"
 
-static bool eCos_detect_rtos(struct target *target);
-static int eCos_create(struct target *target);
-static int eCos_update_threads(struct rtos *rtos);
-static int eCos_get_thread_reg_list(struct rtos *rtos, int64_t thread_id, struct rtos_reg **reg_list, int *num_regs);
-static int eCos_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[]);
+static bool ecos_detect_rtos(struct target *target);
+static int ecos_create(struct target *target);
+static int ecos_update_threads(struct rtos *rtos);
+static int ecos_get_thread_reg_list(struct rtos *rtos, int64_t thread_id, struct rtos_reg **reg_list, int *num_regs);
+static int ecos_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[]);
 
-struct eCos_thread_state {
+struct ecos_thread_state {
 	int value;
 	const char *desc;
 };
 
-static const struct eCos_thread_state eCos_thread_states[] = {
+static const struct ecos_thread_state ecos_thread_states[] = {
 	{ 0, "Ready" },
 	{ 1, "Sleeping" },
 	{ 2, "Countsleep" },
@@ -47,9 +47,9 @@ static const struct eCos_thread_state eCos_thread_states[] = {
 	{ 16, "Exited" }
 };
 
-#define ECOS_NUM_STATES ARRAY_SIZE(eCos_thread_states)
+#define ECOS_NUM_STATES ARRAY_SIZE(ecos_thread_states)
 
-struct eCos_params {
+struct ecos_params {
 	const char *target_name;
 	unsigned char pointer_width;
 	unsigned char thread_stack_offset;
@@ -60,7 +60,7 @@ struct eCos_params {
 	const struct rtos_register_stacking *stacking_info;
 };
 
-static const struct eCos_params eCos_params_list[] = {
+static const struct ecos_params ecos_params_list[] = {
 	{
 	"cortex_m",			/* target_name */
 	4,						/* pointer_width; */
@@ -69,16 +69,16 @@ static const struct eCos_params eCos_params_list[] = {
 	0x3c,					/* thread_state_offset; */
 	0xa0,					/* thread_next_offset */
 	0x4c,					/* thread_uniqueid_offset */
-	&rtos_eCos_Cortex_M3_stacking	/* stacking_info */
+	&rtos_ecos_cortex_m3_stacking	/* stacking_info */
 	}
 };
 
-enum eCos_symbol_values {
-	eCos_VAL_thread_list = 0,
-	eCos_VAL_current_thread_ptr = 1
+enum ecos_symbol_values {
+	ECOS_VAL_THREAD_LIST = 0,
+	ECOS_VAL_CURRENT_THREAD_PTR = 1
 };
 
-static const char * const eCos_symbol_list[] = {
+static const char * const ecos_symbol_list[] = {
 	"Cyg_Thread::thread_list",
 	"Cyg_Scheduler_Base::current_thread",
 	NULL
@@ -87,20 +87,20 @@ static const char * const eCos_symbol_list[] = {
 const struct rtos_type ecos_rtos = {
 	.name = "eCos",
 
-	.detect_rtos = eCos_detect_rtos,
-	.create = eCos_create,
-	.update_threads = eCos_update_threads,
-	.get_thread_reg_list = eCos_get_thread_reg_list,
-	.get_symbol_list_to_lookup = eCos_get_symbol_list_to_lookup,
+	.detect_rtos = ecos_detect_rtos,
+	.create = ecos_create,
+	.update_threads = ecos_update_threads,
+	.get_thread_reg_list = ecos_get_thread_reg_list,
+	.get_symbol_list_to_lookup = ecos_get_symbol_list_to_lookup,
 
 };
 
-static int eCos_update_threads(struct rtos *rtos)
+static int ecos_update_threads(struct rtos *rtos)
 {
 	int retval;
 	int tasks_found = 0;
 	int thread_list_size = 0;
-	const struct eCos_params *param;
+	const struct ecos_params *param;
 
 	if (rtos == NULL)
 		return -1;
@@ -108,14 +108,14 @@ static int eCos_update_threads(struct rtos *rtos)
 	if (rtos->rtos_specific_params == NULL)
 		return -3;
 
-	param = (const struct eCos_params *) rtos->rtos_specific_params;
+	param = (const struct ecos_params *) rtos->rtos_specific_params;
 
 	if (rtos->symbols == NULL) {
 		LOG_ERROR("No symbols for eCos");
 		return -4;
 	}
 
-	if (rtos->symbols[eCos_VAL_thread_list].address == 0) {
+	if (rtos->symbols[ECOS_VAL_THREAD_LIST].address == 0) {
 		LOG_ERROR("Don't have the thread list head");
 		return -2;
 	}
@@ -124,7 +124,7 @@ static int eCos_update_threads(struct rtos *rtos)
 	rtos_free_threadlist(rtos);
 
 	/* determine the number of current threads */
-	uint32_t thread_list_head = rtos->symbols[eCos_VAL_thread_list].address;
+	uint32_t thread_list_head = rtos->symbols[ECOS_VAL_THREAD_LIST].address;
 	uint32_t thread_index;
 	target_read_buffer(rtos->target,
 		thread_list_head,
@@ -144,7 +144,7 @@ static int eCos_update_threads(struct rtos *rtos)
 	/* read the current thread id */
 	uint32_t current_thread_addr;
 	retval = target_read_buffer(rtos->target,
-			rtos->symbols[eCos_VAL_current_thread_ptr].address,
+			rtos->symbols[ECOS_VAL_CURRENT_THREAD_PTR].address,
 			4,
 			(uint8_t *)&current_thread_addr);
 	if (retval != ERROR_OK)
@@ -246,7 +246,7 @@ static int eCos_update_threads(struct rtos *rtos)
 			return retval;
 		}
 
-		for (i = 0; (i < ECOS_NUM_STATES) && (eCos_thread_states[i].value != thread_status); i++) {
+		for (i = 0; (i < ECOS_NUM_STATES) && (ecos_thread_states[i].value != thread_status); i++) {
 			/*
 			 * empty
 			 */
@@ -254,7 +254,7 @@ static int eCos_update_threads(struct rtos *rtos)
 
 		const char *state_desc;
 		if  (i < ECOS_NUM_STATES)
-			state_desc = eCos_thread_states[i].desc;
+			state_desc = ecos_thread_states[i].desc;
 		else
 			state_desc = "Unknown state";
 
@@ -268,7 +268,7 @@ static int eCos_update_threads(struct rtos *rtos)
 		prev_thread_ptr = thread_index;
 
 		/* Get the location of the next thread structure. */
-		thread_index = rtos->symbols[eCos_VAL_thread_list].address;
+		thread_index = rtos->symbols[ECOS_VAL_THREAD_LIST].address;
 		retval = target_read_buffer(rtos->target,
 				prev_thread_ptr + param->thread_next_offset,
 				param->pointer_width,
@@ -283,11 +283,11 @@ static int eCos_update_threads(struct rtos *rtos)
 	return 0;
 }
 
-static int eCos_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
+static int ecos_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 		struct rtos_reg **reg_list, int *num_regs)
 {
 	int retval;
-	const struct eCos_params *param;
+	const struct ecos_params *param;
 
 	if (rtos == NULL)
 		return -1;
@@ -298,11 +298,11 @@ static int eCos_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	if (rtos->rtos_specific_params == NULL)
 		return -3;
 
-	param = (const struct eCos_params *) rtos->rtos_specific_params;
+	param = (const struct ecos_params *) rtos->rtos_specific_params;
 
 	/* Find the thread with that thread id */
 	uint16_t id = 0;
-	uint32_t thread_list_head = rtos->symbols[eCos_VAL_thread_list].address;
+	uint32_t thread_list_head = rtos->symbols[ECOS_VAL_THREAD_LIST].address;
 	uint32_t thread_index;
 	target_read_buffer(rtos->target, thread_list_head, param->pointer_width,
 			(uint8_t *)&thread_index);
@@ -349,33 +349,33 @@ static int eCos_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	return -1;
 }
 
-static int eCos_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
+static int ecos_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
 	unsigned int i;
 	*symbol_list = calloc(
-			ARRAY_SIZE(eCos_symbol_list), sizeof(struct symbol_table_elem));
+			ARRAY_SIZE(ecos_symbol_list), sizeof(struct symbol_table_elem));
 
-	for (i = 0; i < ARRAY_SIZE(eCos_symbol_list); i++)
-		(*symbol_list)[i].symbol_name = eCos_symbol_list[i];
+	for (i = 0; i < ARRAY_SIZE(ecos_symbol_list); i++)
+		(*symbol_list)[i].symbol_name = ecos_symbol_list[i];
 
 	return 0;
 }
 
-static bool eCos_detect_rtos(struct target *target)
+static bool ecos_detect_rtos(struct target *target)
 {
 	if ((target->rtos->symbols != NULL) &&
-			(target->rtos->symbols[eCos_VAL_thread_list].address != 0)) {
+			(target->rtos->symbols[ECOS_VAL_THREAD_LIST].address != 0)) {
 		/* looks like eCos */
 		return true;
 	}
 	return false;
 }
 
-static int eCos_create(struct target *target)
+static int ecos_create(struct target *target)
 {
-	for (unsigned int i = 0; i < ARRAY_SIZE(eCos_params_list); i++)
-		if (strcmp(eCos_params_list[i].target_name, target->type->name) == 0) {
-			target->rtos->rtos_specific_params = (void *)&eCos_params_list[i];
+	for (unsigned int i = 0; i < ARRAY_SIZE(ecos_params_list); i++)
+		if (strcmp(ecos_params_list[i].target_name, target->type->name) == 0) {
+			target->rtos->rtos_specific_params = (void *)&ecos_params_list[i];
 			target->rtos->current_thread = 0;
 			target->rtos->thread_details = NULL;
 			return 0;

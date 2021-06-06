@@ -22,7 +22,7 @@
 #include "rtos_standard_stackings.h"
 #include "target/armv7m.h"
 
-static const struct stack_register_offset rtos_eCos_Cortex_M3_stack_offsets[ARMV7M_NUM_CORE_REGS] = {
+static const struct stack_register_offset rtos_ecos_cortex_m3_stack_offsets[ARMV7M_NUM_CORE_REGS] = {
 	{ ARMV7M_R0,   0x0c, 32 },		/* r0   */
 	{ ARMV7M_R1,   0x10, 32 },		/* r1   */
 	{ ARMV7M_R2,   0x14, 32 },		/* r2   */
@@ -42,10 +42,10 @@ static const struct stack_register_offset rtos_eCos_Cortex_M3_stack_offsets[ARMV
 	{ ARMV7M_xPSR, -1,   32 },		/* xPSR */
 };
 
-const struct rtos_register_stacking rtos_eCos_Cortex_M3_stacking = {
+const struct rtos_register_stacking rtos_ecos_cortex_m3_stacking = {
 	0x44,					/* stack_registers_size */
 	-1,						/* stack_growth_direction */
 	ARMV7M_NUM_CORE_REGS,	/* num_output_registers */
 	rtos_generic_stack_align8,	/* stack_alignment */
-	rtos_eCos_Cortex_M3_stack_offsets	/* register_offsets */
+	rtos_ecos_cortex_m3_stack_offsets	/* register_offsets */
 };

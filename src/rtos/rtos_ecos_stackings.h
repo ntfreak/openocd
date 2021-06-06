@@ -23,6 +23,6 @@
 
 #include "rtos.h"
 
-extern const struct rtos_register_stacking rtos_eCos_Cortex_M3_stacking;
+extern const struct rtos_register_stacking rtos_ecos_cortex_m3_stacking;
 
 #endif /* OPENOCD_RTOS_RTOS_ECOS_STACKINGS_H */
