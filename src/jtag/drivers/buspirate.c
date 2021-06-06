@@ -58,6 +58,8 @@ static void buspirate_stableclocks(int num_cycles);
 #define CMD_RAW_SPEED     0x60
 #define CMD_RAW_MODE      0x80
 
+#define CMD_TAP_SHIFT_HEADER_LEN 3
+
 /* raw-wire mode configuration */
 #define CMD_RAW_CONFIG_HIZ 0x00
 #define CMD_RAW_CONFIG_3V3 0x08
@@ -70,6 +72,9 @@ static void buspirate_stableclocks(int num_cycles);
 #if !defined(B1000000)
 #define  B1000000 0010010
 #endif
+
+#define SHORT_TIMEOUT  1  /* Must be at least 1. */
+#define NORMAL_TIMEOUT 10
 
 enum {
 	MODE_HIZ = 0,
@@ -106,9 +111,6 @@ enum {
 static bool swd_mode;
 static int  queued_retval;
 static char swd_features;
-
-static const cc_t SHORT_TIMEOUT  = 1; /* Must be at least 1. */
-static const cc_t NORMAL_TIMEOUT = 10;
 
 static int buspirate_fd = -1;
 static int buspirate_pinmode = MODE_JTAG_OD;
@@ -708,8 +710,6 @@ static void buspirate_tap_init(void)
 
 static int buspirate_tap_execute(void)
 {
-	static const int CMD_TAP_SHIFT_HEADER_LEN = 3;
-
 	uint8_t tmp[4096];
 	uint8_t *in_buf;
 	int i;
