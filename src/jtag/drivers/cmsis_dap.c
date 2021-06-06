@@ -787,8 +787,8 @@ static void cmsis_dap_swd_write_from_queue(struct cmsis_dap *dap)
 		uint32_t data = transfer->data;
 
 		LOG_DEBUG_IO("%s %s reg %x %"PRIx32,
-				cmd & SWD_CMD_APnDP ? "AP" : "DP",
-				cmd & SWD_CMD_RnW ? "read" : "write",
+				cmd & SWD_CMD_APNDP ? "AP" : "DP",
+				cmd & SWD_CMD_RNW ? "read" : "write",
 			  (cmd & SWD_CMD_A32) >> 1, data);
 
 		/* When proper WAIT handling is implemented in the
@@ -802,8 +802,8 @@ static void cmsis_dap_swd_write_from_queue(struct cmsis_dap *dap)
 		 * cmsis_dap_cmd_dap_swd_configure() in
 		 * cmsis_dap_init().
 		 */
-		if (!(cmd & SWD_CMD_RnW) &&
-		    !(cmd & SWD_CMD_APnDP) &&
+		if (!(cmd & SWD_CMD_RNW) &&
+		    !(cmd & SWD_CMD_APNDP) &&
 		    (cmd & SWD_CMD_A32) >> 1 == DP_CTRL_STAT &&
 		    (data & CORUNDETECT)) {
 			LOG_DEBUG("refusing to enable sticky overrun detection");
@@ -811,7 +811,7 @@ static void cmsis_dap_swd_write_from_queue(struct cmsis_dap *dap)
 		}
 
 		command[idx++] = (cmd >> 1) & 0x0f;
-		if (!(cmd & SWD_CMD_RnW)) {
+		if (!(cmd & SWD_CMD_RNW)) {
 			h_u32_to_le(&command[idx], data);
 			idx += 4;
 		}
@@ -886,7 +886,7 @@ static void cmsis_dap_swd_read_process(struct cmsis_dap *dap, int timeout_ms)
 	size_t idx = 3;
 	for (int i = 0; i < transfer_count; i++) {
 		struct pending_transfer_result *transfer = &(block->transfers[i]);
-		if (transfer->cmd & SWD_CMD_RnW) {
+		if (transfer->cmd & SWD_CMD_RNW) {
 			static uint32_t last_read;
 			uint32_t data = le_to_h_u32(&resp[idx]);
 			uint32_t tmp = data;
@@ -895,7 +895,7 @@ static void cmsis_dap_swd_read_process(struct cmsis_dap *dap, int timeout_ms)
 			LOG_DEBUG_IO("Read result: %"PRIx32, data);
 
 			/* Imitate posted AP reads */
-			if ((transfer->cmd & SWD_CMD_APnDP) ||
+			if ((transfer->cmd & SWD_CMD_APNDP) ||
 			    ((transfer->cmd & SWD_CMD_A32) >> 1 == DP_RDBUFF)) {
 				tmp = last_read;
 				last_read = data;
@@ -959,7 +959,7 @@ static void cmsis_dap_swd_queue_cmd(uint8_t cmd, uint32_t *dst, uint32_t data)
 	struct pending_transfer_result *transfer = &(block->transfers[block->transfer_count]);
 	transfer->data = data;
 	transfer->cmd = cmd;
-	if (cmd & SWD_CMD_RnW) {
+	if (cmd & SWD_CMD_RNW) {
 		/* Queue a read transaction */
 		transfer->buffer = dst;
 	}
@@ -968,13 +968,13 @@ static void cmsis_dap_swd_queue_cmd(uint8_t cmd, uint32_t *dst, uint32_t data)
 
 static void cmsis_dap_swd_write_reg(uint8_t cmd, uint32_t value, uint32_t ap_delay_clk)
 {
-	assert(!(cmd & SWD_CMD_RnW));
+	assert(!(cmd & SWD_CMD_RNW));
 	cmsis_dap_swd_queue_cmd(cmd, NULL, value);
 }
 
 static void cmsis_dap_swd_read_reg(uint8_t cmd, uint32_t *value, uint32_t ap_delay_clk)
 {
-	assert(cmd & SWD_CMD_RnW);
+	assert(cmd & SWD_CMD_RNW);
 	cmsis_dap_swd_queue_cmd(cmd, value, 0);
 }
 

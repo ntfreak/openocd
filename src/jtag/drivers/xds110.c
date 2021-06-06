@@ -1165,9 +1165,9 @@ static int xds110_swd_switch_seq(enum swd_special_seq seq)
 static bool xds110_legacy_read_reg(uint8_t cmd, uint32_t *value)
 {
 	/* Make sure this is a read request */
-	bool is_read_request = (0 != (SWD_CMD_RnW & cmd));
+	bool is_read_request = (0 != (SWD_CMD_RNW & cmd));
 	/* Determine whether this is a DP or AP register access */
-	uint32_t type = (0 != (SWD_CMD_APnDP & cmd)) ? DAP_AP : DAP_DP;
+	uint32_t type = (0 != (SWD_CMD_APNDP & cmd)) ? DAP_AP : DAP_DP;
 	/* Determine the AP number from cached SELECT value */
 	uint32_t ap_num = (xds110.select & 0xff000000) >> 24;
 	/* Extract register address from command */
@@ -1227,9 +1227,9 @@ static bool xds110_legacy_read_reg(uint8_t cmd, uint32_t *value)
 static bool xds110_legacy_write_reg(uint8_t cmd, uint32_t value)
 {
 	/* Make sure this isn't a read request */
-	bool is_read_request = (0 != (SWD_CMD_RnW & cmd));
+	bool is_read_request = (0 != (SWD_CMD_RNW & cmd));
 	/* Determine whether this is a DP or AP register access */
-	uint32_t type = (0 != (SWD_CMD_APnDP & cmd)) ? DAP_AP : DAP_DP;
+	uint32_t type = (0 != (SWD_CMD_APNDP & cmd)) ? DAP_AP : DAP_DP;
 	/* Determine the AP number from cached SELECT value */
 	uint32_t ap_num = (xds110.select & 0xff000000) >> 24;
 	/* Extract register address from command */
@@ -1296,7 +1296,7 @@ static int xds110_swd_run_queue(void)
 		result = 0;
 		while (xds110.txn_requests[request] != 0) {
 			cmd = xds110.txn_requests[request++];
-			if (0 == (SWD_CMD_RnW & cmd)) {
+			if (0 == (SWD_CMD_RNW & cmd)) {
 				/* DAP register write command */
 				value  = (uint32_t)(xds110.txn_requests[request++]) <<  0;
 				value |= (uint32_t)(xds110.txn_requests[request++]) <<  8;
@@ -1329,9 +1329,9 @@ static int xds110_swd_run_queue(void)
 static void xds110_swd_queue_cmd(uint8_t cmd, uint32_t *value)
 {
 	/* Check if this is a read or write request */
-	bool is_read_request = (0 != (SWD_CMD_RnW & cmd));
+	bool is_read_request = (0 != (SWD_CMD_RNW & cmd));
 	/* Determine whether this is a DP or AP register access */
-	uint32_t type = (0 != (SWD_CMD_APnDP & cmd)) ? DAP_AP : DAP_DP;
+	uint32_t type = (0 != (SWD_CMD_APNDP & cmd)) ? DAP_AP : DAP_DP;
 	/* Extract register address from command */
 	uint32_t address = ((cmd & SWD_CMD_A32) >> 1);
 	uint32_t request_size = (is_read_request) ? 1 : 5;
