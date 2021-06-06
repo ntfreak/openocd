@@ -217,7 +217,7 @@ struct nds32_misc_config {
 	bool div_instruction;
 	bool mac_instruction;
 	int audio_isa;
-	bool L2_cache;
+	bool l2_cache;
 	bool reduce_register;
 	bool addr_24;
 	bool interruption_level;

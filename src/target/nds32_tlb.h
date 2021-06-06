@@ -29,13 +29,13 @@ enum {
 
 struct page_table_walker_info_s {
 
-	uint32_t L1_offset_mask;
-	uint32_t L1_offset_shift;
-	uint32_t L2_offset_mask;
-	uint32_t L2_offset_shift;
+	uint32_t l1_offset_mask;
+	uint32_t l1_offset_shift;
+	uint32_t l2_offset_mask;
+	uint32_t l2_offset_shift;
 	uint32_t va_offset_mask;
-	uint32_t L1_base_mask;
-	uint32_t L2_base_mask;
+	uint32_t l1_base_mask;
+	uint32_t l2_base_mask;
 	uint32_t ppn_mask;
 };
 

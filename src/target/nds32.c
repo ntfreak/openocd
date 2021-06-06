@@ -1134,7 +1134,7 @@ static void nds32_init_config(struct nds32 *nds32)
 	misc_config->div_instruction = (value_cr4 >> 5) & 0x1;
 	misc_config->mac_instruction = (value_cr4 >> 6) & 0x1;
 	misc_config->audio_isa = (value_cr4 >> 7) & 0x3;
-	misc_config->L2_cache = (value_cr4 >> 9) & 0x1;
+	misc_config->l2_cache = (value_cr4 >> 9) & 0x1;
 	misc_config->reduce_register = (value_cr4 >> 10) & 0x1;
 	misc_config->addr_24 = (value_cr4 >> 11) & 0x1;
 	misc_config->interruption_level = (value_cr4 >> 12) & 0x1;
