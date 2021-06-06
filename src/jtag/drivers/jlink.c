@@ -1978,13 +1978,13 @@ static int jlink_swd_init(void)
 
 static void jlink_swd_write_reg(uint8_t cmd, uint32_t value, uint32_t ap_delay_clk)
 {
-	assert(!(cmd & SWD_CMD_RnW));
+	assert(!(cmd & SWD_CMD_RNW));
 	jlink_swd_queue_cmd(cmd, NULL, value, ap_delay_clk);
 }
 
 static void jlink_swd_read_reg(uint8_t cmd, uint32_t *value, uint32_t ap_delay_clk)
 {
-	assert(cmd & SWD_CMD_RnW);
+	assert(cmd & SWD_CMD_RNW);
 	jlink_swd_queue_cmd(cmd, value, 0, ap_delay_clk);
 }
 
@@ -2237,7 +2237,7 @@ static void jlink_swd_queue_cmd(uint8_t cmd, uint32_t *dst, uint32_t data, uint3
 
 	pending_scan_results_buffer[pending_scan_results_length].first = tap_length;
 
-	if (cmd & SWD_CMD_RnW) {
+	if (cmd & SWD_CMD_RNW) {
 		/* Queue a read transaction. */
 		pending_scan_results_buffer[pending_scan_results_length].length = 32;
 		pending_scan_results_buffer[pending_scan_results_length].buffer = dst;
@@ -2257,7 +2257,7 @@ static void jlink_swd_queue_cmd(uint8_t cmd, uint32_t *dst, uint32_t data, uint3
 	pending_scan_results_length++;
 
 	/* Insert idle cycles after AP accesses to avoid WAIT. */
-	if (cmd & SWD_CMD_APnDP)
+	if (cmd & SWD_CMD_APNDP)
 		jlink_queue_data_out(NULL, ap_delay_clk);
 }
 

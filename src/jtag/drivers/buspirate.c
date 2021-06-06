@@ -1365,7 +1365,7 @@ static uint8_t buspirate_swd_write_header(uint8_t cmd)
 	tmp[5] = 0x07; /* write mode trn_1 */
 	tmp[6] = 0x07; /* write mode trn_2 */
 
-	to_send = ((cmd & SWD_CMD_RnW) == 0) ? 7 : 5;
+	to_send = ((cmd & SWD_CMD_RNW) == 0) ? 7 : 5;
 	buspirate_serial_write(buspirate_fd, tmp, to_send);
 
 	/* read ack */
@@ -1411,7 +1411,7 @@ static void buspirate_swd_read_reg(uint8_t cmd, uint32_t *value, uint32_t ap_del
 	uint8_t tmp[16];
 
 	LOG_DEBUG("buspirate_swd_read_reg");
-	assert(cmd & SWD_CMD_RnW);
+	assert(cmd & SWD_CMD_RNW);
 
 	if (queued_retval != ERROR_OK) {
 		LOG_DEBUG("Skip buspirate_swd_read_reg because queued_retval=%d", queued_retval);
@@ -1441,8 +1441,8 @@ static void buspirate_swd_read_reg(uint8_t cmd, uint32_t *value, uint32_t ap_del
 
 	LOG_DEBUG("%s %s %s reg %X = %08"PRIx32,
 			ack == SWD_ACK_OK ? "OK" : ack == SWD_ACK_WAIT ? "WAIT" : ack == SWD_ACK_FAULT ? "FAULT" : "JUNK",
-			cmd & SWD_CMD_APnDP ? "AP" : "DP",
-			cmd & SWD_CMD_RnW ? "read" : "write",
+			cmd & SWD_CMD_APNDP ? "AP" : "DP",
+			cmd & SWD_CMD_RNW ? "read" : "write",
 			(cmd & SWD_CMD_A32) >> 1,
 			data);
 
@@ -1455,7 +1455,7 @@ static void buspirate_swd_read_reg(uint8_t cmd, uint32_t *value, uint32_t ap_del
 		}
 		if (value)
 			*value = data;
-		if (cmd & SWD_CMD_APnDP)
+		if (cmd & SWD_CMD_APNDP)
 			buspirate_swd_idle_clocks(ap_delay_clk);
 		return;
 	 case SWD_ACK_WAIT:
@@ -1478,7 +1478,7 @@ static void buspirate_swd_write_reg(uint8_t cmd, uint32_t value, uint32_t ap_del
 	uint8_t tmp[16];
 
 	LOG_DEBUG("buspirate_swd_write_reg");
-	assert(!(cmd & SWD_CMD_RnW));
+	assert(!(cmd & SWD_CMD_RNW));
 
 	if (queued_retval != ERROR_OK) {
 		LOG_DEBUG("Skip buspirate_swd_write_reg because queued_retval=%d", queued_retval);
@@ -1499,14 +1499,14 @@ static void buspirate_swd_write_reg(uint8_t cmd, uint32_t value, uint32_t ap_del
 
 	LOG_DEBUG("%s %s %s reg %X = %08"PRIx32,
 			ack == SWD_ACK_OK ? "OK" : ack == SWD_ACK_WAIT ? "WAIT" : ack == SWD_ACK_FAULT ? "FAULT" : "JUNK",
-			cmd & SWD_CMD_APnDP ? "AP" : "DP",
-			cmd & SWD_CMD_RnW ? "read" : "write",
+			cmd & SWD_CMD_APNDP ? "AP" : "DP",
+			cmd & SWD_CMD_RNW ? "read" : "write",
 			(cmd & SWD_CMD_A32) >> 1,
 			value);
 
 	switch (ack) {
 	 case SWD_ACK_OK:
-		if (cmd & SWD_CMD_APnDP)
+		if (cmd & SWD_CMD_APNDP)
 			buspirate_swd_idle_clocks(ap_delay_clk);
 		return;
 	 case SWD_ACK_WAIT:

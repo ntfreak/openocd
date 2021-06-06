@@ -535,7 +535,7 @@ static void xlnx_pcie_xvc_swd_read_reg(uint8_t cmd, uint32_t *value,
 	uint32_t res, ack, rpar;
 	int err;
 
-	assert(cmd & SWD_CMD_RnW);
+	assert(cmd & SWD_CMD_RNW);
 
 	cmd |= SWD_CMD_START | SWD_CMD_PARK;
 	/* cmd + ack */
@@ -558,8 +558,8 @@ static void xlnx_pcie_xvc_swd_read_reg(uint8_t cmd, uint32_t *value,
 	LOG_DEBUG("%s %s %s reg %X = %08"PRIx32,
 		  ack == SWD_ACK_OK ? "OK" : ack == SWD_ACK_WAIT ?
 		  "WAIT" : ack == SWD_ACK_FAULT ? "FAULT" : "JUNK",
-		  cmd & SWD_CMD_APnDP ? "AP" : "DP",
-		  cmd & SWD_CMD_RnW ? "read" : "write",
+		  cmd & SWD_CMD_APNDP ? "AP" : "DP",
+		  cmd & SWD_CMD_RNW ? "read" : "write",
 		  (cmd & SWD_CMD_A32) >> 1,
 		  res);
 	switch (ack) {
@@ -571,7 +571,7 @@ static void xlnx_pcie_xvc_swd_read_reg(uint8_t cmd, uint32_t *value,
 		}
 		if (value)
 			*value = res;
-		if (cmd & SWD_CMD_APnDP)
+		if (cmd & SWD_CMD_APNDP)
 			err = xlnx_pcie_xvc_transact(ap_delay_clk, 0, 0, NULL);
 		queued_retval = err;
 		return;
@@ -598,7 +598,7 @@ static void xlnx_pcie_xvc_swd_write_reg(uint8_t cmd, uint32_t value,
 	uint32_t res, ack;
 	int err;
 
-	assert(!(cmd & SWD_CMD_RnW));
+	assert(!(cmd & SWD_CMD_RNW));
 
 	cmd |= SWD_CMD_START | SWD_CMD_PARK;
 	/* cmd + trn + ack */
@@ -621,14 +621,14 @@ static void xlnx_pcie_xvc_swd_write_reg(uint8_t cmd, uint32_t value,
 	LOG_DEBUG("%s %s %s reg %X = %08"PRIx32,
 		  ack == SWD_ACK_OK ? "OK" : ack == SWD_ACK_WAIT ?
 		  "WAIT" : ack == SWD_ACK_FAULT ? "FAULT" : "JUNK",
-		  cmd & SWD_CMD_APnDP ? "AP" : "DP",
-		  cmd & SWD_CMD_RnW ? "read" : "write",
+		  cmd & SWD_CMD_APNDP ? "AP" : "DP",
+		  cmd & SWD_CMD_RNW ? "read" : "write",
 		  (cmd & SWD_CMD_A32) >> 1,
 		  value);
 
 	switch (ack) {
 	case SWD_ACK_OK:
-		if (cmd & SWD_CMD_APnDP)
+		if (cmd & SWD_CMD_APNDP)
 			err = xlnx_pcie_xvc_transact(ap_delay_clk, 0, 0, NULL);
 		queued_retval = err;
 		return;

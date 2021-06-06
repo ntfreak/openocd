@@ -24,8 +24,8 @@
  * first bit on the wire is START
  */
 #define SWD_CMD_START	(1 << 0)	/* always set */
-#define SWD_CMD_APnDP	(1 << 1)	/* set only for AP access */
-#define SWD_CMD_RnW	(1 << 2)		/* set only for read access */
+#define SWD_CMD_APNDP	(1 << 1)	/* set only for AP access */
+#define SWD_CMD_RNW	(1 << 2)		/* set only for read access */
 #define SWD_CMD_A32	(3 << 3)		/* bits A[3:2] of register addr */
 #define SWD_CMD_PARITY	(1 << 5)	/* parity of APnDP|RnW|A32 */
 #define SWD_CMD_STOP	(0 << 6)	/* always clear for synch SWD */
@@ -38,8 +38,8 @@
  */
 static inline uint8_t swd_cmd(bool is_read, bool is_ap, uint8_t regnum)
 {
-	uint8_t cmd = (is_ap ? SWD_CMD_APnDP : 0)
-		| (is_read ? SWD_CMD_RnW : 0)
+	uint8_t cmd = (is_ap ? SWD_CMD_APNDP : 0)
+		| (is_read ? SWD_CMD_RNW : 0)
 		| ((regnum & 0xc) << 1);
 
 	/* 8 cmd bits 4:1 may be set */
