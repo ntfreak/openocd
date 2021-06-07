@@ -11263,10 +11263,13 @@ Read memory and return a Tcl list.
 Write a Tcl list of numbers to memory.
 @item @b{mem2array} <@var{varname}> <@var{width}> <@var{addr}> <@var{nelems}>
 
-Read memory and return as a Tcl array for script processing
+Read memory and return as a Tcl array for script processing.
+@emph{This command is deprecated, use @b{read_memory} instead.}
+
 @item @b{array2mem} <@var{varname}> <@var{width}> <@var{addr}> <@var{nelems}>
 
-Convert a Tcl array to memory locations and write the values
+Convert a Tcl array to memory locations and write the values.
+@emph{This command is deprecated, use @b{write_memory} instead.}
 
 @item @b{set_reg} <@var{dict}>
 
