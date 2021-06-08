@@ -46,6 +46,7 @@
 #endif
 
 static struct service *services;
+static bool already_listening;
 
 enum shutdown_reason {
 	CONTINUE_MAIN_LOOP,			/* stay in main event loop */
@@ -205,6 +206,43 @@ static void free_service(struct service *c)
 	free(c);
 }
 
+static int service_tcp_listen(struct service *service)
+{
+	assert(service->type == CONNECTION_TCP);
+
+#ifndef _WIN32
+	int segsize = 65536;
+	setsockopt(service->fd, IPPROTO_TCP, TCP_MAXSEG,  &segsize, sizeof(int));
+#endif
+	int window_size = 128 * 1024;
+
+	/* These setsockopt()s must happen before the listen() */
+	setsockopt(service->fd, SOL_SOCKET, SO_SNDBUF,
+		(char *)&window_size, sizeof(window_size));
+	setsockopt(service->fd, SOL_SOCKET, SO_RCVBUF,
+		(char *)&window_size, sizeof(window_size));
+
+	/* Start listening */
+	if (listen(service->fd, 1) == -1) {
+		LOG_ERROR("couldn't listen for %s connections: %s", service->name, strerror(errno));
+		close_socket(service->fd);
+	}
+
+	/* Inform the user */
+	struct sockaddr_in addr_in;
+	addr_in.sin_port = 0;
+	socklen_t addr_in_size = sizeof(addr_in);
+	if (getsockname(service->fd, (struct sockaddr *)&addr_in, &addr_in_size) == 0) {
+		LOG_INFO("Listening on port %hu for %s connections",
+			 ntohs(addr_in.sin_port),
+			 service->name);
+	} else {
+		LOG_WARNING("getsockname() failed on %s socket", service->name);
+	}
+
+	return ERROR_OK;
+}
+
 int add_service(char *name,
 	const char *port,
 	int max_connections,
@@ -229,6 +267,7 @@ int add_service(char *name,
 	c->connection_closed = connection_closed_handler;
 	c->priv = priv;
 	c->next = NULL;
+
 	long portnumber;
 	if (strcmp(c->port, "pipe") == 0)
 		c->type = CONNECTION_STDINOUT;
@@ -284,32 +323,14 @@ int add_service(char *name,
 			return ERROR_FAIL;
 		}
 
-#ifndef _WIN32
-		int segsize = 65536;
-		setsockopt(c->fd, IPPROTO_TCP, TCP_MAXSEG,  &segsize, sizeof(int));
-#endif
-		int window_size = 128 * 1024;
-
-		/* These setsockopt()s must happen before the listen() */
-
-		setsockopt(c->fd, SOL_SOCKET, SO_SNDBUF,
-			(char *)&window_size, sizeof(window_size));
-		setsockopt(c->fd, SOL_SOCKET, SO_RCVBUF,
-			(char *)&window_size, sizeof(window_size));
-
-		if (listen(c->fd, 1) == -1) {
-			LOG_ERROR("couldn't listen on socket: %s", strerror(errno));
-			close_socket(c->fd);
-			free_service(c);
-			return ERROR_FAIL;
+		/* Only start listening if the server is already running and ready to speak to the clients. */
+		if (already_listening) {
+			if (service_tcp_listen(c) != ERROR_OK) {
+				free_service(c);
+				return ERROR_FAIL;
+			}
 		}
 
-		struct sockaddr_in addr_in;
-		addr_in.sin_port = 0;
-		socklen_t addr_in_size = sizeof(addr_in);
-		if (getsockname(c->fd, (struct sockaddr *)&addr_in, &addr_in_size) == 0)
-			LOG_INFO("Listening on port %hu for %s connections",
-				 ntohs(addr_in.sin_port), name);
 	} else if (c->type == CONNECTION_STDINOUT) {
 		c->fd = fileno(stdin);
 
@@ -346,6 +367,25 @@ int add_service(char *name,
 	for (p = &services; *p; p = &(*p)->next)
 		;
 	*p = c;
+
+	return ERROR_OK;
+}
+
+static int start_listen(void)
+{
+	/* Safety: This is to be called just once when activating server. */
+	assert(!already_listening);
+
+	/* Listen for all TCP services that are already registered. */
+	for (struct service *s = services; s; s = s->next) {
+		if (s->type == CONNECTION_TCP) {
+			if (service_tcp_listen(s) != ERROR_OK)
+				return ERROR_FAIL;
+		}
+	}
+
+	/* Services registered later will listen immediately. */
+	already_listening = true;
 
 	return ERROR_OK;
 }
@@ -441,6 +481,10 @@ int server_loop(struct command_context *command_context)
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
 		LOG_ERROR("couldn't set SIGPIPE to SIG_IGN");
 #endif
+
+	/* Start listening for all services */
+	if (start_listen() != ERROR_OK)
+		shutdown_openocd = SHUTDOWN_WITH_ERROR_CODE;
 
 	while (shutdown_openocd == CONTINUE_MAIN_LOOP) {
 		/* monitor sockets for activity */

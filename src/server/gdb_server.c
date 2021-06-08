@@ -3521,7 +3521,7 @@ static int gdb_target_start(struct target *target, const char *port)
 	if (NULL == gdb_service)
 		return -ENOMEM;
 
-	LOG_INFO("starting gdb server for %s on %s", target_name(target), port);
+	LOG_INFO("starting gdb server for %s on port %s", target_name(target), port);
 
 	gdb_service->target = target;
 	gdb_service->core[0] = -1;
