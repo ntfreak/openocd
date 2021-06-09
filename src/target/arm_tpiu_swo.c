@@ -616,10 +616,8 @@ static int jim_arm_tpiu_swo_enable(Jim_Interp *interp, int argc, Jim_Obj *const 
 	}
 
 	if (obj->pin_protocol == TPIU_SPPR_PROTOCOL_MANCHESTER || obj->pin_protocol == TPIU_SPPR_PROTOCOL_UART)
-		if (!obj->swo_pin_freq) {
-			LOG_ERROR("SWO pin frequency not set");
-			return JIM_ERR;
-		}
+		if (!obj->swo_pin_freq)
+			LOG_DEBUG("SWO pin frequency not set, will be autodetected by the adapter");
 
 	struct target *target = get_current_target(cmd_ctx);
 
@@ -719,6 +717,17 @@ static int jim_arm_tpiu_swo_enable(Jim_Interp *interp, int argc, Jim_Obj *const 
 			arm_tpiu_swo_close_output(obj);
 			return JIM_ERR;
 		}
+
+		if (obj->pin_protocol == TPIU_SPPR_PROTOCOL_MANCHESTER || obj->pin_protocol == TPIU_SPPR_PROTOCOL_UART)
+			if (!swo_pin_freq) {
+				if (obj->swo_pin_freq)
+					LOG_ERROR("Adapter rejected SWO pin frequency %d Hz", obj->swo_pin_freq);
+				else
+					LOG_ERROR("Adapter does not support auto-detection of SWO pin frequency nor a default value");
+
+				arm_tpiu_swo_close_output(obj);
+				return JIM_ERR;
+			}
 
 		if (obj->swo_pin_freq != swo_pin_freq)
 			LOG_INFO("SWO pin data rate adjusted by adapter to %d Hz", swo_pin_freq);
