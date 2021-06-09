@@ -497,12 +497,14 @@ static void telnet_auto_complete(struct connection *connection)
 		char *name = (char *)Jim_GetString(elem, NULL);
 
 		/* validate the command */
+		/* TODO: rename variable with cmd prefix/suffix, because it contains paths as well */
 		bool ignore_cmd = false;
 		Jim_Cmd *jim_cmd = Jim_GetCommand(command_context->interp, elem, JIM_NONE);
 
 		if (!jim_cmd) {
 			/* Why we are here? Let's ignore it! */
-			ignore_cmd = true;
+			/* TODO: maybe the TCL knows better
+			 * ignore_cmd = true; */
 		} else if (jimcmd_is_oocd_command(jim_cmd)) {
 			struct command *cmd = jimcmd_privdata(jim_cmd);
 
@@ -545,16 +547,19 @@ static void telnet_auto_complete(struct connection *connection)
 	/* end of command filtering */
 
 	/* proceed with auto-completion */
-	if (list_empty(&matches))
+	if (list_empty(&matches)) {
 		telnet_bell(connection);
-	else if (common_len == usr_cmd_len && list_is_singular(&matches) && t_con->line_cursor == t_con->line_size)
+	} else if (common_len == usr_cmd_len && list_is_singular(&matches) && t_con->line_cursor == t_con->line_size) {
 		telnet_insert(connection, " ", 1);
-	else if (common_len > usr_cmd_len) {
+	} else if (common_len > usr_cmd_len) {
 		int completion_size = common_len - usr_cmd_len;
 		if (telnet_insert(connection, first_match + usr_cmd_len, completion_size)) {
 			/* in bash this extra space is only added when the cursor in at the end of line */
-			if (list_is_singular(&matches) && t_con->line_cursor == t_con->line_size)
-				telnet_insert(connection, " ", 1);
+			if (list_is_singular(&matches) && t_con->line_cursor == t_con->line_size) {
+				/* do not insert a whitespace if it's a directory */
+				if (first_match[common_len - 1] != '/')
+					telnet_insert(connection, " ", 1);
+			}
 		}
 	} else if (!list_is_singular(&matches)) {
 		telnet_write(connection, "\n\r", 2);
