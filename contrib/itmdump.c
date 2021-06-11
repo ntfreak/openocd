@@ -43,6 +43,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 unsigned int dump_swit;
 
