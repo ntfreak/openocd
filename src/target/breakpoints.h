@@ -39,7 +39,8 @@ struct breakpoint {
 	uint32_t asid;
 	int length;
 	enum breakpoint_type type;
-	int set;
+	bool set;
+	unsigned int number;
 	uint8_t *orig_instr;
 	struct breakpoint *next;
 	uint32_t unique_id;
@@ -52,7 +53,8 @@ struct watchpoint {
 	uint32_t mask;
 	uint32_t value;
 	enum watchpoint_rw rw;
-	int set;
+	bool set;
+	unsigned int number;
 	struct watchpoint *next;
 	int unique_id;
 };

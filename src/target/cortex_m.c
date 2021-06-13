@@ -1287,7 +1287,7 @@ int cortex_m_set_breakpoint(struct target *target, struct breakpoint *breakpoint
 			LOG_ERROR("Can not find free FPB Comparator!");
 			return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 		}
-		breakpoint->set = fp_num + 1;
+		breakpoint->number = fp_num;
 		fpcr_value = breakpoint->address | 1;
 		if (cortex_m->fp_rev == 0) {
 			if (breakpoint->address > 0x1FFFFFFF) {
@@ -1341,12 +1341,12 @@ int cortex_m_set_breakpoint(struct target *target, struct breakpoint *breakpoint
 		breakpoint->set = true;
 	}
 
-	LOG_DEBUG("BPID: %" PRIu32 ", Type: %d, Address: " TARGET_ADDR_FMT " Length: %d (set=%d)",
+	LOG_DEBUG("BPID: %" PRIu32 ", Type: %d, Address: " TARGET_ADDR_FMT " Length: %d (set=%u)",
 		breakpoint->unique_id,
 		(int)(breakpoint->type),
 		breakpoint->address,
 		breakpoint->length,
-		breakpoint->set);
+		breakpoint->number);
 
 	return ERROR_OK;
 }
@@ -1357,20 +1357,20 @@ int cortex_m_unset_breakpoint(struct target *target, struct breakpoint *breakpoi
 	struct cortex_m_common *cortex_m = target_to_cm(target);
 	struct cortex_m_fp_comparator *comparator_list = cortex_m->fp_comparator_list;
 
-	if (breakpoint->set <= 0) {
+	if (!breakpoint->set) {
 		LOG_WARNING("breakpoint not set");
 		return ERROR_OK;
 	}
 
-	LOG_DEBUG("BPID: %" PRIu32 ", Type: %d, Address: " TARGET_ADDR_FMT " Length: %d (set=%d)",
+	LOG_DEBUG("BPID: %" PRIu32 ", Type: %d, Address: " TARGET_ADDR_FMT " Length: %d (set=%u)",
 		breakpoint->unique_id,
 		(int)(breakpoint->type),
 		breakpoint->address,
 		breakpoint->length,
-		breakpoint->set);
+		breakpoint->number);
 
 	if (breakpoint->type == BKPT_HARD) {
-		unsigned int fp_num = breakpoint->set - 1;
+		const unsigned int fp_num = breakpoint->number;
 		if (fp_num >= cortex_m->fp_num_code) {
 			LOG_DEBUG("Invalid FP Comparator number in breakpoint");
 			return ERROR_OK;
@@ -1436,7 +1436,8 @@ static int cortex_m_set_watchpoint(struct target *target, struct watchpoint *wat
 		return ERROR_FAIL;
 	}
 	comparator->used = true;
-	watchpoint->set = dwt_num + 1;
+	watchpoint->set = true;
+	watchpoint->number = dwt_num;
 
 	comparator->comp = watchpoint->address;
 	target_write_u32(target, comparator->dwt_comparator_address + 0,
@@ -1503,15 +1504,15 @@ static int cortex_m_unset_watchpoint(struct target *target, struct watchpoint *w
 	struct cortex_m_common *cortex_m = target_to_cm(target);
 	struct cortex_m_dwt_comparator *comparator;
 
-	if (watchpoint->set <= 0) {
+	if (!watchpoint->set) {
 		LOG_WARNING("watchpoint (wpid: %d) not set",
 			watchpoint->unique_id);
 		return ERROR_OK;
 	}
 
-	unsigned int dwt_num = watchpoint->set - 1;
+	const unsigned int dwt_num = watchpoint->number;
 
-	LOG_DEBUG("Watchpoint (ID %d) DWT%d address: 0x%08x clear",
+	LOG_DEBUG("Watchpoint (ID %d) DWT%u address: 0x%08x clear",
 		watchpoint->unique_id, dwt_num,
 		(unsigned) watchpoint->address);
 
@@ -1610,7 +1611,7 @@ int cortex_m_hit_watchpoint(struct target *target, struct watchpoint **hit_watch
 		if (!wp->set)
 			continue;
 
-		unsigned int dwt_num = wp->set - 1;
+		const unsigned int dwt_num = wp->number;
 		struct cortex_m_dwt_comparator *comparator = cortex_m->dwt_comparator_list + dwt_num;
 
 		uint32_t dwt_function;
