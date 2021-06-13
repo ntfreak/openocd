@@ -1660,7 +1660,7 @@ int nds32_init_arch_info(struct target *target, struct nds32 *nds32)
 	nds32->syscall_break.orig_instr = NULL;
 	nds32->syscall_break.next = NULL;
 	nds32->syscall_break.unique_id = 0x515CAll + target->target_number;
-	nds32->syscall_break.linked_BRP = 0;
+	nds32->syscall_break.linked_brp = 0;
 
 	nds32_reg_init();
 

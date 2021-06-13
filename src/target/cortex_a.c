@@ -1444,7 +1444,7 @@ static int cortex_a_set_hybrid_breakpoint(struct target *target, struct breakpoi
 	}
 
 	breakpoint->set = brp_1 + 1;
-	breakpoint->linked_BRP = brp_2;
+	breakpoint->linked_brp = brp_2;
 	control_CTX = ((CTX_machmode & 0x7) << 20)
 		| (brp_2 << 16)
 		| (0 << 14)
@@ -1500,7 +1500,7 @@ static int cortex_a_unset_breakpoint(struct target *target, struct breakpoint *b
 	if (breakpoint->type == BKPT_HARD) {
 		if ((breakpoint->address != 0) && (breakpoint->asid != 0)) {
 			int brp_i = breakpoint->set - 1;
-			int brp_j = breakpoint->linked_BRP;
+			int brp_j = breakpoint->linked_brp;
 			if ((brp_i < 0) || (brp_i >= cortex_a->brp_num)) {
 				LOG_DEBUG("Invalid BRP number in breakpoint");
 				return ERROR_OK;
@@ -1539,7 +1539,7 @@ static int cortex_a_unset_breakpoint(struct target *target, struct breakpoint *b
 					brp_list[brp_j].value);
 			if (retval != ERROR_OK)
 				return retval;
-			breakpoint->linked_BRP = 0;
+			breakpoint->linked_brp = 0;
 			breakpoint->set = 0;
 			return ERROR_OK;
 

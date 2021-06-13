@@ -43,7 +43,7 @@ struct breakpoint {
 	uint8_t *orig_instr;
 	struct breakpoint *next;
 	uint32_t unique_id;
-	int linked_BRP;
+	int linked_brp;
 };
 
 struct watchpoint {
