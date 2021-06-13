@@ -346,7 +346,7 @@ static int mips_mips64_set_breakpoint(struct target *target,
 {
 	int retval;
 
-	if (bp->set) {
+	if (bp->is_set) {
 		LOG_WARNING("breakpoint already set");
 		return ERROR_OK;
 	}
@@ -373,7 +373,7 @@ static int mips_mips64_set_breakpoint(struct target *target,
 		return retval;
 	}
 
-	bp->set = true;
+	bp->is_set = true;
 
 	return ERROR_OK;
 }
@@ -385,7 +385,7 @@ static int mips_mips64_enable_breakpoints(struct target *target)
 
 	/* set any pending breakpoints */
 	while (bp) {
-		if (!bp->set) {
+		if (!bp->is_set) {
 			retval = mips_mips64_set_breakpoint(target, bp);
 			if (retval != ERROR_OK)
 				return retval;
@@ -413,7 +413,7 @@ static int mips_mips64_set_watchpoint(struct target *target,
 	int enable = EJTAG_DBCn_NOSB | EJTAG_DBCn_NOLB | EJTAG_DBCn_BE
 		| (0xff << EJTAG_DBCn_BLM_SHIFT);
 
-	if (watchpoint->set) {
+	if (watchpoint->is_set) {
 		LOG_WARNING("watchpoint already set");
 		return ERROR_OK;
 	}
@@ -451,7 +451,7 @@ static int mips_mips64_set_watchpoint(struct target *target,
 	}
 
 	c = &cl[wp_num];
-	watchpoint->set = wp_num + 1;
+	watchpoint->number = wp_num;
 	c->used = true;
 	c->bp_value = watchpoint->address;
 
@@ -491,7 +491,7 @@ static int mips_mips64_enable_watchpoints(struct target *target)
 
 	/* set any pending watchpoints */
 	while (watchpoint) {
-		if (watchpoint->set == 0) {
+		if (!watchpoint->is_set) {
 			retval = mips_mips64_set_watchpoint(target, watchpoint);
 			if (retval != ERROR_OK)
 				return retval;
@@ -506,11 +506,10 @@ static int mips_mips64_unset_hwbp(struct target *target, struct breakpoint *bp)
 {
 	struct mips64_common *mips64 = target->arch_info;
 	struct mips64_comparator *comparator_list = mips64->inst_break_list;
-	int bp_num;
 
-	bp_num = bp->set - 1;
+	const int bp_num = bp->number;
 
-	if ((bp_num < 0) || (bp_num >= mips64->num_inst_bpoints)) {
+	if (bp_num >= mips64->num_inst_bpoints) {
 		LOG_DEBUG("Invalid FP Comparator number in breakpoint (bpid: %" PRIu32 ")",
 			  bp->unique_id);
 		return ERROR_OK;
@@ -568,7 +567,7 @@ static int mips_mips64_unset_breakpoint(struct target *target,
 	/* get pointers to arch-specific information */
 	int retval;
 
-	if (!bp->set) {
+	if (!bp->is_set) {
 		LOG_WARNING("breakpoint not set");
 		return ERROR_OK;
 	}
@@ -594,7 +593,7 @@ static int mips_mips64_unset_breakpoint(struct target *target,
 		return retval;
 	}
 
-	bp->set = false;
+	bp->is_set = false;
 
 	return ERROR_OK;
 }
@@ -815,7 +814,7 @@ static int mips_mips64_remove_breakpoint(struct target *target,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (bp->set)
+	if (bp->is_set)
 		retval = mips_mips64_unset_breakpoint(target, bp);
 
 	if (bp->type == BKPT_HARD)
@@ -831,20 +830,20 @@ static int mips_mips64_unset_watchpoint(struct target *target,
 	struct mips64_common *mips64 = target->arch_info;
 	struct mips64_comparator *comparator_list = mips64->data_break_list;
 
-	if (!watchpoint->set) {
+	if (!watchpoint->is_set) {
 		LOG_WARNING("watchpoint not set");
 		return ERROR_OK;
 	}
 
-	int wp_num = watchpoint->set - 1;
-	if ((wp_num < 0) || (wp_num >= mips64->num_data_bpoints)) {
+	const int wp_num = watchpoint->number;
+	if (wp_num >= mips64->num_data_bpoints) {
 		LOG_DEBUG("Invalid FP Comparator number in watchpoint");
 		return ERROR_OK;
 	}
 	comparator_list[wp_num].used = false;
 	comparator_list[wp_num].bp_value = 0;
 	target_write_u64(target, comparator_list[wp_num].reg_address + 0x18, 0);
-	watchpoint->set = 0;
+	watchpoint->is_set = false;
 
 	return ERROR_OK;
 }
@@ -876,7 +875,7 @@ static int mips_mips64_remove_watchpoint(struct target *target,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (watchpoint->set)
+	if (watchpoint->is_set)
 		retval = mips_mips64_unset_watchpoint(target, watchpoint);
 
 	mips64->num_data_bpoints_avail++;

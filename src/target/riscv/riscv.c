@@ -733,7 +733,7 @@ int riscv_add_breakpoint(struct target *target, struct breakpoint *breakpoint)
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 	}
 
-	breakpoint->set = true;
+	breakpoint->is_set = true;
 	return ERROR_OK;
 }
 
@@ -806,7 +806,7 @@ int riscv_remove_breakpoint(struct target *target,
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 	}
 
-	breakpoint->set = false;
+	breakpoint->is_set = false;
 
 	return ERROR_OK;
 }
@@ -833,7 +833,7 @@ int riscv_add_watchpoint(struct target *target, struct watchpoint *watchpoint)
 	int result = add_trigger(target, &trigger);
 	if (result != ERROR_OK)
 		return result;
-	watchpoint->set = true;
+	watchpoint->is_set = true;
 
 	return ERROR_OK;
 }
@@ -849,7 +849,7 @@ int riscv_remove_watchpoint(struct target *target,
 	int result = remove_trigger(target, &trigger);
 	if (result != ERROR_OK)
 		return result;
-	watchpoint->set = false;
+	watchpoint->is_set = false;
 
 	return ERROR_OK;
 }
@@ -1197,9 +1197,9 @@ static int disable_triggers(struct target *target, riscv_reg_t *state)
 		struct watchpoint *watchpoint = target->watchpoints;
 		int i = 0;
 		while (watchpoint) {
-			LOG_DEBUG("watchpoint %d: set=%d", i, watchpoint->set);
-			state[i] = watchpoint->set;
-			if (watchpoint->set) {
+			LOG_DEBUG("watchpoint %d: set=%d", i, watchpoint->is_set);
+			state[i] = watchpoint->is_set;
+			if (watchpoint->is_set) {
 				if (riscv_remove_watchpoint(target, watchpoint) != ERROR_OK)
 					return ERROR_FAIL;
 			}

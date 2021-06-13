@@ -818,7 +818,7 @@ fail:
  * or running debugger code.
  */
 static int dpmv8_maybe_update_bpwp(struct arm_dpm *dpm, bool bpwp,
-	struct dpm_bpwp *xp, int *set_p)
+	struct dpm_bpwp *xp, bool *set_p)
 {
 	int retval = ERROR_OK;
 	bool disable;
@@ -892,7 +892,7 @@ int armv8_dpm_write_dirty_registers(struct arm_dpm *dpm, bool bpwp)
 			struct breakpoint *bp = dbp->bp;
 
 			retval = dpmv8_maybe_update_bpwp(dpm, bpwp, &dbp->bpwp,
-					bp ? &bp->set : NULL);
+					bp ? &bp->is_set : NULL);
 			if (retval != ERROR_OK)
 				goto done;
 		}
@@ -904,7 +904,7 @@ int armv8_dpm_write_dirty_registers(struct arm_dpm *dpm, bool bpwp)
 		struct watchpoint *wp = dwp->wp;
 
 		retval = dpmv8_maybe_update_bpwp(dpm, bpwp, &dwp->bpwp,
-				wp ? &wp->set : NULL);
+				wp ? &wp->is_set : NULL);
 		if (retval != ERROR_OK)
 			goto done;
 	}

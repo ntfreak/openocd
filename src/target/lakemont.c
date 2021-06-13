@@ -1024,10 +1024,10 @@ int lakemont_resume(struct target *t, int current, target_addr_t address,
 
 		/* if breakpoints are enabled, we need to redirect these into probe mode */
 		struct breakpoint *activeswbp = t->breakpoints;
-		while (activeswbp != NULL && activeswbp->set == 0)
+		while (activeswbp != NULL && !activeswbp->is_set)
 			activeswbp = activeswbp->next;
 		struct watchpoint *activehwbp = t->watchpoints;
-		while (activehwbp != NULL && activehwbp->set == 0)
+		while (activehwbp != NULL && !activehwbp->is_set)
 			activehwbp = activehwbp->next;
 		if (activeswbp != NULL || activehwbp != NULL)
 			buf_set_u32(x86_32->cache->reg_list[PMCR].value, 0, 32, 1);
