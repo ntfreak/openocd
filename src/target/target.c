@@ -3932,26 +3932,26 @@ static int handle_bp_command_list(struct command_invocation *cmd)
 		if (breakpoint->type == BKPT_SOFT) {
 			char *buf = buf_to_hex_str(breakpoint->orig_instr,
 					breakpoint->length);
-			command_print(cmd, "IVA breakpoint: " TARGET_ADDR_FMT ", 0x%x, %i, 0x%s",
+			command_print(cmd, "IVA breakpoint: " TARGET_ADDR_FMT ", 0x%x, %u, 0x%s",
 					breakpoint->address,
 					breakpoint->length,
-					breakpoint->set, buf);
+					breakpoint->number, buf);
 			free(buf);
 		} else {
 			if ((breakpoint->address == 0) && (breakpoint->asid != 0))
-				command_print(cmd, "Context breakpoint: 0x%8.8" PRIx32 ", 0x%x, %i",
+				command_print(cmd, "Context breakpoint: 0x%8.8" PRIx32 ", 0x%x, %u",
 							breakpoint->asid,
-							breakpoint->length, breakpoint->set);
+							breakpoint->length, breakpoint->number);
 			else if ((breakpoint->address != 0) && (breakpoint->asid != 0)) {
-				command_print(cmd, "Hybrid breakpoint(IVA): " TARGET_ADDR_FMT ", 0x%x, %i",
+				command_print(cmd, "Hybrid breakpoint(IVA): " TARGET_ADDR_FMT ", 0x%x, %u",
 							breakpoint->address,
-							breakpoint->length, breakpoint->set);
+							breakpoint->length, breakpoint->number);
 				command_print(cmd, "\t|--->linked with ContextID: 0x%8.8" PRIx32,
 							breakpoint->asid);
 			} else
-				command_print(cmd, "Breakpoint(IVA): " TARGET_ADDR_FMT ", 0x%x, %i",
+				command_print(cmd, "Breakpoint(IVA): " TARGET_ADDR_FMT ", 0x%x, %u",
 							breakpoint->address,
-							breakpoint->length, breakpoint->set);
+							breakpoint->length, breakpoint->number);
 		}
 
 		breakpoint = breakpoint->next;

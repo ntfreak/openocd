@@ -1087,7 +1087,7 @@ static void xscale_enable_watchpoints(struct target *target)
 	struct watchpoint *watchpoint = target->watchpoints;
 
 	while (watchpoint) {
-		if (watchpoint->set == 0)
+		if (!watchpoint->set)
 			xscale_set_watchpoint(target, watchpoint);
 		watchpoint = watchpoint->next;
 	}
@@ -1099,7 +1099,7 @@ static void xscale_enable_breakpoints(struct target *target)
 
 	/* set any pending breakpoints */
 	while (breakpoint) {
-		if (breakpoint->set == 0)
+		if (!breakpoint->set)
 			xscale_set_breakpoint(target, breakpoint);
 		breakpoint = breakpoint->next;
 	}
@@ -1506,7 +1506,7 @@ static int xscale_deassert_reset(struct target *target)
 	/* mark all hardware breakpoints as unset */
 	while (breakpoint) {
 		if (breakpoint->type == BKPT_HARD)
-			breakpoint->set = 0;
+			breakpoint->set = false;
 		breakpoint = breakpoint->next;
 	}
 
@@ -2098,11 +2098,13 @@ static int xscale_set_breakpoint(struct target *target,
 		if (!xscale->ibcr0_used) {
 			xscale_set_reg_u32(&xscale->reg_cache->reg_list[XSCALE_IBCR0], value);
 			xscale->ibcr0_used = 1;
-			breakpoint->set = 1;	/* breakpoint set on first breakpoint register */
+			breakpoint->set = true;
+			breakpoint->number = 1;	/* breakpoint set on first breakpoint register */
 		} else if (!xscale->ibcr1_used) {
 			xscale_set_reg_u32(&xscale->reg_cache->reg_list[XSCALE_IBCR1], value);
 			xscale->ibcr1_used = 1;
-			breakpoint->set = 2;	/* breakpoint set on second breakpoint register */
+			breakpoint->set = true;
+			breakpoint->number = 2;	/* breakpoint set on second breakpoint register */
 		} else {/* bug: availability previously verified in xscale_add_breakpoint() */
 			LOG_ERROR("BUG: no hardware comparator available");
 			return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
@@ -2133,7 +2135,7 @@ static int xscale_set_breakpoint(struct target *target,
 			if (retval != ERROR_OK)
 				return retval;
 		}
-		breakpoint->set = 1;
+		breakpoint->set = true;
 
 		xscale_send_u32(target, 0x50);	/* clean dcache */
 		xscale_send_u32(target, xscale->cache_clean_address);
@@ -2182,14 +2184,14 @@ static int xscale_unset_breakpoint(struct target *target,
 	}
 
 	if (breakpoint->type == BKPT_HARD) {
-		if (breakpoint->set == 1) {
+		if (breakpoint->number == 1) {
 			xscale_set_reg_u32(&xscale->reg_cache->reg_list[XSCALE_IBCR0], 0x0);
 			xscale->ibcr0_used = 0;
-		} else if (breakpoint->set == 2) {
+		} else if (breakpoint->number == 2) {
 			xscale_set_reg_u32(&xscale->reg_cache->reg_list[XSCALE_IBCR1], 0x0);
 			xscale->ibcr1_used = 0;
 		}
-		breakpoint->set = 0;
+		breakpoint->set = false;
 	} else {
 		/* restore original instruction (kept in target endianness) */
 		if (breakpoint->length == 4) {
@@ -2203,7 +2205,7 @@ static int xscale_unset_breakpoint(struct target *target,
 			if (retval != ERROR_OK)
 				return retval;
 		}
-		breakpoint->set = 0;
+		breakpoint->set = false;
 
 		xscale_send_u32(target, 0x50);	/* clean dcache */
 		xscale_send_u32(target, xscale->cache_clean_address);
@@ -2279,13 +2281,15 @@ static int xscale_set_watchpoint(struct target *target,
 		xscale_set_reg_u32(&xscale->reg_cache->reg_list[XSCALE_DBR0], watchpoint->address);
 		dbcon_value |= enable;
 		xscale_set_reg_u32(dbcon, dbcon_value);
-		watchpoint->set = 1;
+		watchpoint->set = true;
+		watchpoint->number = 1;
 		xscale->dbr0_used = 1;
 	} else if (!xscale->dbr1_used) {
 		xscale_set_reg_u32(&xscale->reg_cache->reg_list[XSCALE_DBR1], watchpoint->address);
 		dbcon_value |= enable << 2;
 		xscale_set_reg_u32(dbcon, dbcon_value);
-		watchpoint->set = 2;
+		watchpoint->set = true;
+		watchpoint->number = 2;
 		xscale->dbr1_used = 1;
 	} else {
 		LOG_ERROR("BUG: no hardware comparator available");
@@ -2354,7 +2358,7 @@ static int xscale_unset_watchpoint(struct target *target,
 		return ERROR_OK;
 	}
 
-	if (watchpoint->set == 1) {
+	if (watchpoint->number == 1) {
 		if (watchpoint->length > 4) {
 			dbcon_value &= ~0x103;	/* clear DBCON[M] as well */
 			xscale->dbr1_used = 0;	/* DBR1 was used for mask */
@@ -2363,12 +2367,12 @@ static int xscale_unset_watchpoint(struct target *target,
 
 		xscale_set_reg_u32(dbcon, dbcon_value);
 		xscale->dbr0_used = 0;
-	} else if (watchpoint->set == 2) {
+	} else if (watchpoint->number == 2) {
 		dbcon_value &= ~0xc;
 		xscale_set_reg_u32(dbcon, dbcon_value);
 		xscale->dbr1_used = 0;
 	}
-	watchpoint->set = 0;
+	watchpoint->set = false;
 
 	return ERROR_OK;
 }
