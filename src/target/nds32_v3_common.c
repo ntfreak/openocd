@@ -83,7 +83,7 @@ static int nds32_v3_debug_entry(struct nds32 *nds32, bool enable_watchpoint)
 
 			/* remove breakpoint at syscall entry */
 			target_remove_breakpoint(nds32->target, syscall_break);
-			syscall_break->set = 0;
+			syscall_break->set = false;
 
 			uint32_t value_pc;
 			nds32_get_mapped_reg(nds32, PC, &value_pc);
@@ -209,7 +209,8 @@ static int nds32_v3_leave_debug_state(struct nds32 *nds32, bool enable_watchpoin
 
 		syscall_break->address = syscall_address;
 		syscall_break->type = BKPT_SOFT;
-		syscall_break->set = 1;
+		syscall_break->set = true;
+		syscall_break->number = 0;
 		target_add_breakpoint(target, syscall_break);
 	}
 

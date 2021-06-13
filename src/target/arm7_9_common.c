@@ -93,19 +93,22 @@ static void arm7_9_assign_wp(struct arm7_9_common *arm7_9, struct breakpoint *br
 {
 	if (!arm7_9->wp0_used) {
 		arm7_9->wp0_used = 1;
-		breakpoint->set = 1;
+		breakpoint->set = true;
+		breakpoint->number = 1;
 		arm7_9->wp_available--;
 	} else if (!arm7_9->wp1_used) {
 		arm7_9->wp1_used = 1;
-		breakpoint->set = 2;
+		breakpoint->set = true;
+		breakpoint->number = 2;
 		arm7_9->wp_available--;
-	} else
+	} else {
 		LOG_ERROR("BUG: no hardware comparator available");
+	}
 
-	LOG_DEBUG("BPID: %" PRIu32 " (0x%08" TARGET_PRIxADDR ") using hw wp: %d",
+	LOG_DEBUG("BPID: %" PRIu32 " (0x%08" TARGET_PRIxADDR ") using hw wp: %u",
 			breakpoint->unique_id,
 			breakpoint->address,
-			breakpoint->set);
+			breakpoint->number);
 }
 
 /**
@@ -203,16 +206,16 @@ static int arm7_9_set_breakpoint(struct target *target, struct breakpoint *break
 		uint32_t mask = (breakpoint->length == 4) ? 0x3u : 0x1u;
 
 		/* reassign a hw breakpoint */
-		if (breakpoint->set == 0)
+		if (!breakpoint->set)
 			arm7_9_assign_wp(arm7_9, breakpoint);
 
-		if (breakpoint->set == 1) {
+		if (breakpoint->number == 1) {
 			embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W0_ADDR_VALUE], breakpoint->address);
 			embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W0_ADDR_MASK], mask);
 			embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W0_DATA_MASK], 0xffffffffu);
 			embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W0_CONTROL_MASK], ~EICE_W_CTRL_nOPC & 0xff);
 			embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W0_CONTROL_VALUE], EICE_W_CTRL_ENABLE);
-		} else if (breakpoint->set == 2) {
+		} else if (breakpoint->number == 2) {
 			embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W1_ADDR_VALUE], breakpoint->address);
 			embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W1_ADDR_MASK], mask);
 			embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W1_DATA_MASK], 0xffffffffu);
@@ -277,7 +280,8 @@ static int arm7_9_set_breakpoint(struct target *target, struct breakpoint *break
 
 		arm7_9->sw_breakpoint_count++;
 
-		breakpoint->set = 1;
+		breakpoint->set = true;
+		breakpoint->number = 1;
 	}
 
 	return retval;
@@ -313,17 +317,17 @@ static int arm7_9_unset_breakpoint(struct target *target, struct breakpoint *bre
 		LOG_DEBUG("BPID: %" PRIu32 " Releasing hw wp: %d",
 			breakpoint->unique_id,
 			breakpoint->set);
-		if (breakpoint->set == 1) {
+		if (breakpoint->number == 1) {
 			embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W0_CONTROL_VALUE], 0x0);
 			arm7_9->wp0_used = 0;
 			arm7_9->wp_available++;
-		} else if (breakpoint->set == 2) {
+		} else if (breakpoint->number == 2) {
 			embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W1_CONTROL_VALUE], 0x0);
 			arm7_9->wp1_used = 0;
 			arm7_9->wp_available++;
 		}
 		retval = jtag_execute_queue();
-		breakpoint->set = 0;
+		breakpoint->set = false;
 	} else {
 		/* restore original instruction (kept in target endianness) */
 		if (breakpoint->length == 4) {
@@ -368,7 +372,7 @@ static int arm7_9_unset_breakpoint(struct target *target, struct breakpoint *bre
 						EICE_W1_CONTROL_VALUE], 0);
 		}
 
-		breakpoint->set = 0;
+		breakpoint->set = false;
 	}
 
 	return retval;
@@ -491,7 +495,8 @@ static int arm7_9_set_watchpoint(struct target *target, struct watchpoint *watch
 		retval = jtag_execute_queue();
 		if (retval != ERROR_OK)
 			return retval;
-		watchpoint->set = 1;
+		watchpoint->set = true;
+		watchpoint->number = 1;
 		arm7_9->wp0_used = 2;
 	} else if (!arm7_9->wp1_used) {
 		embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W1_ADDR_VALUE],
@@ -510,7 +515,8 @@ static int arm7_9_set_watchpoint(struct target *target, struct watchpoint *watch
 		retval = jtag_execute_queue();
 		if (retval != ERROR_OK)
 			return retval;
-		watchpoint->set = 2;
+		watchpoint->set = true;
+		watchpoint->number = 2;
 		arm7_9->wp1_used = 2;
 	} else {
 		LOG_ERROR("BUG: no hardware comparator available");
@@ -543,20 +549,20 @@ static int arm7_9_unset_watchpoint(struct target *target, struct watchpoint *wat
 		return ERROR_OK;
 	}
 
-	if (watchpoint->set == 1) {
+	if (watchpoint->number == 1) {
 		embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W0_CONTROL_VALUE], 0x0);
 		retval = jtag_execute_queue();
 		if (retval != ERROR_OK)
 			return retval;
 		arm7_9->wp0_used = 0;
-	} else if (watchpoint->set == 2) {
+	} else if (watchpoint->number == 2) {
 		embeddedice_set_reg(&arm7_9->eice_cache->reg_list[EICE_W1_CONTROL_VALUE], 0x0);
 		retval = jtag_execute_queue();
 		if (retval != ERROR_OK)
 			return retval;
 		arm7_9->wp1_used = 0;
 	}
-	watchpoint->set = 0;
+	watchpoint->set = false;
 
 	return ERROR_OK;
 }
@@ -1684,7 +1690,7 @@ static void arm7_9_enable_watchpoints(struct target *target)
 	struct watchpoint *watchpoint = target->watchpoints;
 
 	while (watchpoint) {
-		if (watchpoint->set == 0)
+		if (!watchpoint->set)
 			arm7_9_set_watchpoint(target, watchpoint);
 		watchpoint = watchpoint->next;
 	}

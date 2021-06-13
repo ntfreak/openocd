@@ -995,7 +995,8 @@ static int set_hwbp(struct target *t, struct breakpoint *bp)
 	}
 	if (set_debug_regs(t, bp->address, hwbp_num, DR7_BP_EXECUTE, 1) != ERROR_OK)
 		return ERROR_FAIL;
-	bp->set = hwbp_num + 1;
+	bp->set = true;
+	bp->number = hwbp_num;
 	debug_reg_list[hwbp_num].used = 1;
 	debug_reg_list[hwbp_num].bp_value = bp->address;
 	LOG_USER("%s hardware breakpoint %" PRIu32 " set at 0x%08" PRIx32 " (hwreg=%" PRIu8 ")", __func__,
@@ -1007,7 +1008,7 @@ static int unset_hwbp(struct target *t, struct breakpoint *bp)
 {
 	struct x86_32_common *x86_32 = target_to_x86_32(t);
 	struct x86_32_dbg_reg *debug_reg_list = x86_32->hw_break_list;
-	int hwbp_num = bp->set - 1;
+	const int hwbp_num = bp->number;
 
 	if ((hwbp_num < 0) || (hwbp_num >= x86_32->num_hw_bpoints)) {
 		LOG_ERROR("%s invalid breakpoint number=%d, bpid=%" PRIu32,
@@ -1055,7 +1056,7 @@ static int set_swbp(struct target *t, struct breakpoint *bp)
 				__func__, readback, *bp->orig_instr);
 		return ERROR_FAIL;
 	}
-	bp->set = SW_BP_OPCODE; /* just non 0 */
+	bp->set = true;
 
 	/* add the memory patch */
 	struct swbp_mem_patch *new_patch = malloc(sizeof(struct swbp_mem_patch));
@@ -1182,7 +1183,7 @@ static int unset_breakpoint(struct target *t, struct breakpoint *bp)
 			return ERROR_FAIL;
 		}
 	}
-	bp->set = 0;
+	bp->set = false;
 	return ERROR_OK;
 }
 
@@ -1233,7 +1234,7 @@ static int set_watchpoint(struct target *t, struct watchpoint *wp)
 			LOG_ERROR("%s only 'access' or 'write' watchpoints are supported", __func__);
 			break;
 	}
-	wp->set = wp_num + 1;
+	wp->number = wp_num;
 	debug_reg_list[wp_num].used = 1;
 	debug_reg_list[wp_num].bp_value = wp->address;
 	LOG_USER("'%s' watchpoint %d set at " TARGET_ADDR_FMT " with length %" PRIu32 " (hwreg=%d)",
@@ -1253,7 +1254,7 @@ static int unset_watchpoint(struct target *t, struct watchpoint *wp)
 		return ERROR_OK;
 	}
 
-	int wp_num = wp->set - 1;
+	const int wp_num = wp->number;
 	if ((wp_num < 0) || (wp_num >= x86_32->num_hw_bpoints)) {
 		LOG_DEBUG("Invalid FP Comparator number in watchpoint");
 		return ERROR_OK;
@@ -1263,7 +1264,7 @@ static int unset_watchpoint(struct target *t, struct watchpoint *wp)
 
 	debug_reg_list[wp_num].used = 0;
 	debug_reg_list[wp_num].bp_value = 0;
-	wp->set = 0;
+	wp->set = false;
 
 	LOG_USER("'%s' watchpoint %d removed from " TARGET_ADDR_FMT " with length %" PRIu32 " (hwreg=%d)",
 			wp->rw == WPT_READ ? "read" : wp->rw == WPT_WRITE ?
