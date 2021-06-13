@@ -1500,7 +1500,7 @@ static int arc_configure_actionpoint(struct target *target, uint32_t ap_num,
 static int arc_set_breakpoint(struct target *target,
 		struct breakpoint *breakpoint)
 {
-	if (breakpoint->set) {
+	if (breakpoint->is_set) {
 		LOG_WARNING("breakpoint already set");
 		return ERROR_OK;
 	}
@@ -1542,7 +1542,7 @@ static int arc_set_breakpoint(struct target *target,
 			return ERROR_COMMAND_ARGUMENT_INVALID;
 		}
 
-		breakpoint->set = 64; /* Any nice value but 0 */
+		breakpoint->is_set = true;
 	} else if (breakpoint->type == BKPT_HARD) {
 		struct arc_common *arc = target_to_arc(target);
 		struct arc_actionpoint *ap_list = arc->actionpoints_list;
@@ -1563,7 +1563,8 @@ static int arc_set_breakpoint(struct target *target,
 				breakpoint->address, AP_AC_TT_READWRITE, AP_AC_AT_INST_ADDR);
 
 		if (retval == ERROR_OK) {
-			breakpoint->set = bp_num + 1;
+			breakpoint->is_set = true;
+			breakpoint->number = bp_num;
 			ap_list[bp_num].used = 1;
 			ap_list[bp_num].bp_value = breakpoint->address;
 			ap_list[bp_num].type = ARC_AP_BREAKPOINT;
@@ -1588,7 +1589,7 @@ static int arc_unset_breakpoint(struct target *target,
 {
 	int retval = ERROR_OK;
 
-	if (!breakpoint->set) {
+	if (!breakpoint->is_set) {
 		LOG_WARNING("breakpoint not set");
 		return ERROR_OK;
 	}
@@ -1633,14 +1634,14 @@ static int arc_unset_breakpoint(struct target *target,
 			LOG_ERROR("Invalid breakpoint length: target supports only 2 or 4");
 			return ERROR_COMMAND_ARGUMENT_INVALID;
 		}
-		breakpoint->set = 0;
+		breakpoint->is_set = false;
 
 	}	else if (breakpoint->type == BKPT_HARD) {
 		struct arc_common *arc = target_to_arc(target);
 		struct arc_actionpoint *ap_list = arc->actionpoints_list;
-		unsigned int bp_num = breakpoint->set - 1;
+		const unsigned int bp_num = breakpoint->number;
 
-		if ((breakpoint->set == 0) || (bp_num >= arc->actionpoints_num)) {
+		if (bp_num >= arc->actionpoints_num) {
 			LOG_DEBUG("Invalid actionpoint ID: %u in breakpoint: %" PRIu32,
 					  bp_num, breakpoint->unique_id);
 			return ERROR_OK;
@@ -1650,11 +1651,11 @@ static int arc_unset_breakpoint(struct target *target,
 						breakpoint->address, AP_AC_TT_DISABLE, AP_AC_AT_INST_ADDR);
 
 		if (retval == ERROR_OK) {
-			breakpoint->set = 0;
+			breakpoint->is_set = false;
 			ap_list[bp_num].used = 0;
 			ap_list[bp_num].bp_value = 0;
 
-			LOG_DEBUG("bpid: %" PRIu32 " - released actionpoint ID: %i",
+			LOG_DEBUG("bpid: %" PRIu32 " - released actionpoint ID: %u",
 					breakpoint->unique_id, bp_num);
 		}
 	} else {
@@ -1684,7 +1685,7 @@ static int arc_remove_breakpoint(struct target *target,
 	struct breakpoint *breakpoint)
 {
 	if (target->state == TARGET_HALTED) {
-		if (breakpoint->set)
+		if (breakpoint->is_set)
 			CHECK_RETVAL(arc_unset_breakpoint(target, breakpoint));
 	} else {
 		LOG_WARNING("target not halted");
@@ -1818,7 +1819,7 @@ static int arc_set_watchpoint(struct target *target,
 	struct arc_common *arc = target_to_arc(target);
 	struct arc_actionpoint *ap_list = arc->actionpoints_list;
 
-	if (watchpoint->set) {
+	if (watchpoint->is_set) {
 		LOG_WARNING("watchpoint already set");
 		return ERROR_OK;
 	}
@@ -1859,7 +1860,8 @@ static int arc_set_watchpoint(struct target *target,
 					watchpoint->address, enable, AP_AC_AT_MEMORY_ADDR);
 
 	if (retval == ERROR_OK) {
-		watchpoint->set = wp_num + 1;
+		watchpoint->is_set = true;
+		watchpoint->number = wp_num;
 		ap_list[wp_num].used = 1;
 		ap_list[wp_num].bp_value = watchpoint->address;
 		ap_list[wp_num].type = ARC_AP_WATCHPOINT;
@@ -1878,13 +1880,13 @@ static int arc_unset_watchpoint(struct target *target,
 	struct arc_common *arc = target_to_arc(target);
 	struct arc_actionpoint *ap_list = arc->actionpoints_list;
 
-	if (!watchpoint->set) {
+	if (!watchpoint->is_set) {
 		LOG_WARNING("watchpoint not set");
 		return ERROR_OK;
 	}
 
-	unsigned int wp_num = watchpoint->set - 1;
-	if ((watchpoint->set == 0) || (wp_num >= arc->actionpoints_num)) {
+	const unsigned int wp_num = watchpoint->number;
+	if (wp_num >= arc->actionpoints_num) {
 		LOG_DEBUG("Invalid actionpoint ID: %u in watchpoint: %" PRIu32,
 				wp_num, watchpoint->unique_id);
 		return ERROR_OK;
@@ -1894,7 +1896,7 @@ static int arc_unset_watchpoint(struct target *target,
 				watchpoint->address, AP_AC_TT_DISABLE, AP_AC_AT_MEMORY_ADDR);
 
 	if (retval == ERROR_OK) {
-		watchpoint->set = 0;
+		watchpoint->is_set = false;
 		ap_list[wp_num].used = 0;
 		ap_list[wp_num].bp_value = 0;
 
@@ -1926,7 +1928,7 @@ static int arc_remove_watchpoint(struct target *target,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (watchpoint->set)
+	if (watchpoint->is_set)
 		CHECK_RETVAL(arc_unset_watchpoint(target, watchpoint));
 
 	return ERROR_OK;
@@ -1953,8 +1955,8 @@ static int arc_hit_watchpoint(struct target *target, struct watchpoint **hit_wat
 				watchpoint = watchpoint->next) {
 			if (actionpoint->bp_value == watchpoint->address) {
 				*hit_watchpoint = watchpoint;
-				LOG_DEBUG("Hit watchpoint, wpid: %" PRIu32 ", watchpoint num: %i",
-							watchpoint->unique_id, watchpoint->set - 1);
+				LOG_DEBUG("Hit watchpoint, wpid: %" PRIu32 ", watchpoint num: %u",
+							watchpoint->unique_id, watchpoint->number);
 				return ERROR_OK;
 			}
 		}

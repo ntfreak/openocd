@@ -504,7 +504,8 @@ static int esirisc_add_breakpoint(struct target *target, struct breakpoint *brea
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 	}
 
-	breakpoint->set = bp_index + 1;
+	breakpoint->is_set = true;
+	breakpoint->number = bp_index;
 	esirisc->breakpoints_p[bp_index] = breakpoint;
 
 	/* specify instruction breakpoint address */
@@ -540,7 +541,7 @@ static int esirisc_add_breakpoints(struct target *target)
 	LOG_DEBUG("-");
 
 	while (breakpoint != NULL) {
-		if (breakpoint->set == 0)
+		if (!breakpoint->is_set)
 			esirisc_add_breakpoint(target, breakpoint);
 
 		breakpoint = breakpoint->next;
@@ -553,7 +554,7 @@ static int esirisc_remove_breakpoint(struct target *target, struct breakpoint *b
 {
 	struct esirisc_common *esirisc = target_to_esirisc(target);
 	struct esirisc_jtag *jtag_info = &esirisc->jtag_info;
-	int bp_index = breakpoint->set - 1;
+	const unsigned int bp_index = breakpoint->number;
 	uint32_t ibc;
 	int retval;
 
@@ -575,7 +576,7 @@ static int esirisc_remove_breakpoint(struct target *target, struct breakpoint *b
 	}
 
 	esirisc->breakpoints_p[bp_index] = NULL;
-	breakpoint->set = 0;
+	breakpoint->is_set = false;
 
 	return ERROR_OK;
 }
@@ -630,7 +631,8 @@ static int esirisc_add_watchpoint(struct target *target, struct watchpoint *watc
 		return ERROR_FAIL;
 	}
 
-	watchpoint->set = wp_index + 1;
+	watchpoint->is_set = true;
+	watchpoint->number = wp_index;
 	esirisc->watchpoints_p[wp_index] = watchpoint;
 
 	/* specify data breakpoint address */
@@ -724,7 +726,7 @@ static int esirisc_add_watchpoints(struct target *target)
 	LOG_DEBUG("-");
 
 	while (watchpoint != NULL) {
-		if (watchpoint->set == 0)
+		if (!watchpoint->is_set)
 			esirisc_add_watchpoint(target, watchpoint);
 
 		watchpoint = watchpoint->next;
@@ -737,7 +739,7 @@ static int esirisc_remove_watchpoint(struct target *target, struct watchpoint *w
 {
 	struct esirisc_common *esirisc = target_to_esirisc(target);
 	struct esirisc_jtag *jtag_info = &esirisc->jtag_info;
-	int wp_index = watchpoint->set - 1;
+	const unsigned int wp_index = watchpoint->number;
 	uint32_t dbc;
 	int retval;
 
@@ -759,7 +761,7 @@ static int esirisc_remove_watchpoint(struct target *target, struct watchpoint *w
 	}
 
 	esirisc->watchpoints_p[wp_index] = NULL;
-	watchpoint->set = 0;
+	watchpoint->is_set = false;
 
 	return ERROR_OK;
 }

@@ -78,12 +78,12 @@ static int nds32_v3_debug_entry(struct nds32 *nds32, bool enable_watchpoint)
 
 	struct breakpoint *syscall_break = &(nds32->syscall_break);
 	if (nds32->virtual_hosting) {
-		if (syscall_break->set) {
+		if (syscall_break->is_set) {
 			/** disable virtual hosting */
 
 			/* remove breakpoint at syscall entry */
 			target_remove_breakpoint(nds32->target, syscall_break);
-			syscall_break->set = 0;
+			syscall_break->is_set = false;
 
 			uint32_t value_pc;
 			nds32_get_mapped_reg(nds32, PC, &value_pc);
@@ -209,7 +209,8 @@ static int nds32_v3_leave_debug_state(struct nds32 *nds32, bool enable_watchpoin
 
 		syscall_break->address = syscall_address;
 		syscall_break->type = BKPT_SOFT;
-		syscall_break->set = 1;
+		syscall_break->is_set = true;
+		syscall_break->number = 0;
 		target_add_breakpoint(target, syscall_break);
 	}
 
