@@ -50,11 +50,8 @@ static int breakpoint_add_internal(struct target *target,
 	struct breakpoint **breakpoint_p = &target->breakpoints;
 	const char *reason;
 	int retval;
-	int n;
 
-	n = 0;
 	while (breakpoint) {
-		n++;
 		if (breakpoint->address == address) {
 			/* FIXME don't assume "same address" means "same
 			 * breakpoint" ... check all the parameters before
@@ -114,11 +111,8 @@ static int context_breakpoint_add_internal(struct target *target,
 	struct breakpoint *breakpoint = target->breakpoints;
 	struct breakpoint **breakpoint_p = &target->breakpoints;
 	int retval;
-	int n;
 
-	n = 0;
 	while (breakpoint) {
-		n++;
 		if (breakpoint->asid == asid) {
 			/* FIXME don't assume "same address" means "same
 			 * breakpoint" ... check all the parameters before
@@ -167,10 +161,8 @@ static int hybrid_breakpoint_add_internal(struct target *target,
 	struct breakpoint *breakpoint = target->breakpoints;
 	struct breakpoint **breakpoint_p = &target->breakpoints;
 	int retval;
-	int n;
-	n = 0;
+
 	while (breakpoint) {
-		n++;
 		if ((breakpoint->asid == asid) && (breakpoint->address == address)) {
 			/* FIXME don't assume "same address" means "same
 			 * breakpoint" ... check all the parameters before
@@ -238,8 +230,9 @@ int breakpoint_add(struct target *target,
 			head = head->next;
 		}
 		return retval;
-	} else
+	} else {
 		return breakpoint_add_internal(target, address, length, type);
+	}
 }
 
 int context_breakpoint_add(struct target *target,
@@ -260,8 +253,9 @@ int context_breakpoint_add(struct target *target,
 			head = head->next;
 		}
 		return retval;
-	} else
+	} else {
 		return context_breakpoint_add_internal(target, asid, length, type);
+	}
 }
 
 int hybrid_breakpoint_add(struct target *target,
@@ -301,7 +295,7 @@ static void breakpoint_free(struct target *target, struct breakpoint *breakpoint
 		breakpoint = breakpoint->next;
 	}
 
-	if (breakpoint == NULL)
+	if (!breakpoint)
 		return;
 
 	retval = target_remove_breakpoint(target, breakpoint);
@@ -346,20 +340,21 @@ static void breakpoint_remove_all_internal(struct target *target)
 
 void breakpoint_remove(struct target *target, target_addr_t address)
 {
-	int found = 0;
 	if (target->smp) {
+		unsigned int num_breakpoints = 0;
 		struct target_list *head;
 		struct target *curr;
 		head = target->head;
 		while (head != (struct target_list *)NULL) {
 			curr = head->target;
-			found += breakpoint_remove_internal(curr, address);
+			num_breakpoints += breakpoint_remove_internal(curr, address);
 			head = head->next;
 		}
-		if (found == 0)
+		if (!num_breakpoints)
 			LOG_ERROR("no breakpoint at address " TARGET_ADDR_FMT " found", address);
-	} else
+	} else {
 		breakpoint_remove_internal(target, address);
+	}
 }
 
 void breakpoint_remove_all(struct target *target)
@@ -397,9 +392,9 @@ void breakpoint_clear_target(struct target *target)
 			breakpoint_clear_target_internal(curr);
 			head = head->next;
 		}
-	} else
+	} else {
 		breakpoint_clear_target_internal(target);
-
+	}
 }
 
 struct breakpoint *breakpoint_find(struct target *target, target_addr_t address)
@@ -494,7 +489,7 @@ static void watchpoint_free(struct target *target, struct watchpoint *watchpoint
 		watchpoint = watchpoint->next;
 	}
 
-	if (watchpoint == NULL)
+	if (!watchpoint)
 		return;
 	retval = target_remove_watchpoint(target, watchpoint);
 	LOG_DEBUG("free WPID: %d --> %d", watchpoint->unique_id, retval);
