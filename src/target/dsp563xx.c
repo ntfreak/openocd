@@ -1085,8 +1085,20 @@ static int dsp563xx_poll(struct target *target)
 
 	if (!dsp563xx->hardware_breakpoints_cleared) {
 		err = dsp563xx_once_reg_write(target->tap, 1, DSP563XX_ONCE_OBCR, 0);
+
+		if (err != ERROR_OK)
+			return err;
+
 		err = dsp563xx_once_reg_write(target->tap, 1, DSP563XX_ONCE_OMLR0, 0);
+
+		if (err != ERROR_OK)
+			return err;
+
 		err = dsp563xx_once_reg_write(target->tap, 1, DSP563XX_ONCE_OMLR1, 0);
+
+		if (err != ERROR_OK)
+			return err;
+
 		dsp563xx->hardware_breakpoints_cleared = 1;
 	}
 
