@@ -913,7 +913,7 @@ static int dsp563xx_init_target(struct command_context *cmd_ctx, struct target *
 	dsp563xx_build_reg_cache(target);
 	struct dsp563xx_common *dsp563xx = target_to_dsp563xx(target);
 
-	dsp563xx->hardware_breakpoints_cleared = 0;
+	dsp563xx->hardware_breakpoints_cleared = false;
 	dsp563xx->hardware_breakpoint[0].used = BPU_NONE;
 
 	return ERROR_OK;
@@ -1099,7 +1099,7 @@ static int dsp563xx_poll(struct target *target)
 		if (err != ERROR_OK)
 			return err;
 
-		dsp563xx->hardware_breakpoints_cleared = 1;
+		dsp563xx->hardware_breakpoints_cleared = true;
 	}
 
 	return ERROR_OK;

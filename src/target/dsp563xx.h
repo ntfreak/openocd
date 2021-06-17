@@ -52,7 +52,7 @@ struct dsp563xx_common {
 	struct hardware_breakpoint hardware_breakpoint[1];
 
 	/*Were the hardware breakpoints cleared on startup?*/
-	int hardware_breakpoints_cleared;
+	bool hardware_breakpoints_cleared;
 };
 
 struct dsp563xx_core_reg {
