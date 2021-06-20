@@ -159,7 +159,6 @@ struct stm8_algorithm {
 struct stm8_core_reg {
 	uint32_t num;
 	struct target *target;
-	struct stm8_common *stm8_common;
 };
 
 enum hw_break_type {
@@ -1221,7 +1220,6 @@ static struct reg_cache *stm8_build_reg_cache(struct target *target)
 	for (i = 0; i < num_regs; i++) {
 		arch_info[i].num = stm8_regs[i].id;
 		arch_info[i].target = target;
-		arch_info[i].stm8_common = stm8;
 
 		reg_list[i].name = stm8_regs[i].name;
 		reg_list[i].size = stm8_regs[i].bits;
