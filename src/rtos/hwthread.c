@@ -38,6 +38,10 @@ static int hwthread_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 static int hwthread_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[]);
 static int hwthread_smp_init(struct target *target);
 static int hwthread_set_reg(struct rtos *rtos, uint32_t reg_num, uint8_t *reg_value);
+static int hwthread_read_buffer(struct rtos *rtos, target_addr_t address,
+		uint32_t size, uint8_t *buffer);
+static int hwthread_write_buffer(struct rtos *rtos, target_addr_t address,
+		uint32_t size, const uint8_t *buffer);
 
 #define HW_THREAD_NAME_STR_SIZE (32)
 
@@ -58,6 +62,8 @@ const struct rtos_type hwthread_rtos = {
 	.get_symbol_list_to_lookup = hwthread_get_symbol_list_to_lookup,
 	.smp_init = hwthread_smp_init,
 	.set_reg = hwthread_set_reg,
+	.read_buffer = hwthread_read_buffer,
+	.write_buffer = hwthread_write_buffer,
 };
 
 struct hwthread_params {
@@ -395,4 +401,34 @@ static int hwthread_create(struct target *target)
 	target->rtos->gdb_target_for_threadid = hwthread_target_for_threadid;
 	target->rtos->gdb_thread_packet = hwthread_thread_packet;
 	return 0;
+}
+
+static int hwthread_read_buffer(struct rtos *rtos, target_addr_t address,
+		uint32_t size, uint8_t *buffer)
+{
+	if (!rtos)
+		return ERROR_FAIL;
+
+	struct target *target = rtos->target;
+
+	struct target *curr = hwthread_find_thread(target, rtos->current_thread);
+	if (!curr)
+		return ERROR_FAIL;
+
+	return target_read_buffer(curr, address, size, buffer);
+}
+
+static int hwthread_write_buffer(struct rtos *rtos, target_addr_t address,
+		uint32_t size, const uint8_t *buffer)
+{
+	if (!rtos)
+		return ERROR_FAIL;
+
+	struct target *target = rtos->target;
+
+	struct target *curr = hwthread_find_thread(target, rtos->current_thread);
+	if (!curr)
+		return ERROR_FAIL;
+
+	return target_write_buffer(curr, address, size, buffer);
 }
