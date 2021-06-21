@@ -82,6 +82,13 @@ struct rtos_type {
 	int (*clean)(struct target *target);
 	char * (*ps_command)(struct target *target);
 	int (*set_reg)(struct rtos *rtos, uint32_t reg_num, uint8_t *reg_value);
+	/* Implement these if different threads in the RTOS can see memory
+	 * differently (for instance because address translation might be different
+	 * for each thread). */
+	int (*read_buffer)(struct rtos *rtos, target_addr_t address, uint32_t size,
+			uint8_t *buffer);
+	int (*write_buffer)(struct rtos *rtos, target_addr_t address, uint32_t size,
+			const uint8_t *buffer);
 };
 
 struct stack_register_offset {
@@ -127,5 +134,9 @@ void rtos_free_threadlist(struct rtos *rtos);
 int rtos_smp_init(struct target *target);
 /*  function for handling symbol access */
 int rtos_qsymbol(struct connection *connection, char const *packet, int packet_size);
+int rtos_read_buffer(struct target *target, target_addr_t address,
+		uint32_t size, uint8_t *buffer);
+int rtos_write_buffer(struct target *target, target_addr_t address,
+		uint32_t size, const uint8_t *buffer);
 
 #endif /* OPENOCD_RTOS_RTOS_H */

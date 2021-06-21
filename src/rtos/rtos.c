@@ -679,3 +679,19 @@ void rtos_free_threadlist(struct rtos *rtos)
 		rtos->current_thread = 0;
 	}
 }
+
+int rtos_read_buffer(struct target *target, target_addr_t address,
+		uint32_t size, uint8_t *buffer)
+{
+	if (target->rtos->type->read_buffer)
+		return target->rtos->type->read_buffer(target->rtos, address, size, buffer);
+	return ERROR_NOT_IMPLEMENTED;
+}
+
+int rtos_write_buffer(struct target *target, target_addr_t address,
+		uint32_t size, const uint8_t *buffer)
+{
+	if (target->rtos->type->write_buffer)
+		return target->rtos->type->write_buffer(target->rtos, address, size, buffer);
+	return ERROR_NOT_IMPLEMENTED;
+}
