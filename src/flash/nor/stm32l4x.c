@@ -1372,8 +1372,6 @@ static int stm32l4_probe(struct flash_bank *bank)
 		return retval;
 
 	const uint32_t device_id = stm32l4_info->idcode & 0xFFF;
-	const uint16_t rev_id = stm32l4_info->idcode >> 16;
-	const char *rev_str = get_stm32l4_rev_str(bank);
 
 	for (unsigned int n = 0; n < ARRAY_SIZE(stm32l4_parts); n++) {
 		if (device_id == stm32l4_parts[n].id) {
@@ -1389,10 +1387,6 @@ static int stm32l4_probe(struct flash_bank *bank)
 
 	part_info = stm32l4_info->part_info;
 	stm32l4_info->flash_regs = stm32l4_info->part_info->default_flash_regs;
-
-	LOG_INFO("device idcode = 0x%08" PRIx32 " (%s - Rev %s : 0x%04x - %s-bank)",
-			stm32l4_info->idcode, part_info->device_str, rev_str, rev_id,
-			get_stm32l4_bank_type_str(bank));
 
 	/* read flash option register */
 	retval = stm32l4_read_flash_reg_by_index(bank, STM32_FLASH_OPTR_INDEX, &options);
@@ -1620,6 +1614,14 @@ static int stm32l4_probe(struct flash_bank *bank)
 	}
 
 	stm32l4_info->probed = true;
+
+	const char *rev_str = get_stm32l4_rev_str(bank);
+	const uint16_t rev_id = stm32l4_info->idcode >> 16;
+
+	LOG_INFO("device idcode = 0x%08" PRIx32 " (%s - Rev %s : 0x%04x - %s-bank)",
+			stm32l4_info->idcode, part_info->device_str, rev_str, rev_id,
+			get_stm32l4_bank_type_str(bank));
+
 	return ERROR_OK;
 }
 
