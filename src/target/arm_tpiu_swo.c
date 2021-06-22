@@ -901,7 +901,7 @@ static int jim_arm_tpiu_swo_create(Jim_Interp *interp, int argc, Jim_Obj *const 
 	struct jim_getopt_info goi;
 	jim_getopt_setup(&goi, interp, argc - 1, argv + 1);
 	if (goi.argc < 1) {
-		Jim_WrongNumArgs(goi.interp, 1, goi.argv, "?name? ..options...");
+		Jim_WrongNumArgs(interp, 1, argv, "name ?option option ...?");
 		return JIM_ERR;
 	}
 
