@@ -497,13 +497,8 @@ static void sync_transfer_wait_for_completion(struct libusb_transfer *transfer)
 {
 	int r, *completed = transfer->user_data;
 
-	/* Assuming a single libusb context exists.  There no existing interface into this
-	 * module to pass a libusb context.
-	 */
-	struct libusb_context *ctx = NULL;
-
 	while (!*completed) {
-		r = libusb_handle_events_completed(ctx, completed);
+		r = jtag_libusb_handle_events_completed(completed);
 		if (r < 0) {
 			if (r == LIBUSB_ERROR_INTERRUPTED)
 				continue;

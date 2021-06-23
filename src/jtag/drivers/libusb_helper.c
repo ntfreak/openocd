@@ -363,3 +363,8 @@ int jtag_libusb_get_pid(struct libusb_device *dev, uint16_t *pid)
 
 	return ERROR_FAIL;
 }
+
+int jtag_libusb_handle_events_completed(int *completed)
+{
+	return libusb_handle_events_completed(jtag_libusb_context, completed);
+}
