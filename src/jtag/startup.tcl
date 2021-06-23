@@ -207,4 +207,58 @@ proc "hla newtap" {args} {
 	eval swj_newdap $args
 }
 
+lappend _telnet_autocomplete_skip ftdi_device_desc
+proc ftdi_device_desc args {
+	echo "DEPRECATED! use 'ftdi device_desc' not 'ftdi_device_desc'"
+	eval ftdi device_desc $args
+}
+
+lappend _telnet_autocomplete_skip ftdi_serial
+proc ftdi_serial args {
+	echo "DEPRECATED! use 'ftdi serial' not 'ftdi_serial'"
+	eval ftdi serial $args
+}
+
+lappend _telnet_autocomplete_skip ftdi_channel
+proc ftdi_channel args {
+	echo "DEPRECATED! use 'ftdi channel' not 'ftdi_channel'"
+	eval ftdi channel $args
+}
+
+lappend _telnet_autocomplete_skip ftdi_layout_init
+proc ftdi_layout_init args {
+	echo "DEPRECATED! use 'ftdi layout_init' not 'ftdi_layout_init'"
+	eval ftdi layout_init $args
+}
+
+lappend _telnet_autocomplete_skip ftdi_layout_signal
+proc ftdi_layout_signal args {
+	echo "DEPRECATED! use 'ftdi layout_signal' not 'ftdi_layout_signal'"
+	eval ftdi layout_signal $args
+}
+
+lappend _telnet_autocomplete_skip ftdi_set_signal
+proc ftdi_set_signal args {
+	echo "DEPRECATED! use 'ftdi set_signal' not 'ftdi_set_signal'"
+	eval ftdi set_signal $args
+}
+
+lappend _telnet_autocomplete_skip ftdi_get_signal
+proc ftdi_get_signal args {
+	echo "DEPRECATED! use 'ftdi get_signal' not 'ftdi_get_signal'"
+	eval ftdi get_signal $args
+}
+
+lappend _telnet_autocomplete_skip ftdi_vid_pid
+proc ftdi_vid_pid args {
+	echo "DEPRECATED! use 'ftdi vid_pid' not 'ftdi_vid_pid'"
+	eval ftdi vid_pid $args
+}
+
+lappend _telnet_autocomplete_skip ftdi_tdo_sample_edge
+proc ftdi_tdo_sample_edge args {
+	echo "DEPRECATED! use 'ftdi tdo_sample_edge' not 'ftdi_tdo_sample_edge'"
+	eval ftdi tdo_sample_edge $args
+}
+
 # END MIGRATION AIDS
