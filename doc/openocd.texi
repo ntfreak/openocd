@@ -2466,10 +2466,10 @@ configuration files, without the need to patch and rebuild OpenOCD.
 
 The driver uses a signal abstraction to enable Tcl configuration files to
 define outputs for one or several FTDI GPIO. These outputs can then be
-controlled using the @command{ftdi_set_signal} command. Special signal names
+controlled using the @command{ftdi set_signal} command. Special signal names
 are reserved for nTRST, nSRST and LED (for blink) so that they, if defined,
 will be used for their customary purpose. Inputs can be read using the
-@command{ftdi_get_signal} command.
+@command{ftdi get_signal} command.
 
 To support SWD, a signal named SWD_EN must be defined. It is set to 1 when the
 SWD protocol is selected. When set, the adapter should route the SWDIO pin to
@@ -2494,21 +2494,21 @@ signal. The following output buffer configurations are supported:
 These interfaces have several commands, used to configure the driver
 before initializing the JTAG scan chain:
 
-@deffn {Config Command} {ftdi_vid_pid} [vid pid]+
+@deffn {Config Command} {ftdi vid_pid} [vid pid]+
 The vendor ID and product ID of the adapter. Up to eight
 [@var{vid}, @var{pid}] pairs may be given, e.g.
 @example
-ftdi_vid_pid 0x0403 0xcff8 0x15ba 0x0003
+ftdi vid_pid 0x0403 0xcff8 0x15ba 0x0003
 @end example
 @end deffn
 
-@deffn {Config Command} {ftdi_device_desc} description
+@deffn {Config Command} {ftdi device_desc} description
 Provides the USB device description (the @emph{iProduct string})
 of the adapter. If not specified, the device description is ignored
 during device selection.
 @end deffn
 
-@deffn {Config Command} {ftdi_serial} serial-number
+@deffn {Config Command} {ftdi serial} serial-number
 Specifies the @var{serial-number} of the adapter to use,
 in case the vendor provides unique IDs and more than one adapter
 is connected to the host.
@@ -2517,12 +2517,12 @@ If not specified, serial numbers are not considered.
 and are not restricted to containing only decimal digits.)
 @end deffn
 
-@deffn {Config Command} {ftdi_channel} channel
+@deffn {Config Command} {ftdi channel} channel
 Selects the channel of the FTDI device to use for MPSSE operations. Most
 adapters use the default, channel 0, but there are exceptions.
 @end deffn
 
-@deffn {Config Command} {ftdi_layout_init} data direction
+@deffn {Config Command} {ftdi layout_init} data direction
 Specifies the initial values of the FTDI GPIO data and direction registers.
 Each value is a 16-bit number corresponding to the concatenation of the high
 and low FTDI GPIO registers. The values should be selected based on the
@@ -2531,7 +2531,7 @@ minimal impact on the target system. Avoid floating inputs, conflicting outputs
 and initially asserted reset signals.
 @end deffn
 
-@deffn {Command} {ftdi_layout_signal} name [@option{-data}|@option{-ndata} data_mask] [@option{-input}|@option{-ninput} input_mask] [@option{-oe}|@option{-noe} oe_mask] [@option{-alias}|@option{-nalias} name]
+@deffn {Command} {ftdi layout_signal} name [@option{-data}|@option{-ndata} data_mask] [@option{-input}|@option{-ninput} input_mask] [@option{-oe}|@option{-noe} oe_mask] [@option{-alias}|@option{-nalias} name]
 Creates a signal with the specified @var{name}, controlled by one or more FTDI
 GPIO pins via a range of possible buffer connections. The masks are FTDI GPIO
 register bitmasks to tell the driver the connection and type of the output
@@ -2541,7 +2541,7 @@ used with inverting data inputs and @option{-data} with non-inverting inputs.
 The @option{-oe} (or @option{-noe}) option tells where the output-enable (or
 not-output-enable) input to the output buffer is connected. The options
 @option{-input} and @option{-ninput} specify the bitmask for pins to be read
-with the method @command{ftdi_get_signal}.
+with the method @command{ftdi get_signal}.
 
 Both @var{data_mask} and @var{oe_mask} need not be specified. For example, a
 simple open-collector transistor driver would be specified with @option{-oe}
@@ -2562,7 +2562,7 @@ identical (or with data inverted) to an already specified signal
 @var{name}.
 @end deffn
 
-@deffn {Command} {ftdi_set_signal} name @option{0}|@option{1}|@option{z}
+@deffn {Command} {ftdi set_signal} name @option{0}|@option{1}|@option{z}
 Set a previously defined signal to the specified level.
 @itemize @minus
 @item @option{0}, drive low
@@ -2571,11 +2571,11 @@ Set a previously defined signal to the specified level.
 @end itemize
 @end deffn
 
-@deffn {Command} {ftdi_get_signal} name
+@deffn {Command} {ftdi get_signal} name
 Get the value of a previously defined signal.
 @end deffn
 
-@deffn {Command} {ftdi_tdo_sample_edge} @option{rising}|@option{falling}
+@deffn {Command} {ftdi tdo_sample_edge} @option{rising}|@option{falling}
 Configure TCK edge at which the adapter samples the value of the TDO signal
 
 Due to signal propagation delays, sampling TDO on rising TCK can become quite

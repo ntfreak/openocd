@@ -289,7 +289,7 @@ static int ftdi_speed(int speed)
 
 	if (!swd_mode && speed >= 10000000 && ftdi_jtag_mode != JTAG_MODE_ALT)
 		LOG_INFO("ftdi: if you experience problems at higher adapter clocks, try "
-			 "the command \"ftdi_tdo_sample_edge falling\"");
+			 "the command \"ftdi tdo_sample_edge falling\"");
 	return ERROR_OK;
 }
 
@@ -666,7 +666,7 @@ static int ftdi_initialize(void)
 		LOG_DEBUG("ftdi interface using shortest path jtag state transitions");
 
 	if (!ftdi_vid[0] && !ftdi_pid[0]) {
-		LOG_ERROR("Please specify ftdi_vid_pid");
+		LOG_ERROR("Please specify ftdi vid_pid");
 		return ERROR_JTAG_INIT_FAILED;
 	}
 
@@ -730,7 +730,7 @@ COMMAND_HANDLER(ftdi_handle_device_desc_command)
 		free(ftdi_device_desc);
 		ftdi_device_desc = strdup(CMD_ARGV[0]);
 	} else {
-		LOG_ERROR("expected exactly one argument to ftdi_device_desc <description>");
+		LOG_ERROR("expected exactly one argument to ftdi device_desc <description>");
 	}
 
 	return ERROR_OK;
@@ -897,12 +897,12 @@ COMMAND_HANDLER(ftdi_handle_get_signal_command)
 COMMAND_HANDLER(ftdi_handle_vid_pid_command)
 {
 	if (CMD_ARGC > MAX_USB_IDS * 2) {
-		LOG_WARNING("ignoring extra IDs in ftdi_vid_pid "
+		LOG_WARNING("ignoring extra IDs in ftdi vid_pid "
 			"(maximum is %d pairs)", MAX_USB_IDS);
 		CMD_ARGC = MAX_USB_IDS * 2;
 	}
 	if (CMD_ARGC < 2 || (CMD_ARGC & 1)) {
-		LOG_WARNING("incomplete ftdi_vid_pid configuration directive");
+		LOG_WARNING("incomplete ftdi vid_pid configuration directive");
 		if (CMD_ARGC < 2)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		/* remove the incomplete trailing id */
@@ -917,7 +917,7 @@ COMMAND_HANDLER(ftdi_handle_vid_pid_command)
 
 	/*
 	 * Explicitly terminate, in case there are multiples instances of
-	 * ftdi_vid_pid.
+	 * ftdi vid_pid.
 	 */
 	ftdi_vid[i >> 1] = ftdi_pid[i >> 1] = 0;
 
@@ -947,30 +947,30 @@ COMMAND_HANDLER(ftdi_handle_tdo_sample_edge_command)
 	return ERROR_OK;
 }
 
-static const struct command_registration ftdi_command_handlers[] = {
+static const struct command_registration ftdi_subcommand_handlers[] = {
 	{
-		.name = "ftdi_device_desc",
+		.name = "device_desc",
 		.handler = &ftdi_handle_device_desc_command,
 		.mode = COMMAND_CONFIG,
 		.help = "set the USB device description of the FTDI device",
 		.usage = "description_string",
 	},
 	{
-		.name = "ftdi_serial",
+		.name = "serial",
 		.handler = &ftdi_handle_serial_command,
 		.mode = COMMAND_CONFIG,
 		.help = "set the serial number of the FTDI device",
 		.usage = "serial_string",
 	},
 	{
-		.name = "ftdi_channel",
+		.name = "channel",
 		.handler = &ftdi_handle_channel_command,
 		.mode = COMMAND_CONFIG,
 		.help = "set the channel of the FTDI device that is used as JTAG",
 		.usage = "(0-3)",
 	},
 	{
-		.name = "ftdi_layout_init",
+		.name = "layout_init",
 		.handler = &ftdi_handle_layout_init_command,
 		.mode = COMMAND_CONFIG,
 		.help = "initialize the FTDI GPIO signals used "
@@ -978,7 +978,7 @@ static const struct command_registration ftdi_command_handlers[] = {
 		.usage = "data direction",
 	},
 	{
-		.name = "ftdi_layout_signal",
+		.name = "layout_signal",
 		.handler = &ftdi_handle_layout_signal_command,
 		.mode = COMMAND_ANY,
 		.help = "define a signal controlled by one or more FTDI GPIO as data "
@@ -986,34 +986,45 @@ static const struct command_registration ftdi_command_handlers[] = {
 		.usage = "name [-data mask|-ndata mask] [-oe mask|-noe mask] [-alias|-nalias name]",
 	},
 	{
-		.name = "ftdi_set_signal",
+		.name = "set_signal",
 		.handler = &ftdi_handle_set_signal_command,
 		.mode = COMMAND_EXEC,
 		.help = "control a layout-specific signal",
 		.usage = "name (1|0|z)",
 	},
 	{
-		.name = "ftdi_get_signal",
+		.name = "get_signal",
 		.handler = &ftdi_handle_get_signal_command,
 		.mode = COMMAND_EXEC,
 		.help = "read the value of a layout-specific signal",
 		.usage = "name",
 	},
 	{
-		.name = "ftdi_vid_pid",
+		.name = "vid_pid",
 		.handler = &ftdi_handle_vid_pid_command,
 		.mode = COMMAND_CONFIG,
 		.help = "the vendor ID and product ID of the FTDI device",
 		.usage = "(vid pid)*",
 	},
 	{
-		.name = "ftdi_tdo_sample_edge",
+		.name = "tdo_sample_edge",
 		.handler = &ftdi_handle_tdo_sample_edge_command,
 		.mode = COMMAND_ANY,
 		.help = "set which TCK clock edge is used for sampling TDO "
 			"- default is rising-edge (Setting to falling-edge may "
 			"allow signalling speed increase)",
 		.usage = "(rising|falling)",
+	},
+	COMMAND_REGISTRATION_DONE
+};
+
+static const struct command_registration ftdi_command_handlers[] = {
+	{
+		.name = "ftdi",
+		.mode = COMMAND_ANY,
+		.help = "perform ftdi management",
+		.chain = ftdi_subcommand_handlers,
+		.usage = "",
 	},
 	COMMAND_REGISTRATION_DONE
 };
