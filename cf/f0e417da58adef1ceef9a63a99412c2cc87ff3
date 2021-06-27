@@ -1,0 +1,12 @@
+Verified+1: jenkins
+Code-Review+1: Marc Schink <dev@zapb.de>
+Code-Review+1: Xiaofan <xiaofanc@gmail.com>
+Code-Review+1: Andrzej Sierżęga <asier70@gmail.com>
+Code-Review+2: Oleksij Rempel <linux@rempel-privat.de>
+Code-Review+1: Antonio Borneo <borneo.antonio@gmail.com>
+Code-Review+2: Andreas Fritiofson <andreas.fritiofson@gmail.com>
+Submitted-by: Antonio Borneo <borneo.antonio@gmail.com>
+Submitted-at: Sun, 27 Jun 2021 14:57:43 +0100
+Reviewed-on: http://openocd.zylin.com/6331
+Project: openocd
+Branch: refs/heads/master
