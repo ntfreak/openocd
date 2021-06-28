@@ -283,7 +283,7 @@ int mips64_pracc_exec(struct mips_ejtag *ejtag_info,
 		if (ejtag_ctrl & EJTAG_CTRL_PRNW) {
 			retval = mips64_pracc_exec_write(&ctx, address);
 			if (retval != ERROR_OK) {
-				printf("ERROR mips64_pracc_exec_write\n");
+				LOG_ERROR("mips64_pracc_exec_write() failed");
 				return retval;
 			}
 		} else {
@@ -296,7 +296,7 @@ int mips64_pracc_exec(struct mips_ejtag *ejtag_info,
 			}
 			retval = mips64_pracc_exec_read(&ctx, address);
 			if (retval != ERROR_OK) {
-				printf("ERROR mips64_pracc_exec_read\n");
+				LOG_ERROR("mips64_pracc_exec_read() failed");
 				return retval;
 			}
 
