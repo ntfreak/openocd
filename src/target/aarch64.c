@@ -1416,7 +1416,7 @@ static int aarch64_set_hybrid_breakpoint(struct target *target, struct breakpoin
 		(brp_list[brp_1].type != BRP_CONTEXT)) && (brp_1 < aarch64->brp_num))
 		brp_1++;
 
-	printf("brp(CTX) found num: %d\n", brp_1);
+	LOG_DEBUG("brp(CTX) found num: %d", brp_1);
 	if (brp_1 >= aarch64->brp_num) {
 		LOG_ERROR("ERROR Can not find free Breakpoint Register Pair");
 		return ERROR_FAIL;
@@ -1426,7 +1426,7 @@ static int aarch64_set_hybrid_breakpoint(struct target *target, struct breakpoin
 		(brp_list[brp_2].type != BRP_NORMAL)) && (brp_2 < aarch64->brp_num))
 		brp_2++;
 
-	printf("brp(IVA) found num: %d\n", brp_2);
+	LOG_DEBUG("brp(IVA) found num: %d", brp_2);
 	if (brp_2 >= aarch64->brp_num) {
 		LOG_ERROR("ERROR Can not find free Breakpoint Register Pair");
 		return ERROR_FAIL;
