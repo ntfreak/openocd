@@ -1397,7 +1397,7 @@ int target_hit_watchpoint(struct target *target,
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (target->type->hit_watchpoint == NULL) {
+	if (!target->type->hit_watchpoint) {
 		/* For backward compatible, if hit_watchpoint is not implemented,
 		 * return ERROR_FAIL such that gdb_server will not take the nonsense
 		 * information. */
@@ -1409,7 +1409,7 @@ int target_hit_watchpoint(struct target *target,
 
 const char *target_get_gdb_arch(struct target *target)
 {
-	if (target->type->get_gdb_arch == NULL)
+	if (!target->type->get_gdb_arch)
 		return NULL;
 	return target->type->get_gdb_arch(target);
 }
@@ -1573,19 +1573,19 @@ static int target_init_one(struct command_context *cmd_ctx,
 		type->virt2phys = identity_virt2phys;
 	}
 
-	if (target->type->read_buffer == NULL)
+	if (!target->type->read_buffer)
 		target->type->read_buffer = target_read_buffer_default;
 
-	if (target->type->write_buffer == NULL)
+	if (!target->type->write_buffer)
 		target->type->write_buffer = target_write_buffer_default;
 
-	if (target->type->get_gdb_fileio_info == NULL)
+	if (!target->type->get_gdb_fileio_info)
 		target->type->get_gdb_fileio_info = target_get_gdb_fileio_info_default;
 
-	if (target->type->gdb_fileio_end == NULL)
+	if (!target->type->gdb_fileio_end)
 		target->type->gdb_fileio_end = target_gdb_fileio_end_default;
 
-	if (target->type->profiling == NULL)
+	if (!target->type->profiling)
 		target->type->profiling = target_profiling_default;
 
 	return ERROR_OK;
@@ -2120,7 +2120,7 @@ static int target_restore_working_area(struct target *target, struct working_are
 {
 	int retval = ERROR_OK;
 
-	if (target->backup_working_area && area->backup != NULL) {
+	if (target->backup_working_area && area->backup) {
 		retval = target_write_memory(target, area->address, 4, area->size / 4, area->backup);
 		if (retval != ERROR_OK)
 			LOG_ERROR("failed to restore %" PRIu32 " bytes of working area at address " TARGET_ADDR_FMT,
@@ -2555,7 +2555,7 @@ int target_blank_check_memory(struct target *target,
 		return ERROR_FAIL;
 	}
 
-	if (target->type->blank_check_memory == NULL)
+	if (!target->type->blank_check_memory)
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 
 	return target->type->blank_check_memory(target, blocks, num_blocks, erased_value);
@@ -3976,7 +3976,7 @@ static int handle_bp_command_set(struct command_invocation *cmd,
 			command_print(cmd, "breakpoint set at " TARGET_ADDR_FMT "", addr);
 
 	} else if (addr == 0) {
-		if (target->type->add_context_breakpoint == NULL) {
+		if (!target->type->add_context_breakpoint) {
 			LOG_ERROR("Context breakpoint not available");
 			return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 		}
@@ -3986,7 +3986,7 @@ static int handle_bp_command_set(struct command_invocation *cmd,
 			command_print(cmd, "Context breakpoint set at 0x%8.8" PRIx32 "", asid);
 
 	} else {
-		if (target->type->add_hybrid_breakpoint == NULL) {
+		if (!target->type->add_hybrid_breakpoint) {
 			LOG_ERROR("Hybrid breakpoint not available");
 			return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 		}
@@ -4791,7 +4791,7 @@ void target_handle_event(struct target *target, enum target_event e)
 	struct target_event_action *teap;
 	int retval;
 
-	for (teap = target->event_action; teap != NULL; teap = teap->next) {
+	for (teap = target->event_action; teap; teap = teap->next) {
 		if (teap->event == e) {
 			LOG_DEBUG("target(%d): %s (%s) event: %d (%s) action: %s",
 					   target->target_number,
@@ -4839,7 +4839,7 @@ bool target_has_event_action(struct target *target, enum target_event event)
 {
 	struct target_event_action *teap;
 
-	for (teap = target->event_action; teap != NULL; teap = teap->next) {
+	for (teap = target->event_action; teap; teap = teap->next) {
 		if (teap->event == event)
 			return true;
 	}
@@ -5729,7 +5729,7 @@ static int target_create(struct jim_getopt_info *goi)
 			break;
 		}
 	}
-	if (target_types[x] == NULL) {
+	if (!target_types[x]) {
 		Jim_SetResultFormatted(goi->interp, "Unknown target type %s, try one of ", cp);
 		for (x = 0 ; target_types[x] ; x++) {
 			if (target_types[x + 1]) {
@@ -6154,7 +6154,7 @@ COMMAND_HANDLER(handle_fast_load_image_command)
 
 			fastload[i].address = image.sections[i].base_address + offset;
 			fastload[i].data = malloc(length);
-			if (fastload[i].data == NULL) {
+			if (!fastload[i].data) {
 				free(buffer);
 				command_print(CMD, "error allocating buffer for section (%" PRIu32 " bytes)",
 							  length);

@@ -1513,7 +1513,7 @@ static void cmsis_dap_add_jtag_sequence(int s_len, const uint8_t *sequence, int 
 				s_offset + offset,
 				tms,
 				tdo_buffer,
-				tdo_buffer == NULL ? 0 : (tdo_buffer_offset + offset)
+				!tdo_buffer ? 0 : (tdo_buffer_offset + offset)
 				);
 		}
 		LOG_DEBUG_IO("END JTAG SEQ SPLIT");
@@ -1530,7 +1530,7 @@ static void cmsis_dap_add_jtag_sequence(int s_len, const uint8_t *sequence, int 
 	/* control byte */
 	queued_seq_buf[queued_seq_buf_end] =
 		(tms ? DAP_JTAG_SEQ_TMS : 0) |
-		(tdo_buffer != NULL ? DAP_JTAG_SEQ_TDO : 0) |
+		(tdo_buffer ? DAP_JTAG_SEQ_TDO : 0) |
 		(s_len == 64 ? 0 : s_len);
 
 	if (sequence)

@@ -209,7 +209,7 @@ static int at91rm9200_init(void)
 
 	cur_device = devices;
 
-	if (at91rm9200_device == NULL || at91rm9200_device[0] == 0) {
+	if (!at91rm9200_device || at91rm9200_device[0] == 0) {
 		at91rm9200_device = "rea_ecr";
 		LOG_WARNING("No at91rm9200 device specified, using default 'rea_ecr'");
 	}

@@ -516,7 +516,7 @@ int semihosting_common(struct target *target)
 				uint64_t addr = semihosting_get_field(target, 0, fields);
 				size_t size = semihosting_get_field(target, 1, fields);
 
-				char *arg = semihosting->cmdline != NULL ?
+				char *arg = semihosting->cmdline ?
 					semihosting->cmdline : "";
 				uint32_t len = strlen(arg) + 1;
 				if (len > size)

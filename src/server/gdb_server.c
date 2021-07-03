@@ -1043,7 +1043,7 @@ static int gdb_new_connection(struct connection *connection)
 	}
 
 	gdb_actual_connections++;
-	log_printf_lf(all_targets->next != NULL ? LOG_LVL_INFO : LOG_LVL_DEBUG,
+	log_printf_lf(all_targets->next ? LOG_LVL_INFO : LOG_LVL_DEBUG,
 			__FILE__, __LINE__, __func__,
 			"New GDB Connection: %d, Target %s, state: %s",
 			gdb_actual_connections,
@@ -1221,7 +1221,7 @@ static int gdb_get_registers_packet(struct connection *connection,
 		return gdb_error(connection, retval);
 
 	for (i = 0; i < reg_list_size; i++) {
-		if (reg_list[i] == NULL || reg_list[i]->exist == false || reg_list[i]->hidden)
+		if (!reg_list[i] || reg_list[i]->exist == false || reg_list[i]->hidden)
 			continue;
 		reg_packet_size += DIV_ROUND_UP(reg_list[i]->size, 8) * 2;
 	}
@@ -1235,7 +1235,7 @@ static int gdb_get_registers_packet(struct connection *connection,
 	reg_packet_p = reg_packet;
 
 	for (i = 0; i < reg_list_size; i++) {
-		if (reg_list[i] == NULL || reg_list[i]->exist == false || reg_list[i]->hidden)
+		if (!reg_list[i] || reg_list[i]->exist == false || reg_list[i]->hidden)
 			continue;
 		if (!reg_list[i]->valid) {
 			retval = reg_list[i]->type->get(reg_list[i]);
@@ -1792,14 +1792,14 @@ static __attribute__ ((format (PRINTF_ATTRIBUTE_FORMAT, 5, 6))) void xml_printf(
 	int first = 1;
 
 	for (;; ) {
-		if ((*xml == NULL) || (!first)) {
+		if ((!*xml) || (!first)) {
 			/* start by 0 to exercise all the code paths.
 			 * Need minimum 2 bytes to fit 1 char and 0 terminator. */
 
 			*size = *size * 2 + 2;
 			char *t = *xml;
 			*xml = realloc(*xml, *size);
-			if (*xml == NULL) {
+			if (!*xml) {
 				free(t);
 				*retval = ERROR_SERVER_REMOTE_CLOSED;
 				return;
@@ -1840,7 +1840,7 @@ static int decode_xfer_read(char const *buf, char **annex, int *ofs, unsigned in
 	/* Extract the annex if needed */
 	if (annex) {
 		*annex = strndup(buf, annex_end - buf);
-		if (*annex == NULL)
+		if (!*annex)
 			return ERROR_FAIL;
 	}
 
@@ -2059,7 +2059,7 @@ static int lookup_add_arch_defined_types(char const **arch_defined_types_list[],
 {
 	int tbl_sz = *num_arch_defined_types;
 
-	if (type_id != NULL && (strcmp(type_id, ""))) {
+	if (type_id && (strcmp(type_id, ""))) {
 		for (int j = 0; j < (tbl_sz + 1); j++) {
 			if (!((*arch_defined_types_list)[j])) {
 				(*arch_defined_types_list)[tbl_sz++] = type_id;
@@ -2224,8 +2224,8 @@ static int get_reg_features_list(struct target *target, char const **feature_lis
 		if (reg_list[i]->exist == false || reg_list[i]->hidden)
 			continue;
 
-		if (reg_list[i]->feature != NULL
-			&& reg_list[i]->feature->name != NULL
+		if (reg_list[i]->feature
+			&& reg_list[i]->feature->name
 			&& (strcmp(reg_list[i]->feature->name, ""))) {
 			/* We found a feature, check if the feature is already in the
 			 * table. If not, allocate a new entry for the table and
@@ -2322,7 +2322,7 @@ static int gdb_generate_target_description(struct target *target, char **tdesc_o
 					continue;
 
 				const char *type_str;
-				if (reg_list[i]->reg_data_type != NULL) {
+				if (reg_list[i]->reg_data_type) {
 					if (reg_list[i]->reg_data_type->type == REG_TYPE_ARCH_DEFINED) {
 						/* generate <type... first, if there are architecture-defined types. */
 						if (lookup_add_arch_defined_types(&arch_defined_types,
@@ -2360,7 +2360,7 @@ static int gdb_generate_target_description(struct target *target, char **tdesc_o
 				xml_printf(&retval, &tdesc, &pos, &size,
 						" type=\"%s\"", type_str);
 
-				if (reg_list[i]->group != NULL)
+				if (reg_list[i]->group)
 					xml_printf(&retval, &tdesc, &pos, &size,
 							" group=\"%s\"", reg_list[i]->group);
 
@@ -2420,7 +2420,7 @@ static int gdb_get_target_description_chunk(struct target *target, struct target
 		transfer_type = 'l';
 
 	*chunk = malloc(length + 2);
-	if (*chunk == NULL) {
+	if (!*chunk) {
 		LOG_ERROR("Unable to allocate memory");
 		return ERROR_FAIL;
 	}
@@ -2543,7 +2543,7 @@ static int gdb_generate_thread_list(struct target *target, char **thread_list_ou
 static int gdb_get_thread_list_chunk(struct target *target, char **thread_list,
 		char **chunk, int32_t offset, uint32_t length)
 {
-	if (*thread_list == NULL) {
+	if (!*thread_list) {
 		int retval = gdb_generate_thread_list(target, thread_list);
 		if (retval != ERROR_OK) {
 			LOG_ERROR("Unable to Generate Thread List");
@@ -2565,7 +2565,7 @@ static int gdb_get_thread_list_chunk(struct target *target, char **thread_list,
 	 * of strlen(chunk) word access:
 	 * Invalid read of size 4
 	 * Address 0x4479934 is 44 bytes inside a block of size 45 alloc'd */
-	if (*chunk == NULL) {
+	if (!*chunk) {
 		LOG_ERROR("Unable to allocate memory");
 		return ERROR_FAIL;
 	}
@@ -2770,7 +2770,7 @@ static bool gdb_handle_vcont_packet(struct connection *connection, const char *p
 
 	/* query for vCont supported */
 	if (parse[0] == '?') {
-		if (target->type->step != NULL) {
+		if (target->type->step) {
 			/* gdb doesn't accept c without C and s without S */
 			gdb_put_packet(connection, "vCont;c;C;s;S", 13);
 			return true;
@@ -3007,7 +3007,7 @@ static bool gdb_handle_vrun_packet(struct connection *connection, const char *pa
 
 	char *cmdline = next_hex_encoded_field(&parse, ';');
 	char *arg;
-	while (cmdline != NULL && (arg = next_hex_encoded_field(&parse, ';')) != NULL) {
+	while (cmdline && (arg = next_hex_encoded_field(&parse, ';')) != NULL) {
 		char *new_cmdline = alloc_printf("%s %s", cmdline, arg);
 		free(cmdline);
 		free(arg);

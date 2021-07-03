@@ -184,7 +184,7 @@ static int ls1_sap_read_memory(struct target *target, target_addr_t address,
 	LOG_DEBUG("Reading memory at physical address 0x%" TARGET_PRIxADDR
 		  "; size %" PRIu32 "; count %" PRIu32, address, size, count);
 
-	if (count == 0 || buffer == NULL)
+	if (count == 0 || !buffer)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	ls1_sap_set_addr_high(target->tap, 0);
@@ -207,7 +207,7 @@ static int ls1_sap_write_memory(struct target *target, target_addr_t address,
 		  "; size %" PRIu32 "; count %" PRIu32, address, size, count);
 
 
-	if (count == 0 || buffer == NULL)
+	if (count == 0 || !buffer)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	ls1_sap_set_addr_high(target->tap, 0);

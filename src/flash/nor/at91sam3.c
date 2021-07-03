@@ -3545,7 +3545,7 @@ COMMAND_HANDLER(sam3_handle_info_command)
 	int r;
 
 	/* bank0 must exist before we can do anything */
-	if (chip->details.bank[0].bank == NULL) {
+	if (!chip->details.bank[0].bank) {
 		x = 0;
 need_define:
 		command_print(CMD,
@@ -3571,7 +3571,7 @@ need_define:
 		if (!(chip->details.bank[x].present))
 			continue;
 
-		if (chip->details.bank[x].bank == NULL)
+		if (!chip->details.bank[x].bank)
 			goto need_define;
 
 		if (chip->details.bank[x].probed)
@@ -3606,7 +3606,7 @@ COMMAND_HANDLER(sam3_handle_gpnvm_command)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if (chip->details.bank[0].bank == NULL) {
+	if (!chip->details.bank[0].bank) {
 		command_print(CMD, "Bank0 must be defined first via: flash bank %s ...",
 			at91sam3_flash.name);
 		return ERROR_FAIL;

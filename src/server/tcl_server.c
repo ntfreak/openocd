@@ -298,10 +298,10 @@ COMMAND_HANDLER(handle_tcl_notifications_command)
 	struct connection *connection = NULL;
 	struct tcl_connection *tclc = NULL;
 
-	if (CMD_CTX->output_handler_priv != NULL)
+	if (CMD_CTX->output_handler_priv)
 		connection = CMD_CTX->output_handler_priv;
 
-	if (connection != NULL && !strcmp(connection->service->name, "tcl")) {
+	if (connection && !strcmp(connection->service->name, "tcl")) {
 		tclc = connection->priv;
 		return CALL_COMMAND_HANDLER(handle_command_parse_bool, &tclc->tc_notify, "Target Notification output ");
 	} else {
@@ -315,10 +315,10 @@ COMMAND_HANDLER(handle_tcl_trace_command)
 	struct connection *connection = NULL;
 	struct tcl_connection *tclc = NULL;
 
-	if (CMD_CTX->output_handler_priv != NULL)
+	if (CMD_CTX->output_handler_priv)
 		connection = CMD_CTX->output_handler_priv;
 
-	if (connection != NULL && !strcmp(connection->service->name, "tcl")) {
+	if (connection && !strcmp(connection->service->name, "tcl")) {
 		tclc = connection->priv;
 		return CALL_COMMAND_HANDLER(handle_command_parse_bool, &tclc->tc_trace, "Target trace output ");
 	} else {

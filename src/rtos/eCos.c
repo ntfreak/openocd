@@ -363,7 +363,7 @@ static int ecos_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[
 
 static bool ecos_detect_rtos(struct target *target)
 {
-	if ((target->rtos->symbols != NULL) &&
+	if ((target->rtos->symbols) &&
 			(target->rtos->symbols[ECOS_VAL_THREAD_LIST].address != 0)) {
 		/* looks like eCos */
 		return true;

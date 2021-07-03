@@ -381,7 +381,7 @@ struct reg_cache *lakemont_build_reg_cache(struct target *t)
 	struct reg_feature *feature;
 	int i;
 
-	if (cache == NULL || reg_list == NULL || arch_info == NULL) {
+	if (!cache || !reg_list || !arch_info) {
 		free(cache);
 		free(reg_list);
 		free(arch_info);
@@ -1013,7 +1013,7 @@ int lakemont_resume(struct target *t, int current, target_addr_t address,
 		/* running away for a software breakpoint needs some special handling */
 		uint32_t eip = buf_get_u32(x86_32->cache->reg_list[EIP].value, 0, 32);
 		bp = breakpoint_find(t, eip);
-		if (bp != NULL /*&& bp->type == BKPT_SOFT*/) {
+		if (bp /*&& bp->type == BKPT_SOFT*/) {
 			/* the step will step over the breakpoint */
 			if (lakemont_step(t, 0, 0, 1) != ERROR_OK) {
 				LOG_ERROR("%s stepping over a software breakpoint at 0x%08" PRIx32 " "
@@ -1024,12 +1024,12 @@ int lakemont_resume(struct target *t, int current, target_addr_t address,
 
 		/* if breakpoints are enabled, we need to redirect these into probe mode */
 		struct breakpoint *activeswbp = t->breakpoints;
-		while (activeswbp != NULL && activeswbp->set == 0)
+		while (activeswbp && activeswbp->set == 0)
 			activeswbp = activeswbp->next;
 		struct watchpoint *activehwbp = t->watchpoints;
-		while (activehwbp != NULL && activehwbp->set == 0)
+		while (activehwbp && activehwbp->set == 0)
 			activehwbp = activehwbp->next;
-		if (activeswbp != NULL || activehwbp != NULL)
+		if (activeswbp || activehwbp)
 			buf_set_u32(x86_32->cache->reg_list[PMCR].value, 0, 32, 1);
 		if (do_resume(t) != ERROR_OK)
 			return ERROR_FAIL;
@@ -1054,7 +1054,7 @@ int lakemont_step(struct target *t, int current,
 	if (check_not_halted(t))
 		return ERROR_TARGET_NOT_HALTED;
 	bp = breakpoint_find(t, eip);
-	if (retval == ERROR_OK && bp != NULL/*&& bp->type == BKPT_SOFT*/) {
+	if (retval == ERROR_OK && bp/*&& bp->type == BKPT_SOFT*/) {
 		/* TODO: This should only be done for software breakpoints.
 		 * Stepping from hardware breakpoints should be possible with the resume flag
 		 * Needs testing.
@@ -1105,7 +1105,7 @@ int lakemont_step(struct target *t, int current,
 	/* try to re-apply the breakpoint, even of step failed
 	 * TODO: When a bp was set, we should try to stop the target - fix the return above
 	 */
-	if (bp != NULL/*&& bp->type == BKPT_SOFT*/) {
+	if (bp/*&& bp->type == BKPT_SOFT*/) {
 		/* TODO: This should only be done for software breakpoints.
 		 * Stepping from hardware breakpoints should be possible with the resume flag
 		 * Needs testing.

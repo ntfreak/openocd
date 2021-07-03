@@ -238,7 +238,7 @@ static int mem_ap_read_memory(struct target *target, target_addr_t address,
 	LOG_DEBUG("Reading memory at physical address " TARGET_ADDR_FMT
 		  "; size %" PRIu32 "; count %" PRIu32, address, size, count);
 
-	if (count == 0 || buffer == NULL)
+	if (count == 0 || !buffer)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	return mem_ap_read_buf(mem_ap->ap, buffer, size, count, address);
@@ -253,7 +253,7 @@ static int mem_ap_write_memory(struct target *target, target_addr_t address,
 	LOG_DEBUG("Writing memory at physical address " TARGET_ADDR_FMT
 		  "; size %" PRIu32 "; count %" PRIu32, address, size, count);
 
-	if (count == 0 || buffer == NULL)
+	if (count == 0 || !buffer)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	return mem_ap_write_buf(mem_ap->ap, buffer, size, count, address);

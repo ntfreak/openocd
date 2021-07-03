@@ -145,7 +145,7 @@ int win_select(int max_fd, fd_set *rfds, fd_set *wfds, fd_set *efds, struct time
 	struct timeval tvslice;
 	int retcode;
 
-#define SAFE_FD_ISSET(fd, set)  (set != NULL && FD_ISSET(fd, set))
+#define SAFE_FD_ISSET(fd, set)  (set && FD_ISSET(fd, set))
 
 	/* calculate how long we need to wait in milliseconds */
 	if (!tv)

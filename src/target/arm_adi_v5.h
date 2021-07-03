@@ -446,7 +446,7 @@ static inline int dap_queue_dp_write(struct adiv5_dap *dap,
 static inline int dap_queue_ap_read(struct adiv5_ap *ap,
 		unsigned reg, uint32_t *data)
 {
-	assert(ap->dap->ops != NULL);
+	assert(ap->dap->ops);
 	return ap->dap->ops->queue_ap_read(ap, reg, data);
 }
 
@@ -462,7 +462,7 @@ static inline int dap_queue_ap_read(struct adiv5_ap *ap,
 static inline int dap_queue_ap_write(struct adiv5_ap *ap,
 		unsigned reg, uint32_t data)
 {
-	assert(ap->dap->ops != NULL);
+	assert(ap->dap->ops);
 	return ap->dap->ops->queue_ap_write(ap, reg, data);
 }
 

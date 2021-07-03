@@ -704,7 +704,7 @@ static int update_halt_gdb(struct target *target)
 	}
 
 	/* after all targets were updated, poll the gdb serving target */
-	if (gdb_target != NULL && gdb_target != target)
+	if (gdb_target && gdb_target != target)
 		cortex_a_poll(gdb_target);
 	return retval;
 }
@@ -726,7 +726,7 @@ static int cortex_a_poll(struct target *target)
 	/*  the next polling trigger an halt event sent to gdb */
 	if ((target->state == TARGET_HALTED) && (target->smp) &&
 		(target->gdb_service) &&
-		(target->gdb_service->target == NULL)) {
+		(!target->gdb_service->target)) {
 		target->gdb_service->target =
 			get_cortex_a(target, target->gdb_service->core[1]);
 		target_call_event_callbacks(target, TARGET_EVENT_HALTED);

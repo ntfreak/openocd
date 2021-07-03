@@ -189,7 +189,7 @@ int jtag_libusb_open(const uint16_t vids[], const uint16_t pids[],
 		}
 
 		/* Device must be open to use libusb_get_string_descriptor_ascii. */
-		if (serial != NULL &&
+		if (serial &&
 				!jtag_libusb_match_serial(libusb_handle, &dev_desc, serial, adapter_get_alternate_serial)) {
 			serial_mismatch = true;
 			libusb_close(libusb_handle);
@@ -285,7 +285,7 @@ int jtag_libusb_set_configuration(struct libusb_device_handle *devh,
 		return retval;
 
 	retval = libusb_get_config_descriptor(udev, configuration, &config);
-	if (retval != 0 || config == NULL)
+	if (retval != 0 || !config)
 		return retval;
 
 	/* Only change the configuration if it is not already set to the

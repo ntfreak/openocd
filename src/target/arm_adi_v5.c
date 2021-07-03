@@ -1028,7 +1028,7 @@ int dap_lookup_cs_component(struct adiv5_ap *ap,
 static int dap_read_part_id(struct adiv5_ap *ap, target_addr_t component_base, uint32_t *cid, uint64_t *pid)
 {
 	assert((component_base & 0xFFF) == 0);
-	assert(ap != NULL && cid != NULL && pid != NULL);
+	assert(ap && cid && pid);
 
 	uint32_t cid0, cid1, cid2, cid3;
 	uint32_t pid0, pid1, pid2, pid3, pid4;

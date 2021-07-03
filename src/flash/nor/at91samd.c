@@ -1064,7 +1064,7 @@ static COMMAND_HELPER(get_u64_from_hexarg, unsigned int num, uint64_t *value)
 		char *check = NULL;
 		*value = strtoull(&(CMD_ARGV[num][2]), &check, 16);
 		if ((value == 0 && errno == ERANGE) ||
-			check == NULL || *check != 0) {
+			!check || *check != 0) {
 			command_print(CMD, "Invalid 64-bit hex value in argument %d.",
 				num + 1);
 			return ERROR_COMMAND_SYNTAX_ERROR;

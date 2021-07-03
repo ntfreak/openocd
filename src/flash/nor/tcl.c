@@ -99,7 +99,7 @@ COMMAND_HANDLER(handle_flash_info_command)
 
 		/* If the driver does not implement protection, we show the default
 		 * state of is_protected array - usually protection state unknown */
-		if (p->driver->protect_check == NULL) {
+		if (!p->driver->protect_check) {
 			retval = ERROR_FLASH_OPER_UNSUPPORTED;
 		} else {
 			/* We must query the hardware to avoid printing stale information! */
@@ -148,7 +148,7 @@ COMMAND_HANDLER(handle_flash_info_command)
 				protect_state);
 		}
 
-		if (p->driver->info != NULL) {
+		if (p->driver->info) {
 			/* Let the flash driver print extra custom info */
 			retval = p->driver->info(p, CMD);
 			command_print_sameline(CMD, "\n");

@@ -682,7 +682,7 @@ int nand_write_page(struct nand_device *nand, uint32_t page,
 	if (nand->blocks[block].is_erased == 1)
 		nand->blocks[block].is_erased = 0;
 
-	if (nand->use_raw || nand->controller->write_page == NULL)
+	if (nand->use_raw || !nand->controller->write_page)
 		return nand_write_page_raw(nand, page, data, data_size, oob, oob_size);
 	else
 		return nand->controller->write_page(nand, page, data, data_size, oob, oob_size);
@@ -695,7 +695,7 @@ int nand_read_page(struct nand_device *nand, uint32_t page,
 	if (!nand->device)
 		return ERROR_NAND_DEVICE_NOT_PROBED;
 
-	if (nand->use_raw || nand->controller->read_page == NULL)
+	if (nand->use_raw || !nand->controller->read_page)
 		return nand_read_page_raw(nand, page, data, data_size, oob, oob_size);
 	else
 		return nand->controller->read_page(nand, page, data, data_size, oob, oob_size);
@@ -769,7 +769,7 @@ int nand_read_data_page(struct nand_device *nand, uint8_t *data, uint32_t size)
 {
 	int retval = ERROR_NAND_NO_BUFFER;
 
-	if (nand->controller->read_block_data != NULL)
+	if (nand->controller->read_block_data)
 		retval = (nand->controller->read_block_data)(nand, data, size);
 
 	if (retval == ERROR_NAND_NO_BUFFER) {
@@ -809,7 +809,7 @@ int nand_write_data_page(struct nand_device *nand, uint8_t *data, uint32_t size)
 {
 	int retval = ERROR_NAND_NO_BUFFER;
 
-	if (nand->controller->write_block_data != NULL)
+	if (nand->controller->write_block_data)
 		retval = (nand->controller->write_block_data)(nand, data, size);
 
 	if (retval == ERROR_NAND_NO_BUFFER) {

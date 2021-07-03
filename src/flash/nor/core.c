@@ -70,7 +70,7 @@ int flash_driver_protect(struct flash_bank *bank, int set, unsigned int first,
 	/* force "set" to 0/1 */
 	set = !!set;
 
-	if (bank->driver->protect == NULL) {
+	if (!bank->driver->protect) {
 		LOG_ERROR("Flash protection is not supported.");
 		return ERROR_FLASH_OPER_UNSUPPORTED;
 	}
@@ -491,7 +491,7 @@ static int flash_iterate_address_range_inner(struct target *target,
 		return ERROR_FLASH_DST_BREAKS_ALIGNMENT;
 	}
 
-	if (c->prot_blocks == NULL || c->num_prot_blocks == 0) {
+	if (!c->prot_blocks || c->num_prot_blocks == 0) {
 		/* flash driver does not define protect blocks, use sectors instead */
 		iterate_protect_blocks = false;
 	}

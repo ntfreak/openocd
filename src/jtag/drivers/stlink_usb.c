@@ -568,7 +568,7 @@ static int jtag_libusb_bulk_transfer_n(
 		transfers[i].transfer_size = 0;
 		transfers[i].transfer = libusb_alloc_transfer(0);
 
-		if (transfers[i].transfer == NULL) {
+		if (!transfers[i].transfer) {
 			for (size_t j = 0; j < i; ++j)
 				libusb_free_transfer(transfers[j].transfer);
 
@@ -3084,7 +3084,7 @@ static int stlink_usb_usb_open(void *handle, struct hl_interface_param_s *param)
 	h->cmdbuf = malloc(STLINK_SG_SIZE);
 	h->databuf = malloc(STLINK_DATA_SIZE);
 
-	if (h->cmdbuf == NULL || h->databuf == NULL)
+	if (!h->cmdbuf || !h->databuf)
 		return ERROR_FAIL;
 
 	/*
@@ -3198,7 +3198,7 @@ static int stlink_tcp_open(void *handle, struct hl_interface_param_s *param)
 	h->tcp_backend_priv.send_buf = malloc(STLINK_TCP_SEND_BUFFER_SIZE);
 	h->tcp_backend_priv.recv_buf = malloc(STLINK_TCP_RECV_BUFFER_SIZE);
 
-	if (h->tcp_backend_priv.send_buf == NULL || h->tcp_backend_priv.recv_buf == NULL)
+	if (!h->tcp_backend_priv.send_buf || !h->tcp_backend_priv.recv_buf)
 		return ERROR_FAIL;
 
 	h->cmdbuf = &h->tcp_backend_priv.send_buf[8];

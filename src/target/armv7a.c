@@ -483,7 +483,7 @@ int armv7a_identify_cache(struct target *target)
 		goto done;
 
 	/*  if no l2 cache initialize l1 data cache flush function function */
-	if (armv7a->armv7a_mmu.armv7a_cache.flush_all_data_cache == NULL) {
+	if (!armv7a->armv7a_mmu.armv7a_cache.flush_all_data_cache) {
 		armv7a->armv7a_mmu.armv7a_cache.flush_all_data_cache =
 			armv7a_cache_auto_flush_all_data;
 	}

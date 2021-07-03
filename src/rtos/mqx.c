@@ -243,7 +243,7 @@ static bool mqx_detect_rtos(
 )
 {
 	if (
-		(target->rtos->symbols != NULL) &&
+		(target->rtos->symbols) &&
 		(target->rtos->symbols[MQX_VAL_MQX_KERNEL_DATA].address != 0)
 	) {
 		return true;

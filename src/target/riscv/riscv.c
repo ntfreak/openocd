@@ -2053,7 +2053,7 @@ int riscv_openocd_poll(struct target *target)
 		unsigned should_remain_halted = 0;
 		unsigned should_resume = 0;
 		unsigned i = 0;
-		for (struct target_list *list = target->head; list != NULL;
+		for (struct target_list *list = target->head; list;
 				list = list->next, i++) {
 			total_targets++;
 			struct target *t = list->target;
@@ -3059,7 +3059,7 @@ int riscv_count_harts(struct target *target)
 	if (!target)
 		return 1;
 	RISCV_INFO(r);
-	if (r == NULL || r->hart_count == NULL)
+	if (!r || !r->hart_count)
 		return 1;
 	return r->hart_count(target);
 }

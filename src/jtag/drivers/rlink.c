@@ -677,7 +677,7 @@ static int dtc_queue_run(void)
 
 		for (
 			rq_p = dtc_queue.rq_head;
-			rq_p != NULL;
+			rq_p;
 			rq_p = rq_next
 			) {
 			tdo_p = rq_p->scan.buffer + (rq_p->scan.offset / 8);

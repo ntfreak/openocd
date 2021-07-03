@@ -75,7 +75,7 @@ int x86_32_get_gdb_reg_list(struct target *t,
 	*reg_list_size = x86_32->cache->num_regs;
 	LOG_DEBUG("num_regs=%d, reg_class=%d", (*reg_list_size), reg_class);
 	*reg_list = malloc(sizeof(struct reg *) * (*reg_list_size));
-	if (*reg_list == NULL) {
+	if (!*reg_list) {
 		LOG_ERROR("%s out of memory", __func__);
 		return ERROR_FAIL;
 	}
@@ -258,7 +258,7 @@ int x86_32_common_write_phys_mem(struct target *t, target_addr_t phys_address,
 
 			/* update the breakpoint */
 			struct breakpoint *pbiter = t->breakpoints;
-			while (pbiter != NULL && pbiter->unique_id != iter->swbp_unique_id)
+			while (pbiter && pbiter->unique_id != iter->swbp_unique_id)
 				pbiter = pbiter->next;
 			if (pbiter)
 				pbiter->orig_instr[0] = buffer[offset];
@@ -456,7 +456,7 @@ int calcaddr_physfromlin(struct target *t, target_addr_t addr, target_addr_t *ph
 {
 	uint8_t entry_buffer[8];
 
-	if (physaddr == NULL || t == NULL)
+	if (!physaddr || !t)
 		return ERROR_FAIL;
 
 	struct x86_32_common *x86_32 = target_to_x86_32(t);
@@ -1113,7 +1113,7 @@ static int unset_swbp(struct target *t, struct breakpoint *bp)
 			x86_32->swbbp_mem_patch_list = iter->next;
 			free(iter);
 		} else {
-			while (iter->next != NULL && iter->next->swbp_unique_id != bp->unique_id)
+			while (iter->next && iter->next->swbp_unique_id != bp->unique_id)
 				iter = iter->next;
 			if (iter->next) {
 				/* it's the next one */

@@ -57,7 +57,7 @@ static int esirisc_jtag_get_padding(void)
 	int padding = 0;
 	int bypass_devices = 0;
 
-	for (struct jtag_tap *tap = jtag_tap_next_enabled(NULL); tap != NULL;
+	for (struct jtag_tap *tap = jtag_tap_next_enabled(NULL); tap;
 			tap = jtag_tap_next_enabled(tap))
 		if (tap->bypass)
 			bypass_devices++;

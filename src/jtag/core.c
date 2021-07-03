@@ -218,7 +218,7 @@ static void jtag_tap_add(struct jtag_tap *t)
 	unsigned jtag_num_taps = 0;
 
 	struct jtag_tap **tap = &__jtag_all_taps;
-	while (*tap != NULL) {
+	while (*tap) {
 		jtag_num_taps++;
 		tap = &(*tap)->next_tap;
 	}
@@ -429,7 +429,7 @@ static void jtag_add_scan_check(struct jtag_tap *active, void (*jtag_add_scan)(
 	jtag_add_scan(active, in_num_fields, in_fields, state);
 
 	for (int i = 0; i < in_num_fields; i++) {
-		if ((in_fields[i].check_value != NULL) && (in_fields[i].in_value != NULL)) {
+		if ((in_fields[i].check_value) && (in_fields[i].in_value)) {
 			jtag_add_callback4(jtag_check_value_mask_callback,
 				(jtag_callback_data_t)in_fields[i].in_value,
 				(jtag_callback_data_t)in_fields[i].check_value,

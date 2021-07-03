@@ -417,7 +417,7 @@ int armv8_identify_cache(struct armv8_common *armv8)
 	armv8->armv8_mmu.armv8_cache.info = 1;
 
 	/*  if no l2 cache initialize l1 data cache flush function function */
-	if (armv8->armv8_mmu.armv8_cache.flush_all_data_cache == NULL) {
+	if (!armv8->armv8_mmu.armv8_cache.flush_all_data_cache) {
 		armv8->armv8_mmu.armv8_cache.display_cache_info =
 			armv8_handle_inner_cache_info_command;
 		armv8->armv8_mmu.armv8_cache.flush_all_data_cache =
