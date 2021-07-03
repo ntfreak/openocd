@@ -379,8 +379,8 @@ static bool usb_connect(void)
 						/* Get the device's serial number string */
 						result = libusb_get_string_descriptor_ascii(dev,
 									desc.iSerialNumber, data, max_data);
-						if (0 < result &&
-							0 == strcmp((char *)data, (char *)xds110.serial)) {
+						if (result > 0 &&
+							strcmp((char *)data, (char *)xds110.serial) == 0) {
 							found = true;
 							break;
 						}
@@ -497,7 +497,7 @@ static bool usb_write(unsigned char *buffer, int size, int *written)
 	result = libusb_bulk_transfer(xds110.dev, xds110.endpoint_out, buffer,
 				size, &bytes_written, 0);
 
-	while (LIBUSB_ERROR_PIPE == result && retries < 3) {
+	while (result == LIBUSB_ERROR_PIPE && retries < 3) {
 		/* Try clearing the pipe stall and retry transfer */
 		libusb_clear_halt(xds110.dev, xds110.endpoint_out);
 		result = libusb_bulk_transfer(xds110.dev, xds110.endpoint_out, buffer,
@@ -508,7 +508,7 @@ static bool usb_write(unsigned char *buffer, int size, int *written)
 	if (written)
 		*written = bytes_written;
 
-	return (0 == result && size == bytes_written) ? true : false;
+	return (result == 0 && size == bytes_written) ? true : false;
 }
 
 static bool usb_get_response(uint32_t *total_bytes_read, uint32_t timeout)
@@ -1021,7 +1021,7 @@ static bool xds_set_supply(uint32_t voltage)
 	xds110.write_payload[0] = XDS_SET_SUPPLY;
 
 	xds110_set_u32(volts_pntr, voltage);
-	*source_pntr = (uint8_t)(0 != voltage ? 1 : 0);
+	*source_pntr = (uint8_t)(voltage != 0 ? 1 : 0);
 
 	success = xds_execute(XDS_OUT_LEN + 5, XDS_IN_LEN, DEFAULT_ATTEMPTS,
 				DEFAULT_TIMEOUT);

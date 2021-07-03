@@ -1929,12 +1929,12 @@ static int aice_read_reg(uint32_t coreid, uint32_t num, uint32_t *val)
 			instructions[2] = DSB;
 			instructions[3] = BEQ_MINUS_12;
 		} else {
-			if (FS0 <= num && num <= FS31) { /* single precision */
+			if (num >= FS0 && num <= FS31) { /* single precision */
 				instructions[0] = FMFSR(0, nds32_reg_sr_index(num));
 				instructions[1] = MTSR_DTR(0);
 				instructions[2] = DSB;
 				instructions[3] = BEQ_MINUS_12;
-			} else if (FD0 <= num && num <= FD31) { /* double precision */
+			} else if (num >= FD0 && num <= FD31) { /* double precision */
 				instructions[0] = FMFDR(0, nds32_reg_sr_index(num));
 				instructions[1] = MTSR_DTR(0);
 				instructions[2] = DSB;
@@ -2035,12 +2035,12 @@ static int aice_write_reg(uint32_t coreid, uint32_t num, uint32_t val)
 		} else if (num == FPCFG) {
 			/* FPCFG is readonly */
 		} else {
-			if (FS0 <= num && num <= FS31) { /* single precision */
+			if (num >= FS0 && num <= FS31) { /* single precision */
 				instructions[0] = MFSR_DTR(0);
 				instructions[1] = FMTSR(0, nds32_reg_sr_index(num));
 				instructions[2] = DSB;
 				instructions[3] = BEQ_MINUS_12;
-			} else if (FD0 <= num && num <= FD31) { /* double precision */
+			} else if (num >= FD0 && num <= FD31) { /* double precision */
 				instructions[0] = MFSR_DTR(0);
 				instructions[1] = FMTDR(0, nds32_reg_sr_index(num));
 				instructions[2] = DSB;

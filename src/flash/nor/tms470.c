@@ -296,9 +296,9 @@ COMMAND_HANDLER(tms470_handle_flash_keyset_command)
 		int i;
 
 		for (i = 0; i < 4; i++) {
-			int start = (0 == strncmp(CMD_ARGV[i], "0x", 2)) ? 2 : 0;
+			int start = (strncmp(CMD_ARGV[i], "0x", 2) == 0) ? 2 : 0;
 
-			if (1 != sscanf(&CMD_ARGV[i][start], "%" SCNx32 "", &flash_keys[i])) {
+			if (sscanf(&CMD_ARGV[i][start], "%" SCNx32 "", &flash_keys[i]) != 1) {
 				command_print(CMD, "could not process flash key %s",
 					CMD_ARGV[i]);
 				LOG_ERROR("could not process flash key %s", CMD_ARGV[i]);

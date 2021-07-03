@@ -212,7 +212,7 @@ RESULT versaloon_send_command(uint16_t out_len, uint16_t *inlen)
 	ret = libusb_bulk_transfer(versaloon_usb_device_handle,
 			versaloon_interface.usb_setting.ep_out,
 			versaloon_buf, out_len, &transferred, versaloon_usb_to);
-	if (0 != ret || transferred != out_len) {
+	if (ret != 0 || transferred != out_len) {
 		LOG_ERROR(ERRMSG_FAILURE_OPERATION, "send usb data");
 		return ERRCODE_FAILURE_OPERATION;
 	}

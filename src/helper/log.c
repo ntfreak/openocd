@@ -290,7 +290,7 @@ void log_init(void)
 	if (debug_env) {
 		int value;
 		int retval = parse_int(debug_env, &value);
-		if (ERROR_OK == retval &&
+		if (retval == ERROR_OK &&
 				debug_level >= LOG_LVL_SILENT &&
 				debug_level <= LOG_LVL_DEBUG_IO)
 				debug_level = value;

@@ -3173,7 +3173,7 @@ COMMAND_HANDLER(sam4_handle_gpnvm_command)
 			who = -1;
 			break;
 		case 2:
-			if ((0 == strcmp(CMD_ARGV[0], "show")) && (0 == strcmp(CMD_ARGV[1], "all")))
+			if ((strcmp(CMD_ARGV[0], "show") == 0) && (strcmp(CMD_ARGV[1], "all") == 0))
 				who = -1;
 			else {
 				uint32_t v32;
@@ -3183,7 +3183,7 @@ COMMAND_HANDLER(sam4_handle_gpnvm_command)
 			break;
 	}
 
-	if (0 == strcmp("show", CMD_ARGV[0])) {
+	if (strcmp("show", CMD_ARGV[0]) == 0) {
 		if (who == -1) {
 showall:
 			r = ERROR_OK;
@@ -3211,10 +3211,10 @@ showall:
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 
-	if (0 == strcmp("set", CMD_ARGV[0]))
+	if (strcmp("set", CMD_ARGV[0]) == 0)
 		r = flashd_set_gpnvm(&(chip->details.bank[0]), who);
-	else if ((0 == strcmp("clr", CMD_ARGV[0])) ||
-		 (0 == strcmp("clear", CMD_ARGV[0])))			/* quietly accept both */
+	else if ((strcmp("clr", CMD_ARGV[0]) == 0) ||
+		 (strcmp("clear", CMD_ARGV[0]) == 0))			/* quietly accept both */
 		r = flashd_clr_gpnvm(&(chip->details.bank[0]), who);
 	else {
 		command_print(CMD, "Unknown command: %s", CMD_ARGV[0]);

@@ -315,8 +315,8 @@ static int msp432_init(struct flash_bank *bank)
 	}
 
 	/* Issue warnings if this is a device we may not be able to flash */
-	if (MSP432P401X_GUESS == msp432_bank->device_type ||
-		MSP432P411X_GUESS == msp432_bank->device_type) {
+	if (msp432_bank->device_type == MSP432P401X_GUESS ||
+		msp432_bank->device_type == MSP432P411X_GUESS) {
 		/* Explicit device type check failed. Report this. */
 		LOG_WARNING(
 			"msp432: Unrecognized MSP432P4 Device ID and Hardware "
@@ -489,9 +489,9 @@ COMMAND_HANDLER(msp432_mass_erase_command)
 		all = false;
 	} else if (2 == CMD_ARGC) {
 		/* Check argument for how much to erase */
-		if (0 == strcmp(CMD_ARGV[1], "main"))
+		if (strcmp(CMD_ARGV[1], "main") == 0)
 			all = false;
-		else if (0 == strcmp(CMD_ARGV[1], "all"))
+		else if (strcmp(CMD_ARGV[1], "all") == 0)
 			all = true;
 		else
 			return ERROR_COMMAND_SYNTAX_ERROR;
@@ -543,9 +543,9 @@ COMMAND_HANDLER(msp432_bsl_command)
 	}
 
 	if (2 == CMD_ARGC) {
-		if (0 == strcmp(CMD_ARGV[1], "lock"))
+		if (strcmp(CMD_ARGV[1], "lock") == 0)
 			msp432_bank->unlock_bsl = false;
-		else if (0 == strcmp(CMD_ARGV[1], "unlock"))
+		else if (strcmp(CMD_ARGV[1], "unlock") == 0)
 			msp432_bank->unlock_bsl = true;
 		else
 			return ERROR_COMMAND_SYNTAX_ERROR;
@@ -597,8 +597,8 @@ static int msp432_erase(struct flash_bank *bank, unsigned int first,
 	struct msp432_bank *msp432_bank = bank->driver_priv;
 	struct msp432_algo_params algo_params;
 
-	bool is_main = FLASH_BASE == bank->base;
-	bool is_info = P4_FLASH_INFO_BASE == bank->base;
+	bool is_main = bank->base == FLASH_BASE;
+	bool is_info = bank->base == P4_FLASH_INFO_BASE;
 
 	int retval;
 
@@ -676,7 +676,7 @@ static int msp432_write(struct flash_bank *bank, const uint8_t *buffer,
 	long long start_ms;
 	long long elapsed_ms;
 
-	bool is_info = P4_FLASH_INFO_BASE == bank->base;
+	bool is_info = bank->base == P4_FLASH_INFO_BASE;
 
 	int retval;
 
@@ -812,8 +812,8 @@ static int msp432_probe(struct flash_bank *bank)
 	uint32_t size;
 	unsigned int num_sectors;
 
-	bool is_main = FLASH_BASE == bank->base;
-	bool is_info = P4_FLASH_INFO_BASE == bank->base;
+	bool is_main = bank->base == FLASH_BASE;
+	bool is_info = bank->base == P4_FLASH_INFO_BASE;
 
 	int retval;
 
@@ -960,8 +960,8 @@ static int msp432_auto_probe(struct flash_bank *bank)
 {
 	struct msp432_bank *msp432_bank = bank->driver_priv;
 
-	bool is_main = FLASH_BASE == bank->base;
-	bool is_info = P4_FLASH_INFO_BASE == bank->base;
+	bool is_main = bank->base == FLASH_BASE;
+	bool is_info = bank->base == P4_FLASH_INFO_BASE;
 
 	int retval = ERROR_OK;
 
@@ -1030,7 +1030,7 @@ static int msp432_protect_check(struct flash_bank *bank)
 
 static void msp432_flash_free_driver_priv(struct flash_bank *bank)
 {
-	bool is_main = FLASH_BASE == bank->base;
+	bool is_main = bank->base == FLASH_BASE;
 
 	/* A single private struct is shared between main and info banks */
 	/* Only free it on the call for main bank */

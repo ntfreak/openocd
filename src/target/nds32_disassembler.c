@@ -2849,7 +2849,7 @@ static uint32_t field_mask[9] = {
 
 static uint8_t nds32_extract_field_8u(uint16_t opcode, uint32_t start, uint32_t length)
 {
-	if (0 < length && length < 9)
+	if (length > 0 && length < 9)
 		return (opcode >> start) & field_mask[length];
 
 	return 0;

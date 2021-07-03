@@ -422,7 +422,7 @@ static struct reg_cache *nds32_build_reg_cache(struct target *target,
 
 		reg_list[i].reg_data_type = calloc(sizeof(struct reg_data_type), 1);
 
-		if (FD0 <= reg_arch_info[i].num && reg_arch_info[i].num <= FD31) {
+		if (reg_arch_info[i].num >= FD0 && reg_arch_info[i].num <= FD31) {
 			reg_list[i].value = reg_arch_info[i].value;
 			reg_list[i].type = &nds32_reg_access_type_64;
 
@@ -456,20 +456,20 @@ static struct reg_cache *nds32_build_reg_cache(struct target *target,
 			}
 		}
 
-		if (R16 <= reg_arch_info[i].num && reg_arch_info[i].num <= R25)
+		if (reg_arch_info[i].num >= R16 && reg_arch_info[i].num <= R25)
 			reg_list[i].caller_save = true;
 		else
 			reg_list[i].caller_save = false;
 
 		reg_list[i].feature = malloc(sizeof(struct reg_feature));
 
-		if (R0 <= reg_arch_info[i].num && reg_arch_info[i].num <= IFC_LP)
+		if (reg_arch_info[i].num >= R0 && reg_arch_info[i].num <= IFC_LP)
 			reg_list[i].feature->name = "org.gnu.gdb.nds32.core";
-		else if (CR0 <= reg_arch_info[i].num && reg_arch_info[i].num <= SECUR0)
+		else if (reg_arch_info[i].num >= CR0 && reg_arch_info[i].num <= SECUR0)
 			reg_list[i].feature->name = "org.gnu.gdb.nds32.system";
-		else if (D0L24 <= reg_arch_info[i].num && reg_arch_info[i].num <= CBE3)
+		else if (reg_arch_info[i].num >= D0L24 && reg_arch_info[i].num <= CBE3)
 			reg_list[i].feature->name = "org.gnu.gdb.nds32.audio";
-		else if (FPCSR <= reg_arch_info[i].num && reg_arch_info[i].num <= FD31)
+		else if (reg_arch_info[i].num >= FPCSR && reg_arch_info[i].num <= FD31)
 			reg_list[i].feature->name = "org.gnu.gdb.nds32.fpu";
 
 		cache->num_regs++;
@@ -1545,7 +1545,7 @@ int nds32_restore_context(struct target *target)
 						i, buf_get_u32(reg->value, 0, 32));
 
 				reg_arch_info = reg->arch_info;
-				if (FD0 <= reg_arch_info->num && reg_arch_info->num <= FD31) {
+				if (reg_arch_info->num >= FD0 && reg_arch_info->num <= FD31) {
 					uint64_t val = buf_get_u64(reg_arch_info->value, 0, 64);
 					aice_write_reg_64(aice, reg_arch_info->num, val);
 				} else {
@@ -1735,8 +1735,7 @@ int nds32_cache_sync(struct target *target, target_addr_t address, uint32_t leng
 			 * be physical address.  L1I_VA_INVALIDATE uses PSW.IT to decide
 			 * address translation or not. */
 			target_addr_t physical_addr;
-			if (ERROR_FAIL == target->type->virt2phys(target, cur_address,
-						&physical_addr))
+			if (target->type->virt2phys(target, cur_address, &physical_addr) == ERROR_FAIL)
 				return ERROR_FAIL;
 
 			/* I$ invalidate */
@@ -1926,8 +1925,7 @@ int nds32_examine_debug_reason(struct nds32 *nds32)
 
 				if (nds32_read_opcode(nds32, value_pc, &opcode) != ERROR_OK)
 					return ERROR_FAIL;
-				if (ERROR_OK != nds32_evaluate_opcode(nds32, opcode, value_pc,
-							&instruction))
+				if (nds32_evaluate_opcode(nds32, opcode, value_pc, &instruction) != ERROR_OK)
 					return ERROR_FAIL;
 
 				/* hit 'break 0x7FFF' */
@@ -1966,8 +1964,7 @@ int nds32_examine_debug_reason(struct nds32 *nds32)
 		case NDS32_DEBUG_DATA_VALUE_WATCHPOINT_IMPRECISE:
 		case NDS32_DEBUG_DATA_ADDR_WATCHPOINT_NEXT_PRECISE:
 		case NDS32_DEBUG_DATA_VALUE_WATCHPOINT_NEXT_PRECISE:
-			if (ERROR_OK != nds32->get_watched_address(nds32,
-						&(nds32->watched_address), reason))
+			if (nds32->get_watched_address(nds32, &(nds32->watched_address), reason) != ERROR_OK)
 				return ERROR_FAIL;
 
 			target->debug_reason = DBG_REASON_WATCHPOINT;

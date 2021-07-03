@@ -133,7 +133,7 @@ static int jim_command_drscan(Jim_Interp *interp, int argc, Jim_Obj * const *arg
 		/* get arg as a string. */
 		cp = Jim_GetString(args[i], NULL);
 		/* is it the magic? */
-		if (0 == strcmp("-endstate", cp)) {
+		if (strcmp("-endstate", cp) == 0) {
 			/* is the statename valid? */
 			cp = Jim_GetString(args[i + 1], NULL);
 

@@ -383,7 +383,7 @@ static int at91sam9_read_page(struct nand_device *nand, uint32_t page,
 
 	oob_data = at91sam9_oob_init(nand, oob, &oob_size);
 	retval = nand_read_data_page(nand, oob_data, oob_size);
-	if (ERROR_OK == retval && data) {
+	if (retval == ERROR_OK && data) {
 		target_read_u32(target, info->ecc + AT91C_ECCX_SR, &status);
 		if (status & 1) {
 			LOG_ERROR("Error detected!");

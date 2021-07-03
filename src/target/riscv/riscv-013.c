@@ -4653,10 +4653,10 @@ int riscv013_test_compliance(struct target *target)
 	for (unsigned int i = 1; i < 32; i = i << 1) {
 		riscv_reg_t testval =	i | ((i + 1ULL) << 32);
 		riscv_reg_t testval_read;
-		COMPLIANCE_TEST(ERROR_OK == register_write_direct(target, GDB_REGNO_ZERO + i, testval),
+		COMPLIANCE_TEST(register_write_direct(target, GDB_REGNO_ZERO + i, testval) == ERROR_OK,
 				"GPR Writes should be supported.");
 		COMPLIANCE_MUST_PASS(write_abstract_arg(target, 0, 0xDEADBEEFDEADBEEF, 64));
-		COMPLIANCE_TEST(ERROR_OK == register_read_direct(target, &testval_read, GDB_REGNO_ZERO + i),
+		COMPLIANCE_TEST(register_read_direct(target, &testval_read, GDB_REGNO_ZERO + i) == ERROR_OK,
 				"GPR Reads should be supported.");
 		if (riscv_xlen(target) > 32) {
 			/* Dummy comment to satisfy linter, since removing the branches here doesn't actually compile. */
@@ -4680,7 +4680,7 @@ int riscv013_test_compliance(struct target *target)
 		if (info->progbufsize >= 3) {
 
 			testvar = 0;
-			COMPLIANCE_TEST(ERROR_OK == register_write_direct(target, GDB_REGNO_S0, 0),
+			COMPLIANCE_TEST(register_write_direct(target, GDB_REGNO_S0, 0) == ERROR_OK,
 					"Need to be able to write S0 to test ABSTRACTAUTO");
 			struct riscv_program program;
 			COMPLIANCE_MUST_PASS(riscv_program_init(&program, target));
@@ -4721,7 +4721,7 @@ int riscv013_test_compliance(struct target *target)
 			}
 
 			COMPLIANCE_WRITE(target, DM_ABSTRACTAUTO, 0);
-			COMPLIANCE_TEST(ERROR_OK == register_read_direct(target, &value, GDB_REGNO_S0),
+			COMPLIANCE_TEST(register_read_direct(target, &value, GDB_REGNO_S0) == ERROR_OK,
 					"Need to be able to read S0 to test ABSTRACTAUTO");
 
 			COMPLIANCE_TEST(testvar == value,
@@ -4797,8 +4797,8 @@ int riscv013_test_compliance(struct target *target)
 	/* Pulse reset. */
 	target->reset_halt = true;
 	COMPLIANCE_MUST_PASS(riscv_set_current_hartid(target, 0));
-	COMPLIANCE_TEST(ERROR_OK == assert_reset(target), "Must be able to assert NDMRESET");
-	COMPLIANCE_TEST(ERROR_OK == deassert_reset(target), "Must be able to deassert NDMRESET");
+	COMPLIANCE_TEST(assert_reset(target) == ERROR_OK, "Must be able to assert NDMRESET");
+	COMPLIANCE_TEST(deassert_reset(target) == ERROR_OK, "Must be able to deassert NDMRESET");
 
 	/* Verify that most stuff is not affected by ndmreset. */
 	COMPLIANCE_READ(target, &testvar_read, DM_ABSTRACTCS);

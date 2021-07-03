@@ -199,28 +199,22 @@ static int mqx_is_scheduler_running(
 	uint32_t capability_value = 0;
 
 	/* get '_mqx_kernel_data' symbol */
-	if (ERROR_OK != mqx_get_symbol(
-		rtos, MQX_VAL_MQX_KERNEL_DATA, &kernel_data_symbol
-	)) {
+	if (mqx_get_symbol(rtos, MQX_VAL_MQX_KERNEL_DATA, &kernel_data_symbol) != ERROR_OK)
 		return ERROR_FAIL;
-	}
+
 	/* get '_mqx_kernel_data' */
-	if (ERROR_OK != mqx_get_member(
-		rtos, kernel_data_symbol, 0, 4,
-		"_mqx_kernel_data", &kernel_data_addr
-	)) {
+	if (mqx_get_member(rtos, kernel_data_symbol, 0, 4,
+		"_mqx_kernel_data", &kernel_data_addr) != ERROR_OK)
 		return ERROR_FAIL;
-	}
+
 	/* return if '_mqx_kernel_data' is NULL or default 0xFFFFFFFF */
-	if (0 == kernel_data_addr || (uint32_t)(-1) == kernel_data_addr)
+	if (kernel_data_addr == 0 || kernel_data_addr == (uint32_t)(-1))
 		return ERROR_FAIL;
 	/* get kernel_data->ADDRESSING_CAPABILITY */
-	if (ERROR_OK != mqx_get_member(
-		rtos, kernel_data_addr, MQX_KERNEL_OFFSET_CAPABILITY, 4,
-		"kernel_data->ADDRESSING_CAPABILITY", (void *)&capability_value
-	)) {
+	if (mqx_get_member(rtos, kernel_data_addr, MQX_KERNEL_OFFSET_CAPABILITY, 4,
+		"kernel_data->ADDRESSING_CAPABILITY", (void *)&capability_value) != ERROR_OK)
 		return ERROR_FAIL;
-	}
+
 	/* check first member, the '_mqx_kernel_data->ADDRESSING_CAPABILITY'.
 	   it suppose to be set to value 8 */
 	if (capability_value != 8) {
@@ -228,12 +222,10 @@ static int mqx_is_scheduler_running(
 		return ERROR_FAIL;
 	}
 	/* get active ptr */
-	if (ERROR_OK != mqx_get_member(
-		rtos, kernel_data_addr, MQX_KERNEL_OFFSET_ACTIVE_TASK, 4,
-		"kernel_data->ACTIVE_PTR", (void *)&active_td_addr
-	)) {
+	if (mqx_get_member(rtos, kernel_data_addr, MQX_KERNEL_OFFSET_ACTIVE_TASK, 4,
+		"kernel_data->ACTIVE_PTR", (void *)&active_td_addr) != ERROR_OK)
 		return ERROR_FAIL;
-	}
+
 	/* active task is system task, scheduler has not not run yet */
 	system_td_addr = kernel_data_addr + MQX_KERNEL_OFFSET_SYSTEM_TASK;
 	if (active_td_addr == system_td_addr) {
@@ -302,33 +294,25 @@ static int mqx_update_threads(
 	if (mqx_is_scheduler_running(rtos) != ERROR_OK)
 		return ERROR_FAIL;
 	/* get kernel_data symbol */
-	if (ERROR_OK != mqx_get_symbol(
-		rtos, MQX_VAL_MQX_KERNEL_DATA, &kernel_data_addr
-	)) {
+	if (mqx_get_symbol(rtos, MQX_VAL_MQX_KERNEL_DATA, &kernel_data_addr) != ERROR_OK)
 		return ERROR_FAIL;
-	}
+
 	/* read kernel_data */
-	if (ERROR_OK != mqx_get_member(
-		rtos, kernel_data_addr, 0, 4, "_mqx_kernel_data", &kernel_data_addr
-	)) {
+	if (mqx_get_member(rtos, kernel_data_addr, 0, 4,
+		"_mqx_kernel_data", &kernel_data_addr) != ERROR_OK)
 		return ERROR_FAIL;
-	}
+
 	/* get task queue address */
 	task_queue_addr = kernel_data_addr + MQX_KERNEL_OFFSET_TDLIST;
 	/* get task queue size */
-	if (ERROR_OK != mqx_get_member(
-		rtos, task_queue_addr, MQX_QUEUE_OFFSET_SIZE, 2,
-		"kernel_data->TD_LIST.SIZE", &task_queue_size
-	)) {
+	if (mqx_get_member(rtos, task_queue_addr, MQX_QUEUE_OFFSET_SIZE, 2,
+		"kernel_data->TD_LIST.SIZE", &task_queue_size) != ERROR_OK)
 		return ERROR_FAIL;
-	}
+
 	/* get active ptr */
-	if (ERROR_OK != mqx_get_member(
-		rtos, kernel_data_addr, MQX_KERNEL_OFFSET_ACTIVE_TASK, 4,
-		"kernel_data->ACTIVE_PTR", (void *)&active_td_addr
-	)) {
+	if (mqx_get_member(rtos, kernel_data_addr, MQX_KERNEL_OFFSET_ACTIVE_TASK, 4,
+		"kernel_data->ACTIVE_PTR", (void *)&active_td_addr) != ERROR_OK)
 		return ERROR_FAIL;
-	}
 
 	/* setup threads info */
 	rtos->thread_count = task_queue_size;
@@ -355,60 +339,46 @@ static int mqx_update_threads(
 		char *state_name = "Unknown";
 
 		/* set current taskpool address */
-		if (ERROR_OK != mqx_get_member(
-			rtos, taskpool_addr, MQX_TASK_OFFSET_NEXT, 4,
-			"td_struct_ptr->NEXT", &taskpool_addr
-		)) {
+		if (mqx_get_member(rtos, taskpool_addr, MQX_TASK_OFFSET_NEXT, 4,
+			"td_struct_ptr->NEXT", &taskpool_addr) != ERROR_OK)
 			return ERROR_FAIL;
-		}
+
 		/* get task address from taskpool */
 		task_addr = taskpool_addr - MQX_TASK_OFFSET_TDLIST;
 		/* get address of 'td_struct_ptr->TEMPLATE_LIST_PTR' */
-		if (ERROR_OK != mqx_get_member(
-			rtos, task_addr, MQX_TASK_OFFSET_TEMPLATE, 4,
-			"td_struct_ptr->TEMPLATE_LIST_PTR", &task_template
-		)) {
+		if (mqx_get_member(rtos, task_addr, MQX_TASK_OFFSET_TEMPLATE, 4,
+			"td_struct_ptr->TEMPLATE_LIST_PTR", &task_template) != ERROR_OK)
 			return ERROR_FAIL;
-		}
+
 		/* get address of 'td_struct_ptr->TEMPLATE_LIST_PTR->NAME' */
-		if (ERROR_OK != mqx_get_member(
-			rtos, task_template, MQX_TASK_TEMPLATE_OFFSET_NAME, 4,
-			"td_struct_ptr->TEMPLATE_LIST_PTR->NAME", &task_name_addr
-		)) {
+		if (mqx_get_member(rtos, task_template, MQX_TASK_TEMPLATE_OFFSET_NAME, 4,
+			"td_struct_ptr->TEMPLATE_LIST_PTR->NAME", &task_name_addr) != ERROR_OK)
 			return ERROR_FAIL;
-		}
+
 		/* get value of 'td_struct->TEMPLATE_LIST_PTR->NAME' */
-		if (ERROR_OK != mqx_get_member(
-			rtos, task_name_addr, 0, MQX_THREAD_NAME_LENGTH,
-			"*td_struct_ptr->TEMPLATE_LIST_PTR->NAME", task_name
-		)) {
+		if (mqx_get_member(rtos, task_name_addr, 0, MQX_THREAD_NAME_LENGTH,
+			"*td_struct_ptr->TEMPLATE_LIST_PTR->NAME", task_name) != ERROR_OK)
 			return ERROR_FAIL;
-		}
+
 		/* always terminate last character by force,
 		   otherwise openocd might fail if task_name
 		   has corrupted data */
 		task_name[MQX_THREAD_NAME_LENGTH] = '\0';
 		/* get value of 'td_struct_ptr->TASK_ID' */
-		if (ERROR_OK != mqx_get_member(
-			rtos, task_addr, MQX_TASK_OFFSET_ID, 4,
-			"td_struct_ptr->TASK_ID", &task_id
-		)) {
+		if (mqx_get_member(rtos, task_addr, MQX_TASK_OFFSET_ID, 4,
+			"td_struct_ptr->TASK_ID", &task_id) != ERROR_OK)
 			return ERROR_FAIL;
-		}
+
 		/* get task errno */
-		if (ERROR_OK != mqx_get_member(
-			rtos, task_addr, MQX_TASK_OFFSET_ERROR_CODE, 4,
-			"td_struct_ptr->TASK_ERROR_CODE", &task_errno
-		)) {
+		if (mqx_get_member(rtos, task_addr, MQX_TASK_OFFSET_ERROR_CODE, 4,
+			"td_struct_ptr->TASK_ERROR_CODE", &task_errno) != ERROR_OK)
 			return ERROR_FAIL;
-		}
+
 		/* get value of 'td_struct_ptr->STATE' */
-		if (ERROR_OK != mqx_get_member(
-			rtos, task_addr, MQX_TASK_OFFSET_STATE, 4,
-			"td_struct_ptr->STATE", &task_state
-		)) {
+		if (mqx_get_member(rtos, task_addr, MQX_TASK_OFFSET_STATE, 4,
+			"td_struct_ptr->STATE", &task_state) != ERROR_OK)
 			return ERROR_FAIL;
-		}
+
 		task_state &= MQX_TASK_STATE_MASK;
 		/* and search for defined state */
 		for (state_index = 0; state_index < ARRAY_SIZE(mqx_states); state_index++) {
@@ -471,26 +441,21 @@ static int mqx_get_thread_reg_list(
 	if (mqx_is_scheduler_running(rtos) != ERROR_OK)
 		return ERROR_FAIL;
 	/* get kernel_data symbol */
-	if (ERROR_OK != mqx_get_symbol(
-		rtos, MQX_VAL_MQX_KERNEL_DATA, &kernel_data_addr
-	)) {
+	if (mqx_get_symbol(rtos, MQX_VAL_MQX_KERNEL_DATA, &kernel_data_addr) != ERROR_OK)
 		return ERROR_FAIL;
-	}
+
 	/* read kernel_data */
-	if (ERROR_OK != mqx_get_member(
-		rtos, kernel_data_addr, 0, 4, "_mqx_kernel_data", &kernel_data_addr
-	)) {
+	if (mqx_get_member(rtos, kernel_data_addr, 0, 4,
+		"_mqx_kernel_data", &kernel_data_addr) != ERROR_OK)
 		return ERROR_FAIL;
-	}
+
 	/* get task queue address */
 	task_queue_addr = kernel_data_addr + MQX_KERNEL_OFFSET_TDLIST;
 	/* get task queue size */
-	if (ERROR_OK != mqx_get_member(
-		rtos, task_queue_addr, MQX_QUEUE_OFFSET_SIZE, 2,
-		"kernel_data->TD_LIST.SIZE", &task_queue_size
-	)) {
+	if (mqx_get_member(rtos, task_queue_addr, MQX_QUEUE_OFFSET_SIZE, 2,
+		"kernel_data->TD_LIST.SIZE", &task_queue_size) != ERROR_OK)
 		return ERROR_FAIL;
-	}
+
 	/* search for taskid */
 	for (
 		uint32_t i = 0, taskpool_addr = task_queue_addr;
@@ -501,21 +466,17 @@ static int mqx_get_thread_reg_list(
 		uint32_t task_id = 0;
 		/* set current taskpool address */
 		tmp_address = taskpool_addr;
-		if (ERROR_OK != mqx_get_member(
-			rtos, tmp_address, MQX_TASK_OFFSET_NEXT, 4,
-			"td_struct_ptr->NEXT", &taskpool_addr
-		)) {
+		if (mqx_get_member(rtos, tmp_address, MQX_TASK_OFFSET_NEXT, 4,
+			"td_struct_ptr->NEXT", &taskpool_addr) != ERROR_OK)
 			return ERROR_FAIL;
-		}
+
 		/* get task address from taskpool */
 		task_addr = taskpool_addr - MQX_TASK_OFFSET_TDLIST;
 		/* get value of td_struct->TASK_ID */
-		if (ERROR_OK != mqx_get_member(
-			rtos, task_addr, MQX_TASK_OFFSET_ID, 4,
-			"td_struct_ptr->TASK_ID", &task_id
-		)) {
+		if (mqx_get_member(rtos, task_addr, MQX_TASK_OFFSET_ID, 4,
+			"td_struct_ptr->TASK_ID", &task_id) != ERROR_OK)
 			return ERROR_FAIL;
-		}
+
 		/* found taskid, break */
 		if (task_id == thread_id) {
 			my_task_addr = task_addr;
@@ -527,11 +488,10 @@ static int mqx_get_thread_reg_list(
 		return ERROR_FAIL;
 	}
 	/* get task stack head address */
-	if (ERROR_OK != mqx_get_member(
-		rtos, my_task_addr, MQX_TASK_OFFSET_STACK, 4, "task->STACK_PTR", &stack_ptr
-	)) {
+	if (mqx_get_member(rtos, my_task_addr, MQX_TASK_OFFSET_STACK, 4,
+		"task->STACK_PTR", &stack_ptr) != ERROR_OK)
 		return ERROR_FAIL;
-	}
+
 	return rtos_generic_stack_read(
 		rtos->target, ((struct mqx_params *)rtos->rtos_specific_params)->stacking_info, stack_ptr, reg_list, num_regs
 	);

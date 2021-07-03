@@ -577,8 +577,7 @@ COMMAND_HANDLER(handle_nds32_decode_command)
 		while (i < insn_count) {
 			if (nds32_read_opcode(nds32, read_addr, &opcode) != ERROR_OK)
 				return ERROR_FAIL;
-			if (ERROR_OK != nds32_evaluate_opcode(nds32, opcode,
-						read_addr, &instruction))
+			if (nds32_evaluate_opcode(nds32, opcode, read_addr, &instruction) != ERROR_OK)
 				return ERROR_FAIL;
 
 			command_print(CMD, "%s", instruction.text);
