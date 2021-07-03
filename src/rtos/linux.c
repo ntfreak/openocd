@@ -639,7 +639,7 @@ static struct threads *liste_add_task(struct threads *task_list, struct threads 
 {
 	t->next = NULL;
 
-	if (*last == NULL)
+	if (!*last)
 		if (!task_list) {
 			task_list = t;
 			return task_list;

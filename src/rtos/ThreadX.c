@@ -491,7 +491,7 @@ static int threadx_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_li
 
 static bool threadx_detect_rtos(struct target *target)
 {
-	if ((target->rtos->symbols != NULL) &&
+	if ((target->rtos->symbols) &&
 			(target->rtos->symbols[THREADX_VAL_TX_THREAD_CREATED_PTR].address != 0)) {
 		/* looks like ThreadX */
 		return true;

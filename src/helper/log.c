@@ -230,7 +230,7 @@ COMMAND_HANDLER(handle_debug_level_command)
 COMMAND_HANDLER(handle_log_output_command)
 {
 	if (CMD_ARGC == 0 || (CMD_ARGC == 1 && strcmp(CMD_ARGV[0], "default") == 0)) {
-		if (log_output != stderr && log_output != NULL) {
+		if (log_output != stderr && log_output) {
 			/* Close previous log file, if it was open and wasn't stderr. */
 			fclose(log_output);
 		}
@@ -244,7 +244,7 @@ COMMAND_HANDLER(handle_log_output_command)
 			LOG_ERROR("failed to open output log '%s'", CMD_ARGV[0]);
 			return ERROR_FAIL;
 		}
-		if (log_output != stderr && log_output != NULL) {
+		if (log_output != stderr && log_output) {
 			/* Close previous log file, if it was open and wasn't stderr. */
 			fclose(log_output);
 		}

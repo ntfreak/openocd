@@ -531,7 +531,7 @@ static int freertos_get_thread_ascii_info(struct rtos *rtos, threadid_t thread_i
 
 static bool freertos_detect_rtos(struct target *target)
 {
-	if ((target->rtos->symbols != NULL) &&
+	if ((target->rtos->symbols) &&
 			(target->rtos->symbols[FREERTOS_VAL_PX_READY_TASKS_LISTS].address != 0)) {
 		/* looks like FreeRTOS */
 		return true;

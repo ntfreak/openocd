@@ -306,13 +306,13 @@ int rtos_thread_packet(struct connection *connection, char const *packet, int pa
 	struct target *target = get_target_from_connection(connection);
 
 	if (strncmp(packet, "qThreadExtraInfo,", 17) == 0) {
-		if ((target->rtos) && (target->rtos->thread_details != NULL) &&
+		if ((target->rtos) && (target->rtos->thread_details) &&
 				(target->rtos->thread_count != 0)) {
 			threadid_t threadid = 0;
 			int found = -1;
 			sscanf(packet, "qThreadExtraInfo,%" SCNx64, &threadid);
 
-			if ((target->rtos) && (target->rtos->thread_details != NULL)) {
+			if ((target->rtos) && (target->rtos->thread_details)) {
 				int thread_num;
 				for (thread_num = 0; thread_num < target->rtos->thread_count; thread_num++) {
 					if (target->rtos->thread_details[thread_num].threadid == threadid) {
@@ -416,7 +416,7 @@ int rtos_thread_packet(struct connection *connection, char const *packet, int pa
 		threadid_t threadid;
 		int found = -1;
 		sscanf(packet, "T%" SCNx64, &threadid);
-		if ((target->rtos) && (target->rtos->thread_details != NULL)) {
+		if ((target->rtos) && (target->rtos->thread_details)) {
 			int thread_num;
 			for (thread_num = 0; thread_num < target->rtos->thread_count; thread_num++) {
 				if (target->rtos->thread_details[thread_num].threadid == threadid) {
@@ -564,7 +564,7 @@ int rtos_set_reg(struct connection *connection, int reg_num,
 	struct target *target = get_target_from_connection(connection);
 	int64_t current_threadid = target->rtos->current_threadid;
 	if ((target->rtos) &&
-			(target->rtos->type->set_reg != NULL) &&
+			(target->rtos->type->set_reg) &&
 			(current_threadid != -1) &&
 			(current_threadid != 0)) {
 		return target->rtos->type->set_reg(target->rtos, reg_num, reg_value);
@@ -657,7 +657,7 @@ static int rtos_try_next(struct target *target)
 
 int rtos_update_threads(struct target *target)
 {
-	if ((target->rtos) && (target->rtos->type != NULL))
+	if ((target->rtos) && (target->rtos->type))
 		target->rtos->type->update_threads(target->rtos);
 	return ERROR_OK;
 }

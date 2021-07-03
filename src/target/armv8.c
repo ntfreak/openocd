@@ -204,7 +204,7 @@ static int armv8_read_reg(struct armv8_common *armv8, int regnum, uint64_t *regv
 		break;
 	}
 
-	if (retval == ERROR_OK && regval != NULL)
+	if (retval == ERROR_OK && regval)
 		*regval = value_64;
 	else
 		retval = ERROR_FAIL;
@@ -430,7 +430,7 @@ static int armv8_read_reg32(struct armv8_common *armv8, int regnum, uint64_t *re
 		break;
 	}
 
-	if (retval == ERROR_OK && regval != NULL)
+	if (retval == ERROR_OK && regval)
 		*regval = value;
 
 	return retval;
@@ -1053,7 +1053,7 @@ COMMAND_HANDLER(armv8_handle_exception_catch_command)
 		if (n->name)
 			nsec = n->name;
 
-		if (sec == NULL || nsec == NULL) {
+		if (!sec || !nsec) {
 			LOG_WARNING("Exception Catch: unknown exception catch configuration: EDECCR = %02" PRIx32, edeccr & 0xff);
 			return ERROR_FAIL;
 		}
@@ -1644,7 +1644,7 @@ struct reg_cache *armv8_build_reg_cache(struct target *target)
 
 		reg_list[i].reg_data_type = calloc(1, sizeof(struct reg_data_type));
 		if (reg_list[i].reg_data_type) {
-			if (armv8_regs[i].data_type == NULL)
+			if (!armv8_regs[i].data_type)
 				reg_list[i].reg_data_type->type = armv8_regs[i].type;
 			else
 				*reg_list[i].reg_data_type = *armv8_regs[i].data_type;

@@ -640,7 +640,7 @@ static void jtag_tap_handle_event(struct jtag_tap *tap, enum jtag_event e)
 	struct jtag_tap_event_action *jteap;
 	int retval;
 
-	for (jteap = tap->event_action; jteap != NULL; jteap = jteap->next) {
+	for (jteap = tap->event_action; jteap; jteap = jteap->next) {
 		if (jteap->event != e)
 			continue;
 

@@ -255,7 +255,7 @@ static int riot_update_threads(struct rtos *rtos)
 			strdup(riot_thread_states[k].desc);
 		}
 
-		if (rtos->thread_details[tasks_found].extra_info_str == NULL) {
+		if (!rtos->thread_details[tasks_found].extra_info_str) {
 			LOG_ERROR("RIOT: out of memory");
 			retval = ERROR_FAIL;
 			goto error;
@@ -297,7 +297,7 @@ static int riot_update_threads(struct rtos *rtos)
 			strdup("Enable DEVELHELP to see task names");
 		}
 
-		if (rtos->thread_details[tasks_found].thread_name_str == NULL) {
+		if (!rtos->thread_details[tasks_found].thread_name_str) {
 			LOG_ERROR("RIOT: out of memory");
 			retval = ERROR_FAIL;
 			goto error;
@@ -364,7 +364,7 @@ static int riot_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[
 {
 	*symbol_list = calloc(ARRAY_SIZE(riot_symbol_list), sizeof(struct symbol_table_elem));
 
-	if (*symbol_list == NULL) {
+	if (!*symbol_list) {
 		LOG_ERROR("RIOT: out of memory");
 		return ERROR_FAIL;
 	}
@@ -387,7 +387,7 @@ static int riot_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[
 
 static bool riot_detect_rtos(struct target *target)
 {
-	if ((target->rtos->symbols != NULL) &&
+	if ((target->rtos->symbols) &&
 		(target->rtos->symbols[RIOT_THREADS_BASE].address != 0)) {
 		/* looks like RIOT */
 		return true;

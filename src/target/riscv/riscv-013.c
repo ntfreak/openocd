@@ -4409,7 +4409,7 @@ void riscv013_clear_abstract_error(struct target *target)
 #define COMPLIANCE_TEST(b, message) \
 { \
 	const char *last_sep = strrchr(__FILE__, FILE_SEP); \
-	const char *fname = (last_sep == NULL ? __FILE__ : last_sep + 1); \
+	const char *fname = (!last_sep ? __FILE__ : last_sep + 1); \
 	LOG_INFO("Executing test %d (%s:%d): %s", total_tests, fname, __LINE__, message); \
 	int pass = 0;		    \
 	if (b) {		    \

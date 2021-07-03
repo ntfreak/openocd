@@ -233,7 +233,7 @@ retok:
 
 static bool nuttx_detect_rtos(struct target *target)
 {
-	if ((target->rtos->symbols != NULL) &&
+	if ((target->rtos->symbols) &&
 			(target->rtos->symbols[0].address != 0) &&
 			(target->rtos->symbols[1].address != 0)) {
 		return true;

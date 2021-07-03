@@ -385,7 +385,7 @@ static const struct symbol_table_elem zephyr_symbol_list[] = {
 
 static bool zephyr_detect_rtos(struct target *target)
 {
-	if (target->rtos->symbols == NULL) {
+	if (!target->rtos->symbols) {
 		LOG_INFO("Zephyr: no symbols while detecting RTOS");
 		return false;
 	}

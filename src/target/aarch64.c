@@ -501,7 +501,7 @@ static int update_halt_gdb(struct target *target, enum target_debug_reason debug
 	}
 
 	/* after all targets were updated, poll the gdb serving target */
-	if (gdb_target != NULL && gdb_target != target)
+	if (gdb_target && gdb_target != target)
 		aarch64_poll(gdb_target);
 
 	return ERROR_OK;
@@ -2855,7 +2855,7 @@ static int aarch64_jim_configure(struct target *target, struct jim_getopt_info *
 					return JIM_ERR;
 				}
 
-				if (pc == NULL || pc->cti == NULL) {
+				if (!pc || !pc->cti) {
 					Jim_SetResultString(goi->interp, "CTI not configured", -1);
 					return JIM_ERR;
 				}

@@ -186,7 +186,7 @@ static int mips_m4k_poll(struct target *target)
 	/*  the next polling trigger an halt event sent to gdb */
 	if ((target->state == TARGET_HALTED) && (target->smp) &&
 		(target->gdb_service) &&
-		(target->gdb_service->target == NULL)) {
+		(!target->gdb_service->target)) {
 		target->gdb_service->target =
 			get_mips_m4k(target, target->gdb_service->core[1]);
 		target_call_event_callbacks(target, TARGET_EVENT_HALTED);

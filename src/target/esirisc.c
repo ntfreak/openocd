@@ -472,7 +472,7 @@ static int esirisc_next_breakpoint(struct target *target)
 	LOG_DEBUG("-");
 
 	for (int bp_index = 0; breakpoints_p < breakpoints_e; ++breakpoints_p, ++bp_index)
-		if (*breakpoints_p == NULL)
+		if (!*breakpoints_p)
 			return bp_index;
 
 	return -1;
@@ -608,7 +608,7 @@ static int esirisc_next_watchpoint(struct target *target)
 	LOG_DEBUG("-");
 
 	for (int wp_index = 0; watchpoints_p < watchpoints_e; ++watchpoints_p, ++wp_index)
-		if (*watchpoints_p == NULL)
+		if (!*watchpoints_p)
 			return wp_index;
 
 	return -1;
@@ -1267,7 +1267,7 @@ static const char *esirisc_get_gdb_arch(struct target *target)
 	 * requires additional configuration to properly interact with these
 	 * targets in GDB (also see: `esirisc cache_arch`).
 	 */
-	if (esirisc->gdb_arch == NULL && target_was_examined(target))
+	if (!esirisc->gdb_arch && target_was_examined(target))
 		esirisc->gdb_arch = alloc_printf("esirisc:%d_bit_%d_reg_%s",
 				esirisc->num_bits, esirisc->num_regs, esirisc_cache_arch_name(esirisc));
 
@@ -1284,7 +1284,7 @@ static int esirisc_get_gdb_reg_list(struct target *target, struct reg **reg_list
 	*reg_list_size = ESIRISC_NUM_REGS;
 
 	*reg_list = calloc(*reg_list_size, sizeof(struct reg *));
-	if (*reg_list == NULL)
+	if (!*reg_list)
 		return ERROR_FAIL;
 
 	if (reg_class == REG_CLASS_ALL)

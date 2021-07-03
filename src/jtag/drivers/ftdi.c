@@ -150,11 +150,11 @@ static struct signal *create_signal(const char *name)
 		psig = &(*psig)->next;
 
 	*psig = calloc(1, sizeof(**psig));
-	if (*psig == NULL)
+	if (!*psig)
 		return NULL;
 
 	(*psig)->name = strdup(name);
-	if ((*psig)->name == NULL) {
+	if (!(*psig)->name) {
 		free(*psig);
 		*psig = NULL;
 	}
@@ -1057,7 +1057,7 @@ static int ftdi_swd_init(void)
 	swd_cmd_queue_alloced = 10;
 	swd_cmd_queue = malloc(swd_cmd_queue_alloced * sizeof(*swd_cmd_queue));
 
-	return swd_cmd_queue != NULL ? ERROR_OK : ERROR_FAIL;
+	return swd_cmd_queue ? ERROR_OK : ERROR_FAIL;
 }
 
 static void ftdi_swd_swdio_en(bool enable)
@@ -1132,7 +1132,7 @@ static int ftdi_swd_run_queue(void)
 				goto skip;
 			}
 
-			if (swd_cmd_queue[i].dst != NULL)
+			if (swd_cmd_queue[i].dst)
 				*swd_cmd_queue[i].dst = data;
 		}
 	}

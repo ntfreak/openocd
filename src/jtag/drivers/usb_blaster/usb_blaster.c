@@ -788,7 +788,7 @@ static int ublast_execute_queue(void)
 		ublast_initial_wipeout();
 	}
 
-	for (cmd = jtag_command_queue; ret == ERROR_OK && cmd != NULL;
+	for (cmd = jtag_command_queue; ret == ERROR_OK && cmd;
 	     cmd = cmd->next) {
 		switch (cmd->type) {
 		case JTAG_RESET:

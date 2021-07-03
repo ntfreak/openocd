@@ -110,7 +110,7 @@ static const struct embkernel_params embkernel_params_list[] = {
 
 static bool embkernel_detect_rtos(struct target *target)
 {
-	if (target->rtos->symbols != NULL) {
+	if (target->rtos->symbols) {
 		if (target->rtos->symbols[SYMBOL_ID_S_CURRENT_TASK].address != 0)
 			return true;
 	}

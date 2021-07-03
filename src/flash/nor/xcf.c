@@ -602,7 +602,7 @@ static int xcf_probe(struct flash_bank *bank)
 		free(bank->sectors);
 	priv->probed = false;
 
-	if (bank->target->tap == NULL) {
+	if (!bank->target->tap) {
 		LOG_ERROR("Target has no JTAG tap");
 		return ERROR_FAIL;
 	}

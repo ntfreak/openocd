@@ -714,7 +714,7 @@ static int pic32mx_probe(struct flash_bank *bank)
 	}
 
 	/* Check for PIC32mx1xx/2xx */
-	for (i = 0; pic32mx_devs[i].name != NULL; i++) {
+	for (i = 0; pic32mx_devs[i].name; i++) {
 		if (pic32mx_devs[i].devid == (device_id & 0x0fffffff)) {
 			if ((pic32mx_devs[i].name[0] == '1') || (pic32mx_devs[i].name[0] == '2'))
 				pic32mx_info->dev_type = (pic32mx_devs[i].name[1] == '7') ? MX_17X_27X : MX_1XX_2XX;
@@ -819,14 +819,14 @@ static int pic32mx_info(struct flash_bank *bank, struct command_invocation *cmd)
 	}
 
 	int i;
-	for (i = 0; pic32mx_devs[i].name != NULL; i++) {
+	for (i = 0; pic32mx_devs[i].name; i++) {
 		if (pic32mx_devs[i].devid == (device_id & 0x0fffffff)) {
 			command_print_sameline(cmd, "PIC32MX%s", pic32mx_devs[i].name);
 			break;
 		}
 	}
 
-	if (pic32mx_devs[i].name == NULL)
+	if (!pic32mx_devs[i].name)
 		command_print_sameline(cmd, "Unknown");
 
 	command_print_sameline(cmd, " Ver: 0x%02x",

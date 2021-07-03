@@ -93,7 +93,7 @@ static int virtual_protect_check(struct flash_bank *bank)
 	if (!master_bank)
 		return ERROR_FLASH_OPERATION_FAILED;
 
-	if (master_bank->driver->protect_check == NULL)
+	if (!master_bank->driver->protect_check)
 		return ERROR_FLASH_OPER_UNSUPPORTED;
 
 	/* call master handler */

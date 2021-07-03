@@ -221,7 +221,7 @@ static char **script_command_args_alloc(
 		int len;
 		const char *w = Jim_GetString(argv[i], &len);
 		words[i] = strdup(w);
-		if (words[i] == NULL) {
+		if (!words[i]) {
 			script_command_args_free(words, i);
 			return NULL;
 		}
@@ -501,7 +501,7 @@ void command_print_sameline(struct command_invocation *cmd, const char *format, 
 	va_start(ap, format);
 
 	string = alloc_vprintf(format, ap);
-	if (string != NULL && cmd) {
+	if (string && cmd) {
 		/* we want this collected in the log + we also want to pick it up as a tcl return
 		 * value.
 		 *
@@ -524,7 +524,7 @@ void command_print(struct command_invocation *cmd, const char *format, ...)
 	va_start(ap, format);
 
 	string = alloc_vprintf(format, ap);
-	if (string != NULL && cmd) {
+	if (string && cmd) {
 		strcat(string, "\n");	/* alloc_vprintf guaranteed the buffer to be at least one
 					 *char longer */
 		/* we want this collected in the log + we also want to pick it up as a tcl return

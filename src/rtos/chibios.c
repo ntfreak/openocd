@@ -500,7 +500,7 @@ static int chibios_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_li
 {
 	*symbol_list = malloc(sizeof(chibios_symbol_list));
 
-	if (*symbol_list == NULL)
+	if (!*symbol_list)
 		return ERROR_FAIL;
 
 	memcpy(*symbol_list, chibios_symbol_list, sizeof(chibios_symbol_list));
@@ -509,7 +509,7 @@ static int chibios_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_li
 
 static bool chibios_detect_rtos(struct target *target)
 {
-	if ((target->rtos->symbols != NULL) &&
+	if ((target->rtos->symbols) &&
 			((target->rtos->symbols[CHIBIOS_VAL_RLIST].address != 0) ||
 			 (target->rtos->symbols[CHIBIOS_VAL_CH].address != 0))) {
 

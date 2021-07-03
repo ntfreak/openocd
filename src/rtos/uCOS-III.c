@@ -257,7 +257,7 @@ static int ucos_iii_update_thread_offsets(struct rtos *rtos)
 
 static bool ucos_iii_detect_rtos(struct target *target)
 {
-	return target->rtos->symbols != NULL &&
+	return target->rtos->symbols &&
 			target->rtos->symbols[UCOS_III_VAL_OS_RUNNING].address != 0;
 }
 
@@ -511,7 +511,7 @@ static int ucos_iii_get_thread_reg_list(struct rtos *rtos, threadid_t threadid,
 static int ucos_iii_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
 	*symbol_list = calloc(ARRAY_SIZE(ucos_iii_symbol_list), sizeof(struct symbol_table_elem));
-	if (*symbol_list == NULL) {
+	if (!*symbol_list) {
 		LOG_ERROR("uCOS-III: out of memory");
 		return ERROR_FAIL;
 	}

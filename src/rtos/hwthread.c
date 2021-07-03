@@ -107,7 +107,7 @@ static int hwthread_update_threads(struct rtos *rtos)
 
 	/* determine the number of "threads" */
 	if (target->smp) {
-		for (head = target->head; head != NULL; head = head->next) {
+		for (head = target->head; head; head = head->next) {
 			struct target *curr = head->target;
 
 			if (!target_was_examined(curr))
@@ -123,7 +123,7 @@ static int hwthread_update_threads(struct rtos *rtos)
 
 	if (target->smp) {
 		/* loop over all threads */
-		for (head = target->head; head != NULL; head = head->next) {
+		for (head = target->head; head; head = head->next) {
 			struct target *curr = head->target;
 
 			if (!target_was_examined(curr))
@@ -218,7 +218,7 @@ static struct target *hwthread_find_thread(struct target *target, int64_t thread
 	if (!target)
 		return NULL;
 	if (target->smp) {
-		for (struct target_list *head = target->head; head != NULL; head = head->next) {
+		for (struct target_list *head = target->head; head; head = head->next) {
 			if (thread_id == threadid_from_target(head->target))
 				return head->target;
 		}
@@ -252,20 +252,20 @@ static int hwthread_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 
 	int j = 0;
 	for (int i = 0; i < reg_list_size; i++) {
-		if (reg_list[i] == NULL || reg_list[i]->exist == false || reg_list[i]->hidden)
+		if (!reg_list[i] || reg_list[i]->exist == false || reg_list[i]->hidden)
 			continue;
 		j++;
 	}
 	*rtos_reg_list_size = j;
 	*rtos_reg_list = calloc(*rtos_reg_list_size, sizeof(struct rtos_reg));
-	if (*rtos_reg_list == NULL) {
+	if (!*rtos_reg_list) {
 		free(reg_list);
 		return ERROR_FAIL;
 	}
 
 	j = 0;
 	for (int i = 0; i < reg_list_size; i++) {
-		if (reg_list[i] == NULL || reg_list[i]->exist == false || reg_list[i]->hidden)
+		if (!reg_list[i] || reg_list[i]->exist == false || reg_list[i]->hidden)
 			continue;
 		(*rtos_reg_list)[j].number = (*reg_list)[i].number;
 		(*rtos_reg_list)[j].size = (*reg_list)[i].size;

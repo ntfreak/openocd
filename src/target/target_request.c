@@ -234,7 +234,7 @@ int delete_debug_msg_receiver(struct command_context *cmd_ctx, struct target *ta
 			if (c->cmd_ctx == cmd_ctx) {
 				*p = next;
 				free(c);
-				if (*p == NULL) {
+				if (!*p) {
 					/* disable callback */
 					target->dbg_msg_enabled = 0;
 				}
@@ -256,7 +256,7 @@ COMMAND_HANDLER(handle_target_request_debugmsgs_command)
 
 	int receiving = 0;
 
-	if (target->type->target_request_data == NULL) {
+	if (!target->type->target_request_data) {
 		LOG_ERROR("Target %s does not support target requests", target_name(target));
 		return ERROR_OK;
 	}

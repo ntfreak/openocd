@@ -298,7 +298,7 @@ struct reg_cache *etm_build_reg_cache(struct target *target,
 	reg_list = calloc(128, sizeof(struct reg));
 	arch_info = calloc(128, sizeof(struct etm_reg));
 
-	if (reg_cache == NULL || reg_list == NULL || arch_info == NULL) {
+	if (!reg_cache || !reg_list || !arch_info) {
 		LOG_ERROR("No memory");
 		goto fail;
 	}

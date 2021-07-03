@@ -587,7 +587,7 @@ static int svf_getline(char **lineptr, size_t *n, FILE *stream)
 #define MIN_CHUNK 16	/* Buffer is increased by this size each time as required */
 	size_t i = 0;
 
-	if (*lineptr == NULL) {
+	if (!*lineptr) {
 		*n = MIN_CHUNK;
 		*lineptr = malloc(*n);
 		if (!*lineptr)

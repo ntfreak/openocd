@@ -171,10 +171,10 @@ RESULT usbtoxxx_execute_command(void)
 		}
 
 		/* get result data */
-		if (versaloon_pending[i].pos != NULL) {
+		if (versaloon_pending[i].pos) {
 			uint8_t processed = 0;
 
-			if (versaloon_pending[i].callback != NULL) {
+			if (versaloon_pending[i].callback) {
 				versaloon_pending[i].callback(&versaloon_pending[i],
 					versaloon_buf + usbtoxxx_buffer_index, &processed);
 			}
@@ -197,10 +197,10 @@ RESULT usbtoxxx_execute_command(void)
 				versaloon_pending[i].pos = NULL;
 			}
 		} else if ((versaloon_pending[i].want_data_size > 0)
-				&& (versaloon_pending[i].data_buffer != NULL)) {
+				&& (versaloon_pending[i].data_buffer)) {
 			uint8_t processed = 0;
 
-			if (versaloon_pending[i].callback != NULL) {
+			if (versaloon_pending[i].callback) {
 				versaloon_pending[i].callback(&versaloon_pending[i],
 					versaloon_buf + usbtoxxx_buffer_index, &processed);
 			}

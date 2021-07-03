@@ -1040,7 +1040,7 @@ COMMAND_HANDLER(at91sam7_handle_gpnvm_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	bank = get_flash_bank_by_num_noprobe(0);
-	if (bank ==  NULL)
+	if (!bank)
 		return ERROR_FLASH_BANK_INVALID;
 	if (strcmp(bank->driver->name, "at91sam7")) {
 		command_print(CMD, "not an at91sam7 flash bank '%s'", CMD_ARGV[0]);

@@ -1949,7 +1949,7 @@ static int arc_hit_watchpoint(struct target *target, struct watchpoint **hit_wat
 			LOG_WARNING("Target halted by breakpoint, but is treated as a watchpoint.");
 
 		for (struct watchpoint *watchpoint = target->watchpoints;
-				watchpoint != NULL;
+				watchpoint;
 				watchpoint = watchpoint->next) {
 			if (actionpoint->bp_value == watchpoint->address) {
 				*hit_watchpoint = watchpoint;
