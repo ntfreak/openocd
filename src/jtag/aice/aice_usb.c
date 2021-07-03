@@ -2218,7 +2218,7 @@ static int aice_execute_custom_script(const char *script)
 	if (!script_fd) {
 		return ERROR_FAIL;
 	} else {
-		while (fgets(line_buffer, LINE_BUFFER_SIZE, script_fd) != NULL) {
+		while (fgets(line_buffer, LINE_BUFFER_SIZE, script_fd)) {
 			/* execute operations */
 			set_op = false;
 			op_str = strstr(line_buffer, "set");

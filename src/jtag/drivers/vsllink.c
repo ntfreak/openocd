@@ -803,7 +803,7 @@ static int vsllink_check_usb_strings(
 	if (retval < 0)
 		return ERROR_FAIL;
 
-	if (strstr(desc_string, "Versaloon") == NULL)
+	if (!strstr(desc_string, "Versaloon"))
 		return ERROR_FAIL;
 
 	return ERROR_OK;

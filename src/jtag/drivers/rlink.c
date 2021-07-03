@@ -1148,11 +1148,8 @@ static int rlink_scan(struct jtag_command *cmd, enum scan_type type,
 		byte_bits -= chunk_bits;
 
 		if (type != SCAN_OUT) {
-			if (dtc_queue_enqueue_reply(
-					type, buffer, scan_size, tdi_bit_offset,
-					chunk_bits,
-					cmd
-				) == NULL) {
+			if (!dtc_queue_enqueue_reply(type, buffer, scan_size, tdi_bit_offset,
+					chunk_bits, cmd)) {
 				LOG_ERROR("enqueuing DTC reply entry: %s", strerror(errno));
 				exit(1);
 			}
@@ -1208,11 +1205,8 @@ static int rlink_scan(struct jtag_command *cmd, enum scan_type type,
 		 * and one reply byte */
 		dtc_queue_run_if_full(type == SCAN_IN ? 1 : 2, 1);
 
-		if (dtc_queue_enqueue_reply(
-				type, buffer, scan_size, tdi_bit_offset,
-				extra_bits,
-				cmd
-			) == NULL) {
+		if (!dtc_queue_enqueue_reply(type, buffer, scan_size, tdi_bit_offset,
+				extra_bits, cmd)) {
 			LOG_ERROR("enqueuing DTC reply entry: %s", strerror(errno));
 			exit(1);
 		}
@@ -1260,11 +1254,8 @@ static int rlink_scan(struct jtag_command *cmd, enum scan_type type,
 			DTC_CMD_SHIFT_TMS_TDI_BIT_PAIR(1, (*tdi_p & tdi_mask), 0);
 
 	} else {
-		if (dtc_queue_enqueue_reply(
-				type, buffer, scan_size, tdi_bit_offset,
-				1,
-				cmd
-				) == NULL) {
+		if (!dtc_queue_enqueue_reply(type, buffer, scan_size, tdi_bit_offset,
+				1, cmd)) {
 			LOG_ERROR("enqueuing DTC reply entry: %s", strerror(errno));
 			exit(1);
 		}

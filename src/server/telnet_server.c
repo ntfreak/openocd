@@ -159,7 +159,7 @@ static void telnet_load_history(struct telnet_connection *t_con)
 
 	if (histfp) {
 
-		while (fgets(buffer, sizeof(buffer), histfp) != NULL) {
+		while (fgets(buffer, sizeof(buffer), histfp)) {
 
 			char *p = strchr(buffer, '\n');
 			if (p)

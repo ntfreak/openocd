@@ -484,7 +484,7 @@ struct target *get_target(const char *id)
 
 	/* try as tcltarget name */
 	for (target = all_targets; target; target = target->next) {
-		if (target_name(target) == NULL)
+		if (!target_name(target))
 			continue;
 		if (strcmp(id, target_name(target)) == 0)
 			return target;
