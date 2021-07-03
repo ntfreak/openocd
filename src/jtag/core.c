@@ -1336,7 +1336,6 @@ out:
 static int jtag_validate_ircapture(void)
 {
 	struct jtag_tap *tap;
-	int total_ir_length = 0;
 	uint8_t *ir_test = NULL;
 	struct scan_field field;
 	uint64_t val;
@@ -1344,11 +1343,12 @@ static int jtag_validate_ircapture(void)
 	int retval;
 
 	/* when autoprobing, accommodate huge IR lengths */
-	for (tap = NULL, total_ir_length = 0;
-			(tap = jtag_tap_next_enabled(tap)) != NULL;
-			total_ir_length += tap->ir_length) {
+	int total_ir_length = 0;
+	for (tap = jtag_tap_next_enabled(NULL); tap; tap = jtag_tap_next_enabled(tap)) {
 		if (tap->ir_length == 0)
 			total_ir_length += JTAG_IRLEN_MAX;
+		else
+			total_ir_length += tap->ir_length;
 	}
 
 	/* increase length to add 2 bit sentinel after scan */
@@ -2008,7 +2008,7 @@ bool transport_is_jtag(void)
 
 int adapter_resets(int trst, int srst)
 {
-	if (get_current_transport() == NULL) {
+	if (!get_current_transport()) {
 		LOG_ERROR("transport is not selected");
 		return ERROR_FAIL;
 	}
@@ -2065,7 +2065,7 @@ int adapter_assert_reset(void)
 			   transport_is_dapdirect_jtag() || transport_is_dapdirect_swd() ||
 			   transport_is_swim())
 		return adapter_system_reset(1);
-	else if (get_current_transport() != NULL)
+	else if (get_current_transport())
 		LOG_ERROR("reset is not supported on %s",
 			get_current_transport()->name);
 	else
@@ -2082,7 +2082,7 @@ int adapter_deassert_reset(void)
 			   transport_is_dapdirect_jtag() || transport_is_dapdirect_swd() ||
 			   transport_is_swim())
 		return adapter_system_reset(0);
-	else if (get_current_transport() != NULL)
+	else if (get_current_transport())
 		LOG_ERROR("reset is not supported on %s",
 			get_current_transport()->name);
 	else

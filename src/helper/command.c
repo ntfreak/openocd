@@ -815,9 +815,9 @@ static COMMAND_HELPER(command_help_show, struct help_entry *c,
 
 	/* If the match string occurs anywhere, we print out
 	 * stuff for this command. */
-	bool is_match = (strstr(c->cmd_name, cmd_match) != NULL) ||
-		((c->usage) && (strstr(c->usage, cmd_match) != NULL)) ||
-		((c->help) && (strstr(c->help, cmd_match) != NULL));
+	bool is_match = strstr(c->cmd_name, cmd_match) ||
+		(c->usage && strstr(c->usage, cmd_match)) ||
+		(c->help && strstr(c->help, cmd_match));
 
 	if (is_match) {
 		if (c->usage && strlen(c->usage) > 0) {

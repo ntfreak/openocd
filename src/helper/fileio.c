@@ -208,7 +208,7 @@ int fileio_read_u32(struct fileio *fileio, uint32_t *data)
 
 static int fileio_local_fgets(struct fileio *fileio, size_t size, void *buffer)
 {
-	if (fgets(buffer, size, fileio->file) == NULL)
+	if (!fgets(buffer, size, fileio->file))
 		return ERROR_FILEIO_OPERATION_FAILED;
 
 	return ERROR_OK;

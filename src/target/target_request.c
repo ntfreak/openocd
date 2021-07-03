@@ -262,7 +262,7 @@ COMMAND_HANDLER(handle_target_request_debugmsgs_command)
 	}
 
 	/* see if receiver is already registered */
-	if (find_debug_msg_receiver(CMD_CTX, target) != NULL)
+	if (find_debug_msg_receiver(CMD_CTX, target))
 		receiving = 1;
 
 	if (CMD_ARGC > 0) {
