@@ -200,7 +200,7 @@ int fileio_read_u32(struct fileio *fileio, uint32_t *data)
 
 	if (ERROR_OK == retval && sizeof(uint32_t) != size_read)
 		retval = -EIO;
-	if (ERROR_OK == retval)
+	if (retval == ERROR_OK)
 		*data = be_to_h_u32(buf);
 
 	return retval;

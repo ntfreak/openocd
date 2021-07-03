@@ -1823,7 +1823,7 @@ int armv8_set_dbgreg_bits(struct armv8_common *armv8, unsigned int reg, unsigned
 	/* Read register */
 	int retval = mem_ap_read_atomic_u32(armv8->debug_ap,
 			armv8->debug_base + reg, &tmp);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* clear bitfield */

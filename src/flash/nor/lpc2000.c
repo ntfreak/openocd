@@ -1569,7 +1569,7 @@ COMMAND_HANDLER(lpc2000_handle_part_id_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (bank->target->state != TARGET_HALTED) {

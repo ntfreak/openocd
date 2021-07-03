@@ -3622,7 +3622,7 @@ int gdb_target_add_all(struct target *target)
 
 	while (target) {
 		int retval = gdb_target_add_one(target);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 
 		target = target->next;
@@ -3651,7 +3651,7 @@ COMMAND_HANDLER(handle_gdb_sync_command)
 COMMAND_HANDLER(handle_gdb_port_command)
 {
 	int retval = CALL_COMMAND_HANDLER(server_pipe_command, &gdb_port);
-	if (ERROR_OK == retval) {
+	if (retval == ERROR_OK) {
 		free(gdb_port_next);
 		gdb_port_next = strdup(gdb_port);
 	}

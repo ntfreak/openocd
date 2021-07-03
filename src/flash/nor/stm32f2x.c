@@ -1430,7 +1430,7 @@ COMMAND_HANDLER(stm32x_handle_lock_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	stm32x_info = bank->driver_priv;
@@ -1469,7 +1469,7 @@ COMMAND_HANDLER(stm32x_handle_unlock_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	stm32x_info = bank->driver_priv;
@@ -1556,7 +1556,7 @@ COMMAND_HANDLER(stm32x_handle_mass_erase_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = stm32x_mass_erase(bank);
@@ -1585,11 +1585,11 @@ COMMAND_HANDLER(stm32f2x_handle_options_read_command)
 	}
 
 	retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = stm32x_read_options(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	stm32x_info = bank->driver_priv;
@@ -1631,11 +1631,11 @@ COMMAND_HANDLER(stm32f2x_handle_options_write_command)
 	}
 
 	retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = stm32x_read_options(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	stm32x_info = bank->driver_priv;
@@ -1693,7 +1693,7 @@ COMMAND_HANDLER(stm32f2x_handle_optcr2_write_command)
 	}
 
 	retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	stm32x_info = bank->driver_priv;
@@ -1707,7 +1707,7 @@ COMMAND_HANDLER(stm32f2x_handle_optcr2_write_command)
 				" finally unlock it. Clears PCROP and mass erases flash.");
 
 	retval = stm32x_read_options(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[1], optcr2_pcrop);
@@ -1731,7 +1731,7 @@ COMMAND_HANDLER(stm32x_handle_otp_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 	if (stm32x_is_otp(bank)) {
 		if (strcmp(CMD_ARGV[1], "enable") == 0) {

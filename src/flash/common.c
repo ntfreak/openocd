@@ -32,7 +32,7 @@ unsigned get_flash_name_index(const char *name)
 	unsigned requested;
 	int retval = parse_uint(name_index + 1, &requested);
 	/* detect parsing error by forcing past end of bank list */
-	return (ERROR_OK == retval) ? requested : ~0U;
+	return (retval == ERROR_OK) ? requested : ~0U;
 }
 
 bool flash_driver_name_matches(const char *name, const char *expected)

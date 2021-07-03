@@ -1708,7 +1708,7 @@ COMMAND_HANDLER(stm32l4_handle_mass_erase_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = stm32l4_mass_erase(bank);
@@ -1734,7 +1734,7 @@ COMMAND_HANDLER(stm32l4_handle_option_read_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	uint32_t reg_offset, reg_addr;
@@ -1744,7 +1744,7 @@ COMMAND_HANDLER(stm32l4_handle_option_read_command)
 	reg_addr = stm32l4_get_flash_reg(bank, reg_offset);
 
 	retval = stm32l4_read_flash_reg(bank, reg_offset, &value);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	command_print(CMD, "Option Register: <0x%" PRIx32 "> = 0x%" PRIx32 "", reg_addr, value);
@@ -1761,7 +1761,7 @@ COMMAND_HANDLER(stm32l4_handle_option_write_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	uint32_t reg_offset;
@@ -1788,15 +1788,15 @@ COMMAND_HANDLER(stm32l4_handle_option_load_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = stm32l4_unlock_reg(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = stm32l4_unlock_option_reg(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Set OBL_LAUNCH bit in CR -> system reset and option bytes reload,
@@ -1824,7 +1824,7 @@ COMMAND_HANDLER(stm32l4_handle_lock_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (stm32l4_is_otp(bank)) {
@@ -1859,7 +1859,7 @@ COMMAND_HANDLER(stm32l4_handle_unlock_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (stm32l4_is_otp(bank)) {
@@ -1891,7 +1891,7 @@ COMMAND_HANDLER(stm32l4_handle_wrp_info_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (stm32l4_is_otp(bank)) {
@@ -1963,7 +1963,7 @@ COMMAND_HANDLER(stm32l4_handle_otp_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (!stm32l4_is_otp(bank)) {

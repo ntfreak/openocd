@@ -597,7 +597,7 @@ static int jim_newtap_cmd(struct jim_getopt_info *goi)
 			    break;
 		    case NTAP_OPT_EXPECTED_ID:
 			    e = jim_newtap_expected_id(n, goi, tap);
-			    if (JIM_OK != e) {
+			    if (e != JIM_OK) {
 				    free(cp);
 				    free(tap);
 				    return e;
@@ -607,7 +607,7 @@ static int jim_newtap_cmd(struct jim_getopt_info *goi)
 		    case NTAP_OPT_IRMASK:
 		    case NTAP_OPT_IRCAPTURE:
 			    e = jim_newtap_ir_param(n, goi, tap);
-			    if (JIM_OK != e) {
+			    if (e != JIM_OK) {
 				    free(cp);
 				    free(tap);
 				    return e;
@@ -1041,13 +1041,13 @@ COMMAND_HANDLER(handle_jtag_rclk_command)
 		COMMAND_PARSE_NUMBER(uint, CMD_ARGV[0], khz);
 
 		retval = jtag_config_rclk(khz);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 	}
 
 	int cur_khz = jtag_get_speed_khz();
 	retval = jtag_get_speed_readable(&cur_khz);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (cur_khz)
@@ -1130,7 +1130,7 @@ COMMAND_HANDLER(handle_irscan_command)
 		}
 		uint64_t value;
 		retval = parse_u64(CMD_ARGV[i * 2 + 1], &value);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			goto error_return;
 
 		int field_size = tap->ir_length;

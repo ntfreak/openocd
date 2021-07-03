@@ -268,8 +268,8 @@ static int nds32_v3_get_exception_address(struct nds32 *nds32,
 
 		nds32_get_mapped_reg(nds32, PC, &val_pc);
 
-		if ((NDS32_DEBUG_DATA_ADDR_WATCHPOINT_NEXT_PRECISE == reason) ||
-				(NDS32_DEBUG_DATA_VALUE_WATCHPOINT_NEXT_PRECISE == reason)) {
+		if ((reason == NDS32_DEBUG_DATA_ADDR_WATCHPOINT_NEXT_PRECISE) ||
+				(reason == NDS32_DEBUG_DATA_VALUE_WATCHPOINT_NEXT_PRECISE)) {
 			if (edmsw & 0x4) /* check EDMSW.IS_16BIT */
 				val_pc -= 2;
 			else
@@ -320,7 +320,7 @@ static int nds32_v3_get_exception_address(struct nds32 *nds32,
 			return ERROR_FAIL;
 	} else if (match_count == 0) {
 		/* global stop is precise exception */
-		if ((NDS32_DEBUG_LOAD_STORE_GLOBAL_STOP == reason) && nds32->global_stop) {
+		if ((reason == NDS32_DEBUG_LOAD_STORE_GLOBAL_STOP) && nds32->global_stop) {
 			/* parse instruction to get correct access address */
 			uint32_t val_pc;
 			uint32_t opcode;
@@ -553,7 +553,7 @@ int nds32_v3_write_buffer(struct target *target, target_addr_t address,
 		int result;
 		result = nds32_gdb_fileio_write_memory(nds32, address, size, buffer);
 
-		if (NDS_MEMORY_ACC_CPU == origin_access_channel) {
+		if (origin_access_channel == NDS_MEMORY_ACC_CPU) {
 			memory->access_channel = NDS_MEMORY_ACC_CPU;
 			aice_memory_access(aice, NDS_MEMORY_ACC_CPU);
 		}

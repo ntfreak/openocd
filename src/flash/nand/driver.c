@@ -75,7 +75,7 @@ int nand_driver_walk(nand_driver_walker_t f, void *x)
 {
 	for (unsigned i = 0; nand_flash_controllers[i]; i++) {
 		int retval = (*f)(nand_flash_controllers[i], x);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 	}
 	return ERROR_OK;

@@ -51,7 +51,7 @@ S3C24XX_DEVICE_COMMAND();
 #define CALL_S3C24XX_DEVICE_COMMAND(d, i) \
 	do { \
 		int retval = CALL_COMMAND_HANDLER(s3c24xx_nand_device_command, d, i); \
-		if (ERROR_OK != retval) \
+		if (retval != ERROR_OK) \
 			return retval; \
 	} while (0)
 

@@ -120,7 +120,7 @@ COMMAND_HANDLER(handle_adapter_driver_command)
 		if (adapter_drivers[i]->commands) {
 			retval = register_commands(CMD_CTX, NULL,
 					adapter_drivers[i]->commands);
-			if (ERROR_OK != retval)
+			if (retval != ERROR_OK)
 				return retval;
 		}
 
@@ -394,13 +394,13 @@ COMMAND_HANDLER(handle_adapter_speed_command)
 		COMMAND_PARSE_NUMBER(uint, CMD_ARGV[0], khz);
 
 		retval = jtag_config_khz(khz);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 	}
 
 	int cur_speed = jtag_get_speed_khz();
 	retval = jtag_get_speed_readable(&cur_speed);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (cur_speed)

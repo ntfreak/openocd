@@ -368,16 +368,16 @@ static int at91sam9_read_page(struct nand_device *nand, uint32_t page,
 	uint32_t status;
 
 	retval = at91sam9_ecc_init(target, info);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = nand_page_command(nand, page, NAND_CMD_READ0, !data);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (data) {
 		retval = nand_read_data_page(nand, data, data_size);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 	}
 
@@ -443,16 +443,16 @@ static int at91sam9_write_page(struct nand_device *nand, uint32_t page,
 	uint32_t parity, nparity;
 
 	retval = at91sam9_ecc_init(target, info);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = nand_page_command(nand, page, NAND_CMD_SEQIN, !data);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (data) {
 		retval = nand_write_data_page(nand, data, data_size);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Unable to write data to NAND device");
 			return retval;
 		}
@@ -476,7 +476,7 @@ static int at91sam9_write_page(struct nand_device *nand, uint32_t page,
 	if (!oob)
 		free(oob_data);
 
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Unable to write OOB data to NAND");
 		return retval;
 	}

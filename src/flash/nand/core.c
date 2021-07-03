@@ -750,7 +750,7 @@ int nand_page_command(struct nand_device *nand, uint32_t page,
 			nand->controller->address(nand, (page >> 16) & 0xff);
 
 		/* large page devices need a start command if reading */
-		if (NAND_CMD_READ0 == cmd)
+		if (cmd == NAND_CMD_READ0)
 			nand->controller->command(nand, NAND_CMD_READSTART);
 	}
 
@@ -772,7 +772,7 @@ int nand_read_data_page(struct nand_device *nand, uint8_t *data, uint32_t size)
 	if (nand->controller->read_block_data)
 		retval = (nand->controller->read_block_data)(nand, data, size);
 
-	if (ERROR_NAND_NO_BUFFER == retval) {
+	if (retval == ERROR_NAND_NO_BUFFER) {
 		uint32_t i;
 		int incr = (nand->device->options & NAND_BUSWIDTH_16) ? 2 : 1;
 
@@ -793,7 +793,7 @@ int nand_read_page_raw(struct nand_device *nand, uint32_t page,
 	int retval;
 
 	retval = nand_page_command(nand, page, NAND_CMD_READ0, !data);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (data)
@@ -812,7 +812,7 @@ int nand_write_data_page(struct nand_device *nand, uint8_t *data, uint32_t size)
 	if (nand->controller->write_block_data)
 		retval = (nand->controller->write_block_data)(nand, data, size);
 
-	if (ERROR_NAND_NO_BUFFER == retval) {
+	if (retval == ERROR_NAND_NO_BUFFER) {
 		bool is16bit = nand->device->options & NAND_BUSWIDTH_16;
 		uint32_t incr = is16bit ? 2 : 1;
 		uint16_t write_data;
@@ -825,7 +825,7 @@ int nand_write_data_page(struct nand_device *nand, uint8_t *data, uint32_t size)
 				write_data = *data;
 
 			retval = nand->controller->write_data(nand, write_data);
-			if (ERROR_OK != retval)
+			if (retval != ERROR_OK)
 				break;
 
 			data += incr;
@@ -849,7 +849,7 @@ int nand_write_finish(struct nand_device *nand)
 		return ERROR_NAND_OPERATION_TIMEOUT;
 
 	retval = nand_read_status(nand, &status);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("couldn't read status");
 		return ERROR_NAND_OPERATION_FAILED;
 	}
@@ -870,12 +870,12 @@ int nand_write_page_raw(struct nand_device *nand, uint32_t page,
 	int retval;
 
 	retval = nand_page_command(nand, page, NAND_CMD_SEQIN, !data);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (data) {
 		retval = nand_write_data_page(nand, data, data_size);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Unable to write data to NAND device");
 			return retval;
 		}
@@ -883,7 +883,7 @@ int nand_write_page_raw(struct nand_device *nand, uint32_t page,
 
 	if (oob) {
 		retval = nand_write_data_page(nand, oob, oob_size);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Unable to write OOB data to NAND device");
 			return retval;
 		}

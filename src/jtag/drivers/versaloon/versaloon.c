@@ -258,7 +258,7 @@ static RESULT versaloon_init(void)
 			break;
 	}
 	versaloon_usb_to = timeout_tmp;
-	if (VERSALOON_RETRY_CNT == retry) {
+	if (retry == VERSALOON_RETRY_CNT) {
 		versaloon_fini();
 		LOG_ERROR(ERRMSG_FAILURE_OPERATION, "communicate with versaloon");
 		return ERRCODE_FAILURE_OPERATION;

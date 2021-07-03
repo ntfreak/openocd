@@ -1138,7 +1138,7 @@ static int cortex_a_set_dscr_bits(struct target *target,
 	/* Read DSCR */
 	int retval = mem_ap_read_atomic_u32(armv7a->debug_ap,
 			armv7a->debug_base + CPUDBG_DSCR, &dscr);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* clear bitfield */
@@ -1197,7 +1197,7 @@ static int cortex_a_step(struct target *target, int current, target_addr_t addre
 	/* Disable interrupts during single step if requested */
 	if (cortex_a->isrmasking_mode == CORTEX_A_ISRMASK_ON) {
 		retval = cortex_a_set_dscr_bits(target, DSCR_INT_DIS, DSCR_INT_DIS);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 	}
 
@@ -1228,7 +1228,7 @@ static int cortex_a_step(struct target *target, int current, target_addr_t addre
 	/* Re-enable interrupts if they were disabled */
 	if (cortex_a->isrmasking_mode == CORTEX_A_ISRMASK_ON) {
 		retval = cortex_a_set_dscr_bits(target, DSCR_INT_DIS, 0);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 	}
 

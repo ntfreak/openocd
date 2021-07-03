@@ -761,7 +761,7 @@ COMMAND_HANDLER(em357_handle_lock_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	em357_info = bank->driver_priv;
@@ -800,7 +800,7 @@ COMMAND_HANDLER(em357_handle_unlock_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	target = bank->target;
@@ -873,7 +873,7 @@ COMMAND_HANDLER(em357_handle_mass_erase_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = em357_mass_erase(bank);

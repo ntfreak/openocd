@@ -1061,7 +1061,7 @@ static int mips_m4k_read_memory(struct target *target, target_addr_t address,
 
 	/* mips32_..._read_mem with size 4/2 returns uint32_t/uint16_t in host */
 	/* endianness, but byte array should represent target endianness       */
-	if (ERROR_OK == retval) {
+	if (retval == ERROR_OK) {
 		switch (size) {
 		case 4:
 			target_buffer_set_u32_array(target, buffer, count, t);
@@ -1137,7 +1137,7 @@ static int mips_m4k_write_memory(struct target *target, target_addr_t address,
 
 	free(t);
 
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	return ERROR_OK;

@@ -475,7 +475,7 @@ static int read_write_data(struct flash_bank *bank, const uint8_t *w_buffer,
 				w_buffer += len;
 				sector_bytes -= len;
 				ret = isc_program_data_page(bank, page_buf);
-				if (ERROR_OK != ret)
+				if (ret != ERROR_OK)
 					goto EXIT;
 				else {
 					LOG_DEBUG("written %d bytes from %d", dbg_written, dbg_count);
@@ -494,7 +494,7 @@ static int read_write_data(struct flash_bank *bank, const uint8_t *w_buffer,
 	if (write_flag) {
 		for (unsigned int i = 0; i < bank->num_sectors; i++) {
 			ret = isc_set_data_done(bank, i);
-			if (ERROR_OK != ret)
+			if (ret != ERROR_OK)
 				goto EXIT;
 		}
 	}
@@ -755,7 +755,7 @@ COMMAND_HANDLER(xcf_handle_ccb_command) {
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	uint16_t ccb = 0xFFFF;
@@ -800,29 +800,29 @@ COMMAND_HANDLER(xcf_handle_ccb_command) {
 		sector = gucr_num(bank);
 		isc_clear_protect(bank, sector, sector);
 		int ret = isc_erase_sectors(bank, sector, sector);
-		if (ERROR_OK != ret)
+		if (ret != ERROR_OK)
 			goto EXIT;
 		ret = isc_program_ccb(bank, ccb);
-		if (ERROR_OK != ret)
+		if (ret != ERROR_OK)
 			goto EXIT;
 		ret = isc_program_single_revision_btc(bank);
-		if (ERROR_OK != ret)
+		if (ret != ERROR_OK)
 			goto EXIT;
 		ret = isc_set_data_done(bank, sector);
-		if (ERROR_OK != ret)
+		if (ret != ERROR_OK)
 			goto EXIT;
 
 		/* SUCR sector */
 		sector = sucr_num(bank);
 		isc_clear_protect(bank, sector, sector);
 		ret = isc_erase_sectors(bank, sector, sector);
-		if (ERROR_OK != ret)
+		if (ret != ERROR_OK)
 			goto EXIT;
 		ret = isc_program_singe_revision_sucr(bank);
-		if (ERROR_OK != ret)
+		if (ret != ERROR_OK)
 			goto EXIT;
 		ret = isc_set_data_done(bank, sector);
-		if (ERROR_OK != ret)
+		if (ret != ERROR_OK)
 			goto EXIT;
 
 EXIT:
@@ -838,7 +838,7 @@ COMMAND_HANDLER(xcf_handle_configure_command) {
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	return fpga_configure(bank);

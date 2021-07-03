@@ -360,9 +360,9 @@ static int usb_bulk_with_retries(
 		int result, ret;
 
 		ret = f(dev, ep, bytes + count, size - count, timeout, &result);
-		if (ERROR_OK == ret)
+		if (ret == ERROR_OK)
 			count += result;
-		else if ((ERROR_TIMEOUT_REACHED != ret) || !--tries)
+		else if ((ret != ERROR_TIMEOUT_REACHED) || !--tries)
 			return ret;
 	}
 
@@ -444,7 +444,7 @@ static int aice_usb_packet_flush(void)
 	if (usb_out_packets_buffer_length == 0)
 		return 0;
 
-	if (AICE_COMMAND_MODE_PACK == aice_command_mode) {
+	if (aice_command_mode == AICE_COMMAND_MODE_PACK) {
 		LOG_DEBUG("Flush usb packets (AICE_COMMAND_MODE_PACK)");
 
 		if (aice_usb_write(usb_out_packets_buffer,
@@ -458,7 +458,7 @@ static int aice_usb_packet_flush(void)
 		usb_out_packets_buffer_length = 0;
 		usb_in_packets_buffer_length = 0;
 
-	} else if (AICE_COMMAND_MODE_BATCH == aice_command_mode) {
+	} else if (aice_command_mode == AICE_COMMAND_MODE_BATCH) {
 		LOG_DEBUG("Flush usb packets (AICE_COMMAND_MODE_BATCH)");
 
 		/* use BATCH_BUFFER_WRITE to fill command-batch-buffer */
@@ -508,9 +508,9 @@ static int aice_usb_packet_append(uint8_t *out_buffer, int out_length, int in_le
 {
 	uint32_t max_packet_size = AICE_OUT_PACKETS_BUFFER_SIZE;
 
-	if (AICE_COMMAND_MODE_PACK == aice_command_mode) {
+	if (aice_command_mode == AICE_COMMAND_MODE_PACK) {
 		max_packet_size = AICE_OUT_PACK_COMMAND_SIZE;
-	} else if (AICE_COMMAND_MODE_BATCH == aice_command_mode) {
+	} else if (aice_command_mode == AICE_COMMAND_MODE_BATCH) {
 		max_packet_size = AICE_OUT_BATCH_COMMAND_SIZE;
 	} else {
 		/* AICE_COMMAND_MODE_NORMAL */
@@ -557,8 +557,8 @@ static int aice_scan_chain(uint32_t *id_codes, uint8_t *num_of_ids)
 {
 	int retry_times = 0;
 
-	if ((AICE_COMMAND_MODE_PACK == aice_command_mode) ||
-		(AICE_COMMAND_MODE_BATCH == aice_command_mode))
+	if ((aice_command_mode == AICE_COMMAND_MODE_PACK) ||
+		(aice_command_mode == AICE_COMMAND_MODE_BATCH))
 		aice_usb_packet_flush();
 
 	do {
@@ -570,7 +570,7 @@ static int aice_scan_chain(uint32_t *id_codes, uint8_t *num_of_ids)
 
 		/** TODO: modify receive length */
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHA);
-		if (AICE_FORMAT_DTHA != result) {
+		if (result != AICE_FORMAT_DTHA) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 					AICE_FORMAT_DTHA, result);
 			return ERROR_FAIL;
@@ -614,8 +614,8 @@ static int aice_scan_chain(uint32_t *id_codes, uint8_t *num_of_ids)
 
 int aice_read_ctrl(uint32_t address, uint32_t *data)
 {
-	if ((AICE_COMMAND_MODE_PACK == aice_command_mode) ||
-		(AICE_COMMAND_MODE_BATCH == aice_command_mode))
+	if ((aice_command_mode == AICE_COMMAND_MODE_PACK) ||
+		(aice_command_mode == AICE_COMMAND_MODE_BATCH))
 		aice_usb_packet_flush();
 
 	aice_pack_htda(AICE_CMD_READ_CTRL, 0, address);
@@ -625,7 +625,7 @@ int aice_read_ctrl(uint32_t address, uint32_t *data)
 	LOG_DEBUG("READ_CTRL, address: 0x%" PRIx32, address);
 
 	int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHA);
-	if (AICE_FORMAT_DTHA != result) {
+	if (result != AICE_FORMAT_DTHA) {
 		LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 				AICE_FORMAT_DTHA, result);
 		return ERROR_FAIL;
@@ -648,9 +648,9 @@ int aice_read_ctrl(uint32_t address, uint32_t *data)
 
 int aice_write_ctrl(uint32_t address, uint32_t data)
 {
-	if (AICE_COMMAND_MODE_PACK == aice_command_mode) {
+	if (aice_command_mode == AICE_COMMAND_MODE_PACK) {
 		aice_usb_packet_flush();
-	} else if (AICE_COMMAND_MODE_BATCH == aice_command_mode) {
+	} else if (aice_command_mode == AICE_COMMAND_MODE_BATCH) {
 		aice_pack_htdc(AICE_CMD_WRITE_CTRL, 0, address, data, AICE_LITTLE_ENDIAN);
 		return aice_usb_packet_append(usb_out_buffer, AICE_FORMAT_HTDC,
 				AICE_FORMAT_DTHB);
@@ -663,7 +663,7 @@ int aice_write_ctrl(uint32_t address, uint32_t data)
 	LOG_DEBUG("WRITE_CTRL, address: 0x%" PRIx32 ", data: 0x%" PRIx32, address, data);
 
 	int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHB);
-	if (AICE_FORMAT_DTHB != result) {
+	if (result != AICE_FORMAT_DTHB) {
 		LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 				AICE_FORMAT_DTHB, result);
 		return ERROR_FAIL;
@@ -688,8 +688,8 @@ static int aice_read_dtr(uint8_t target_id, uint32_t *data)
 {
 	int retry_times = 0;
 
-	if ((AICE_COMMAND_MODE_PACK == aice_command_mode) ||
-		(AICE_COMMAND_MODE_BATCH == aice_command_mode))
+	if ((aice_command_mode == AICE_COMMAND_MODE_PACK) ||
+		(aice_command_mode == AICE_COMMAND_MODE_BATCH))
 		aice_usb_packet_flush();
 
 	do {
@@ -700,7 +700,7 @@ static int aice_read_dtr(uint8_t target_id, uint32_t *data)
 		LOG_DEBUG("READ_DTR, COREID: %" PRIu8, target_id);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMA);
-		if (AICE_FORMAT_DTHMA != result) {
+		if (result != AICE_FORMAT_DTHMA) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 					AICE_FORMAT_DTHMA, result);
 			return ERROR_FAIL;
@@ -738,9 +738,9 @@ static int aice_read_dtr_to_buffer(uint8_t target_id, uint32_t buffer_idx)
 {
 	int retry_times = 0;
 
-	if (AICE_COMMAND_MODE_PACK == aice_command_mode) {
+	if (aice_command_mode == AICE_COMMAND_MODE_PACK) {
 		aice_usb_packet_flush();
-	} else if (AICE_COMMAND_MODE_BATCH == aice_command_mode) {
+	} else if (aice_command_mode == AICE_COMMAND_MODE_BATCH) {
 		aice_pack_htdma(AICE_CMD_READ_DTR_TO_BUFFER, target_id, 0, buffer_idx);
 		return aice_usb_packet_append(usb_out_buffer, AICE_FORMAT_HTDMA,
 				AICE_FORMAT_DTHMB);
@@ -754,7 +754,7 @@ static int aice_read_dtr_to_buffer(uint8_t target_id, uint32_t buffer_idx)
 		LOG_DEBUG("READ_DTR_TO_BUFFER, COREID: %" PRIu8, target_id);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMB);
-		if (AICE_FORMAT_DTHMB != result) {
+		if (result != AICE_FORMAT_DTHMB) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)", AICE_FORMAT_DTHMB, result);
 			return ERROR_FAIL;
 		}
@@ -789,9 +789,9 @@ static int aice_write_dtr(uint8_t target_id, uint32_t data)
 {
 	int retry_times = 0;
 
-	if (AICE_COMMAND_MODE_PACK == aice_command_mode) {
+	if (aice_command_mode == AICE_COMMAND_MODE_PACK) {
 		aice_usb_packet_flush();
-	} else if (AICE_COMMAND_MODE_BATCH == aice_command_mode) {
+	} else if (aice_command_mode == AICE_COMMAND_MODE_BATCH) {
 		aice_pack_htdmc(AICE_CMD_T_WRITE_DTR, target_id, 0, 0, data, AICE_LITTLE_ENDIAN);
 		return aice_usb_packet_append(usb_out_buffer, AICE_FORMAT_HTDMC,
 				AICE_FORMAT_DTHMB);
@@ -805,7 +805,7 @@ static int aice_write_dtr(uint8_t target_id, uint32_t data)
 		LOG_DEBUG("WRITE_DTR, COREID: %" PRIu8 ", data: 0x%" PRIx32, target_id, data);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMB);
-		if (AICE_FORMAT_DTHMB != result) {
+		if (result != AICE_FORMAT_DTHMB) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)", AICE_FORMAT_DTHMB, result);
 			return ERROR_FAIL;
 		}
@@ -841,9 +841,9 @@ static int aice_write_dtr_from_buffer(uint8_t target_id, uint32_t buffer_idx)
 {
 	int retry_times = 0;
 
-	if (AICE_COMMAND_MODE_PACK == aice_command_mode) {
+	if (aice_command_mode == AICE_COMMAND_MODE_PACK) {
 		aice_usb_packet_flush();
-	} else if (AICE_COMMAND_MODE_BATCH == aice_command_mode) {
+	} else if (aice_command_mode == AICE_COMMAND_MODE_BATCH) {
 		aice_pack_htdma(AICE_CMD_WRITE_DTR_FROM_BUFFER, target_id, 0, buffer_idx);
 		return aice_usb_packet_append(usb_out_buffer, AICE_FORMAT_HTDMA,
 				AICE_FORMAT_DTHMB);
@@ -857,7 +857,7 @@ static int aice_write_dtr_from_buffer(uint8_t target_id, uint32_t buffer_idx)
 		LOG_DEBUG("WRITE_DTR_FROM_BUFFER, COREID: %" PRIu8 "", target_id);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMB);
-		if (AICE_FORMAT_DTHMB != result) {
+		if (result != AICE_FORMAT_DTHMB) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)", AICE_FORMAT_DTHMB, result);
 			return ERROR_FAIL;
 		}
@@ -892,8 +892,8 @@ static int aice_read_misc(uint8_t target_id, uint32_t address, uint32_t *data)
 {
 	int retry_times = 0;
 
-	if ((AICE_COMMAND_MODE_PACK == aice_command_mode) ||
-		(AICE_COMMAND_MODE_BATCH == aice_command_mode))
+	if ((aice_command_mode == AICE_COMMAND_MODE_PACK) ||
+		(aice_command_mode == AICE_COMMAND_MODE_BATCH))
 		aice_usb_packet_flush();
 
 	do {
@@ -904,7 +904,7 @@ static int aice_read_misc(uint8_t target_id, uint32_t address, uint32_t *data)
 		LOG_DEBUG("READ_MISC, COREID: %" PRIu8 ", address: 0x%" PRIx32, target_id, address);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMA);
-		if (AICE_FORMAT_DTHMA != result) {
+		if (result != AICE_FORMAT_DTHMA) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 					AICE_FORMAT_DTHMA, result);
 			return ERROR_AICE_DISCONNECT;
@@ -941,9 +941,9 @@ static int aice_write_misc(uint8_t target_id, uint32_t address, uint32_t data)
 {
 	int retry_times = 0;
 
-	if (AICE_COMMAND_MODE_PACK == aice_command_mode) {
+	if (aice_command_mode == AICE_COMMAND_MODE_PACK) {
 		aice_usb_packet_flush();
-	} else if (AICE_COMMAND_MODE_BATCH == aice_command_mode) {
+	} else if (aice_command_mode == AICE_COMMAND_MODE_BATCH) {
 		aice_pack_htdmc(AICE_CMD_T_WRITE_MISC, target_id, 0, address, data,
 				AICE_LITTLE_ENDIAN);
 		return aice_usb_packet_append(usb_out_buffer, AICE_FORMAT_HTDMC,
@@ -960,7 +960,7 @@ static int aice_write_misc(uint8_t target_id, uint32_t address, uint32_t data)
 				target_id, address, data);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMB);
-		if (AICE_FORMAT_DTHMB != result) {
+		if (result != AICE_FORMAT_DTHMB) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 					AICE_FORMAT_DTHMB, result);
 			return ERROR_FAIL;
@@ -997,8 +997,8 @@ static int aice_read_edmsr(uint8_t target_id, uint32_t address, uint32_t *data)
 {
 	int retry_times = 0;
 
-	if ((AICE_COMMAND_MODE_PACK == aice_command_mode) ||
-		(AICE_COMMAND_MODE_BATCH == aice_command_mode))
+	if ((aice_command_mode == AICE_COMMAND_MODE_PACK) ||
+		(aice_command_mode == AICE_COMMAND_MODE_BATCH))
 		aice_usb_packet_flush();
 
 	do {
@@ -1009,7 +1009,7 @@ static int aice_read_edmsr(uint8_t target_id, uint32_t address, uint32_t *data)
 		LOG_DEBUG("READ_EDMSR, COREID: %" PRIu8 ", address: 0x%" PRIx32, target_id, address);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMA);
-		if (AICE_FORMAT_DTHMA != result) {
+		if (result != AICE_FORMAT_DTHMA) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 					AICE_FORMAT_DTHMA, result);
 			return ERROR_FAIL;
@@ -1047,9 +1047,9 @@ static int aice_write_edmsr(uint8_t target_id, uint32_t address, uint32_t data)
 {
 	int retry_times = 0;
 
-	if (AICE_COMMAND_MODE_PACK == aice_command_mode) {
+	if (aice_command_mode == AICE_COMMAND_MODE_PACK) {
 		aice_usb_packet_flush();
-	} else if (AICE_COMMAND_MODE_BATCH == aice_command_mode) {
+	} else if (aice_command_mode == AICE_COMMAND_MODE_BATCH) {
 		aice_pack_htdmc(AICE_CMD_T_WRITE_EDMSR, target_id, 0, address, data,
 				AICE_LITTLE_ENDIAN);
 		return aice_usb_packet_append(usb_out_buffer, AICE_FORMAT_HTDMC,
@@ -1066,7 +1066,7 @@ static int aice_write_edmsr(uint8_t target_id, uint32_t address, uint32_t data)
 				target_id, address, data);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMB);
-		if (AICE_FORMAT_DTHMB != result) {
+		if (result != AICE_FORMAT_DTHMB) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 					AICE_FORMAT_DTHMB, result);
 			return ERROR_FAIL;
@@ -1123,9 +1123,9 @@ static int aice_write_dim(uint8_t target_id, uint32_t *word, uint8_t num_of_word
 	memcpy(big_endian_word, word, sizeof(big_endian_word));
 	aice_switch_to_big_endian(big_endian_word, num_of_words);
 
-	if (AICE_COMMAND_MODE_PACK == aice_command_mode) {
+	if (aice_command_mode == AICE_COMMAND_MODE_PACK) {
 		aice_usb_packet_flush();
-	} else if (AICE_COMMAND_MODE_BATCH == aice_command_mode) {
+	} else if (aice_command_mode == AICE_COMMAND_MODE_BATCH) {
 		aice_pack_htdmc_multiple_data(AICE_CMD_T_WRITE_DIM, target_id,
 				num_of_words - 1, 0, big_endian_word, num_of_words,
 				AICE_LITTLE_ENDIAN);
@@ -1149,7 +1149,7 @@ static int aice_write_dim(uint8_t target_id, uint32_t *word, uint8_t num_of_word
 				big_endian_word[3]);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMB);
-		if (AICE_FORMAT_DTHMB != result) {
+		if (result != AICE_FORMAT_DTHMB) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)", AICE_FORMAT_DTHMB, result);
 			return ERROR_FAIL;
 		}
@@ -1187,9 +1187,9 @@ static int aice_do_execute(uint8_t target_id)
 {
 	int retry_times = 0;
 
-	if (AICE_COMMAND_MODE_PACK == aice_command_mode) {
+	if (aice_command_mode == AICE_COMMAND_MODE_PACK) {
 		aice_usb_packet_flush();
-	} else if (AICE_COMMAND_MODE_BATCH == aice_command_mode) {
+	} else if (aice_command_mode == AICE_COMMAND_MODE_BATCH) {
 		aice_pack_htdmc(AICE_CMD_T_EXECUTE, target_id, 0, 0, 0, AICE_LITTLE_ENDIAN);
 		return aice_usb_packet_append(usb_out_buffer,
 				AICE_FORMAT_HTDMC,
@@ -1204,7 +1204,7 @@ static int aice_do_execute(uint8_t target_id)
 		LOG_DEBUG("EXECUTE, COREID: %" PRIu8 "", target_id);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMB);
-		if (AICE_FORMAT_DTHMB != result) {
+		if (result != AICE_FORMAT_DTHMB) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 					AICE_FORMAT_DTHMB, result);
 			return ERROR_FAIL;
@@ -1246,8 +1246,8 @@ static int aice_write_mem_b(uint8_t target_id, uint32_t address, uint32_t data)
 			address,
 			data);
 
-	if ((AICE_COMMAND_MODE_PACK == aice_command_mode) ||
-		(AICE_COMMAND_MODE_BATCH == aice_command_mode)) {
+	if ((aice_command_mode == AICE_COMMAND_MODE_PACK) ||
+		(aice_command_mode == AICE_COMMAND_MODE_BATCH)) {
 		aice_pack_htdmd(AICE_CMD_T_WRITE_MEM_B, target_id, 0, address,
 				data & 0x000000FF, data_endian);
 		return aice_usb_packet_append(usb_out_buffer, AICE_FORMAT_HTDMD,
@@ -1259,7 +1259,7 @@ static int aice_write_mem_b(uint8_t target_id, uint32_t address, uint32_t data)
 			aice_usb_write(usb_out_buffer, AICE_FORMAT_HTDMD);
 
 			int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMB);
-			if (AICE_FORMAT_DTHMB != result) {
+			if (result != AICE_FORMAT_DTHMB) {
 				LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)", AICE_FORMAT_DTHMB, result);
 				return ERROR_FAIL;
 			}
@@ -1300,8 +1300,8 @@ static int aice_write_mem_h(uint8_t target_id, uint32_t address, uint32_t data)
 			address,
 			data);
 
-	if ((AICE_COMMAND_MODE_PACK == aice_command_mode) ||
-		(AICE_COMMAND_MODE_BATCH == aice_command_mode)) {
+	if ((aice_command_mode == AICE_COMMAND_MODE_PACK) ||
+		(aice_command_mode == AICE_COMMAND_MODE_BATCH)) {
 		aice_pack_htdmd(AICE_CMD_T_WRITE_MEM_H, target_id, 0,
 				(address >> 1) & 0x7FFFFFFF, data & 0x0000FFFF, data_endian);
 		return aice_usb_packet_append(usb_out_buffer, AICE_FORMAT_HTDMD,
@@ -1313,7 +1313,7 @@ static int aice_write_mem_h(uint8_t target_id, uint32_t address, uint32_t data)
 			aice_usb_write(usb_out_buffer, AICE_FORMAT_HTDMD);
 
 			int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMB);
-			if (AICE_FORMAT_DTHMB != result) {
+			if (result != AICE_FORMAT_DTHMB) {
 				LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 						AICE_FORMAT_DTHMB, result);
 				return ERROR_FAIL;
@@ -1355,8 +1355,8 @@ static int aice_write_mem(uint8_t target_id, uint32_t address, uint32_t data)
 			address,
 			data);
 
-	if ((AICE_COMMAND_MODE_PACK == aice_command_mode) ||
-		(AICE_COMMAND_MODE_BATCH == aice_command_mode)) {
+	if ((aice_command_mode == AICE_COMMAND_MODE_PACK) ||
+		(aice_command_mode == AICE_COMMAND_MODE_BATCH)) {
 		aice_pack_htdmd(AICE_CMD_T_WRITE_MEM, target_id, 0,
 				(address >> 2) & 0x3FFFFFFF, data, data_endian);
 		return aice_usb_packet_append(usb_out_buffer, AICE_FORMAT_HTDMD,
@@ -1368,7 +1368,7 @@ static int aice_write_mem(uint8_t target_id, uint32_t address, uint32_t data)
 			aice_usb_write(usb_out_buffer, AICE_FORMAT_HTDMD);
 
 			int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMB);
-			if (AICE_FORMAT_DTHMB != result) {
+			if (result != AICE_FORMAT_DTHMB) {
 				LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 						AICE_FORMAT_DTHMB, result);
 				return ERROR_FAIL;
@@ -1405,8 +1405,8 @@ static int aice_fastread_mem(uint8_t target_id, uint8_t *word, uint32_t num_of_w
 {
 	int retry_times = 0;
 
-	if ((AICE_COMMAND_MODE_PACK == aice_command_mode) ||
-		(AICE_COMMAND_MODE_BATCH == aice_command_mode))
+	if ((aice_command_mode == AICE_COMMAND_MODE_PACK) ||
+		(aice_command_mode == AICE_COMMAND_MODE_BATCH))
 		aice_usb_packet_flush();
 
 	do {
@@ -1455,9 +1455,9 @@ static int aice_fastwrite_mem(uint8_t target_id, const uint8_t *word, uint32_t n
 {
 	int retry_times = 0;
 
-	if (AICE_COMMAND_MODE_PACK == aice_command_mode) {
+	if (aice_command_mode == AICE_COMMAND_MODE_PACK) {
 		aice_usb_packet_flush();
-	} else if (AICE_COMMAND_MODE_BATCH == aice_command_mode) {
+	} else if (aice_command_mode == AICE_COMMAND_MODE_BATCH) {
 		aice_pack_htdmd_multiple_data(AICE_CMD_T_FASTWRITE_MEM, target_id,
 				num_of_words - 1, 0, word, data_endian);
 		return aice_usb_packet_append(usb_out_buffer,
@@ -1475,7 +1475,7 @@ static int aice_fastwrite_mem(uint8_t target_id, const uint8_t *word, uint32_t n
 				target_id, num_of_words);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMB);
-		if (AICE_FORMAT_DTHMB != result) {
+		if (result != AICE_FORMAT_DTHMB) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 					AICE_FORMAT_DTHMB, result);
 			return ERROR_FAIL;
@@ -1511,8 +1511,8 @@ static int aice_read_mem_b(uint8_t target_id, uint32_t address, uint32_t *data)
 {
 	int retry_times = 0;
 
-	if ((AICE_COMMAND_MODE_PACK == aice_command_mode) ||
-		(AICE_COMMAND_MODE_BATCH == aice_command_mode))
+	if ((aice_command_mode == AICE_COMMAND_MODE_PACK) ||
+		(aice_command_mode == AICE_COMMAND_MODE_BATCH))
 		aice_usb_packet_flush();
 
 	do {
@@ -1523,7 +1523,7 @@ static int aice_read_mem_b(uint8_t target_id, uint32_t address, uint32_t *data)
 		LOG_DEBUG("READ_MEM_B, COREID: %" PRIu8 "", target_id);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMA);
-		if (AICE_FORMAT_DTHMA != result) {
+		if (result != AICE_FORMAT_DTHMA) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 					AICE_FORMAT_DTHMA, result);
 			return ERROR_FAIL;
@@ -1561,8 +1561,8 @@ static int aice_read_mem_h(uint8_t target_id, uint32_t address, uint32_t *data)
 {
 	int retry_times = 0;
 
-	if ((AICE_COMMAND_MODE_PACK == aice_command_mode) ||
-		(AICE_COMMAND_MODE_BATCH == aice_command_mode))
+	if ((aice_command_mode == AICE_COMMAND_MODE_PACK) ||
+		(aice_command_mode == AICE_COMMAND_MODE_BATCH))
 		aice_usb_packet_flush();
 
 	do {
@@ -1573,7 +1573,7 @@ static int aice_read_mem_h(uint8_t target_id, uint32_t address, uint32_t *data)
 		LOG_DEBUG("READ_MEM_H, CORE_ID: %" PRIu8 "", target_id);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMA);
-		if (AICE_FORMAT_DTHMA != result) {
+		if (result != AICE_FORMAT_DTHMA) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 					AICE_FORMAT_DTHMA, result);
 			return ERROR_FAIL;
@@ -1611,8 +1611,8 @@ static int aice_read_mem(uint8_t target_id, uint32_t address, uint32_t *data)
 {
 	int retry_times = 0;
 
-	if ((AICE_COMMAND_MODE_PACK == aice_command_mode) ||
-		(AICE_COMMAND_MODE_BATCH == aice_command_mode))
+	if ((aice_command_mode == AICE_COMMAND_MODE_PACK) ||
+		(aice_command_mode == AICE_COMMAND_MODE_BATCH))
 		aice_usb_packet_flush();
 
 	do {
@@ -1624,7 +1624,7 @@ static int aice_read_mem(uint8_t target_id, uint32_t address, uint32_t *data)
 		LOG_DEBUG("READ_MEM, COREID: %" PRIu8 "", target_id);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMA);
-		if (AICE_FORMAT_DTHMA != result) {
+		if (result != AICE_FORMAT_DTHMA) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 					AICE_FORMAT_DTHMA, result);
 			return ERROR_FAIL;
@@ -1723,7 +1723,7 @@ int aice_batch_buffer_write(uint8_t buf_index, const uint8_t *word, uint32_t num
 		LOG_DEBUG("BATCH_BUFFER_WRITE, # of DATA %08" PRIx32, num_of_words);
 
 		int result = aice_usb_read(usb_in_buffer, AICE_FORMAT_DTHMB);
-		if (AICE_FORMAT_DTHMB != result) {
+		if (result != AICE_FORMAT_DTHMB) {
 			LOG_ERROR("aice_usb_read failed (requested=%d, result=%d)",
 					AICE_FORMAT_DTHMB, result);
 			return ERROR_FAIL;
@@ -1918,12 +1918,12 @@ static int aice_read_reg(uint32_t coreid, uint32_t num, uint32_t *val)
 			instructions[3] = BEQ_MINUS_12;
 		}
 	} else if (NDS32_REG_TYPE_FPU == nds32_reg_type(num)) { /* fpu registers */
-		if (FPCSR == num) {
+		if (num == FPCSR) {
 			instructions[0] = FMFCSR;
 			instructions[1] = MTSR_DTR(0);
 			instructions[2] = DSB;
 			instructions[3] = BEQ_MINUS_12;
-		} else if (FPCFG == num) {
+		} else if (num == FPCFG) {
 			instructions[0] = FMFCFG;
 			instructions[1] = MTSR_DTR(0);
 			instructions[2] = DSB;
@@ -2027,12 +2027,12 @@ static int aice_write_reg(uint32_t coreid, uint32_t num, uint32_t val)
 			instructions[3] = BEQ_MINUS_12;
 		}
 	} else if (NDS32_REG_TYPE_FPU == nds32_reg_type(num)) { /* fpu registers */
-		if (FPCSR == num) {
+		if (num == FPCSR) {
 			instructions[0] = MFSR_DTR(0);
 			instructions[1] = FMTCSR;
 			instructions[2] = DSB;
 			instructions[3] = BEQ_MINUS_12;
-		} else if (FPCFG == num) {
+		} else if (num == FPCFG) {
 			/* FPCFG is readonly */
 		} else {
 			if (FS0 <= num && num <= FS31) { /* single precision */
@@ -2116,7 +2116,7 @@ static int aice_usb_open(struct aice_port_param_s *param)
 		if (!timeout)
 			break;
 	}
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return ERROR_FAIL;
 #endif
 
@@ -2558,7 +2558,7 @@ static int aice_usb_idcode(uint32_t *idcode, uint8_t *num_of_idcode)
 	int retval;
 
 	retval = aice_scan_chain(idcode, num_of_idcode);
-	if (ERROR_OK == retval) {
+	if (retval == ERROR_OK) {
 		for (int i = 0; i < *num_of_idcode; i++) {
 			aice_core_init(i);
 			aice_edm_init(i);
@@ -2659,7 +2659,7 @@ static int aice_usb_state(uint32_t coreid, enum aice_target_state_s *state)
 
 	int result = aice_read_misc(coreid, NDS_EDM_MISC_DBGER, &dbger_value);
 
-	if (ERROR_AICE_TIMEOUT == result) {
+	if (result == ERROR_AICE_TIMEOUT) {
 		if (aice_read_ctrl(AICE_READ_CTRL_GET_ICE_STATE, &ice_state) != ERROR_OK) {
 			LOG_ERROR("<-- AICE ERROR! AICE is unplugged. -->");
 			return ERROR_FAIL;
@@ -2671,7 +2671,7 @@ static int aice_usb_state(uint32_t coreid, enum aice_target_state_s *state)
 		} else {
 			return ERROR_FAIL;
 		}
-	} else if (ERROR_AICE_DISCONNECT == result) {
+	} else if (result == ERROR_AICE_DISCONNECT) {
 		LOG_ERROR("<-- AICE ERROR! AICE is unplugged. -->");
 		return ERROR_FAIL;
 	}
@@ -2877,7 +2877,7 @@ static int aice_issue_reset_hold_multi(void)
 
 static int aice_usb_assert_srst(uint32_t coreid, enum aice_srst_type_s srst)
 {
-	if ((AICE_SRST != srst) && (AICE_RESET_HOLD != srst))
+	if ((srst != AICE_SRST) && (srst != AICE_RESET_HOLD))
 		return ERROR_FAIL;
 
 	/* clear DBGER */
@@ -2886,7 +2886,7 @@ static int aice_usb_assert_srst(uint32_t coreid, enum aice_srst_type_s srst)
 		return ERROR_FAIL;
 
 	int result = ERROR_OK;
-	if (AICE_SRST == srst)
+	if (srst == AICE_SRST)
 		result = aice_issue_srst(coreid);
 	else {
 		if (1 == total_num_of_core)
@@ -2982,7 +2982,7 @@ static int aice_usb_step(uint32_t coreid)
 		if (aice_usb_state(coreid, &state) != ERROR_OK)
 			return ERROR_FAIL;
 
-		if (AICE_TARGET_HALTED == state)
+		if (state == AICE_TARGET_HALTED)
 			break;
 
 		int64_t then = 0;
@@ -3354,9 +3354,9 @@ static int aice_usb_bulk_write_mem(uint32_t coreid, uint32_t addr,
 static int aice_usb_read_debug_reg(uint32_t coreid, uint32_t addr, uint32_t *val)
 {
 	if (AICE_TARGET_HALTED == core_info[coreid].core_state) {
-		if (NDS_EDM_SR_EDMSW == addr) {
+		if (addr == NDS_EDM_SR_EDMSW) {
 			*val = core_info[coreid].edmsw_backup;
-		} else if (NDS_EDM_SR_EDM_DTR == addr) {
+		} else if (addr == NDS_EDM_SR_EDM_DTR) {
 			if (core_info[coreid].target_dtr_valid) {
 				/* if EDM_DTR has read out, clear it. */
 				*val = core_info[coreid].target_dtr_backup;
@@ -3374,7 +3374,7 @@ static int aice_usb_read_debug_reg(uint32_t coreid, uint32_t addr, uint32_t *val
 static int aice_usb_write_debug_reg(uint32_t coreid, uint32_t addr, const uint32_t val)
 {
 	if (AICE_TARGET_HALTED == core_info[coreid].core_state) {
-		if (NDS_EDM_SR_EDM_DTR == addr) {
+		if (addr == NDS_EDM_SR_EDM_DTR) {
 			core_info[coreid].host_dtr_backup = val;
 			core_info[coreid].edmsw_backup |= 0x2;
 			core_info[coreid].host_dtr_valid = true;
@@ -3775,7 +3775,7 @@ static int aice_usb_set_command_mode(enum aice_command_mode command_mode)
 	/* flush usb_packets_buffer as users change mode */
 	retval = aice_usb_packet_flush();
 
-	if (AICE_COMMAND_MODE_BATCH == command_mode) {
+	if (command_mode == AICE_COMMAND_MODE_BATCH) {
 		/* reset batch buffer */
 		aice_command_mode = AICE_COMMAND_MODE_NORMAL;
 		retval = aice_write_ctrl(AICE_WRITE_CTRL_BATCH_CMD_BUF0_CTRL, 0x40000);

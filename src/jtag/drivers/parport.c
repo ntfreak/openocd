@@ -448,7 +448,7 @@ COMMAND_HANDLER(parport_handle_parport_toggling_time_command)
 		uint32_t ns;
 		int retval = parse_u32(CMD_ARGV[0], &ns);
 
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 
 		if (ns == 0) {

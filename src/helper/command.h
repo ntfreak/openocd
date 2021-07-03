@@ -427,7 +427,7 @@ DECLARE_PARSE_WRAPPER(_target_addr, target_addr_t);
 #define COMMAND_PARSE_NUMBER(type, in, out) \
 	do { \
 		int retval_macro_tmp = parse_ ## type(in, &(out)); \
-		if (ERROR_OK != retval_macro_tmp) { \
+		if (retval_macro_tmp != ERROR_OK) { \
 			command_print(CMD, stringify(out) \
 				" option value ('%s') is not valid", in); \
 			return retval_macro_tmp; \
@@ -489,7 +489,7 @@ DECLARE_PARSE_WRAPPER(_target_addr, target_addr_t);
 	do { \
 		bool value; \
 		int retval_macro_tmp = command_parse_bool_arg(in, &value); \
-		if (ERROR_OK != retval_macro_tmp) { \
+		if (retval_macro_tmp != ERROR_OK) { \
 			command_print(CMD, stringify(out) \
 				" option value ('%s') is not valid", in); \
 			command_print(CMD, "  choices are '%s' or '%s'", \

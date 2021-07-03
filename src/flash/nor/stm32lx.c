@@ -313,7 +313,7 @@ COMMAND_HANDLER(stm32lx_handle_mass_erase_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = stm32lx_mass_erase(bank);
@@ -337,7 +337,7 @@ COMMAND_HANDLER(stm32lx_handle_lock_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = stm32lx_lock(bank);
@@ -357,7 +357,7 @@ COMMAND_HANDLER(stm32lx_handle_unlock_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = stm32lx_unlock(bank);

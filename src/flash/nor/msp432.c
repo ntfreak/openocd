@@ -63,7 +63,7 @@ static int msp432_device_type(uint32_t family_type, uint32_t device_id,
 {
 	int device_type = MSP432_NO_TYPE;
 
-	if (MSP432E4 == family_type) {
+	if (family_type == MSP432E4) {
 		/* MSP432E4 device family */
 
 		if (device_id == 0x180C0002) {
@@ -191,7 +191,7 @@ static int msp432_exec_cmd(struct target *target, struct msp432_algo_params
 	/* Write out parameters to target memory */
 	retval = target_write_buffer(target, ALGO_PARAMS_BASE_ADDR,
 				sizeof(struct msp432_algo_params), (uint8_t *)algo_params);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Write out command to target memory */
@@ -209,9 +209,9 @@ static int msp432_wait_return_code(struct target *target)
 	int retval = ERROR_OK;
 
 	start_ms = timeval_ms();
-	while ((0 == return_code) || (FLASH_BUSY == return_code)) {
+	while ((0 == return_code) || (return_code == FLASH_BUSY)) {
 		retval = target_read_u32(target, ALGO_RETURN_CODE_ADDR, &return_code);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 
 		elapsed_ms = timeval_ms() - start_ms;
@@ -221,7 +221,7 @@ static int msp432_wait_return_code(struct target *target)
 			break;
 	};
 
-	if (FLASH_SUCCESS != return_code) {
+	if (return_code != FLASH_SUCCESS) {
 		LOG_ERROR("msp432: Flash operation failed: %s",
 			msp432_return_text(return_code));
 		return ERROR_FAIL;
@@ -251,9 +251,9 @@ static int msp432_wait_inactive(struct target *target, uint32_t buffer)
 	}
 
 	start_ms = timeval_ms();
-	while (BUFFER_INACTIVE != status_code) {
+	while (status_code != BUFFER_INACTIVE) {
 		retval = target_read_u32(target, status_addr, &status_code);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 
 		elapsed_ms = timeval_ms() - start_ms;
@@ -263,7 +263,7 @@ static int msp432_wait_inactive(struct target *target, uint32_t buffer)
 			break;
 	};
 
-	if (BUFFER_INACTIVE != status_code) {
+	if (status_code != BUFFER_INACTIVE) {
 		LOG_ERROR(
 			"msp432: Flash operation failed: buffer not written to flash");
 		return ERROR_FAIL;
@@ -286,7 +286,7 @@ static int msp432_init(struct flash_bank *bank)
 
 	/* Make sure we've probed the flash to get the device and size */
 	retval = msp432_auto_probe(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Choose appropriate flash helper algorithm */
@@ -339,7 +339,7 @@ static int msp432_init(struct flash_bank *bank)
 		target_free_working_area(target, msp432_bank->working_area);
 	retval = target_alloc_working_area(target, ALGO_WORKING_SIZE,
 				&msp432_bank->working_area);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Confirm the defined working address is the area we need to use */
@@ -349,7 +349,7 @@ static int msp432_init(struct flash_bank *bank)
 	/* Write flash helper algorithm into target memory */
 	retval = target_write_buffer(target, ALGO_BASE_ADDR, loader_size,
 				loader_code);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Initialize the ARMv7 specific info to run the algorithm */
@@ -362,7 +362,7 @@ static int msp432_init(struct flash_bank *bank)
 	/* Write out parameters to target memory */
 	retval = target_write_buffer(target, ALGO_PARAMS_BASE_ADDR,
 				sizeof(algo_params), (uint8_t *)&algo_params);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Initialize stack pointer for flash helper algorithm */
@@ -373,7 +373,7 @@ static int msp432_init(struct flash_bank *bank)
 	retval = target_start_algorithm(target, 0, 0, 1, reg_params,
 				algo_entry_addr, 0, &msp432_bank->armv7m_info);
 	destroy_reg_param(&reg_params[0]);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("msp432: Failed to start flash helper algorithm");
 		return retval;
 	}
@@ -385,7 +385,7 @@ static int msp432_init(struct flash_bank *bank)
 
 	/* Issue the init command to the flash helper algorithm */
 	retval = msp432_exec_cmd(target, &algo_params, FLASH_INIT);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = msp432_wait_return_code(target);
@@ -406,7 +406,7 @@ static int msp432_quit(struct flash_bank *bank)
 
 	/* Issue the exit command to the flash helper algorithm */
 	retval = msp432_exec_cmd(target, &algo_params, FLASH_EXIT);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	(void)msp432_wait_return_code(target);
@@ -438,7 +438,7 @@ static int msp432_mass_erase(struct flash_bank *bank, bool all)
 	}
 
 	retval = msp432_init(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Initialize algorithm parameters to default values */
@@ -452,19 +452,19 @@ static int msp432_mass_erase(struct flash_bank *bank, bool all)
 
 	/* Issue the mass erase command to the flash helper algorithm */
 	retval = msp432_exec_cmd(target, &algo_params, FLASH_MASS_ERASE);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		(void)msp432_quit(bank);
 		return retval;
 	}
 
 	retval = msp432_wait_return_code(target);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		(void)msp432_quit(bank);
 		return retval;
 	}
 
 	retval = msp432_quit(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	return retval;
@@ -507,7 +507,7 @@ COMMAND_HANDLER(msp432_mass_erase_command)
 	}
 
 	retval = msp432_mass_erase(bank, all);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (MSP432E4 == msp432_bank->family_type) {
@@ -614,7 +614,7 @@ static int msp432_erase(struct flash_bank *bank, unsigned int first,
 	}
 
 	retval = msp432_init(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Initialize algorithm parameters to default values */
@@ -646,20 +646,20 @@ static int msp432_erase(struct flash_bank *bank, unsigned int first,
 
 		/* Issue the sector erase command to the flash helper algorithm */
 		retval = msp432_exec_cmd(target, &algo_params, FLASH_SECTOR_ERASE);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			(void)msp432_quit(bank);
 			return retval;
 		}
 
 		retval = msp432_wait_return_code(target);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			(void)msp432_quit(bank);
 			return retval;
 		}
 	}
 
 	retval = msp432_quit(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	return retval;
@@ -705,7 +705,7 @@ static int msp432_write(struct flash_bank *bank, const uint8_t *buffer,
 			if (offset < start) {
 				uint32_t start_count = MIN(start - offset, count);
 				retval = msp432_write(bank, buffer, offset, start_count);
-				if (ERROR_OK != retval)
+				if (retval != ERROR_OK)
 					return retval;
 			}
 			/* Send a request for anything after read-only sectors */
@@ -723,7 +723,7 @@ static int msp432_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	retval = msp432_init(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Initialize algorithm parameters to default values */
@@ -742,7 +742,7 @@ static int msp432_write(struct flash_bank *bank, const uint8_t *buffer,
 
 	/* Set up flash helper algorithm to continuous flash mode */
 	retval = msp432_exec_cmd(target, &algo_params, FLASH_CONTINUOUS);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		(void)msp432_quit(bank);
 		return retval;
 	}
@@ -758,7 +758,7 @@ static int msp432_write(struct flash_bank *bank, const uint8_t *buffer,
 
 		/* Put next block of data to flash into buffer */
 		retval = target_write_buffer(target, ALGO_BUFFER1_ADDR, size, buffer);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Unable to write data to target memory");
 			(void)msp432_quit(bank);
 			return ERROR_FLASH_OPERATION_FAILED;
@@ -767,13 +767,13 @@ static int msp432_write(struct flash_bank *bank, const uint8_t *buffer,
 		/* Signal the flash helper algorithm that data is ready to flash */
 		retval = target_write_u32(target, ALGO_BUFFER1_STATUS_ADDR,
 					data_ready);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			(void)msp432_quit(bank);
 			return ERROR_FLASH_OPERATION_FAILED;
 		}
 
 		retval = msp432_wait_inactive(target, 1);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			(void)msp432_quit(bank);
 			return retval;
 		}
@@ -788,13 +788,13 @@ static int msp432_write(struct flash_bank *bank, const uint8_t *buffer,
 
 	/* Confirm that the flash helper algorithm is finished */
 	retval = msp432_wait_return_code(target);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		(void)msp432_quit(bank);
 		return retval;
 	}
 
 	retval = msp432_quit(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	return retval;
@@ -826,7 +826,7 @@ static int msp432_probe(struct flash_bank *bank)
 	/* Read the flash size register to determine this is a P4 or not */
 	/* MSP432P4s will return the size of flash.  MSP432E4s will return zero */
 	retval = target_read_u32(target, P4_FLASH_MAIN_SIZE_REG, &size);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (0 == size) {
@@ -834,13 +834,13 @@ static int msp432_probe(struct flash_bank *bank)
 		msp432_bank->family_type = MSP432E4;
 
 		retval = target_read_u32(target, E4_DID0_REG, &device_id);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 
 		msp432_bank->device_id = device_id;
 
 		retval = target_read_u32(target, E4_DID1_REG, &hardware_rev);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 
 		msp432_bank->hardware_rev = hardware_rev;
@@ -849,13 +849,13 @@ static int msp432_probe(struct flash_bank *bank)
 		msp432_bank->family_type = MSP432P4;
 
 		retval = target_read_u32(target, P4_DEVICE_ID_REG, &device_id);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 
 		msp432_bank->device_id = device_id & 0xFFFF;
 
 		retval = target_read_u32(target, P4_HARDWARE_REV_REG, &hardware_rev);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 
 		msp432_bank->hardware_rev = hardware_rev & 0xFF;
@@ -868,7 +868,7 @@ static int msp432_probe(struct flash_bank *bank)
 		/* Set up MSP432P4 specific flash parameters */
 		if (is_main) {
 			retval = target_read_u32(target, P4_FLASH_MAIN_SIZE_REG, &size);
-			if (ERROR_OK != retval)
+			if (retval != ERROR_OK)
 				return retval;
 
 			sector_length = P4_SECTOR_LENGTH;
@@ -878,7 +878,7 @@ static int msp432_probe(struct flash_bank *bank)
 				msp432_bank->device_type == MSP432P411X_GUESS) {
 				/* MSP432P411x has an info size register, use that for size */
 				retval = target_read_u32(target, P4_FLASH_INFO_SIZE_REG, &size);
-				if (ERROR_OK != retval)
+				if (retval != ERROR_OK)
 					return retval;
 			} else {
 				/* All other MSP432P401x devices have fixed info region size */

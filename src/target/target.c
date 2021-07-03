@@ -1546,7 +1546,7 @@ static int target_init_one(struct command_context *cmd_ctx,
 	assert(type->init_target);
 
 	int retval = type->init_target(cmd_ctx, target);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("target '%s' init failed", target_name(target));
 		return retval;
 	}
@@ -1598,7 +1598,7 @@ static int target_init(struct command_context *cmd_ctx)
 
 	for (target = all_targets; target; target = target->next) {
 		retval = target_init_one(cmd_ctx, target);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 	}
 
@@ -1606,12 +1606,12 @@ static int target_init(struct command_context *cmd_ctx)
 		return ERROR_OK;
 
 	retval = target_register_user_commands(cmd_ctx);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = target_register_timer_callback(&handle_target,
 			polling_interval, TARGET_TIMER_TYPE_PERIODIC, cmd_ctx->interp);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	return ERROR_OK;
@@ -1632,15 +1632,15 @@ COMMAND_HANDLER(handle_target_init_command)
 	target_initialized = true;
 
 	retval = command_run_line(CMD_CTX, "init_targets");
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = command_run_line(CMD_CTX, "init_target_events");
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = command_run_line(CMD_CTX, "init_board");
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	LOG_DEBUG("Initializing targets...");
@@ -3225,7 +3225,7 @@ COMMAND_HANDLER(handle_wait_halt_command)
 	unsigned ms = DEFAULT_HALT_TIMEOUT;
 	if (1 == CMD_ARGC) {
 		int retval = parse_uint(CMD_ARGV[0], &ms);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 	}
 
@@ -3281,13 +3281,13 @@ COMMAND_HANDLER(handle_halt_command)
 	target->verbose_halt_msg = true;
 
 	int retval = target_halt(target);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (CMD_ARGC == 1) {
 		unsigned wait_local;
 		retval = parse_uint(CMD_ARGV[0], &wait_local);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		if (!wait_local)
 			return ERROR_OK;
@@ -3482,7 +3482,7 @@ COMMAND_HANDLER(handle_md_command)
 
 	struct target *target = get_current_target(CMD_CTX);
 	int retval = fn(target, address, size, count, buffer);
-	if (ERROR_OK == retval)
+	if (retval == ERROR_OK)
 		target_handle_md_output(CMD, target, address, size, count, buffer);
 
 	free(buffer);
@@ -3639,7 +3639,7 @@ COMMAND_HANDLER(handle_load_image_command)
 
 	int retval = CALL_COMMAND_HANDLER(parse_load_image_command,
 			&image, &min_address, &max_address);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	struct target *target = get_current_target(CMD_CTX);
@@ -3700,7 +3700,7 @@ COMMAND_HANDLER(handle_load_image_command)
 		free(buffer);
 	}
 
-	if ((ERROR_OK == retval) && (duration_measure(&bench) == ERROR_OK)) {
+	if ((retval == ERROR_OK) && (duration_measure(&bench) == ERROR_OK)) {
 		command_print(CMD, "downloaded %" PRIu32 " bytes "
 				"in %fs (%0.3f KiB/s)", image_size,
 				duration_elapsed(&bench), duration_kbps(&bench, image_size));
@@ -3757,7 +3757,7 @@ COMMAND_HANDLER(handle_dump_image_command)
 
 	free(buffer);
 
-	if ((ERROR_OK == retval) && (duration_measure(&bench) == ERROR_OK)) {
+	if ((retval == ERROR_OK) && (duration_measure(&bench) == ERROR_OK)) {
 		size_t filesize;
 		retval = fileio_size(fileio, &filesize);
 		if (retval != ERROR_OK)
@@ -3902,7 +3902,7 @@ static COMMAND_HELPER(handle_verify_image_command_internal, enum verify_mode ver
 done:
 	if (diffs > 0)
 		retval = ERROR_FAIL;
-	if ((ERROR_OK == retval) && (duration_measure(&bench) == ERROR_OK)) {
+	if ((retval == ERROR_OK) && (duration_measure(&bench) == ERROR_OK)) {
 		command_print(CMD, "verified %" PRIu32 " bytes "
 				"in %fs (%0.3f KiB/s)", image_size,
 				duration_elapsed(&bench), duration_kbps(&bench, image_size));
@@ -3972,7 +3972,7 @@ static int handle_bp_command_set(struct command_invocation *cmd,
 	if (asid == 0) {
 		retval = breakpoint_add(target, addr, length, hw);
 		/* error is always logged in breakpoint_add(), do not print it again */
-		if (ERROR_OK == retval)
+		if (retval == ERROR_OK)
 			command_print(cmd, "breakpoint set at " TARGET_ADDR_FMT "", addr);
 
 	} else if (addr == 0) {
@@ -3982,7 +3982,7 @@ static int handle_bp_command_set(struct command_invocation *cmd,
 		}
 		retval = context_breakpoint_add(target, asid, length, hw);
 		/* error is always logged in context_breakpoint_add(), do not print it again */
-		if (ERROR_OK == retval)
+		if (retval == ERROR_OK)
 			command_print(cmd, "Context breakpoint set at 0x%8.8" PRIx32 "", asid);
 
 	} else {
@@ -3992,7 +3992,7 @@ static int handle_bp_command_set(struct command_invocation *cmd,
 		}
 		retval = hybrid_breakpoint_add(target, addr, asid, length, hw);
 		/* error is always logged in hybrid_breakpoint_add(), do not print it again */
-		if (ERROR_OK == retval)
+		if (retval == ERROR_OK)
 			command_print(cmd, "Hybrid breakpoint set at 0x%8.8" PRIx32 "", asid);
 	}
 	return retval;
@@ -4123,7 +4123,7 @@ COMMAND_HANDLER(handle_wp_command)
 
 	int retval = watchpoint_add(target, addr, length, type,
 			data_value, data_mask);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		LOG_ERROR("Failure setting watchpoints");
 
 	return retval;
@@ -5865,7 +5865,7 @@ static int target_create(struct jim_getopt_info *goi)
 	/* create the target specific commands */
 	if (target->type->commands) {
 		e = register_commands(cmd_ctx, NULL, target->type->commands);
-		if (ERROR_OK != e)
+		if (e != ERROR_OK)
 			LOG_ERROR("unable to register '%s' commands", cp);
 	}
 
@@ -6095,7 +6095,7 @@ COMMAND_HANDLER(handle_fast_load_image_command)
 
 	int retval = CALL_COMMAND_HANDLER(parse_load_image_command,
 			&image, &min_address, &max_address);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	struct duration bench;
@@ -6167,7 +6167,7 @@ COMMAND_HANDLER(handle_fast_load_image_command)
 		free(buffer);
 	}
 
-	if ((ERROR_OK == retval) && (duration_measure(&bench) == ERROR_OK)) {
+	if ((retval == ERROR_OK) && (duration_measure(&bench) == ERROR_OK)) {
 		command_print(CMD, "Loaded %" PRIu32 " bytes "
 				"in %fs (%0.3f KiB/s)", image_size,
 				duration_elapsed(&bench), duration_kbps(&bench, image_size));

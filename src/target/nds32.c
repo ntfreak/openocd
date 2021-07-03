@@ -330,16 +330,16 @@ static int nds32_set_core_reg(struct reg *reg, uint8_t *buf)
 	reg->dirty = false;
 
 	/* update registers to take effect right now */
-	if (IR0 == mapped_regnum) {
+	if (mapped_regnum == IR0) {
 		nds32_update_psw(nds32);
-	} else if (MR0 == mapped_regnum) {
+	} else if (mapped_regnum == MR0) {
 		nds32_update_mmu_info(nds32);
-	} else if ((MR6 == mapped_regnum) || (MR7 == mapped_regnum)) {
+	} else if ((mapped_regnum == MR6) || (mapped_regnum == MR7)) {
 		/* update lm information */
 		nds32_update_lm_info(nds32);
-	} else if (MR8 == mapped_regnum) {
+	} else if (mapped_regnum == MR8) {
 		nds32_update_cache_info(nds32);
-	} else if (FUCPR == mapped_regnum) {
+	} else if (mapped_regnum == FUCPR) {
 		/* update audio/fpu setting */
 		nds32_check_extension(nds32);
 	}
@@ -1951,7 +1951,7 @@ int nds32_examine_debug_reason(struct nds32 *nds32)
 				nds32_step_without_watchpoint(nds32);
 
 				/* before single_step, save exception address */
-				if (ERROR_OK != result)
+				if (result != ERROR_OK)
 					return ERROR_FAIL;
 
 				target->debug_reason = DBG_REASON_WATCHPOINT;
@@ -2059,7 +2059,7 @@ int nds32_halt(struct target *target)
 	if (nds32_target_state(nds32, &state) != ERROR_OK)
 		return ERROR_FAIL;
 
-	if (TARGET_HALTED != state)
+	if (state != TARGET_HALTED)
 		/* TODO: if state == TARGET_HALTED, check ETYPE is DBGI or not */
 		if (ERROR_OK != aice_halt(aice))
 			return ERROR_FAIL;

@@ -887,7 +887,7 @@ static int arm_tpiu_swo_create(Jim_Interp *interp, struct arm_tpiu_swo_object *o
 		COMMAND_REGISTRATION_DONE
 	};
 	e = register_commands_with_data(cmd_ctx, NULL, obj_commands, obj);
-	if (ERROR_OK != e)
+	if (e != ERROR_OK)
 		return JIM_ERR;
 
 	list_add_tail(&obj->lh, &all_tpiu_swo);
@@ -1037,7 +1037,7 @@ COMMAND_HANDLER(handle_tpiu_deprecated_config_command)
 	}
 
 	unsigned int cmd_idx = 0;
-	if (CMD_ARGC == cmd_idx)
+	if (cmd_idx == CMD_ARGC)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	if (!strcmp(CMD_ARGV[cmd_idx], "disable")) {
@@ -1055,18 +1055,18 @@ COMMAND_HANDLER(handle_tpiu_deprecated_config_command)
 	const char *pin_clk = NULL;
 	if (!strcmp(CMD_ARGV[cmd_idx], "internal")) {
 		cmd_idx++;
-		if (CMD_ARGC == cmd_idx)
+		if (cmd_idx == CMD_ARGC)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		output = CMD_ARGV[cmd_idx];
 	} else if (strcmp(CMD_ARGV[cmd_idx], "external"))
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	cmd_idx++;
-	if (CMD_ARGC == cmd_idx)
+	if (cmd_idx == CMD_ARGC)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	if (!strcmp(CMD_ARGV[cmd_idx], "sync")) {
 		protocol = CMD_ARGV[cmd_idx];
 		cmd_idx++;
-		if (CMD_ARGC == cmd_idx)
+		if (cmd_idx == CMD_ARGC)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		port_width = CMD_ARGV[cmd_idx];
 	} else {
@@ -1074,20 +1074,20 @@ COMMAND_HANDLER(handle_tpiu_deprecated_config_command)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		protocol = CMD_ARGV[cmd_idx];
 		cmd_idx++;
-		if (CMD_ARGC == cmd_idx)
+		if (cmd_idx == CMD_ARGC)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		formatter = CMD_ARGV[cmd_idx];
 	}
 	cmd_idx++;
-	if (CMD_ARGC == cmd_idx)
+	if (cmd_idx == CMD_ARGC)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	trace_clk = CMD_ARGV[cmd_idx];
 	cmd_idx++;
-	if (CMD_ARGC != cmd_idx) {
+	if (cmd_idx != CMD_ARGC) {
 		pin_clk = CMD_ARGV[cmd_idx];
 		cmd_idx++;
 	}
-	if (CMD_ARGC != cmd_idx)
+	if (cmd_idx != CMD_ARGC)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	LOG_INFO(MSG "Running: \'%s configure -protocol %s -traceclk %s" "%s%s" "%s%s" "%s%s" "%s%s\'",

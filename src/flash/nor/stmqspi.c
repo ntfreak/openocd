@@ -509,7 +509,7 @@ COMMAND_HANDLER(stmqspi_handle_mass_erase_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	stmqspi_info = bank->driver_priv;
@@ -638,7 +638,7 @@ COMMAND_HANDLER(stmqspi_handle_set)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	retval = CALL_COMMAND_HANDLER(flash_command_get_bank, index++, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	target = bank->target;
@@ -808,7 +808,7 @@ COMMAND_HANDLER(stmqspi_handle_cmd)
 	}
 
 	retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	target = bank->target;

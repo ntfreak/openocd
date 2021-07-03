@@ -70,7 +70,7 @@ static int arm_cti_mod_reg_bits(struct arm_cti *self, unsigned int reg, uint32_t
 
 	/* Read register */
 	int retval = mem_ap_read_atomic_u32(ap, self->spot.base + reg, &tmp);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* clear bitfield */
@@ -508,7 +508,7 @@ static int cti_create(struct jim_getopt_info *goi)
 		COMMAND_REGISTRATION_DONE
 	};
 	e = register_commands_with_data(cmd_ctx, NULL, cti_commands, cti);
-	if (ERROR_OK != e)
+	if (e != ERROR_OK)
 		return JIM_ERR;
 
 	list_add_tail(&cti->lh, &all_cti);

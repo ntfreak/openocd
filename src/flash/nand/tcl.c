@@ -83,7 +83,7 @@ COMMAND_HANDLER(handle_nand_info_command)
 
 	struct nand_device *p;
 	int retval = CALL_COMMAND_HANDLER(nand_command_get_device, 0, &p);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (!p->device) {
@@ -142,7 +142,7 @@ COMMAND_HANDLER(handle_nand_probe_command)
 
 	struct nand_device *p;
 	int retval = CALL_COMMAND_HANDLER(nand_command_get_device, 0, &p);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = nand_probe(p);
@@ -161,7 +161,7 @@ COMMAND_HANDLER(handle_nand_erase_command)
 
 	struct nand_device *p;
 	int retval = CALL_COMMAND_HANDLER(nand_command_get_device, 0, &p);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	unsigned long offset;
@@ -208,7 +208,7 @@ COMMAND_HANDLER(handle_nand_check_bad_blocks_command)
 
 	struct nand_device *p;
 	int retval = CALL_COMMAND_HANDLER(nand_command_get_device, 0, &p);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (CMD_ARGC == 3) {
@@ -246,7 +246,7 @@ COMMAND_HANDLER(handle_nand_write_command)
 	struct nand_fileio_state s;
 	int retval = CALL_COMMAND_HANDLER(nand_fileio_parse_args,
 			&s, &nand, FILEIO_READ, false, true);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	uint32_t total_bytes = s.size;
@@ -261,7 +261,7 @@ COMMAND_HANDLER(handle_nand_write_command)
 
 		retval = nand_write_page(nand, s.address / nand->page_size,
 				s.page, s.page_size, s.oob, s.oob_size);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			command_print(CMD, "failed writing file %s "
 				"to NAND flash %s at offset 0x%8.8" PRIx32,
 				CMD_ARGV[1], CMD_ARGV[0], s.address);
@@ -286,7 +286,7 @@ COMMAND_HANDLER(handle_nand_verify_command)
 	struct nand_fileio_state file;
 	int retval = CALL_COMMAND_HANDLER(nand_fileio_parse_args,
 			&file, &nand, FILEIO_READ, false, true);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	struct nand_fileio_state dev;
@@ -295,13 +295,13 @@ COMMAND_HANDLER(handle_nand_verify_command)
 	dev.size = file.size;
 	dev.oob_format = file.oob_format;
 	retval = nand_fileio_start(CMD, nand, NULL, FILEIO_NONE, &dev);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	while (file.size > 0) {
 		retval = nand_read_page(nand, dev.address / dev.page_size,
 				dev.page, dev.page_size, dev.oob, dev.oob_size);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			command_print(CMD, "reading NAND flash page failed");
 			nand_fileio_cleanup(&dev);
 			nand_fileio_cleanup(&file);
@@ -346,14 +346,14 @@ COMMAND_HANDLER(handle_nand_dump_command)
 	struct nand_fileio_state s;
 	int retval = CALL_COMMAND_HANDLER(nand_fileio_parse_args,
 			&s, &nand, FILEIO_WRITE, true, false);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	while (s.size > 0) {
 		size_t size_written;
 		retval = nand_read_page(nand, s.address / nand->page_size,
 				s.page, s.page_size, s.oob, s.oob_size);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			command_print(CMD, "reading NAND flash page failed");
 			nand_fileio_cleanup(&s);
 			return retval;
@@ -388,7 +388,7 @@ COMMAND_HANDLER(handle_nand_raw_access_command)
 
 	struct nand_device *p;
 	int retval = CALL_COMMAND_HANDLER(nand_command_get_device, 0, &p);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (!p->device) {
@@ -530,7 +530,7 @@ static COMMAND_HELPER(create_nand_device, const char *bank_name,
 	if (controller->commands) {
 		retval = register_commands(CMD_CTX, NULL,
 				controller->commands);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 	}
 	c = malloc(sizeof(struct nand_device));
@@ -552,7 +552,7 @@ static COMMAND_HELPER(create_nand_device, const char *bank_name,
 	c->next = NULL;
 
 	retval = CALL_COMMAND_HANDLER(controller->nand_device_command, c);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("'%s' driver rejected nand flash. Usage: %s",
 			controller->name,
 			controller->usage);

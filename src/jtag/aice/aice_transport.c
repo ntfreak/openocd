@@ -119,7 +119,7 @@ static int jim_aice_newtap_cmd(struct jim_getopt_info *goi)
 		switch (n->value) {
 			case NTAP_OPT_EXPECTED_ID:
 				e = jim_newtap_expected_id(n, goi, tap);
-				if (JIM_OK != e) {
+				if (e != JIM_OK) {
 					free(cp);
 					free(tap);
 					return e;

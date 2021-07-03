@@ -923,7 +923,7 @@ static int mips_mips64_read_memory(struct target *target, uint64_t address,
 	retval = mips64_pracc_read_mem(ejtag_info, address, size, count,
 				       (void *)t);
 
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("mips64_pracc_read_mem filed");
 		goto read_done;
 	}

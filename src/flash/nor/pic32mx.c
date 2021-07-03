@@ -848,7 +848,7 @@ COMMAND_HANDLER(pic32mx_handle_pgm_word_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 2, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (address < bank->base || address >= (bank->base + bank->size)) {
@@ -885,7 +885,7 @@ COMMAND_HANDLER(pic32mx_handle_unlock_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	target = bank->target;
