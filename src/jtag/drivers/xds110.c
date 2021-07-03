@@ -472,7 +472,7 @@ static bool usb_read(unsigned char *buffer, int size, int *bytes_read,
 {
 	int result;
 
-	if (NULL == xds110.dev || NULL == buffer || NULL == bytes_read)
+	if (!xds110.dev || !buffer || !bytes_read)
 		return false;
 
 	/* Force a non-zero timeout to prevent blocking */
@@ -491,7 +491,7 @@ static bool usb_write(unsigned char *buffer, int size, int *written)
 	int result = LIBUSB_SUCCESS;
 	int retries = 0;
 
-	if (NULL == xds110.dev || NULL == buffer)
+	if (!xds110.dev || !buffer)
 		return false;
 
 	result = libusb_bulk_transfer(xds110.dev, xds110.endpoint_out, buffer,
@@ -1037,7 +1037,7 @@ static bool ocd_dap_request(uint8_t *dap_requests, uint32_t request_size,
 
 	bool success;
 
-	if (NULL == dap_requests || NULL == dap_results)
+	if (!dap_requests || !dap_results)
 		return false;
 
 	xds110.write_payload[0] = OCD_DAP_REQUEST;
@@ -1062,7 +1062,7 @@ static bool ocd_scan_request(uint8_t *scan_requests, uint32_t request_size,
 
 	bool success;
 
-	if (NULL == scan_requests || NULL == scan_results)
+	if (!scan_requests || !scan_results)
 		return false;
 
 	xds110.write_payload[0] = OCD_SCAN_REQUEST;

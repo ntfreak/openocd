@@ -785,7 +785,7 @@ static int vsllink_check_usb_strings(
 	char desc_string[256];
 	int retval;
 
-	if (NULL != versaloon_interface.usb_setting.serialstring) {
+	if (versaloon_interface.usb_setting.serialstring) {
 		retval = libusb_get_string_descriptor_ascii(usb_device_handle,
 			usb_desc->iSerialNumber, (unsigned char *)desc_string,
 			sizeof(desc_string));

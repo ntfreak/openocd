@@ -67,7 +67,7 @@ void jtag_queue_command(struct jtag_command *cmd)
 
 	struct jtag_command **last_cmd = next_command_pointer;
 	assert(last_cmd);
-	assert(NULL == *last_cmd);
+	assert(!*last_cmd);
 	*last_cmd = cmd;
 
 	/* store location where the next command pointer will be stored */

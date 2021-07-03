@@ -262,7 +262,7 @@ static struct command_context *setup_command_handler(Jim_Interp *interp)
 		&arm_tpiu_swo_register_commands,
 		NULL
 	};
-	for (unsigned i = 0; NULL != command_registrants[i]; i++) {
+	for (unsigned i = 0; command_registrants[i]; i++) {
 		int retval = (*command_registrants[i])(cmd_ctx);
 		if (retval != ERROR_OK) {
 			command_done(cmd_ctx);

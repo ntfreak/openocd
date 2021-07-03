@@ -180,7 +180,7 @@ static struct nand_device *get_nand_device_by_name(const char *name)
 	unsigned found = 0;
 
 	struct nand_device *nand;
-	for (nand = nand_devices; NULL != nand; nand = nand->next) {
+	for (nand = nand_devices; nand; nand = nand->next) {
 		if (strcmp(nand->name, name) == 0)
 			return nand;
 		if (!flash_driver_name_matches(nand->controller->name, name))

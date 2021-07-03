@@ -761,10 +761,10 @@ static int svf_adjust_array_length(uint8_t **arr, int orig_bit_len, int new_bit_
 {
 	int new_byte_len = (new_bit_len + 7) >> 3;
 
-	if ((NULL == *arr) || (((orig_bit_len + 7) >> 3) < ((new_bit_len + 7) >> 3))) {
+	if ((!*arr) || (((orig_bit_len + 7) >> 3) < ((new_bit_len + 7) >> 3))) {
 		free(*arr);
 		*arr = calloc(1, new_byte_len);
-		if (NULL == *arr) {
+		if (!*arr) {
 			LOG_ERROR("not enough memory");
 			return ERROR_FAIL;
 		}

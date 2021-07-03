@@ -53,7 +53,7 @@ static const char hex_digits[] = {
 
 void *buf_cpy(const void *from, void *_to, unsigned size)
 {
-	if (NULL == from || NULL == _to)
+	if (!from || !_to)
 		return NULL;
 
 	/* copy entire buffer */
