@@ -55,7 +55,7 @@ static int arm_code_to_working_area(struct target *target,
 	 */
 
 	/* make sure we have a working area */
-	if (NULL == *area) {
+	if (!*area) {
 		retval = target_alloc_working_area(target, size, area);
 		if (retval != ERROR_OK) {
 			LOG_DEBUG("%s: no %d byte buffer", __func__, (int) size);

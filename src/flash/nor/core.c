@@ -257,7 +257,7 @@ struct flash_bank *get_flash_bank_by_name_noprobe(const char *name)
 	unsigned found = 0;
 
 	struct flash_bank *bank;
-	for (bank = flash_banks; NULL != bank; bank = bank->next) {
+	for (bank = flash_banks; bank; bank = bank->next) {
 		if (strcmp(bank->name, name) == 0)
 			return bank;
 		if (!flash_driver_name_matches(bank->driver->name, name))

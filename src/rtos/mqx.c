@@ -423,7 +423,7 @@ static int mqx_update_threads(
 		rtos->thread_details[i].exists = true;
 		/* set thread name */
 		rtos->thread_details[i].thread_name_str = malloc(strlen((void *)task_name) + 1);
-		if (NULL == rtos->thread_details[i].thread_name_str)
+		if (!rtos->thread_details[i].thread_name_str)
 			return ERROR_FAIL;
 		strcpy(rtos->thread_details[i].thread_name_str, (void *)task_name);
 		/* set thread extra info
@@ -435,7 +435,7 @@ static int mqx_update_threads(
 		 */
 		extra_info_length += strlen((void *)state_name) + 7 + 13 + 8 + 15 + 8;
 		rtos->thread_details[i].extra_info_str = malloc(extra_info_length + 1);
-		if (NULL == rtos->thread_details[i].extra_info_str)
+		if (!rtos->thread_details[i].extra_info_str)
 			return ERROR_FAIL;
 		snprintf(rtos->thread_details[i].extra_info_str, extra_info_length,
 			 "State: %s, Address: 0x%" PRIx32 ",  Error Code: %" PRIu32,
@@ -541,7 +541,7 @@ static int mqx_get_thread_reg_list(
 static int mqx_get_symbol_list_to_lookup(struct symbol_table_elem *symbol_list[])
 {
 	*symbol_list = calloc(ARRAY_SIZE(mqx_symbol_list), sizeof(struct symbol_table_elem));
-	if (NULL == *symbol_list)
+	if (!*symbol_list)
 		return ERROR_FAIL;
 	/* export required symbols */
 	for (int i = 0; i < (int)(ARRAY_SIZE(mqx_symbol_list)); i++)

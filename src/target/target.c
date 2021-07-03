@@ -5931,7 +5931,7 @@ static int jim_target_types(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 		return JIM_ERR;
 	}
 	Jim_SetResult(interp, Jim_NewListObj(interp, NULL, 0));
-	for (unsigned x = 0; NULL != target_types[x]; x++) {
+	for (unsigned x = 0; target_types[x]; x++) {
 		Jim_ListAppendElement(interp, Jim_GetResult(interp),
 			Jim_NewStringObj(interp, target_types[x]->name, -1));
 	}
