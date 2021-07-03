@@ -294,7 +294,7 @@ static int jlink_execute_queue(void)
 	int ret;
 	struct jtag_command *cmd = jtag_command_queue;
 
-	while (cmd != NULL) {
+	while (cmd) {
 		ret = jlink_execute_command(cmd);
 
 		if (ret != ERROR_OK)

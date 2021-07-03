@@ -94,7 +94,7 @@ int hl_layout_init(struct hl_interface_s *adapter)
 {
 	LOG_DEBUG("hl_layout_init");
 
-	if (adapter->layout == NULL) {
+	if (!adapter->layout) {
 		LOG_ERROR("no layout specified");
 		return ERROR_FAIL;
 	}

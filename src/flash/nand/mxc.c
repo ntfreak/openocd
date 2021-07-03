@@ -89,7 +89,7 @@ NAND_DEVICE_COMMAND_HANDLER(mxc_nand_device_command)
 	int hwecc_needed;
 
 	mxc_nf_info = malloc(sizeof(struct mxc_nf_controller));
-	if (mxc_nf_info == NULL) {
+	if (!mxc_nf_info) {
 		LOG_ERROR("no memory for nand controller");
 		return ERROR_FAIL;
 	}

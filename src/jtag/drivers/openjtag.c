@@ -397,7 +397,7 @@ static int openjtag_init_standard(void)
 	uint8_t latency_timer;
 
 	/* Open by device description */
-	if (openjtag_device_desc == NULL) {
+	if (!openjtag_device_desc) {
 		LOG_WARNING("no openjtag device description specified, "
 				"using default 'Open JTAG Project'");
 		openjtag_device_desc = "Open JTAG Project";
@@ -475,7 +475,7 @@ static int openjtag_init_cy7c65215(void)
 	return ERROR_OK;
 
 err:
-	if (usbh != NULL)
+	if (usbh)
 		jtag_libusb_close(usbh);
 	return ERROR_JTAG_INIT_FAILED;
 }
@@ -803,7 +803,7 @@ static int openjtag_execute_queue(void)
 {
 	struct jtag_command *cmd = jtag_command_queue;
 
-	while (cmd != NULL) {
+	while (cmd) {
 		openjtag_execute_command(cmd);
 		cmd = cmd->next;
 	}

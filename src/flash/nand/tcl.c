@@ -86,7 +86,7 @@ COMMAND_HANDLER(handle_nand_info_command)
 	if (ERROR_OK != retval)
 		return retval;
 
-	if (NULL == p->device) {
+	if (!p->device) {
 		command_print(CMD, "#%s: not probed", CMD_ARGV[0]);
 		return ERROR_OK;
 	}
@@ -359,10 +359,10 @@ COMMAND_HANDLER(handle_nand_dump_command)
 			return retval;
 		}
 
-		if (NULL != s.page)
+		if (s.page)
 			fileio_write(s.fileio, s.page_size, s.page, &size_written);
 
-		if (NULL != s.oob)
+		if (s.oob)
 			fileio_write(s.fileio, s.oob_size, s.oob, &size_written);
 
 		s.size -= nand->page_size;
@@ -391,7 +391,7 @@ COMMAND_HANDLER(handle_nand_raw_access_command)
 	if (ERROR_OK != retval)
 		return retval;
 
-	if (NULL == p->device) {
+	if (!p->device) {
 		command_print(CMD, "#%s: not probed", CMD_ARGV[0]);
 		return ERROR_OK;
 	}
@@ -527,14 +527,14 @@ static COMMAND_HELPER(create_nand_device, const char *bank_name,
 		return ERROR_COMMAND_ARGUMENT_INVALID;
 	}
 
-	if (NULL != controller->commands) {
+	if (controller->commands) {
 		retval = register_commands(CMD_CTX, NULL,
 				controller->commands);
 		if (ERROR_OK != retval)
 			return retval;
 	}
 	c = malloc(sizeof(struct nand_device));
-	if (c == NULL) {
+	if (!c) {
 		LOG_ERROR("End of memory");
 		return ERROR_FAIL;
 	}
@@ -560,7 +560,7 @@ static COMMAND_HELPER(create_nand_device, const char *bank_name,
 		return retval;
 	}
 
-	if (controller->usage == NULL)
+	if (!controller->usage)
 		LOG_DEBUG("'%s' driver usage field missing", controller->name);
 
 	nand_device_add(c);
@@ -580,7 +580,7 @@ COMMAND_HANDLER(handle_nand_device_command)
 	const char *driver_name = CMD_ARGV[0];
 	struct nand_flash_controller *controller;
 	controller = nand_driver_find_by_name(CMD_ARGV[0]);
-	if (NULL == controller) {
+	if (!controller) {
 		LOG_ERROR("No valid NAND flash driver found (%s)", driver_name);
 		return CALL_COMMAND_HANDLER(handle_nand_list_drivers);
 	}

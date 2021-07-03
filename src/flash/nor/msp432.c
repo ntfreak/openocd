@@ -335,7 +335,7 @@ static int msp432_init(struct flash_bank *bank)
 	}
 
 	/* Check for working area to use for flash helper algorithm */
-	if (NULL != msp432_bank->working_area)
+	if (msp432_bank->working_area)
 		target_free_working_area(target, msp432_bank->working_area);
 	retval = target_alloc_working_area(target, ALGO_WORKING_SIZE,
 				&msp432_bank->working_area);
@@ -569,7 +569,7 @@ FLASH_BANK_COMMAND_HANDLER(msp432_flash_bank_command)
 
 	/* Create shared private struct for flash banks */
 	msp432_bank = malloc(sizeof(struct msp432_bank));
-	if (NULL == msp432_bank)
+	if (!msp432_bank)
 		return ERROR_FAIL;
 
 	/* Initialize private flash information */
@@ -907,7 +907,7 @@ static int msp432_probe(struct flash_bank *bank)
 
 	if (num_sectors > 0) {
 		bank->sectors = malloc(sizeof(struct flash_sector) * num_sectors);
-		if (NULL == bank->sectors)
+		if (!bank->sectors)
 			return ERROR_FAIL;
 	}
 
@@ -933,7 +933,7 @@ static int msp432_probe(struct flash_bank *bank)
 	if (is_main && MSP432P4 == msp432_bank->family_type) {
 		/* Create the info flash bank needed by MSP432P4 variants */
 		struct flash_bank *info = calloc(sizeof(struct flash_bank), 1);
-		if (NULL == info)
+		if (!info)
 			return ERROR_FAIL;
 
 		/* Create a name for the info bank, append "_1" to main name */

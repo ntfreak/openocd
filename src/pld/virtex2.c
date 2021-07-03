@@ -26,7 +26,7 @@
 
 static int virtex2_set_instr(struct jtag_tap *tap, uint32_t new_instr)
 {
-	if (tap == NULL)
+	if (!tap)
 		return ERROR_FAIL;
 
 	if (buf_get_u32(tap->cur_instr, 0, tap->ir_length) != new_instr) {
@@ -204,7 +204,7 @@ PLD_DEVICE_COMMAND_HANDLER(virtex2_pld_device_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	tap = jtag_tap_by_string(CMD_ARGV[1]);
-	if (tap == NULL) {
+	if (!tap) {
 		command_print(CMD, "Tap: %s does not exist", CMD_ARGV[1]);
 		return ERROR_OK;
 	}

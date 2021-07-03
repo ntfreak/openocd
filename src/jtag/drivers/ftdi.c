@@ -935,7 +935,7 @@ COMMAND_HANDLER(ftdi_handle_tdo_sample_edge_command)
 
 	if (CMD_ARGC > 0) {
 		n = jim_nvp_name2value_simple(nvp_ftdi_jtag_modes, CMD_ARGV[0]);
-		if (n->name == NULL)
+		if (!n->name)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		ftdi_jtag_mode = n->value;
 
@@ -1157,7 +1157,7 @@ static void ftdi_swd_queue_cmd(uint8_t cmd, uint32_t *dst, uint32_t data, uint32
 		 * pointers into the queue which may be invalid after the realloc. */
 		queued_retval = ftdi_swd_run_queue();
 		struct swd_cmd_queue_entry *q = realloc(swd_cmd_queue, swd_cmd_queue_alloced * 2 * sizeof(*swd_cmd_queue));
-		if (q != NULL) {
+		if (q) {
 			swd_cmd_queue = q;
 			swd_cmd_queue_alloced *= 2;
 			LOG_DEBUG("Increased SWD command queue to %zu elements", swd_cmd_queue_alloced);

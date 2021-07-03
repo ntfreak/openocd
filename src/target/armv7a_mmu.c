@@ -245,7 +245,7 @@ COMMAND_HANDLER(armv7a_mmu_dump_table)
 	LOG_USER("Page Directory at (phys): %8.8" TARGET_PRIxADDR, ttb);
 
 	first_lvl_ptbl = malloc(sizeof(uint32_t)*(max_pt_idx+1));
-	if (first_lvl_ptbl == NULL)
+	if (!first_lvl_ptbl)
 		return ERROR_FAIL;
 
 	/*

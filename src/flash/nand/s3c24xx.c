@@ -34,7 +34,7 @@ S3C24XX_DEVICE_COMMAND()
 
 	struct s3c24xx_nand_controller *s3c24xx_info;
 	s3c24xx_info = malloc(sizeof(struct s3c24xx_nand_controller));
-	if (s3c24xx_info == NULL) {
+	if (!s3c24xx_info) {
 		LOG_ERROR("no memory for nand controller");
 		return -ENOMEM;
 	}

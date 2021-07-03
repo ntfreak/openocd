@@ -183,7 +183,7 @@ void dump_field(int idle, const struct scan_field *field)
 	if (debug_level < LOG_LVL_DEBUG)
 		return;
 
-	assert(field->out_value != NULL);
+	assert(field->out_value);
 	uint64_t out = buf_get_u64(field->out_value, 0, field->num_bits);
 	unsigned int out_op = get_field(out, DTM_DMI_OP);
 	unsigned int out_data = get_field(out, DTM_DMI_DATA);

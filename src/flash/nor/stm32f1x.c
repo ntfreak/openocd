@@ -561,7 +561,7 @@ static int stm32x_write(struct flash_bank *bank, const uint8_t *buffer,
 	 * discrete accesses. */
 	if (count & 1) {
 		new_buffer = malloc(count + 1);
-		if (new_buffer == NULL) {
+		if (!new_buffer) {
 			LOG_ERROR("odd number of bytes to write and no memory for padding buffer");
 			return ERROR_FAIL;
 		}
@@ -1179,7 +1179,7 @@ static int get_stm32x_info(struct flash_bank *bank, struct command_invocation *c
 		return ERROR_FAIL;
 	}
 
-	if (rev_str != NULL)
+	if (rev_str)
 		command_print_sameline(cmd, "%s - Rev: %s", device_str, rev_str);
 	else
 		command_print_sameline(cmd, "%s - Rev: unknown (0x%04x)", device_str, rev_id);

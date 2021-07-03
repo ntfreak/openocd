@@ -172,7 +172,7 @@ void rtos_destroy(struct target *target)
 int gdb_thread_packet(struct connection *connection, char const *packet, int packet_size)
 {
 	struct target *target = get_target_from_connection(connection);
-	if (target->rtos == NULL)
+	if (!target->rtos)
 		return rtos_thread_packet(connection, packet, packet_size);	/* thread not
 										 *found*/
 	return target->rtos->gdb_thread_packet(connection, packet, packet_size);
@@ -306,13 +306,13 @@ int rtos_thread_packet(struct connection *connection, char const *packet, int pa
 	struct target *target = get_target_from_connection(connection);
 
 	if (strncmp(packet, "qThreadExtraInfo,", 17) == 0) {
-		if ((target->rtos != NULL) && (target->rtos->thread_details != NULL) &&
+		if ((target->rtos) && (target->rtos->thread_details != NULL) &&
 				(target->rtos->thread_count != 0)) {
 			threadid_t threadid = 0;
 			int found = -1;
 			sscanf(packet, "qThreadExtraInfo,%" SCNx64, &threadid);
 
-			if ((target->rtos != NULL) && (target->rtos->thread_details != NULL)) {
+			if ((target->rtos) && (target->rtos->thread_details != NULL)) {
 				int thread_num;
 				for (thread_num = 0; thread_num < target->rtos->thread_count; thread_num++) {
 					if (target->rtos->thread_details[thread_num].threadid == threadid) {
@@ -329,17 +329,17 @@ int rtos_thread_packet(struct connection *connection, char const *packet, int pa
 			struct thread_detail *detail = &target->rtos->thread_details[found];
 
 			int str_size = 0;
-			if (detail->thread_name_str != NULL)
+			if (detail->thread_name_str)
 				str_size += strlen(detail->thread_name_str);
-			if (detail->extra_info_str != NULL)
+			if (detail->extra_info_str)
 				str_size += strlen(detail->extra_info_str);
 
 			char *tmp_str = calloc(str_size + 9, sizeof(char));
 			char *tmp_str_ptr = tmp_str;
 
-			if (detail->thread_name_str != NULL)
+			if (detail->thread_name_str)
 				tmp_str_ptr += sprintf(tmp_str_ptr, "Name: %s", detail->thread_name_str);
-			if (detail->extra_info_str != NULL) {
+			if (detail->extra_info_str) {
 				if (tmp_str_ptr != tmp_str)
 					tmp_str_ptr += sprintf(tmp_str_ptr, ", ");
 				tmp_str_ptr += sprintf(tmp_str_ptr, "%s", detail->extra_info_str);
@@ -371,7 +371,7 @@ int rtos_thread_packet(struct connection *connection, char const *packet, int pa
 		return ERROR_OK;
 	} else if (strncmp(packet, "qfThreadInfo", 12) == 0) {
 		int i;
-		if (target->rtos != NULL) {
+		if (target->rtos) {
 			if (target->rtos->thread_count == 0) {
 				gdb_put_packet(connection, "l", 1);
 			} else {
@@ -404,7 +404,7 @@ int rtos_thread_packet(struct connection *connection, char const *packet, int pa
 		 * otherwise it gets incorrectly handled */
 		return GDB_THREAD_PACKET_NOT_CONSUMED;
 	} else if (strncmp(packet, "qC", 2) == 0) {
-		if (target->rtos != NULL) {
+		if (target->rtos) {
 			char buffer[19];
 			int size;
 			size = snprintf(buffer, 19, "QC%016" PRIx64, target->rtos->current_thread);
@@ -416,7 +416,7 @@ int rtos_thread_packet(struct connection *connection, char const *packet, int pa
 		threadid_t threadid;
 		int found = -1;
 		sscanf(packet, "T%" SCNx64, &threadid);
-		if ((target->rtos != NULL) && (target->rtos->thread_details != NULL)) {
+		if ((target->rtos) && (target->rtos->thread_details != NULL)) {
 			int thread_num;
 			for (thread_num = 0; thread_num < target->rtos->thread_count; thread_num++) {
 				if (target->rtos->thread_details[thread_num].threadid == threadid) {
@@ -432,7 +432,7 @@ int rtos_thread_packet(struct connection *connection, char const *packet, int pa
 		return ERROR_OK;
 	} else if (packet[0] == 'H') {	/* Set current thread ( 'c' for step and continue, 'g' for
 					 * all other operations ) */
-		if ((packet[1] == 'g') && (target->rtos != NULL)) {
+		if ((packet[1] == 'g') && (target->rtos)) {
 			threadid_t threadid;
 			sscanf(packet, "Hg%16" SCNx64, &threadid);
 			LOG_DEBUG("RTOS: GDB requested to set current thread to 0x%" PRIx64, threadid);
@@ -477,7 +477,7 @@ int rtos_get_gdb_reg(struct connection *connection, int reg_num)
 {
 	struct target *target = get_target_from_connection(connection);
 	int64_t current_threadid = target->rtos->current_threadid;
-	if ((target->rtos != NULL) && (current_threadid != -1) &&
+	if ((target->rtos) && (current_threadid != -1) &&
 			(current_threadid != 0) &&
 			((current_threadid != target->rtos->current_thread) ||
 			(target->smp))) {	/* in smp several current thread are possible */
@@ -529,7 +529,7 @@ int rtos_get_gdb_reg_list(struct connection *connection)
 {
 	struct target *target = get_target_from_connection(connection);
 	int64_t current_threadid = target->rtos->current_threadid;
-	if ((target->rtos != NULL) && (current_threadid != -1) &&
+	if ((target->rtos) && (current_threadid != -1) &&
 			(current_threadid != 0) &&
 			((current_threadid != target->rtos->current_thread) ||
 			(target->smp))) {	/* in smp several current thread are possible */
@@ -563,7 +563,7 @@ int rtos_set_reg(struct connection *connection, int reg_num,
 {
 	struct target *target = get_target_from_connection(connection);
 	int64_t current_threadid = target->rtos->current_threadid;
-	if ((target->rtos != NULL) &&
+	if ((target->rtos) &&
 			(target->rtos->type->set_reg != NULL) &&
 			(current_threadid != -1) &&
 			(current_threadid != 0)) {
@@ -606,7 +606,7 @@ int rtos_generic_stack_read(struct target *target,
 #endif
 
 	int64_t new_stack_ptr;
-	if (stacking->calculate_process_stack != NULL) {
+	if (stacking->calculate_process_stack) {
 		new_stack_ptr = stacking->calculate_process_stack(target,
 				stack_data, stacking, stack_ptr);
 	} else {
@@ -657,7 +657,7 @@ static int rtos_try_next(struct target *target)
 
 int rtos_update_threads(struct target *target)
 {
-	if ((target->rtos != NULL) && (target->rtos->type != NULL))
+	if ((target->rtos) && (target->rtos->type != NULL))
 		target->rtos->type->update_threads(target->rtos);
 	return ERROR_OK;
 }

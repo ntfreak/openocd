@@ -278,7 +278,7 @@ static int ucos_iii_create(struct target *target)
 	for (size_t i = 0; i < ARRAY_SIZE(ucos_iii_params_list); i++)
 		if (strcmp(ucos_iii_params_list[i].target_name, target->type->name) == 0) {
 			params = malloc(sizeof(*params) + (UCOS_III_MAX_THREADS * sizeof(*params->threads)));
-			if (params == NULL) {
+			if (!params) {
 				LOG_ERROR("uCOS-III: out of memory");
 				return ERROR_FAIL;
 			}
@@ -300,7 +300,7 @@ static int ucos_iii_update_threads(struct rtos *rtos)
 	struct ucos_iii_params *params = rtos->rtos_specific_params;
 	int retval;
 
-	if (rtos->symbols == NULL) {
+	if (!rtos->symbols) {
 		LOG_ERROR("uCOS-III: symbol list not loaded");
 		return ERROR_FAIL;
 	}
@@ -326,7 +326,7 @@ static int ucos_iii_update_threads(struct rtos *rtos)
 
 	if (!rtos_running) {
 		rtos->thread_details = calloc(1, sizeof(struct thread_detail));
-		if (rtos->thread_details == NULL) {
+		if (!rtos->thread_details) {
 			LOG_ERROR("uCOS-III: out of memory");
 			return ERROR_FAIL;
 		}
@@ -369,7 +369,7 @@ static int ucos_iii_update_threads(struct rtos *rtos)
 	}
 
 	rtos->thread_details = calloc(rtos->thread_count, sizeof(struct thread_detail));
-	if (rtos->thread_details == NULL) {
+	if (!rtos->thread_details) {
 		LOG_ERROR("uCOS-III: out of memory");
 		return ERROR_FAIL;
 	}

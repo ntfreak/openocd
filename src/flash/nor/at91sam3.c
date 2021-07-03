@@ -2810,7 +2810,7 @@ static struct sam3_chip *target2sam3(struct target *target)
 {
 	struct sam3_chip *chip;
 
-	if (target == NULL)
+	if (!target)
 		return NULL;
 
 	chip = all_sam3_chips;
@@ -3126,7 +3126,7 @@ static int sam3_get_details(struct sam3_bank_private *private)
 		else
 			details++;
 	}
-	if (details->name == NULL) {
+	if (!details->name) {
 		LOG_ERROR("SAM3 ChipID 0x%08x not found in table (perhaps you can ID this chip?)",
 			(unsigned int)(private->chip->cfg.CHIPID_CIDR));
 		/* Help the victim, print details about the chip */
@@ -3207,9 +3207,9 @@ static int _sam3_probe(struct flash_bank *bank, int noise)
 		}
 	}
 
-	if (bank->sectors == NULL) {
+	if (!bank->sectors) {
 		bank->sectors = calloc(private->nsectors, (sizeof((bank->sectors)[0])));
-		if (bank->sectors == NULL) {
+		if (!bank->sectors) {
 			LOG_ERROR("No memory!");
 			return ERROR_FAIL;
 		}

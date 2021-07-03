@@ -259,7 +259,7 @@ static int nuttx_update_threads(struct rtos *rtos)
 	uint32_t i;
 	uint8_t state;
 
-	if (rtos->symbols == NULL) {
+	if (!rtos->symbols) {
 		LOG_ERROR("No symbols for NuttX");
 		return -3;
 	}

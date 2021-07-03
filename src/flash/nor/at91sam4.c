@@ -2318,7 +2318,7 @@ static struct sam4_chip *target2sam4(struct target *target)
 {
 	struct sam4_chip *chip;
 
-	if (target == NULL)
+	if (!target)
 		return NULL;
 
 	chip = all_sam4_chips;
@@ -2611,7 +2611,7 @@ static int sam4_get_details(struct sam4_bank_private *private)
 		else
 			details++;
 	}
-	if (details->name == NULL) {
+	if (!details->name) {
 		LOG_ERROR("SAM4 ChipID 0x%08x not found in table (perhaps you can ID this chip?)",
 			(unsigned int)(private->chip->cfg.CHIPID_CIDR));
 		/* Help the victim, print details about the chip */
@@ -2662,7 +2662,7 @@ static int sam4_info(struct flash_bank *bank, struct command_invocation *cmd)
 	int k = bank->size / 1024;
 
 	private = get_sam4_bank_private(bank);
-	if (private == NULL)
+	if (!private)
 		return ERROR_FAIL;
 
 	command_print_sameline(cmd, "%s bank %d: %d kB at " TARGET_ADDR_FMT,
@@ -2715,9 +2715,9 @@ static int sam4_probe(struct flash_bank *bank)
 		}
 	}
 
-	if (bank->sectors == NULL) {
+	if (!bank->sectors) {
 		bank->sectors = calloc(private->nsectors, (sizeof((bank->sectors)[0])));
-		if (bank->sectors == NULL) {
+		if (!bank->sectors) {
 			LOG_ERROR("No memory!");
 			return ERROR_FAIL;
 		}

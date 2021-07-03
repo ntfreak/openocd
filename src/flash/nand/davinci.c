@@ -731,7 +731,7 @@ NAND_DEVICE_COMMAND_HANDLER(davinci_nand_device_command)
 	}
 
 	info = calloc(1, sizeof(*info));
-	if (info == NULL)
+	if (!info)
 		goto fail;
 
 	info->eccmode = eccmode;

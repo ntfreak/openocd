@@ -32,7 +32,7 @@ static RESULT usbtoswd_read_callback(void *p, uint8_t *src, uint8_t *processed)
 {
 	struct versaloon_pending_t *pending = (struct versaloon_pending_t *)p;
 
-	if (pending->extra_data != NULL)
+	if (pending->extra_data)
 		*((uint8_t *)pending->extra_data) = src[0];
 
 	return ERROR_OK;
@@ -42,7 +42,7 @@ static RESULT usbtoswd_write_callback(void *p, uint8_t *src, uint8_t *processed)
 {
 	struct versaloon_pending_t *pending = (struct versaloon_pending_t *)p;
 
-	if (pending->extra_data != NULL)
+	if (pending->extra_data)
 		*((uint8_t *)pending->extra_data) = src[0];
 
 	/* mark it processed to ignore other input data */
@@ -135,7 +135,7 @@ RESULT usbtoswd_transact(uint8_t interface_index, uint8_t request,
 	parity += (request >> 4) & 1;
 	parity &= 1;
 	buff[0] = (request | 0x81 | (parity << 5)) & ~0x40;
-	if (data != NULL)
+	if (data)
 		SET_LE_U32(&buff[1], *data);
 	else
 		memset(buff + 1, 0, 4);

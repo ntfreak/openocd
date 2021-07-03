@@ -967,7 +967,7 @@ int armv7m_blank_check_memory(struct target *target,
 		blocks_to_check = num_blocks;
 
 	struct algo_block *params = malloc((blocks_to_check+1)*sizeof(struct algo_block));
-	if (params == NULL) {
+	if (!params) {
 		retval = ERROR_FAIL;
 		goto cleanup1;
 	}

@@ -278,7 +278,7 @@ struct jtag_tap *jtag_tap_next_enabled(struct jtag_tap *p)
 
 const char *jtag_tap_name(const struct jtag_tap *tap)
 {
-	return (tap == NULL) ? "(unknown)" : tap->dotted_name;
+	return (!tap) ? "(unknown)" : tap->dotted_name;
 }
 
 
@@ -286,7 +286,7 @@ int jtag_register_event_callback(jtag_event_handler_t callback, void *priv)
 {
 	struct jtag_event_callback **callbacks_p = &jtag_event_callbacks;
 
-	if (callback == NULL)
+	if (!callback)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	if (*callbacks_p) {
@@ -307,7 +307,7 @@ int jtag_unregister_event_callback(jtag_event_handler_t callback, void *priv)
 {
 	struct jtag_event_callback **p = &jtag_event_callbacks, *temp;
 
-	if (callback == NULL)
+	if (!callback)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	while (*p) {
@@ -395,7 +395,7 @@ void jtag_add_ir_scan(struct jtag_tap *active, struct scan_field *in_fields, tap
 void jtag_add_plain_ir_scan(int num_bits, const uint8_t *out_bits, uint8_t *in_bits,
 	tap_state_t state)
 {
-	assert(out_bits != NULL);
+	assert(out_bits);
 	assert(state != TAP_RESET);
 
 	jtag_prelude(state);
@@ -468,7 +468,7 @@ void jtag_add_dr_scan(struct jtag_tap *active,
 void jtag_add_plain_dr_scan(int num_bits, const uint8_t *out_bits, uint8_t *in_bits,
 	tap_state_t state)
 {
-	assert(out_bits != NULL);
+	assert(out_bits);
 	assert(state != TAP_RESET);
 
 	jtag_prelude(state);
@@ -919,9 +919,9 @@ static int jtag_check_value_inner(uint8_t *captured, uint8_t *in_check_value,
 
 void jtag_check_value_mask(struct scan_field *field, uint8_t *value, uint8_t *mask)
 {
-	assert(field->in_value != NULL);
+	assert(field->in_value);
 
-	if (value == NULL) {
+	if (!value) {
 		/* no checking to do */
 		return;
 	}
@@ -934,7 +934,7 @@ void jtag_check_value_mask(struct scan_field *field, uint8_t *value, uint8_t *ma
 
 int default_interface_jtag_execute_queue(void)
 {
-	if (NULL == jtag) {
+	if (!jtag) {
 		LOG_ERROR("No JTAG interface configured yet.  "
 			"Issue 'init' command in startup scripts "
 			"before communicating with targets.");
@@ -1230,7 +1230,7 @@ static int jtag_examine_chain(void)
 	max_taps++;
 
 	uint8_t *idcode_buffer = calloc(4, max_taps);
-	if (idcode_buffer == NULL)
+	if (!idcode_buffer)
 		return ERROR_JTAG_INIT_FAILED;
 
 	/* DR scan to collect BYPASS or IDCODE register contents.
@@ -1255,7 +1255,7 @@ static int jtag_examine_chain(void)
 		uint32_t idcode = buf_get_u32(idcode_buffer, bit_count, 32);
 
 		/* No predefined TAP? Auto-probe. */
-		if (tap == NULL) {
+		if (!tap) {
 			/* Is there another TAP? */
 			if (jtag_idcode_is_final(idcode))
 				break;
@@ -1355,7 +1355,7 @@ static int jtag_validate_ircapture(void)
 	total_ir_length += 2;
 
 	ir_test = malloc(DIV_ROUND_UP(total_ir_length, 8));
-	if (ir_test == NULL)
+	if (!ir_test)
 		return ERROR_FAIL;
 
 	/* after this scan, all TAPs will capture BYPASS instructions */
@@ -1377,7 +1377,7 @@ static int jtag_validate_ircapture(void)
 
 	for (;; ) {
 		tap = jtag_tap_next_enabled(tap);
-		if (tap == NULL)
+		if (!tap)
 			break;
 
 		/* If we're autoprobing, guess IR lengths.  They must be at
@@ -1528,7 +1528,7 @@ int adapter_init(struct command_context *cmd_ctx)
 		return retval;
 	jtag = adapter_driver;
 
-	if (jtag->speed == NULL) {
+	if (!jtag->speed) {
 		LOG_INFO("This adapter doesn't support configurable speed");
 		return ERROR_OK;
 	}
@@ -1574,7 +1574,7 @@ int jtag_init_inner(struct command_context *cmd_ctx)
 	LOG_DEBUG("Init JTAG chain");
 
 	tap = jtag_tap_next_enabled(NULL);
-	if (tap == NULL) {
+	if (!tap) {
 		/* Once JTAG itself is properly set up, and the scan chain
 		 * isn't absurdly large, IDCODE autoprobe should work fine.
 		 *
@@ -1885,7 +1885,7 @@ bool jtag_will_verify_capture_ir(void)
 
 int jtag_power_dropout(int *dropout)
 {
-	if (jtag == NULL) {
+	if (!jtag) {
 		/* TODO: as the jtag interface is not valid all
 		 * we can do at the moment is exit OpenOCD */
 		LOG_ERROR("No Valid JTAG Interface Configured.");

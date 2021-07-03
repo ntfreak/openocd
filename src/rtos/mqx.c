@@ -334,7 +334,7 @@ static int mqx_update_threads(
 	rtos->thread_count = task_queue_size;
 	rtos->current_thread = 0;
 	rtos->thread_details = calloc(rtos->thread_count, sizeof(struct thread_detail));
-	if (NULL == rtos->thread_details)
+	if (!rtos->thread_details)
 		return ERROR_FAIL;
 
 	/*	loop over each task and setup thread details,

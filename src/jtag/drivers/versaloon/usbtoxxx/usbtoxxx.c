@@ -90,7 +90,7 @@ static RESULT usbtoxxx_validate_current_command_type(void)
 {
 	if (type_pre > 0) {
 		/* not the first command */
-		if (NULL == usbtoxxx_buffer) {
+		if (!usbtoxxx_buffer) {
 			LOG_BUG(ERRMSG_INVALID_BUFFER, TO_STR(usbtoxxx_buffer));
 			return ERRCODE_INVALID_BUFFER;
 		}
@@ -182,8 +182,8 @@ RESULT usbtoxxx_execute_command(void)
 				struct versaloon_want_pos_t *tmp;
 
 				tmp = versaloon_pending[i].pos;
-				while (tmp != NULL) {
-					if ((tmp->buff != NULL) && (tmp->size > 0)) {
+				while (tmp) {
+					if ((tmp->buff) && (tmp->size > 0)) {
 						memcpy(tmp->buff,
 							versaloon_buf + usbtoxxx_buffer_index
 							+ tmp->offset,
@@ -332,7 +332,7 @@ RESULT usbtoxxx_add_command(uint8_t type, uint8_t cmd, uint8_t *cmdbuf,
 	if (ERROR_OK != usbtoxxx_ensure_buffer_size(cmdlen + 6))
 		return ERROR_FAIL;
 
-	if ((type_pre != type) || (NULL == usbtoxxx_buffer)) {
+	if ((type_pre != type) || (!usbtoxxx_buffer)) {
 		if (ERROR_OK != usbtoxxx_validate_current_command_type()) {
 			LOG_BUG(ERRMSG_FAILURE_OPERATION, "validate previous commands");
 			return ERRCODE_FAILURE_OPERATION;
@@ -357,7 +357,7 @@ RESULT usbtoxxx_add_command(uint8_t type, uint8_t cmd, uint8_t *cmdbuf,
 		SET_LE_U16(&usbtoxxx_buffer[collect_index], len_tmp);
 	}
 
-	if (cmdbuf != NULL) {
+	if (cmdbuf) {
 		memcpy(usbtoxxx_buffer + usbtoxxx_current_cmd_index, cmdbuf, cmdlen);
 		usbtoxxx_current_cmd_index += cmdlen;
 	}

@@ -2215,24 +2215,24 @@ static int aice_execute_custom_script(const char *script)
 	bool set_op;
 
 	script_fd = fopen(script, "r");
-	if (script_fd == NULL) {
+	if (!script_fd) {
 		return ERROR_FAIL;
 	} else {
 		while (fgets(line_buffer, LINE_BUFFER_SIZE, script_fd) != NULL) {
 			/* execute operations */
 			set_op = false;
 			op_str = strstr(line_buffer, "set");
-			if (op_str != NULL) {
+			if (op_str) {
 				set_op = true;
 				goto get_reset_type;
 			}
 
 			op_str = strstr(line_buffer, "clear");
-			if (op_str == NULL)
+			if (!op_str)
 				continue;
 get_reset_type:
 			reset_str = strstr(op_str, "srst");
-			if (reset_str != NULL) {
+			if (reset_str) {
 				if (set_op)
 					write_ctrl_value = AICE_CUSTOM_DELAY_SET_SRST;
 				else
@@ -2240,7 +2240,7 @@ get_reset_type:
 				goto get_delay;
 			}
 			reset_str = strstr(op_str, "dbgi");
-			if (reset_str != NULL) {
+			if (reset_str) {
 				if (set_op)
 					write_ctrl_value = AICE_CUSTOM_DELAY_SET_DBGI;
 				else
@@ -2248,7 +2248,7 @@ get_reset_type:
 				goto get_delay;
 			}
 			reset_str = strstr(op_str, "trst");
-			if (reset_str != NULL) {
+			if (reset_str) {
 				if (set_op)
 					write_ctrl_value = AICE_CUSTOM_DELAY_SET_TRST;
 				else
@@ -2732,7 +2732,7 @@ static int aice_usb_reset(void)
 		return ERROR_FAIL;
 
 	/* issue TRST */
-	if (custom_trst_script == NULL) {
+	if (!custom_trst_script) {
 		if (aice_write_ctrl(AICE_WRITE_CTRL_JTAG_PIN_CONTROL,
 					AICE_JTAG_PIN_CONTROL_TRST) != ERROR_OK)
 			return ERROR_FAIL;
@@ -2755,7 +2755,7 @@ static int aice_issue_srst(uint32_t coreid)
 	/* After issuing srst, target will be running. So we need to restore EDM_CTL. */
 	aice_restore_edm_registers(coreid);
 
-	if (custom_srst_script == NULL) {
+	if (!custom_srst_script) {
 		if (aice_write_ctrl(AICE_WRITE_CTRL_JTAG_PIN_CONTROL,
 					AICE_JTAG_PIN_CONTROL_SRST) != ERROR_OK)
 			return ERROR_FAIL;
@@ -2799,7 +2799,7 @@ static int aice_issue_reset_hold(uint32_t coreid)
 		aice_write_ctrl(AICE_WRITE_CTRL_JTAG_PIN_STATUS, pin_status & (~0x4));
 
 	/* issue restart */
-	if (custom_restart_script == NULL) {
+	if (!custom_restart_script) {
 		if (aice_write_ctrl(AICE_WRITE_CTRL_JTAG_PIN_CONTROL,
 					AICE_JTAG_PIN_CONTROL_RESTART) != ERROR_OK)
 			return ERROR_FAIL;
@@ -2819,7 +2819,7 @@ static int aice_issue_reset_hold(uint32_t coreid)
 		aice_write_ctrl(AICE_WRITE_CTRL_JTAG_PIN_STATUS, pin_status | 0x4);
 
 		/* issue restart again */
-		if (custom_restart_script == NULL) {
+		if (!custom_restart_script) {
 			if (aice_write_ctrl(AICE_WRITE_CTRL_JTAG_PIN_CONTROL,
 						AICE_JTAG_PIN_CONTROL_RESTART) != ERROR_OK)
 				return ERROR_FAIL;
@@ -3721,7 +3721,7 @@ static int aice_usb_program_edm(uint32_t coreid, char *command_sequence)
 
 	/* init strtok() */
 	command_str = strtok(command_sequence, ";");
-	if (command_str == NULL)
+	if (!command_str)
 		return ERROR_OK;
 
 	do {
@@ -3740,14 +3740,14 @@ static int aice_usb_program_edm(uint32_t coreid, char *command_sequence)
 			reg_name_0 = strstr(command_str, "gen_port0");
 			reg_name_1 = strstr(command_str, "gen_port1");
 
-			if (reg_name_0 != NULL) {
+			if (reg_name_0) {
 				data_value = strtoul(reg_name_0 + 9, NULL, 0);
 
 				if (aice_write_misc(coreid,
 							NDS_EDM_MISC_GEN_PORT0, data_value) != ERROR_OK)
 					return ERROR_FAIL;
 
-			} else if (reg_name_1 != NULL) {
+			} else if (reg_name_1) {
 				data_value = strtoul(reg_name_1 + 9, NULL, 0);
 
 				if (aice_write_misc(coreid,
@@ -3763,7 +3763,7 @@ static int aice_usb_program_edm(uint32_t coreid, char *command_sequence)
 		/* update command_str */
 		command_str = strtok(NULL, ";");
 
-	} while (command_str != NULL);
+	} while (command_str);
 
 	return ERROR_OK;
 }

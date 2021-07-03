@@ -551,7 +551,7 @@ static int esirisc_trace_analyze_buffer(struct command_invocation *cmd)
 
 	size = esirisc_trace_buffer_size(trace_info);
 	buffer = calloc(1, size);
-	if (buffer == NULL) {
+	if (!buffer) {
 		command_print(cmd, "out of memory");
 		return ERROR_FAIL;
 	}
@@ -576,7 +576,7 @@ static int esirisc_trace_analyze_memory(struct command_invocation *cmd,
 	int retval;
 
 	buffer = calloc(1, size);
-	if (buffer == NULL) {
+	if (!buffer) {
 		command_print(cmd, "out of memory");
 		return ERROR_FAIL;
 	}
@@ -628,7 +628,7 @@ static int esirisc_trace_dump_buffer(struct command_invocation *cmd, const char 
 
 	size = esirisc_trace_buffer_size(trace_info);
 	buffer = calloc(1, size);
-	if (buffer == NULL) {
+	if (!buffer) {
 		command_print(cmd, "out of memory");
 		return ERROR_FAIL;
 	}
@@ -653,7 +653,7 @@ static int esirisc_trace_dump_memory(struct command_invocation *cmd, const char 
 	int retval;
 
 	buffer = calloc(1, size);
-	if (buffer == NULL) {
+	if (!buffer) {
 		command_print(cmd, "out of memory");
 		return ERROR_FAIL;
 	}

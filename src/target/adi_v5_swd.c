@@ -58,7 +58,7 @@ static bool do_sync;
 static void swd_finish_read(struct adiv5_dap *dap)
 {
 	const struct swd_driver *swd = adiv5_dap_swd_driver(dap);
-	if (dap->last_read != NULL) {
+	if (dap->last_read) {
 		swd->read_reg(swd_cmd(true, false, DP_RDBUFF), dap->last_read, 0);
 		dap->last_read = NULL;
 	}

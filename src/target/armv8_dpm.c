@@ -1410,7 +1410,7 @@ int armv8_dpm_setup(struct arm_dpm *dpm)
 	arm->read_core_reg = armv8_dpm_read_core_reg;
 	arm->write_core_reg = armv8_dpm_write_core_reg;
 
-	if (arm->core_cache == NULL) {
+	if (!arm->core_cache) {
 		cache = armv8_build_reg_cache(target);
 		if (!cache)
 			return ERROR_FAIL;

@@ -505,7 +505,7 @@ static int mem_ap_read(struct adiv5_ap *ap, uint8_t *buffer, uint32_t size, uint
 	uint32_t *read_buf = calloc(count, sizeof(uint32_t));
 	/* Multiplication count * sizeof(uint32_t) may overflow, calloc() is safe */
 	uint32_t *read_ptr = read_buf;
-	if (read_buf == NULL) {
+	if (!read_buf) {
 		LOG_ERROR("Failed to allocate read buffer");
 		return ERROR_FAIL;
 	}
@@ -1653,7 +1653,7 @@ int adiv5_jim_configure(struct target *target, struct jim_getopt_info *goi)
 	int e;
 
 	pc = (struct adiv5_private_config *)target->private_config;
-	if (pc == NULL) {
+	if (!pc) {
 		pc = calloc(1, sizeof(struct adiv5_private_config));
 		pc->ap_num = DP_APSEL_INVALID;
 		target->private_config = pc;
@@ -1681,10 +1681,10 @@ int adiv5_jim_configure(struct target *target, struct jim_getopt_info *goi)
 
 int adiv5_verify_config(struct adiv5_private_config *pc)
 {
-	if (pc == NULL)
+	if (!pc)
 		return ERROR_FAIL;
 
-	if (pc->dap == NULL)
+	if (!pc->dap)
 		return ERROR_FAIL;
 
 	return ERROR_OK;

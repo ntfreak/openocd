@@ -179,7 +179,7 @@ static struct dap_cmd *dap_cmd_new(struct adiv5_dap *dap, uint8_t instr,
 
 	if (list_empty(&dap->cmd_pool)) {
 		pool = calloc(1, sizeof(struct dap_cmd_pool));
-		if (pool == NULL)
+		if (!pool)
 			return NULL;
 	} else {
 		pool = list_first_entry(&dap->cmd_pool, struct dap_cmd_pool, lh);
@@ -194,9 +194,9 @@ static struct dap_cmd *dap_cmd_new(struct adiv5_dap *dap, uint8_t instr,
 	cmd->instr = instr;
 	cmd->reg_addr = reg_addr;
 	cmd->rnw = rnw;
-	if (outvalue != NULL)
+	if (outvalue)
 		memcpy(cmd->outvalue_buf, outvalue, 4);
-	cmd->invalue = (invalue != NULL) ? invalue : cmd->invalue_buf;
+	cmd->invalue = (invalue) ? invalue : cmd->invalue_buf;
 	cmd->memaccess_tck = memaccess_tck;
 
 	return cmd;
@@ -255,7 +255,7 @@ static int adi_jtag_dp_scan_cmd(struct adiv5_dap *dap, struct dap_cmd *cmd, uint
 	cmd->fields[0].num_bits = 3;
 	buf_set_u32(&cmd->out_addr_buf, 0, 3, ((cmd->reg_addr >> 1) & 0x6) | (cmd->rnw & 0x1));
 	cmd->fields[0].out_value = &cmd->out_addr_buf;
-	cmd->fields[0].in_value = (ack != NULL) ? ack : &cmd->ack;
+	cmd->fields[0].in_value = (ack) ? ack : &cmd->ack;
 
 	/* NOTE: if we receive JTAG_ACK_WAIT, the previous operation did not
 	 * complete; data we write is discarded, data we read is unpredictable.
@@ -323,7 +323,7 @@ static int adi_jtag_dp_scan(struct adiv5_dap *dap,
 	int retval;
 
 	cmd = dap_cmd_new(dap, instr, reg_addr, rnw, outvalue, invalue, memaccess_tck);
-	if (cmd != NULL)
+	if (cmd)
 		cmd->dp_select = dap->select;
 	else
 		return ERROR_JTAG_DEVICE_ERROR;
@@ -367,7 +367,7 @@ static int adi_jtag_finish_read(struct adiv5_dap *dap)
 {
 	int retval = ERROR_OK;
 
-	if (dap->last_read != NULL) {
+	if (dap->last_read) {
 		retval = adi_jtag_dp_scan_u32(dap, JTAG_DP_DPACC,
 				DP_RDBUFF, DPAP_READ, 0, dap->last_read, 0, NULL);
 		dap->last_read = NULL;
@@ -391,7 +391,7 @@ static int adi_jtag_scan_inout_check_u32(struct adiv5_dap *dap,
 	/* For reads,  collect posted value; RDBUFF has no other effect.
 	 * Assumes read gets acked with OK/FAULT, and CTRL_STAT says "OK".
 	 */
-	if ((rnw == DPAP_READ) && (invalue != NULL)) {
+	if ((rnw == DPAP_READ) && (invalue)) {
 		retval = adi_jtag_dp_scan_u32(dap, JTAG_DP_DPACC,
 				DP_RDBUFF, DPAP_READ, 0, invalue, 0, NULL);
 		if (retval != ERROR_OK)
@@ -453,7 +453,7 @@ static int jtagdp_overrun_check(struct adiv5_dap *dap)
 				}
 			}
 
-			if (prev != NULL) {
+			if (prev) {
 				log_dap_cmd("LST", el);
 
 				/*
@@ -466,7 +466,7 @@ static int jtagdp_overrun_check(struct adiv5_dap *dap)
 				*/
 				tmp = dap_cmd_new(dap, JTAG_DP_DPACC,
 						DP_RDBUFF, DPAP_READ, NULL, NULL, 0);
-				if (tmp == NULL) {
+				if (!tmp) {
 					retval = ERROR_JTAG_DEVICE_ERROR;
 					goto done;
 				}
@@ -545,7 +545,7 @@ static int jtagdp_overrun_check(struct adiv5_dap *dap)
 			el = list_first_entry(&replay_list, struct dap_cmd, lh);
 			tmp = dap_cmd_new(dap, JTAG_DP_DPACC,
 					  DP_SELECT, DPAP_WRITE, (uint8_t *)&el->dp_select, NULL, 0);
-			if (tmp == NULL) {
+			if (!tmp) {
 				retval = ERROR_JTAG_DEVICE_ERROR;
 				goto done;
 			}

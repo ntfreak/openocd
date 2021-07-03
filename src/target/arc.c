@@ -931,8 +931,8 @@ exit:
 static int get_current_actionpoint(struct target *target,
 		struct arc_actionpoint **actionpoint)
 {
-	assert(target != NULL);
-	assert(actionpoint != NULL);
+	assert(target);
+	assert(actionpoint);
 
 	uint32_t debug_ah;
 	/* Check if actionpoint caused halt */
@@ -981,7 +981,7 @@ static int arc_examine_debug_reason(struct target *target)
 		struct arc_actionpoint *actionpoint = NULL;
 		CHECK_RETVAL(get_current_actionpoint(target, &actionpoint));
 
-		if (actionpoint != NULL) {
+		if (actionpoint) {
 			if (!actionpoint->used)
 				LOG_WARNING("Target halted by an unused actionpoint.");
 
@@ -1940,7 +1940,7 @@ static int arc_hit_watchpoint(struct target *target, struct watchpoint **hit_wat
 	struct arc_actionpoint *actionpoint = NULL;
 	CHECK_RETVAL(get_current_actionpoint(target, &actionpoint));
 
-	if (actionpoint != NULL) {
+	if (actionpoint) {
 		if (!actionpoint->used)
 			LOG_WARNING("Target halted by unused actionpoint.");
 

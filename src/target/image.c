@@ -337,12 +337,12 @@ static int image_ihex_buffer_complete_inner(struct image *image,
 static int image_ihex_buffer_complete(struct image *image)
 {
 	char *lpsz_line = malloc(1023);
-	if (lpsz_line == NULL) {
+	if (!lpsz_line) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
 	struct imagesection *section = malloc(sizeof(struct imagesection) * IMAGE_MAX_SECTIONS);
-	if (section == NULL) {
+	if (!section) {
 		free(lpsz_line);
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
@@ -374,7 +374,7 @@ static int image_elf32_read_headers(struct image *image)
 
 	elf->header32 = malloc(sizeof(Elf32_Ehdr));
 
-	if (elf->header32 == NULL) {
+	if (!elf->header32) {
 		LOG_ERROR("insufficient memory to perform operation");
 		return ERROR_FILEIO_OPERATION_FAILED;
 	}
@@ -402,7 +402,7 @@ static int image_elf32_read_headers(struct image *image)
 	}
 
 	elf->segments32 = malloc(elf->segment_count*sizeof(Elf32_Phdr));
-	if (elf->segments32 == NULL) {
+	if (!elf->segments32) {
 		LOG_ERROR("insufficient memory to perform operation");
 		return ERROR_FILEIO_OPERATION_FAILED;
 	}
@@ -454,7 +454,7 @@ static int image_elf32_read_headers(struct image *image)
 
 	/* alloc and fill sections array with loadable segments */
 	image->sections = malloc(image->num_sections * sizeof(struct imagesection));
-	if (image->sections == NULL) {
+	if (!image->sections) {
 		LOG_ERROR("insufficient memory to perform operation");
 		return ERROR_FILEIO_OPERATION_FAILED;
 	}
@@ -499,7 +499,7 @@ static int image_elf64_read_headers(struct image *image)
 
 	elf->header64 = malloc(sizeof(Elf64_Ehdr));
 
-	if (elf->header64 == NULL) {
+	if (!elf->header64) {
 		LOG_ERROR("insufficient memory to perform operation");
 		return ERROR_FILEIO_OPERATION_FAILED;
 	}
@@ -527,7 +527,7 @@ static int image_elf64_read_headers(struct image *image)
 	}
 
 	elf->segments64 = malloc(elf->segment_count*sizeof(Elf64_Phdr));
-	if (elf->segments64 == NULL) {
+	if (!elf->segments64) {
 		LOG_ERROR("insufficient memory to perform operation");
 		return ERROR_FILEIO_OPERATION_FAILED;
 	}
@@ -579,7 +579,7 @@ static int image_elf64_read_headers(struct image *image)
 
 	/* alloc and fill sections array with loadable segments */
 	image->sections = malloc(image->num_sections * sizeof(struct imagesection));
-	if (image->sections == NULL) {
+	if (!image->sections) {
 		LOG_ERROR("insufficient memory to perform operation");
 		return ERROR_FILEIO_OPERATION_FAILED;
 	}
@@ -937,12 +937,12 @@ static int image_mot_buffer_complete_inner(struct image *image,
 static int image_mot_buffer_complete(struct image *image)
 {
 	char *lpsz_line = malloc(1023);
-	if (lpsz_line == NULL) {
+	if (!lpsz_line) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
 	struct imagesection *section = malloc(sizeof(struct imagesection) * IMAGE_MAX_SECTIONS);
-	if (section == NULL) {
+	if (!section) {
 		free(lpsz_line);
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
@@ -1018,7 +1018,7 @@ int image_open(struct image *image, const char *url, const char *type_string)
 	} else if (image->type == IMAGE_MEMORY) {
 		struct target *target = get_target(url);
 
-		if (target == NULL) {
+		if (!target) {
 			LOG_ERROR("target '%s' not defined", url);
 			return ERROR_FAIL;
 		}

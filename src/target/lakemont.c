@@ -227,7 +227,7 @@ static int irscan(struct target *t, uint8_t *out,
 {
 	int retval = ERROR_OK;
 	struct x86_32_common *x86_32 = target_to_x86_32(t);
-	if (NULL == t->tap) {
+	if (!t->tap) {
 		retval = ERROR_FAIL;
 		LOG_ERROR("%s invalid target tap", __func__);
 		return retval;
@@ -260,7 +260,7 @@ static int drscan(struct target *t, uint8_t *out, uint8_t *in, uint8_t len)
 	int retval = ERROR_OK;
 	uint64_t data = 0;
 	struct x86_32_common *x86_32 = target_to_x86_32(t);
-	if (NULL == t->tap) {
+	if (!t->tap) {
 		retval = ERROR_FAIL;
 		LOG_ERROR("%s invalid target tap", __func__);
 		return retval;
@@ -283,7 +283,7 @@ static int drscan(struct target *t, uint8_t *out, uint8_t *in, uint8_t len)
 			return retval;
 		}
 	}
-	if (in != NULL) {
+	if (in) {
 		if (len >= 8) {
 			for (int n = (len / 8) - 1 ; n >= 0; n--)
 				data = (data << 8) + *(in+n);
@@ -940,7 +940,7 @@ int lakemont_poll(struct target *t)
 				 */
 				struct breakpoint *bp = NULL;
 				bp = breakpoint_find(t, eip-1);
-				if (bp != NULL) {
+				if (bp) {
 					t->debug_reason = DBG_REASON_BREAKPOINT;
 					if (bp->type == BKPT_SOFT) {
 						/* The EIP is now pointing the next byte after the
@@ -1128,7 +1128,7 @@ static int lakemont_reset_break(struct target *t)
 
 	/* prepare resetbreak setting the proper bits in CLTAPC_CPU_VPREQ */
 	x86_32->curr_tap = jtag_tap_by_position(1);
-	if (x86_32->curr_tap == NULL) {
+	if (!x86_32->curr_tap) {
 		x86_32->curr_tap = saved_tap;
 		LOG_ERROR("%s could not select quark_x10xx.cltap", __func__);
 		return ERROR_FAIL;

@@ -64,7 +64,7 @@ NAND_DEVICE_COMMAND_HANDLER(imx31_nand_device_command)
 {
 	struct mx3_nf_controller *mx3_nf_info;
 	mx3_nf_info = malloc(sizeof(struct mx3_nf_controller));
-	if (mx3_nf_info == NULL) {
+	if (!mx3_nf_info) {
 		LOG_ERROR("no memory for nand controller");
 		return ERROR_FAIL;
 	}

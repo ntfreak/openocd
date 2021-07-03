@@ -176,7 +176,7 @@ static void ft232r_increase_buf_size(size_t new_buf_size)
 	if (new_buf_size >= ft232r_buf_size) {
 		new_buf_size += FT232R_BUF_SIZE_EXTRA;
 		new_buf_ptr = realloc(ft232r_output, new_buf_size);
-		if (new_buf_ptr != NULL) {
+		if (new_buf_ptr) {
 			ft232r_output = new_buf_ptr;
 			ft232r_buf_size = new_buf_size;
 		}
@@ -259,7 +259,7 @@ static int ft232r_init(void)
 	uint16_t apids[] = {ft232r_pid, 0};
 	if (jtag_libusb_open(avids, apids, ft232r_serial_desc, &adapter, NULL)) {
 		LOG_ERROR("ft232r not found: vid=%04x, pid=%04x, serial=%s\n",
-			ft232r_vid, ft232r_pid, (ft232r_serial_desc == NULL) ? "[any]" : ft232r_serial_desc);
+			ft232r_vid, ft232r_pid, (!ft232r_serial_desc) ? "[any]" : ft232r_serial_desc);
 		return ERROR_JTAG_INIT_FAILED;
 	}
 
@@ -310,7 +310,7 @@ static int ft232r_init(void)
 	}
 
 	ft232r_output = malloc(ft232r_buf_size);
-	if (ft232r_output == NULL) {
+	if (!ft232r_output) {
 		LOG_ERROR("Unable to allocate memory for the buffer");
 		return ERROR_JTAG_INIT_FAILED;
 	}

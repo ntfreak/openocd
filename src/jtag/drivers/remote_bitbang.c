@@ -263,7 +263,7 @@ static int remote_bitbang_init_tcp(void)
 
 	freeaddrinfo(result); /* No longer needed */
 
-	if (rp == NULL) { /* No address succeeded */
+	if (!rp) { /* No address succeeded */
 		log_socket_error("Failed to connect");
 		return ERROR_FAIL;
 	}
@@ -273,7 +273,7 @@ static int remote_bitbang_init_tcp(void)
 
 static int remote_bitbang_init_unix(void)
 {
-	if (remote_bitbang_host == NULL) {
+	if (!remote_bitbang_host) {
 		LOG_ERROR("host/socket not specified");
 		return ERROR_FAIL;
 	}
@@ -306,7 +306,7 @@ static int remote_bitbang_init(void)
 	remote_bitbang_recv_buf_end = 0;
 
 	LOG_INFO("Initializing remote_bitbang driver");
-	if (remote_bitbang_port == NULL)
+	if (!remote_bitbang_port)
 		remote_bitbang_fd = remote_bitbang_init_unix();
 	else
 		remote_bitbang_fd = remote_bitbang_init_tcp();

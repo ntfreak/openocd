@@ -158,7 +158,7 @@ static int kitprog_init(void)
 	int retval;
 
 	kitprog_handle = malloc(sizeof(struct kitprog));
-	if (kitprog_handle == NULL) {
+	if (!kitprog_handle) {
 		LOG_ERROR("Failed to allocate memory");
 		return ERROR_FAIL;
 	}
@@ -208,14 +208,14 @@ static int kitprog_init(void)
 	/* Allocate packet buffers and queues */
 	kitprog_handle->packet_size = SWD_MAX_BUFFER_LENGTH;
 	kitprog_handle->packet_buffer = malloc(SWD_MAX_BUFFER_LENGTH);
-	if (kitprog_handle->packet_buffer == NULL) {
+	if (!kitprog_handle->packet_buffer) {
 		LOG_ERROR("Failed to allocate memory for the packet buffer");
 		return ERROR_FAIL;
 	}
 
 	pending_queue_len = SWD_MAX_BUFFER_LENGTH / 5;
 	pending_transfers = malloc(pending_queue_len * sizeof(*pending_transfers));
-	if (pending_transfers == NULL) {
+	if (!pending_transfers) {
 		LOG_ERROR("Failed to allocate memory for the SWD transfer queue");
 		return ERROR_FAIL;
 	}
@@ -256,7 +256,7 @@ static int kitprog_get_usb_serial(void)
 
 	/* Allocate memory for the serial number */
 	kitprog_handle->serial = calloc(retval + 1, sizeof(char));
-	if (kitprog_handle->serial == NULL) {
+	if (!kitprog_handle->serial) {
 		LOG_ERROR("Failed to allocate memory for the serial number");
 		return ERROR_FAIL;
 	}
@@ -285,7 +285,7 @@ static int kitprog_usb_open(void)
 	/* Convert the ASCII serial number into a (wchar_t *) */
 	size_t len = strlen(kitprog_handle->serial);
 	wchar_t *hid_serial = calloc(len + 1, sizeof(wchar_t));
-	if (hid_serial == NULL) {
+	if (!hid_serial) {
 		LOG_ERROR("Failed to allocate memory for the serial number");
 		return ERROR_FAIL;
 	}
@@ -298,7 +298,7 @@ static int kitprog_usb_open(void)
 	/* Use HID for the KitBridge interface */
 	kitprog_handle->hid_handle = hid_open(VID, PID, hid_serial);
 	free(hid_serial);
-	if (kitprog_handle->hid_handle == NULL) {
+	if (!kitprog_handle->hid_handle) {
 		LOG_ERROR("Failed to open KitBridge (HID) interface");
 		return ERROR_FAIL;
 	}
@@ -314,7 +314,7 @@ static int kitprog_usb_open(void)
 
 static void kitprog_usb_close(void)
 {
-	if (kitprog_handle->hid_handle != NULL) {
+	if (kitprog_handle->hid_handle) {
 		hid_close(kitprog_handle->hid_handle);
 		hid_exit();
 	}
@@ -855,7 +855,7 @@ COMMAND_HANDLER(kitprog_handle_serial_command)
 {
 	if (CMD_ARGC == 1) {
 		kitprog_serial = strdup(CMD_ARGV[0]);
-		if (kitprog_serial == NULL) {
+		if (!kitprog_serial) {
 			LOG_ERROR("Failed to allocate memory for the serial number");
 			return ERROR_FAIL;
 		}

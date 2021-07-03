@@ -531,14 +531,14 @@ static int ulink_allocate_payload(struct ulink_cmd *ulink_cmd, int size,
 
 	payload = calloc(size, sizeof(uint8_t));
 
-	if (payload == NULL) {
+	if (!payload) {
 		LOG_ERROR("Could not allocate OpenULINK command payload: out of memory");
 		return ERROR_FAIL;
 	}
 
 	switch (direction) {
 	    case PAYLOAD_DIRECTION_OUT:
-		    if (ulink_cmd->payload_out != NULL) {
+		    if (ulink_cmd->payload_out) {
 			    LOG_ERROR("BUG: Duplicate payload allocation for OpenULINK command");
 			    free(payload);
 			    return ERROR_FAIL;
@@ -548,7 +548,7 @@ static int ulink_allocate_payload(struct ulink_cmd *ulink_cmd, int size,
 		    }
 		    break;
 	    case PAYLOAD_DIRECTION_IN:
-		    if (ulink_cmd->payload_in_start != NULL) {
+		    if (ulink_cmd->payload_in_start) {
 			    LOG_ERROR("BUG: Duplicate payload allocation for OpenULINK command");
 			    free(payload);
 			    return ERROR_FAIL;
@@ -584,7 +584,7 @@ static int ulink_get_queue_size(struct ulink *device,
 	struct ulink_cmd *current = device->queue_start;
 	int sum = 0;
 
-	while (current != NULL) {
+	while (current) {
 		switch (direction) {
 		    case PAYLOAD_DIRECTION_OUT:
 			    sum += current->payload_out_size + 1;	/* + 1 byte for Command ID */
@@ -612,7 +612,7 @@ static void ulink_clear_queue(struct ulink *device)
 	struct ulink_cmd *current = device->queue_start;
 	struct ulink_cmd *next = NULL;
 
-	while (current != NULL) {
+	while (current) {
 		/* Save pointer to next element */
 		next = current->next;
 
@@ -673,7 +673,7 @@ static int ulink_append_queue(struct ulink *device, struct ulink_cmd *ulink_cmd)
 			ulink_clear_queue(device);
 	}
 
-	if (device->queue_start == NULL) {
+	if (!device->queue_start) {
 		/* Queue was empty */
 		device->commands_in_queue = 1;
 
@@ -877,7 +877,7 @@ static int ulink_append_scan_cmd(struct ulink *device, enum scan_type scan_type,
 	int ret, i, scan_size_bytes;
 	uint8_t bits_last_byte;
 
-	if (cmd == NULL)
+	if (!cmd)
 		return ERROR_FAIL;
 
 	/* Check size of command. USB buffer can hold 64 bytes, 1 byte is command ID,
@@ -975,7 +975,7 @@ static int ulink_append_clock_tms_cmd(struct ulink *device, uint8_t count,
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
 
-	if (cmd == NULL)
+	if (!cmd)
 		return ERROR_FAIL;
 
 	if (device->delay_clock_tms < 0)
@@ -1011,7 +1011,7 @@ static int ulink_append_clock_tck_cmd(struct ulink *device, uint16_t count)
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
 
-	if (cmd == NULL)
+	if (!cmd)
 		return ERROR_FAIL;
 
 	if (device->delay_clock_tck < 0)
@@ -1044,7 +1044,7 @@ static int ulink_append_get_signals_cmd(struct ulink *device)
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
 
-	if (cmd == NULL)
+	if (!cmd)
 		return ERROR_FAIL;
 
 	cmd->id = CMD_GET_SIGNALS;
@@ -1084,7 +1084,7 @@ static int ulink_append_set_signals_cmd(struct ulink *device, uint8_t low,
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
 
-	if (cmd == NULL)
+	if (!cmd)
 		return ERROR_FAIL;
 
 	cmd->id = CMD_SET_SIGNALS;
@@ -1116,7 +1116,7 @@ static int ulink_append_sleep_cmd(struct ulink *device, uint32_t us)
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
 
-	if (cmd == NULL)
+	if (!cmd)
 		return ERROR_FAIL;
 
 	cmd->id = CMD_SLEEP_US;
@@ -1153,7 +1153,7 @@ static int ulink_append_configure_tck_cmd(struct ulink *device, int delay_scan_i
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
 
-	if (cmd == NULL)
+	if (!cmd)
 		return ERROR_FAIL;
 
 	cmd->id = CMD_CONFIGURE_TCK_FREQ;
@@ -1214,7 +1214,7 @@ static int ulink_append_led_cmd(struct ulink *device, uint8_t led_state)
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
 
-	if (cmd == NULL)
+	if (!cmd)
 		return ERROR_FAIL;
 
 	cmd->id = CMD_SET_LEDS;
@@ -1244,7 +1244,7 @@ static int ulink_append_test_cmd(struct ulink *device)
 	struct ulink_cmd *cmd = calloc(1, sizeof(struct ulink_cmd));
 	int ret;
 
-	if (cmd == NULL)
+	if (!cmd)
 		return ERROR_FAIL;
 
 	cmd->id = CMD_TEST;
@@ -1491,7 +1491,7 @@ static int ulink_queue_scan(struct ulink *device, struct jtag_command *cmd)
 	if ((type == SCAN_IN) || (type == SCAN_IO)) {
 		tdo_buffer_start = calloc(sizeof(uint8_t), scan_size_bytes);
 
-		if (tdo_buffer_start == NULL)
+		if (!tdo_buffer_start)
 			return ERROR_FAIL;
 
 		tdo_buffer = tdo_buffer_start;
@@ -1569,9 +1569,9 @@ static int ulink_queue_scan(struct ulink *device, struct jtag_command *cmd)
 			bytecount -= 58;
 
 			/* Update TDI and TDO buffer pointers */
-			if (tdi_buffer_start != NULL)
+			if (tdi_buffer_start)
 				tdi_buffer += 58;
-			if (tdo_buffer_start != NULL)
+			if (tdo_buffer_start)
 				tdo_buffer += 58;
 		} else if (bytecount == 58) {	/* Full scan, no further scans */
 			tms_count_end = last_tms_count;
@@ -1871,12 +1871,12 @@ static int ulink_post_process_queue(struct ulink *device)
 
 	current = device->queue_start;
 
-	while (current != NULL) {
+	while (current) {
 		openocd_cmd = current->cmd_origin;
 
 		/* Check if a corresponding OpenOCD command is stored for this
 		 * OpenULINK command */
-		if ((current->needs_postprocessing == true) && (openocd_cmd != NULL)) {
+		if ((current->needs_postprocessing == true) && (openocd_cmd)) {
 			switch (openocd_cmd->type) {
 			    case JTAG_SCAN:
 				    ret = ulink_post_process_scan(current);
@@ -2122,7 +2122,7 @@ static int ulink_init(void)
 	uint8_t input_signals, output_signals;
 
 	ulink_handle = calloc(1, sizeof(struct ulink));
-	if (ulink_handle == NULL)
+	if (!ulink_handle)
 		return ERROR_FAIL;
 
 	libusb_init(&ulink_handle->libusb_ctx);

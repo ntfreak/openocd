@@ -271,7 +271,7 @@ static int efm32x_read_info(struct flash_bank *bank,
 			efm32_info->family_data = &efm32_families[i];
 	}
 
-	if (efm32_info->family_data == NULL) {
+	if (!efm32_info->family_data) {
 		LOG_ERROR("Unknown MCU family %d", efm32_info->part_family);
 		return ERROR_FAIL;
 	}
@@ -885,7 +885,7 @@ static int efm32x_write(struct flash_bank *bank, const uint8_t *buffer,
 		uint32_t old_count = count;
 		count = (old_count | 3) + 1;
 		new_buffer = malloc(count);
-		if (new_buffer == NULL) {
+		if (!new_buffer) {
 			LOG_ERROR("odd number of bytes to write and no memory "
 				"for padding buffer");
 			return ERROR_FAIL;
@@ -1016,7 +1016,7 @@ static int efm32x_protect_check(struct flash_bank *bank)
 		return ret;
 	}
 
-	assert(NULL != bank->sectors);
+	assert(bank->sectors);
 
 	for (unsigned int i = 0; i < bank->num_sectors; i++)
 		bank->sectors[i].is_protected = efm32x_get_page_lock(bank, i);

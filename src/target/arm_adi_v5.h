@@ -392,7 +392,7 @@ static inline bool is_64bit_ap(struct adiv5_ap *ap)
 static inline int dap_send_sequence(struct adiv5_dap *dap,
 		enum swd_special_seq seq)
 {
-	assert(dap->ops != NULL);
+	assert(dap->ops);
 	return dap->ops->send_sequence(dap, seq);
 }
 
@@ -411,7 +411,7 @@ static inline int dap_send_sequence(struct adiv5_dap *dap,
 static inline int dap_queue_dp_read(struct adiv5_dap *dap,
 		unsigned reg, uint32_t *data)
 {
-	assert(dap->ops != NULL);
+	assert(dap->ops);
 	return dap->ops->queue_dp_read(dap, reg, data);
 }
 
@@ -429,7 +429,7 @@ static inline int dap_queue_dp_read(struct adiv5_dap *dap,
 static inline int dap_queue_dp_write(struct adiv5_dap *dap,
 		unsigned reg, uint32_t data)
 {
-	assert(dap->ops != NULL);
+	assert(dap->ops);
 	return dap->ops->queue_dp_write(dap, reg, data);
 }
 
@@ -479,7 +479,7 @@ static inline int dap_queue_ap_write(struct adiv5_ap *ap,
  */
 static inline int dap_queue_ap_abort(struct adiv5_dap *dap, uint8_t *ack)
 {
-	assert(dap->ops != NULL);
+	assert(dap->ops);
 	return dap->ops->queue_ap_abort(dap, ack);
 }
 
@@ -495,13 +495,13 @@ static inline int dap_queue_ap_abort(struct adiv5_dap *dap, uint8_t *ack)
  */
 static inline int dap_run(struct adiv5_dap *dap)
 {
-	assert(dap->ops != NULL);
+	assert(dap->ops);
 	return dap->ops->run(dap);
 }
 
 static inline int dap_sync(struct adiv5_dap *dap)
 {
-	assert(dap->ops != NULL);
+	assert(dap->ops);
 	if (dap->ops->sync)
 		return dap->ops->sync(dap);
 	return ERROR_OK;

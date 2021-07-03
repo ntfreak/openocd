@@ -373,7 +373,7 @@ int mips32_pracc_queue_exec(struct mips_ejtag *ejtag_info, struct pracc_queue_in
 		} scan_32;
 
 	} *scan_in = malloc(sizeof(union scan_in) * (ctx->code_count + ctx->store_count));
-	if (scan_in == NULL) {
+	if (!scan_in) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
@@ -483,7 +483,7 @@ int mips32_pracc_read_mem(struct mips_ejtag *ejtag_info, uint32_t addr, int size
 	uint32_t *data = NULL;
 	if (size != 4) {
 		data = malloc(256 * sizeof(uint32_t));
-		if (data == NULL) {
+		if (!data) {
 			LOG_ERROR("Out of memory");
 			goto exit;
 		}

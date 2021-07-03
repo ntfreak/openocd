@@ -206,7 +206,7 @@ static const struct rtos_register_stacking *get_stacking_info(const struct rtos 
 {
 	const struct threadx_params *param = (const struct threadx_params *) rtos->rtos_specific_params;
 
-	if (param->fn_get_stacking_info != NULL)
+	if (param->fn_get_stacking_info)
 		return param->fn_get_stacking_info(rtos, stack_ptr);
 
 	return param->stacking_info + 0;
@@ -216,12 +216,12 @@ static int is_thread_id_valid(const struct rtos *rtos, int64_t thread_id)
 {
 	const struct threadx_params *param;
 
-	if (rtos->rtos_specific_params == NULL)
+	if (!rtos->rtos_specific_params)
 		return 0; /* invalid */
 
 	param = (const struct threadx_params *) rtos->rtos_specific_params;
 
-	if (param->fn_is_thread_id_valid != NULL)
+	if (param->fn_is_thread_id_valid)
 		return param->fn_is_thread_id_valid(rtos, thread_id);
 
 	return (thread_id != 0);
@@ -263,15 +263,15 @@ static int threadx_update_threads(struct rtos *rtos)
 	int thread_list_size = 0;
 	const struct threadx_params *param;
 
-	if (rtos == NULL)
+	if (!rtos)
 		return -1;
 
-	if (rtos->rtos_specific_params == NULL)
+	if (!rtos->rtos_specific_params)
 		return -3;
 
 	param = (const struct threadx_params *) rtos->rtos_specific_params;
 
-	if (rtos->symbols == NULL) {
+	if (!rtos->symbols) {
 		LOG_ERROR("No symbols for ThreadX");
 		return -4;
 	}
@@ -437,13 +437,13 @@ static int threadx_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	int retval;
 	const struct threadx_params *param;
 
-	if (rtos == NULL)
+	if (!rtos)
 		return -1;
 
 	if (!is_thread_id_valid(rtos, thread_id))
 		return -2;
 
-	if (rtos->rtos_specific_params == NULL)
+	if (!rtos->rtos_specific_params)
 		return -3;
 
 	param = (const struct threadx_params *) rtos->rtos_specific_params;
@@ -469,7 +469,7 @@ static int threadx_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	const struct rtos_register_stacking *stacking_info =
 			get_stacking_info(rtos, stack_ptr);
 
-	if (stacking_info == NULL) {
+	if (!stacking_info) {
 		LOG_ERROR("Unknown stacking info for thread id=0x%" PRIx64, (uint64_t)thread_id);
 		return -6;
 	}
@@ -518,18 +518,18 @@ static int threadx_get_thread_detail(struct rtos *rtos,
 
 	const struct threadx_params *param;
 
-	if (rtos == NULL)
+	if (!rtos)
 		return -1;
 
 	if (thread_id == 0)
 		return -2;
 
-	if (rtos->rtos_specific_params == NULL)
+	if (!rtos->rtos_specific_params)
 		return -3;
 
 	param = (const struct threadx_params *) rtos->rtos_specific_params;
 
-	if (rtos->symbols == NULL) {
+	if (!rtos->symbols) {
 		LOG_ERROR("No symbols for ThreadX");
 		return -3;
 	}

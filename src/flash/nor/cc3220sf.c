@@ -93,7 +93,7 @@ FLASH_BANK_COMMAND_HANDLER(cc3220sf_flash_bank_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	cc3220sf_bank = malloc(sizeof(struct cc3220sf_bank));
-	if (NULL == cc3220sf_bank)
+	if (!cc3220sf_bank)
 		return ERROR_FAIL;
 
 	/* Initialize private flash information */
@@ -441,7 +441,7 @@ static int cc3220sf_probe(struct flash_bank *bank)
 	free(bank->sectors);
 
 	bank->sectors = malloc(sizeof(struct flash_sector) * num_sectors);
-	if (NULL == bank->sectors)
+	if (!bank->sectors)
 		return ERROR_FAIL;
 
 	bank->base = base;

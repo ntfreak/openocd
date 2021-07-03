@@ -75,7 +75,7 @@ static char *find_exe_path(void)
 	do {
 #if IS_WIN32 && !IS_CYGWIN
 		exepath = malloc(MAX_PATH);
-		if (exepath == NULL)
+		if (!exepath)
 			break;
 		GetModuleFileName(NULL, exepath, MAX_PATH);
 
@@ -87,7 +87,7 @@ static char *find_exe_path(void)
 
 #elif IS_DARWIN
 		exepath = malloc(PROC_PIDPATHINFO_MAXSIZE);
-		if (exepath == NULL)
+		if (!exepath)
 			break;
 		if (proc_pidpath(getpid(), exepath, PROC_PIDPATHINFO_MAXSIZE) <= 0) {
 			free(exepath);
@@ -99,7 +99,7 @@ static char *find_exe_path(void)
 #define PATH_MAX 1024
 #endif
 		char *path = malloc(PATH_MAX);
-		if (path == NULL)
+		if (!path)
 			break;
 		int mib[] = { CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1 };
 		size_t size = PATH_MAX;
@@ -117,14 +117,14 @@ static char *find_exe_path(void)
 #elif defined(HAVE_REALPATH) /* Assume POSIX.1-2008 */
 		/* Try Unices in order of likelihood. */
 		exepath = realpath("/proc/self/exe", NULL); /* Linux/Cygwin */
-		if (exepath == NULL)
+		if (!exepath)
 			exepath = realpath("/proc/self/path/a.out", NULL); /* Solaris */
-		if (exepath == NULL)
+		if (!exepath)
 			exepath = realpath("/proc/curproc/file", NULL); /* FreeBSD (Should be covered above) */
 #endif
 	} while (0);
 
-	if (exepath != NULL) {
+	if (exepath) {
 		/* Strip executable file name, leaving path */
 		*strrchr(exepath, '/') = '\0';
 	} else {
@@ -163,7 +163,7 @@ static char *find_relative_path(const char *from, const char *to)
 		if (from[0] != '/')
 			i++;
 		char *next = strchr(from, '/');
-		if (next == NULL)
+		if (!next)
 			break;
 		from = next + 1;
 	}

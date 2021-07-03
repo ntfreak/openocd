@@ -97,7 +97,7 @@ static int hwthread_update_threads(struct rtos *rtos)
 	int64_t current_thread = 0;
 	enum target_debug_reason current_reason = DBG_REASON_UNDEFINED;
 
-	if (rtos == NULL)
+	if (!rtos)
 		return -1;
 
 	target = rtos->target;
@@ -215,7 +215,7 @@ static int hwthread_smp_init(struct target *target)
 static struct target *hwthread_find_thread(struct target *target, int64_t thread_id)
 {
 	/* Find the thread with that thread_id */
-	if (target == NULL)
+	if (!target)
 		return NULL;
 	if (target->smp) {
 		for (struct target_list *head = target->head; head != NULL; head = head->next) {
@@ -231,13 +231,13 @@ static struct target *hwthread_find_thread(struct target *target, int64_t thread
 static int hwthread_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 		struct rtos_reg **rtos_reg_list, int *rtos_reg_list_size)
 {
-	if (rtos == NULL)
+	if (!rtos)
 		return ERROR_FAIL;
 
 	struct target *target = rtos->target;
 
 	struct target *curr = hwthread_find_thread(target, thread_id);
-	if (curr == NULL)
+	if (!curr)
 		return ERROR_FAIL;
 
 	if (!target_was_examined(curr))
@@ -281,13 +281,13 @@ static int hwthread_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 static int hwthread_get_thread_reg(struct rtos *rtos, int64_t thread_id,
 		uint32_t reg_num, struct rtos_reg *rtos_reg)
 {
-	if (rtos == NULL)
+	if (!rtos)
 		return ERROR_FAIL;
 
 	struct target *target = rtos->target;
 
 	struct target *curr = hwthread_find_thread(target, thread_id);
-	if (curr == NULL) {
+	if (!curr) {
 		LOG_ERROR("Couldn't find RTOS thread for id %" PRId64 ".", thread_id);
 		return ERROR_FAIL;
 	}
@@ -318,13 +318,13 @@ static int hwthread_get_thread_reg(struct rtos *rtos, int64_t thread_id,
 
 static int hwthread_set_reg(struct rtos *rtos, uint32_t reg_num, uint8_t *reg_value)
 {
-	if (rtos == NULL)
+	if (!rtos)
 		return ERROR_FAIL;
 
 	struct target *target = rtos->target;
 
 	struct target *curr = hwthread_find_thread(target, rtos->current_thread);
-	if (curr == NULL)
+	if (!curr)
 		return ERROR_FAIL;
 
 	struct reg *reg = register_get_by_number(curr->reg_cache, reg_num, true);
@@ -347,7 +347,7 @@ static int hwthread_target_for_threadid(struct connection *connection, int64_t t
 	struct target *target = get_target_from_connection(connection);
 
 	struct target *curr = hwthread_find_thread(target, thread_id);
-	if (curr == NULL)
+	if (!curr)
 		return ERROR_FAIL;
 
 	*p_target = curr;

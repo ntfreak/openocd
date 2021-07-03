@@ -160,12 +160,12 @@ static int freertos_update_threads(struct rtos *rtos)
 	unsigned int tasks_found = 0;
 	const struct freertos_params *param;
 
-	if (rtos->rtos_specific_params == NULL)
+	if (!rtos->rtos_specific_params)
 		return -1;
 
 	param = (const struct freertos_params *) rtos->rtos_specific_params;
 
-	if (rtos->symbols == NULL) {
+	if (!rtos->symbols) {
 		LOG_ERROR("No symbols for FreeRTOS");
 		return -3;
 	}
@@ -403,13 +403,13 @@ static int freertos_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	const struct freertos_params *param;
 	int64_t stack_ptr = 0;
 
-	if (rtos == NULL)
+	if (!rtos)
 		return -1;
 
 	if (thread_id == 0)
 		return -2;
 
-	if (rtos->rtos_specific_params == NULL)
+	if (!rtos->rtos_specific_params)
 		return -1;
 
 	param = (const struct freertos_params *) rtos->rtos_specific_params;
@@ -494,13 +494,13 @@ static int freertos_get_thread_ascii_info(struct rtos *rtos, threadid_t thread_i
 	int retval;
 	const struct freertos_params *param;
 
-	if (rtos == NULL)
+	if (!rtos)
 		return -1;
 
 	if (thread_id == 0)
 		return -2;
 
-	if (rtos->rtos_specific_params == NULL)
+	if (!rtos->rtos_specific_params)
 		return -3;
 
 	param = (const struct freertos_params *) rtos->rtos_specific_params;

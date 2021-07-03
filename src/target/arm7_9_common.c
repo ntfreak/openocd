@@ -1740,7 +1740,7 @@ int arm7_9_resume(struct target *target,
 		struct breakpoint *breakpoint;
 		breakpoint = breakpoint_find(target,
 				buf_get_u32(arm->pc->value, 0, 32));
-		if (breakpoint != NULL) {
+		if (breakpoint) {
 			LOG_DEBUG("unset breakpoint at 0x%8.8" TARGET_PRIxADDR " (id: %" PRIu32,
 				breakpoint->address,
 				breakpoint->unique_id);
@@ -1932,7 +1932,7 @@ int arm7_9_step(struct target *target, int current, target_addr_t address, int h
 	/* the front-end may request us not to handle breakpoints */
 	if (handle_breakpoints)
 		breakpoint = breakpoint_find(target, current_pc);
-	if (breakpoint != NULL) {
+	if (breakpoint) {
 		retval = arm7_9_unset_breakpoint(target, breakpoint);
 		if (retval != ERROR_OK)
 			return retval;
@@ -2675,7 +2675,7 @@ int arm7_9_examine(struct target *target)
 		struct reg_cache *t, **cache_p;
 
 		t = embeddedice_build_reg_cache(target, arm7_9);
-		if (t == NULL)
+		if (!t)
 			return ERROR_FAIL;
 
 		cache_p = register_get_last_cache_p(&target->reg_cache);

@@ -1994,7 +1994,7 @@ int nds32_login(struct nds32 *nds32)
 
 	LOG_DEBUG("nds32_login");
 
-	if (nds32->edm_passcode != NULL) {
+	if (nds32->edm_passcode) {
 		/* convert EDM passcode to command sequences */
 		passcode_length = strlen(nds32->edm_passcode);
 		command_sequence[0] = '\0';
@@ -2311,7 +2311,7 @@ int nds32_init(struct nds32 *nds32)
 int nds32_get_gdb_fileio_info(struct target *target, struct gdb_fileio_info *fileio_info)
 {
 	/* fill syscall parameters to file-I/O info */
-	if (NULL == fileio_info) {
+	if (!fileio_info) {
 		LOG_ERROR("Target has not initial file-I/O data structure");
 		return ERROR_FAIL;
 	}

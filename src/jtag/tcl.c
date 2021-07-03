@@ -62,9 +62,9 @@ struct jtag_tap *jtag_tap_by_jim_obj(Jim_Interp *interp, Jim_Obj *o)
 {
 	const char *cp = Jim_GetString(o, NULL);
 	struct jtag_tap *t = cp ? jtag_tap_by_string(cp) : NULL;
-	if (NULL == cp)
+	if (!cp)
 		cp = "(unknown)";
-	if (NULL == t)
+	if (!t)
 		Jim_SetResultFormatted(interp, "Tap '%s' could not be found", cp);
 	return t;
 }
@@ -162,7 +162,7 @@ static int jim_command_drscan(Jim_Interp *interp, int argc, Jim_Obj * const *arg
 	assert(e == JIM_OK);
 
 	tap = jtag_tap_by_jim_obj(interp, args[1]);
-	if (tap == NULL)
+	if (!tap)
 		return JIM_ERR;
 
 	num_fields = (argc-2)/2;
@@ -362,7 +362,7 @@ static int jtag_tap_configure_event(struct jim_getopt_info *goi, struct jtag_tap
 	if (goi->isconfigure) {
 		if (!found)
 			jteap = calloc(1, sizeof(*jteap));
-		else if (NULL != jteap->body)
+		else if (jteap->body)
 			Jim_DecrRefCount(goi->interp, jteap->body);
 
 		jteap->interp = goi->interp;
@@ -769,7 +769,7 @@ int jim_jtag_tap_enabler(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 	struct jtag_tap *t;
 
 	t = jtag_tap_by_jim_obj(goi.interp, goi.argv[0]);
-	if (t == NULL)
+	if (!t)
 		return JIM_ERR;
 
 	if (strcasecmp(cmd_name, "tapisenabled") == 0) {
@@ -811,7 +811,7 @@ int jim_jtag_configure(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 	Jim_Obj *o;
 	jim_getopt_obj(&goi, &o);
 	t = jtag_tap_by_jim_obj(goi.interp, o);
-	if (t == NULL)
+	if (!t)
 		return JIM_ERR;
 
 	return jtag_tap_configure_cmd(&goi, t);
@@ -1122,7 +1122,7 @@ COMMAND_HANDLER(handle_irscan_command)
 	int retval;
 	for (i = 0; i < num_fields; i++) {
 		tap = jtag_tap_by_string(CMD_ARGV[i*2]);
-		if (tap == NULL) {
+		if (!tap) {
 			free(fields);
 			command_print(CMD, "Tap: %s unknown", CMD_ARGV[i*2]);
 

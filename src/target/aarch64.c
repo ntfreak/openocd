@@ -335,7 +335,7 @@ static int aarch64_prepare_halt_smp(struct target *target, bool exc_target, stru
 
 	LOG_DEBUG("target %s exc %i", target_name(target), exc_target);
 
-	while (head != NULL) {
+	while (head) {
 		struct target *curr = head->target;
 		struct armv8_common *armv8 = target_to_armv8(curr);
 		head = head->next;
@@ -359,7 +359,7 @@ static int aarch64_prepare_halt_smp(struct target *target, bool exc_target, stru
 
 		LOG_DEBUG("target %s prepared", target_name(curr));
 
-		if (first == NULL)
+		if (!first)
 			first = curr;
 	}
 
@@ -488,7 +488,7 @@ static int update_halt_gdb(struct target *target, enum target_debug_reason debug
 		if (curr->state == TARGET_HALTED)
 			continue;
 		/* remember the gdb_service->target */
-		if (curr->gdb_service != NULL)
+		if (curr->gdb_service)
 			gdb_target = curr->gdb_service->target;
 		/* skip it */
 		if (curr == gdb_target)
@@ -762,7 +762,7 @@ static int aarch64_prep_restart_smp(struct target *target, int handle_breakpoint
 			break;
 		}
 		/* remember the first valid target in the group */
-		if (first == NULL)
+		if (!first)
 			first = curr;
 	}
 
@@ -785,7 +785,7 @@ static int aarch64_step_restart_smp(struct target *target)
 	if (retval != ERROR_OK)
 		return retval;
 
-	if (first != NULL)
+	if (first)
 		retval = aarch64_do_restart_one(first, RESTART_LAZY);
 	if (retval != ERROR_OK) {
 		LOG_DEBUG("error restarting target %s", target_name(first));
@@ -2548,7 +2548,7 @@ static int aarch64_examine_first(struct target *target)
 	uint32_t tmp0, tmp1, tmp2, tmp3;
 	debug = ttypr = cpuid = 0;
 
-	if (pc == NULL)
+	if (!pc)
 		return ERROR_FAIL;
 
 	if (pc->adiv5_config.ap_num == DP_APSEL_INVALID) {
@@ -2634,7 +2634,7 @@ static int aarch64_examine_first(struct target *target)
 	LOG_DEBUG("ttypr = 0x%08" PRIx64, ttypr);
 	LOG_DEBUG("debug = 0x%08" PRIx64, debug);
 
-	if (pc->cti == NULL)
+	if (!pc->cti)
 		return ERROR_FAIL;
 
 	armv8->cti = pc->cti;
@@ -2739,7 +2739,7 @@ static int aarch64_target_create(struct target *target, Jim_Interp *interp)
 		return ERROR_FAIL;
 
 	aarch64 = calloc(1, sizeof(struct aarch64_common));
-	if (aarch64 == NULL) {
+	if (!aarch64) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
@@ -2797,7 +2797,7 @@ static int aarch64_jim_configure(struct target *target, struct jim_getopt_info *
 	int e;
 
 	pc = (struct aarch64_private_config *)target->private_config;
-	if (pc == NULL) {
+	if (!pc) {
 			pc = calloc(1, sizeof(struct aarch64_private_config));
 			pc->adiv5_config.ap_num = DP_APSEL_INVALID;
 			target->private_config = pc;
@@ -2842,7 +2842,7 @@ static int aarch64_jim_configure(struct target *target, struct jim_getopt_info *
 				if (e != JIM_OK)
 					return e;
 				cti = cti_instance_by_jim_obj(goi->interp, o_cti);
-				if (cti == NULL) {
+				if (!cti) {
 					Jim_SetResultString(goi->interp, "CTI name invalid!", -1);
 					return JIM_ERR;
 				}
@@ -2896,7 +2896,7 @@ COMMAND_HANDLER(aarch64_handle_disassemble_command)
 {
 	struct target *target = get_current_target(CMD_CTX);
 
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("No target selected");
 		return ERROR_FAIL;
 	}
@@ -2939,7 +2939,7 @@ COMMAND_HANDLER(aarch64_mask_interrupts_command)
 
 	if (CMD_ARGC > 0) {
 		n = jim_nvp_name2value_simple(nvp_maskisr_modes, CMD_ARGV[0]);
-		if (n->name == NULL) {
+		if (!n->name) {
 			LOG_ERROR("Unknown parameter: %s - should be off or on", CMD_ARGV[0]);
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		}
@@ -2971,10 +2971,10 @@ static int jim_mcrmrc(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 	}
 
 	context = current_command_context(interp);
-	assert(context != NULL);
+	assert(context);
 
 	target = get_current_target(context);
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("%s: no current target", __func__);
 		return JIM_ERR;
 	}

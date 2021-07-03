@@ -121,15 +121,15 @@ static int riot_update_threads(struct rtos *rtos)
 	unsigned int tasks_found = 0;
 	const struct riot_params *param;
 
-	if (rtos == NULL)
+	if (!rtos)
 		return ERROR_FAIL;
 
-	if (rtos->rtos_specific_params == NULL)
+	if (!rtos->rtos_specific_params)
 		return ERROR_FAIL;
 
 	param = (const struct riot_params *)rtos->rtos_specific_params;
 
-	if (rtos->symbols == NULL) {
+	if (!rtos->symbols) {
 		LOG_ERROR("No symbols for RIOT");
 		return ERROR_FAIL;
 	}
@@ -202,7 +202,7 @@ static int riot_update_threads(struct rtos *rtos)
 
 	/* Allocate memory for thread description */
 	rtos->thread_details = calloc(thread_count, sizeof(struct thread_detail));
-	if (rtos->thread_details == NULL) {
+	if (!rtos->thread_details) {
 		LOG_ERROR("RIOT: out of memory");
 		return ERROR_FAIL;
 	}
@@ -321,13 +321,13 @@ static int riot_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	int retval;
 	const struct riot_params *param;
 
-	if (rtos == NULL)
+	if (!rtos)
 		return ERROR_FAIL;
 
 	if (thread_id == 0)
 		return ERROR_FAIL;
 
-	if (rtos->rtos_specific_params == NULL)
+	if (!rtos->rtos_specific_params)
 		return ERROR_FAIL;
 
 	param = (const struct riot_params *)rtos->rtos_specific_params;

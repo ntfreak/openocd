@@ -608,7 +608,7 @@ static inline struct dtc_reply_queue_entry *dtc_queue_enqueue_reply(
 	struct dtc_reply_queue_entry *rq_entry;
 
 	rq_entry = malloc(sizeof(struct dtc_reply_queue_entry));
-	if (rq_entry != NULL) {
+	if (rq_entry) {
 		rq_entry->scan.type = type;
 		rq_entry->scan.buffer = buffer;
 		rq_entry->scan.size = size;
@@ -617,7 +617,7 @@ static inline struct dtc_reply_queue_entry *dtc_queue_enqueue_reply(
 		rq_entry->cmd = cmd;
 		rq_entry->next = NULL;
 
-		if (dtc_queue.rq_head == NULL)
+		if (!dtc_queue.rq_head)
 			dtc_queue.rq_head = rq_entry;
 		else
 			dtc_queue.rq_tail->next = rq_entry;
@@ -665,7 +665,7 @@ static int dtc_queue_run(void)
 		exit(1);
 	}
 
-	if (dtc_queue.rq_head != NULL) {
+	if (dtc_queue.rq_head) {
 		/* process the reply, which empties the reply queue and frees its entries */
 		dtc_p = reply_buffer;
 

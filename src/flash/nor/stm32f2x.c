@@ -1412,7 +1412,7 @@ static int get_stm32x_info(struct flash_bank *bank, struct command_invocation *c
 		return ERROR_FAIL;
 	}
 
-	if (rev_str != NULL)
+	if (rev_str)
 		command_print_sameline(cmd, "%s - Rev: %s", device_str, rev_str);
 	else
 		command_print_sameline(cmd, "%s - Rev: unknown (0x%04" PRIx16 ")", device_str, rev_id);

@@ -400,7 +400,7 @@ static bool usb_connect(void)
 	 * 2) didn't find the XDS110, and no devices are currently open
 	 */
 
-	if (NULL != list) {
+	if (list) {
 		/* Free the device list, we're done with it */
 		libusb_free_device_list(list, 1);
 	}
@@ -431,12 +431,12 @@ static bool usb_connect(void)
 
 	/* On an error, clean up what we can */
 	if (0 != result) {
-		if (NULL != dev) {
+		if (dev) {
 			/* Release the debug and data interface on the XDS110 */
 			(void)libusb_release_interface(dev, xds110.interface);
 			libusb_close(dev);
 		}
-		if (NULL != ctx)
+		if (ctx)
 			libusb_exit(ctx);
 		xds110.ctx = NULL;
 		xds110.dev = NULL;
@@ -453,13 +453,13 @@ static bool usb_connect(void)
 
 static void usb_disconnect(void)
 {
-	if (NULL != xds110.dev) {
+	if (xds110.dev) {
 		/* Release the debug and data interface on the XDS110 */
 		(void)libusb_release_interface(xds110.dev, xds110.interface);
 		libusb_close(xds110.dev);
 		xds110.dev = NULL;
 	}
-	if (NULL != xds110.ctx) {
+	if (xds110.ctx) {
 		libusb_exit(xds110.ctx);
 		xds110.ctx = NULL;
 	}
@@ -505,7 +505,7 @@ static bool usb_write(unsigned char *buffer, int size, int *written)
 		retries++;
 	}
 
-	if (NULL != written)
+	if (written)
 		*written = bytes_written;
 
 	return (0 == result && size == bytes_written) ? true : false;
@@ -550,7 +550,7 @@ static bool usb_get_response(uint32_t *total_bytes_read, uint32_t timeout)
 
 	/* Abort now if we didn't receive a valid response */
 	if (!success) {
-		if (NULL != total_bytes_read)
+		if (total_bytes_read)
 			*total_bytes_read = 0;
 		return false;
 	}
@@ -587,7 +587,7 @@ static bool usb_get_response(uint32_t *total_bytes_read, uint32_t timeout)
 
 	if (!success)
 		count = 0;
-	if (NULL != total_bytes_read)
+	if (total_bytes_read)
 		*total_bytes_read = count;
 
 	return success;
@@ -636,7 +636,7 @@ static bool xds_execute(uint32_t out_length, uint32_t in_length,
 	int error = 0;
 	uint32_t bytes_read = 0;
 
-	if (NULL == xds110.dev)
+	if (!xds110.dev)
 		return false;
 
 	while (!done && attempts > 0) {
@@ -714,9 +714,9 @@ static bool xds_version(uint32_t *firmware_id, uint16_t *hardware_id)
 				DEFAULT_TIMEOUT);
 
 	if (success) {
-		if (NULL != firmware_id)
+		if (firmware_id)
 			*firmware_id = xds110_get_u32(fw_id_pntr);
-		if (NULL != hardware_id)
+		if (hardware_id)
 			*hardware_id = xds110_get_u16(hw_id_pntr);
 	}
 
@@ -863,7 +863,7 @@ static bool cmapi_connect(uint32_t *idcode)
 				DEFAULT_TIMEOUT);
 
 	if (success) {
-		if (NULL != idcode)
+		if (idcode)
 			*idcode = xds110_get_u32(idcode_pntr);
 	}
 
@@ -926,7 +926,7 @@ static bool cmapi_read_dap_reg(uint32_t type, uint32_t ap_num,
 				DEFAULT_TIMEOUT);
 
 	if (success) {
-		if (NULL != value)
+		if (value)
 			*value = xds110_get_u32(value_pntr);
 	}
 
@@ -943,7 +943,7 @@ static bool cmapi_write_dap_reg(uint32_t type, uint32_t ap_num,
 
 	bool success;
 
-	if (NULL == value)
+	if (!value)
 		return false;
 
 	xds110.write_payload[0] = CMAPI_REG_WRITE;
@@ -1086,7 +1086,7 @@ static bool ocd_pathmove(uint32_t num_states, uint8_t *path)
 
 	bool success;
 
-	if (NULL == path)
+	if (!path)
 		return false;
 
 	xds110.write_payload[0] = OCD_PATHMOVE;
@@ -1209,7 +1209,7 @@ static bool xds110_legacy_read_reg(uint8_t cmd, uint32_t *value)
 	/* Handle result of read attempt */
 	if (!success)
 		LOG_ERROR("XDS110: failed to read DAP register");
-	else if (NULL != value)
+	else if (value)
 		*value = reg_value;
 
 	if (success && DAP_AP == type) {
@@ -1867,7 +1867,7 @@ static int xds110_execute_queue(void)
 {
 	struct jtag_command *cmd = jtag_command_queue;
 
-	while (cmd != NULL) {
+	while (cmd) {
 		xds110_execute_command(cmd);
 		cmd = cmd->next;
 	}

@@ -150,7 +150,7 @@ static void telnet_load_history(struct telnet_connection *t_con)
 
 	char *history = get_home_dir(TELNET_HISTORY);
 
-	if (history == NULL) {
+	if (!history) {
 		LOG_INFO("unable to get user home directory, telnet history will be disabled");
 		return;
 	}
@@ -186,7 +186,7 @@ static void telnet_save_history(struct telnet_connection *t_con)
 
 	char *history = get_home_dir(TELNET_HISTORY);
 
-	if (history == NULL) {
+	if (!history) {
 		LOG_INFO("unable to get user home directory, telnet history will be disabled");
 		return;
 	}

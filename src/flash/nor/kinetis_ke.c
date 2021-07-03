@@ -945,7 +945,7 @@ COMMAND_HANDLER(kinetis_ke_securing_test)
 	if (result != ERROR_OK)
 		return result;
 
-	assert(bank != NULL);
+	assert(bank);
 
 	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
@@ -1046,7 +1046,7 @@ static int kinetis_ke_write(struct flash_bank *bank, const uint8_t *buffer,
 		uint32_t old_count = count;
 		count = (old_count | 3) + 1;
 		new_buffer = malloc(count);
-		if (new_buffer == NULL) {
+		if (!new_buffer) {
 			LOG_ERROR("odd number of bytes to write and no memory "
 				"for padding buffer");
 			return ERROR_FAIL;

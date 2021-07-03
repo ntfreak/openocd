@@ -220,7 +220,7 @@ static const struct samd_part *samd_find_part(uint32_t id)
 {
 	uint8_t devsel = SAMD_GET_DEVSEL(id);
 	const struct samd_family *family = samd_find_family(id);
-	if (family == NULL)
+	if (!family)
 		return NULL;
 
 	for (unsigned i = 0; i < family->num_parts; i++) {
@@ -287,7 +287,7 @@ static int same5_probe(struct flash_bank *bank)
 	}
 
 	part = samd_find_part(id);
-	if (part == NULL) {
+	if (!part) {
 		LOG_ERROR("Couldn't find part corresponding to DID %08" PRIx32, id);
 		return ERROR_FAIL;
 	}

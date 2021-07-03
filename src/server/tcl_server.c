@@ -145,12 +145,12 @@ static int tcl_new_connection(struct connection *connection)
 	struct tcl_connection *tclc;
 
 	tclc = calloc(1, sizeof(struct tcl_connection));
-	if (tclc == NULL)
+	if (!tclc)
 		return ERROR_CONNECTION_REJECTED;
 
 	tclc->tc_line_size = TCL_LINE_INITIAL;
 	tclc->tc_line = malloc(tclc->tc_line_size);
-	if (tclc->tc_line == NULL) {
+	if (!tclc->tc_line) {
 		free(tclc);
 		return ERROR_CONNECTION_REJECTED;
 	}
@@ -158,7 +158,7 @@ static int tcl_new_connection(struct connection *connection)
 	connection->priv = tclc;
 
 	struct target *target = get_current_target_or_null(connection->cmd_ctx);
-	if (target != NULL)
+	if (target)
 		tclc->tc_laststate = target->state;
 
 	/* store the connection object on cmd_ctx so we can access it from command handlers */
@@ -192,7 +192,7 @@ static int tcl_input(struct connection *connection)
 	}
 
 	tclc = connection->priv;
-	if (tclc == NULL)
+	if (!tclc)
 		return ERROR_CONNECTION_REJECTED;
 
 	/* push as much data into the line as possible */
@@ -215,7 +215,7 @@ static int tcl_input(struct connection *connection)
 				tc_line_size_new = TCL_LINE_MAX;
 
 			tc_line_new = realloc(tclc->tc_line, tc_line_size_new);
-			if (tc_line_new == NULL) {
+			if (!tc_line_new) {
 				tclc->tc_linedrop = 1;
 			} else {
 				tclc->tc_line = tc_line_new;

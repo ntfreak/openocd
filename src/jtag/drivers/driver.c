@@ -235,7 +235,7 @@ int interface_add_tms_seq(unsigned num_bits, const uint8_t *seq, enum tap_state 
 	struct jtag_command *cmd;
 
 	cmd = cmd_queue_alloc(sizeof(struct jtag_command));
-	if (cmd == NULL)
+	if (!cmd)
 		return ERROR_FAIL;
 
 	cmd->type = JTAG_TMS;
@@ -350,7 +350,7 @@ void interface_jtag_add_callback4(jtag_callback_t callback,
 	entry->data2 = data2;
 	entry->data3 = data3;
 
-	if (jtag_callback_queue_head == NULL) {
+	if (!jtag_callback_queue_head) {
 		jtag_callback_queue_head = entry;
 		jtag_callback_queue_tail = entry;
 	} else {

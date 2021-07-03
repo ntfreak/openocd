@@ -42,7 +42,7 @@ FLASH_BANK_COMMAND_HANDLER(jtagspi_flash_bank_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	info = malloc(sizeof(struct jtagspi_flash_bank));
-	if (info == NULL) {
+	if (!info) {
 		LOG_ERROR("no memory for flash bank info");
 		return ERROR_FAIL;
 	}
@@ -129,7 +129,7 @@ static int jtagspi_cmd(struct flash_bank *bank, uint8_t cmd,
 	lenb = DIV_ROUND_UP(len, 8);
 	data_buf = malloc(lenb);
 	if (lenb > 0) {
-		if (data_buf == NULL) {
+		if (!data_buf) {
 			LOG_ERROR("no memory for spi buffer");
 			return ERROR_FAIL;
 		}
@@ -211,7 +211,7 @@ static int jtagspi_probe(struct flash_bank *bank)
 	/* create and fill sectors array */
 	bank->num_sectors = info->dev->size_in_bytes / sectorsize;
 	sectors = malloc(sizeof(struct flash_sector) * bank->num_sectors);
-	if (sectors == NULL) {
+	if (!sectors) {
 		LOG_ERROR("not enough memory");
 		return ERROR_FAIL;
 	}

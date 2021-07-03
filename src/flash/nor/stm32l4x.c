@@ -1603,7 +1603,7 @@ static int stm32l4_probe(struct flash_bank *bank)
 	bank->size = (flash_size_kb + gap_size_kb) * 1024;
 	bank->num_sectors = num_pages;
 	bank->sectors = malloc(sizeof(struct flash_sector) * bank->num_sectors);
-	if (bank->sectors == NULL) {
+	if (!bank->sectors) {
 		LOG_ERROR("failed to allocate bank sectors");
 		return ERROR_FAIL;
 	}

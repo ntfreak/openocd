@@ -165,7 +165,7 @@ static int hl_interface_speed(int speed)
 	if (hl_if.layout->api->speed == NULL)
 		return ERROR_OK;
 
-	if (hl_if.handle == NULL) {
+	if (!hl_if.handle) {
 		/* pass speed as initial param as interface not open yet */
 		hl_if.param.initial_interface_speed = speed;
 		return ERROR_OK;

@@ -293,7 +293,7 @@ static bool nrf5_bank_is_probed(const struct flash_bank *bank)
 {
 	struct nrf5_bank *nbank = bank->driver_priv;
 
-	assert(nbank != NULL);
+	assert(nbank);
 
 	return nbank->probed;
 }
@@ -444,7 +444,7 @@ static int nrf5_protect_check_clenr0(struct flash_bank *bank)
 	struct nrf5_bank *nbank = bank->driver_priv;
 	struct nrf5_info *chip = nbank->chip;
 
-	assert(chip != NULL);
+	assert(chip);
 
 	res = target_read_u32(chip->target, NRF51_FICR_CLENR0,
 			      &clenr0);
@@ -474,7 +474,7 @@ static int nrf5_protect_check_bprot(struct flash_bank *bank)
 	struct nrf5_bank *nbank = bank->driver_priv;
 	struct nrf5_info *chip = nbank->chip;
 
-	assert(chip != NULL);
+	assert(chip);
 
 	static uint32_t nrf5_bprot_offsets[4] = { 0x600, 0x604, 0x610, 0x614 };
 	uint32_t bprot_reg = 0;
@@ -505,7 +505,7 @@ static int nrf5_protect_check(struct flash_bank *bank)
 	struct nrf5_bank *nbank = bank->driver_priv;
 	struct nrf5_info *chip = nbank->chip;
 
-	assert(chip != NULL);
+	assert(chip);
 
 	if (chip->features & NRF5_FEATURE_BPROT)
 		return nrf5_protect_check_bprot(bank);
@@ -1133,7 +1133,7 @@ static void nrf5_free_driver_priv(struct flash_bank *bank)
 {
 	struct nrf5_bank *nbank = bank->driver_priv;
 	struct nrf5_info *chip = nbank->chip;
-	if (chip == NULL)
+	if (!chip)
 		return;
 
 	chip->refcount--;
@@ -1197,7 +1197,7 @@ FLASH_BANK_COMMAND_HANDLER(nrf5_flash_bank_command)
 		nbank = &chip->bank[1];
 		break;
 	}
-	assert(nbank != NULL);
+	assert(nbank);
 
 	chip->refcount++;
 	nbank->chip = chip;
@@ -1218,7 +1218,7 @@ COMMAND_HANDLER(nrf5_handle_mass_erase_command)
 	if (res != ERROR_OK)
 		return res;
 
-	assert(bank != NULL);
+	assert(bank);
 
 	struct nrf5_info *chip;
 
@@ -1265,7 +1265,7 @@ COMMAND_HANDLER(nrf5_handle_info_command)
 	if (res != ERROR_OK)
 		return res;
 
-	assert(bank != NULL);
+	assert(bank);
 
 	struct nrf5_info *chip;
 

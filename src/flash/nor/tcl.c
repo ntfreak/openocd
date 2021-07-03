@@ -88,7 +88,7 @@ COMMAND_HANDLER(handle_flash_info_command)
 	if (retval != ERROR_OK)
 		return retval;
 
-	if (p != NULL) {
+	if (p) {
 		int num_blocks;
 		struct flash_sector *block_array;
 
@@ -584,7 +584,7 @@ COMMAND_HANDLER(handle_flash_fill_command)
 	uint32_t padding_at_end = aligned_end - end_addr;
 
 	uint8_t *buffer = malloc(aligned_size);
-	if (buffer == NULL)
+	if (!buffer)
 		return ERROR_FAIL;
 
 	if (padding_at_start) {
@@ -724,7 +724,7 @@ COMMAND_HANDLER(handle_flash_md_command)
 	}
 
 	uint8_t *buffer = calloc(count, wordsize);
-	if (buffer == NULL) {
+	if (!buffer) {
 		command_print(CMD, "No memory for flash read buffer");
 		return ERROR_FAIL;
 	}
@@ -799,7 +799,7 @@ COMMAND_HANDLER(handle_flash_write_bank_command)
 	uint32_t padding_at_end = aligned_end - end_addr;
 
 	buffer = malloc(aligned_size);
-	if (buffer == NULL) {
+	if (!buffer) {
 		fileio_close(fileio);
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
@@ -896,7 +896,7 @@ COMMAND_HANDLER(handle_flash_read_bank_command)
 	}
 
 	buffer = malloc(length);
-	if (buffer == NULL) {
+	if (!buffer) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
@@ -990,7 +990,7 @@ COMMAND_HANDLER(handle_flash_verify_bank_command)
 			"first %zu bytes of the file", length);
 
 	buffer_file = malloc(length);
-	if (buffer_file == NULL) {
+	if (!buffer_file) {
 		LOG_ERROR("Out of memory");
 		fileio_close(fileio);
 		return ERROR_FAIL;
@@ -1011,7 +1011,7 @@ COMMAND_HANDLER(handle_flash_verify_bank_command)
 	}
 
 	buffer_flash = malloc(length);
-	if (buffer_flash == NULL) {
+	if (!buffer_flash) {
 		LOG_ERROR("Out of memory");
 		free(buffer_file);
 		return ERROR_FAIL;
@@ -1262,14 +1262,14 @@ COMMAND_HANDLER(handle_flash_bank_command)
 	CMD_ARGC--;
 
 	struct target *target = get_target(CMD_ARGV[5]);
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("target '%s' not defined", CMD_ARGV[5]);
 		return ERROR_FAIL;
 	}
 
 	const char *driver_name = CMD_ARGV[0];
 	const struct flash_driver *driver = flash_driver_find_by_name(driver_name);
-	if (NULL == driver) {
+	if (!driver) {
 		/* no matching flash driver found */
 		LOG_ERROR("flash driver '%s' not found", driver_name);
 		return ERROR_FAIL;
@@ -1283,7 +1283,7 @@ COMMAND_HANDLER(handle_flash_bank_command)
 	}
 
 	/* register flash specific commands */
-	if (NULL != driver->commands) {
+	if (driver->commands) {
 		int retval = register_commands(CMD_CTX, NULL,
 				driver->commands);
 		if (ERROR_OK != retval) {
@@ -1313,7 +1313,7 @@ COMMAND_HANDLER(handle_flash_bank_command)
 		return retval;
 	}
 
-	if (driver->usage == NULL)
+	if (!driver->usage)
 		LOG_DEBUG("'%s' driver usage field missing", driver_name);
 
 	flash_bank_add(c);
