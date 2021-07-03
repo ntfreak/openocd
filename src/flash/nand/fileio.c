@@ -119,7 +119,7 @@ COMMAND_HELPER(nand_fileio_parse_args, struct nand_fileio_state *state,
 	nand_fileio_init(state);
 
 	unsigned minargs = need_size ? 4 : 3;
-	if (CMD_ARGC < minargs)
+	if (minargs > CMD_ARGC)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	struct nand_device *nand;
@@ -141,7 +141,7 @@ COMMAND_HELPER(nand_fileio_parse_args, struct nand_fileio_state *state,
 		}
 	}
 
-	if (CMD_ARGC > minargs) {
+	if (minargs < CMD_ARGC) {
 		for (unsigned i = minargs; i < CMD_ARGC; i++) {
 			if (!strcmp(CMD_ARGV[i], "oob_raw"))
 				state->oob_format |= NAND_OOB_RAW;

@@ -341,7 +341,7 @@ static bool usb_connect(void)
 	/* Initialize libusb context */
 	result = libusb_init(&ctx);
 
-	if (0 == result) {
+	if (result == 0) {
 		/* Get list of USB devices attached to system */
 		count = libusb_get_device_list(ctx, &list);
 		if (count <= 0) {
@@ -350,7 +350,7 @@ static bool usb_connect(void)
 		}
 	}
 
-	if (0 == result) {
+	if (result == 0) {
 		/* Scan through list of devices for any XDS110s */
 		for (i = 0; i < count; i++) {
 			/* Check for device vid/pid match */
@@ -365,13 +365,13 @@ static bool usb_connect(void)
 			}
 			if (match) {
 				result = libusb_open(list[i], &dev);
-				if (0 == result) {
+				if (result == 0) {
 					const int max_data = 256;
 					unsigned char data[max_data + 1];
 					*data = '\0';
 
 					/* May be the requested device if serial number matches */
-					if (0 == xds110.serial[0]) {
+					if (xds110.serial[0] == 0) {
 						/* No serial number given; match first XDS110 found */
 						found = true;
 						break;
@@ -430,7 +430,7 @@ static bool usb_connect(void)
 	}
 
 	/* On an error, clean up what we can */
-	if (0 != result) {
+	if (result != 0) {
 		if (dev) {
 			/* Release the debug and data interface on the XDS110 */
 			(void)libusb_release_interface(dev, xds110.interface);
@@ -443,12 +443,12 @@ static bool usb_connect(void)
 	}
 
 	/* Log the results */
-	if (0 == result)
+	if (result == 0)
 		LOG_INFO("XDS110: connected");
 	else
 		LOG_ERROR("XDS110: failed to connect");
 
-	return (0 == result) ? true : false;
+	return (result == 0) ? true : false;
 }
 
 static void usb_disconnect(void)
@@ -476,13 +476,13 @@ static bool usb_read(unsigned char *buffer, int size, int *bytes_read,
 		return false;
 
 	/* Force a non-zero timeout to prevent blocking */
-	if (0 == timeout)
+	if (timeout == 0)
 		timeout = DEFAULT_TIMEOUT;
 
 	result = libusb_bulk_transfer(xds110.dev, xds110.endpoint_in, buffer, size,
 				bytes_read, timeout);
 
-	return (0 == result) ? true : false;
+	return (result == 0) ? true : false;
 }
 
 static bool usb_write(unsigned char *buffer, int size, int *written)
@@ -671,7 +671,7 @@ static bool xds_execute(uint32_t out_length, uint32_t in_length,
 	if (!success)
 		error = SC_ERR_XDS110_FAIL;
 
-	if (0 != error)
+	if (error != 0)
 		success = false;
 
 	return success;
@@ -1280,7 +1280,7 @@ static int xds110_swd_run_queue(void)
 	uint32_t value;
 	bool success = true;
 
-	if (0 == xds110.txn_request_size)
+	if (xds110.txn_request_size == 0)
 		return ERROR_OK;
 
 	/* Terminate request queue */
@@ -1316,7 +1316,7 @@ static int xds110_swd_run_queue(void)
 
 	/* Transfer results into caller's buffers */
 	for (result = 0; result < xds110.txn_result_count; result++)
-		if (0 != xds110.txn_dap_results[result])
+		if (xds110.txn_dap_results[result] != 0)
 			*xds110.txn_dap_results[result] = dap_results[result];
 
 	xds110.txn_request_size = 0;
@@ -1395,7 +1395,7 @@ static void xds110_show_info(void)
 		(((firmware >> 12) & 0xf) * 10) + ((firmware >>  8) & 0xf),
 		(((firmware >>  4) & 0xf) * 10) + ((firmware >>  0) & 0xf));
 	LOG_INFO("XDS110: hardware version = 0x%04x", xds110.hardware);
-	if (0 != xds110.serial[0])
+	if (xds110.serial[0] != 0)
 		LOG_INFO("XDS110: serial number = %s", xds110.serial);
 	if (xds110.is_swd_mode) {
 		LOG_INFO("XDS110: connected to target via SWD");
@@ -1470,12 +1470,12 @@ static int xds110_init(void)
 
 	if (success) {
 		/* Set supply voltage for stand-alone probes */
-		if (XDS110_STAND_ALONE_ID == xds110.hardware) {
+		if (xds110.hardware == XDS110_STAND_ALONE_ID) {
 			success = xds_set_supply(xds110.voltage);
 			/* Allow time for target device to power up */
 			/* (CC32xx takes up to 1300 ms before debug is enabled) */
 			alive_sleep(1500);
-		} else if (0 != xds110.voltage) {
+		} else if (xds110.voltage != 0) {
 			/* Voltage supply not a feature of embedded probes */
 			LOG_WARNING(
 				"XDS110: ignoring supply voltage, not supported on this probe");
@@ -1557,7 +1557,7 @@ static void xds110_flush(void)
 	uint8_t data_in[MAX_DATA_BLOCK];
 	uint8_t *data_pntr;
 
-	if (0 == xds110.txn_request_size)
+	if (xds110.txn_request_size == 0)
 		return;
 
 	/* Terminate request queue */

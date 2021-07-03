@@ -386,7 +386,7 @@ static int efm32x_wait_status(struct flash_bank *bank, int timeout,
 
 		LOG_DEBUG("status: 0x%" PRIx32 "", status);
 
-		if (((status & wait_mask) == 0) && (0 == wait_for_set))
+		if (((status & wait_mask) == 0) && (wait_for_set == 0))
 			break;
 		else if (((status & wait_mask) != 0) && wait_for_set)
 			break;
@@ -457,7 +457,7 @@ static int efm32x_erase(struct flash_bank *bank, unsigned int first,
 	struct target *target = bank->target;
 	int ret = 0;
 
-	if (TARGET_HALTED != target->state) {
+	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
@@ -958,7 +958,7 @@ static int efm32x_probe(struct flash_bank *bank)
 	LOG_INFO("flash size = %dkbytes", efm32_mcu_info.flash_sz_kib);
 	LOG_INFO("flash page size = %dbytes", efm32_mcu_info.page_size);
 
-	assert(0 != efm32_mcu_info.page_size);
+	assert(efm32_mcu_info.page_size != 0);
 
 	int num_pages = efm32_mcu_info.flash_sz_kib * 1024 /
 		efm32_mcu_info.page_size;

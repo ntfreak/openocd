@@ -73,7 +73,7 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 	while (cur_dev) {
 		bool found = false;
 
-		if (0 == vids[0]) {
+		if (vids[0] == 0) {
 			if (!cur_dev->product_string) {
 				LOG_DEBUG("Cannot read product string of device 0x%x:0x%x",
 					  cur_dev->vendor_id, cur_dev->product_id);

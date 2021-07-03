@@ -611,7 +611,7 @@ static int read_all_core_hw_regs(struct target *t)
 	unsigned i;
 	struct x86_32_common *x86_32 = target_to_x86_32(t);
 	for (i = 0; i < (x86_32->cache->num_regs); i++) {
-		if (NOT_AVAIL_REG == regs[i].pm_idx)
+		if (regs[i].pm_idx == NOT_AVAIL_REG)
 			continue;
 		err = read_hw_reg(t, regs[i].id, &regval, 1);
 		if (err != ERROR_OK) {
@@ -630,7 +630,7 @@ static int write_all_core_hw_regs(struct target *t)
 	unsigned i;
 	struct x86_32_common *x86_32 = target_to_x86_32(t);
 	for (i = 0; i < (x86_32->cache->num_regs); i++) {
-		if (NOT_AVAIL_REG == regs[i].pm_idx)
+		if (regs[i].pm_idx == NOT_AVAIL_REG)
 			continue;
 		err = write_hw_reg(t, i, 0, 1);
 		if (err != ERROR_OK) {

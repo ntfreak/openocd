@@ -1212,7 +1212,7 @@ static int gdb_get_registers_packet(struct connection *connection,
 	LOG_DEBUG("-");
 #endif
 
-	if ((target->rtos) && (ERROR_OK == rtos_get_gdb_reg_list(connection)))
+	if ((target->rtos) && (rtos_get_gdb_reg_list(connection) == ERROR_OK))
 		return ERROR_OK;
 
 	retval = target_get_gdb_reg_list(target, &reg_list, &reg_list_size,
@@ -1342,7 +1342,7 @@ static int gdb_get_register_packet(struct connection *connection,
 	LOG_DEBUG("-");
 #endif
 
-	if ((target->rtos) && (ERROR_OK == rtos_get_gdb_reg(connection, reg_num)))
+	if ((target->rtos) && (rtos_get_gdb_reg(connection, reg_num) == ERROR_OK))
 		return ERROR_OK;
 
 	retval = target_get_gdb_reg_list_noread(target, &reg_list, &reg_list_size,
@@ -1399,7 +1399,7 @@ static int gdb_set_register_packet(struct connection *connection,
 	gdb_target_to_reg(target, separator + 1, chars, bin_buf);
 
 	if ((target->rtos) &&
-			(ERROR_OK == rtos_set_reg(connection, reg_num, bin_buf))) {
+			(rtos_set_reg(connection, reg_num, bin_buf) == ERROR_OK)) {
 		free(bin_buf);
 		gdb_put_packet(connection, "OK", 2);
 		return ERROR_OK;

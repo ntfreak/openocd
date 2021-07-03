@@ -460,25 +460,25 @@ COMMAND_HANDLER(handle_svf_command)
 		}
 
 		/* HDR %d TDI (0) */
-		if (ERROR_OK != svf_set_padding(&svf_para.hdr_para, header_dr_len, 0)) {
+		if (svf_set_padding(&svf_para.hdr_para, header_dr_len, 0) != ERROR_OK) {
 			LOG_ERROR("failed to set data header");
 			return ERROR_FAIL;
 		}
 
 		/* HIR %d TDI (0xFF) */
-		if (ERROR_OK != svf_set_padding(&svf_para.hir_para, header_ir_len, 0xFF)) {
+		if (svf_set_padding(&svf_para.hir_para, header_ir_len, 0xFF) != ERROR_OK) {
 			LOG_ERROR("failed to set instruction header");
 			return ERROR_FAIL;
 		}
 
 		/* TDR %d TDI (0) */
-		if (ERROR_OK != svf_set_padding(&svf_para.tdr_para, trailer_dr_len, 0)) {
+		if (svf_set_padding(&svf_para.tdr_para, trailer_dr_len, 0) != ERROR_OK) {
 			LOG_ERROR("failed to set data trailer");
 			return ERROR_FAIL;
 		}
 
 		/* TIR %d TDI (0xFF) */
-		if (ERROR_OK != svf_set_padding(&svf_para.tir_para, trailer_ir_len, 0xFF)) {
+		if (svf_set_padding(&svf_para.tir_para, trailer_ir_len, 0xFF) != ERROR_OK) {
 			LOG_ERROR("failed to set instruction trailer");
 			return ERROR_FAIL;
 		}
@@ -492,7 +492,7 @@ COMMAND_HANDLER(handle_svf_command)
 		}
 		rewind(svf_fd);
 	}
-	while (ERROR_OK == svf_read_command_from_file(svf_fd)) {
+	while (svf_read_command_from_file(svf_fd) == ERROR_OK) {
 		/* Log Output */
 		if (svf_quiet) {
 			if (svf_progress_enabled) {
@@ -510,7 +510,7 @@ COMMAND_HANDLER(handle_svf_command)
 				LOG_USER_N("%s", svf_read_line);
 		}
 		/* Run Command */
-		if (ERROR_OK != svf_run_command(CMD_CTX, svf_command_buffer)) {
+		if (svf_run_command(CMD_CTX, svf_command_buffer) != ERROR_OK) {
 			LOG_ERROR("fail to run command at line %d", svf_line_number);
 			ret = ERROR_FAIL;
 			break;
@@ -518,9 +518,9 @@ COMMAND_HANDLER(handle_svf_command)
 		command_num++;
 	}
 
-	if ((!svf_nil) && (ERROR_OK != jtag_execute_queue()))
+	if ((!svf_nil) && (jtag_execute_queue() != ERROR_OK))
 		ret = ERROR_FAIL;
-	else if (ERROR_OK != svf_check_tdo())
+	else if (svf_check_tdo() != ERROR_OK)
 		ret = ERROR_FAIL;
 
 	/* print time */
@@ -790,7 +790,7 @@ static int svf_copy_hexstring_to_binary(char *str, uint8_t **bin, int orig_bit_l
 	int i, str_len = strlen(str), str_hbyte_len = (bit_len + 3) >> 2;
 	uint8_t ch = 0;
 
-	if (ERROR_OK != svf_adjust_array_length(bin, orig_bit_len, bit_len)) {
+	if (svf_adjust_array_length(bin, orig_bit_len, bit_len) != ERROR_OK) {
 		LOG_ERROR("fail to adjust length of array");
 		return ERROR_FAIL;
 	}
@@ -893,9 +893,9 @@ static int svf_add_check_para(uint8_t enabled, int buffer_offset, int bit_len)
 
 static int svf_execute_tap(void)
 {
-	if ((!svf_nil) && (ERROR_OK != jtag_execute_queue()))
+	if ((!svf_nil) && (jtag_execute_queue() != ERROR_OK))
 		return ERROR_FAIL;
-	else if (ERROR_OK != svf_check_tdo())
+	else if (svf_check_tdo() != ERROR_OK)
 		return ERROR_FAIL;
 
 	svf_buffer_index = 0;
@@ -923,7 +923,7 @@ static int svf_run_command(struct command_context *cmd_ctx, char *cmd_str)
 	/* flag padding commands skipped due to -tap command */
 	int padding_command_skipped = 0;
 
-	if (ERROR_OK != svf_parse_cmd_string(cmd_str, strlen(cmd_str), argus, &num_of_argu))
+	if (svf_parse_cmd_string(cmd_str, strlen(cmd_str), argus, &num_of_argu) != ERROR_OK)
 		return ERROR_FAIL;
 
 	/* NOTE: we're a bit loose here, because we ignore case in
@@ -963,7 +963,7 @@ static int svf_run_command(struct command_context *cmd_ctx, char *cmd_str)
 				LOG_ERROR("invalid parameter of %s", argus[0]);
 				return ERROR_FAIL;
 			}
-			if (1 == num_of_argu) {
+			if (num_of_argu == 1) {
 				/* TODO: set jtag speed to full speed */
 				svf_para.frequency = 0;
 			} else {
@@ -971,7 +971,7 @@ static int svf_run_command(struct command_context *cmd_ctx, char *cmd_str)
 					LOG_ERROR("HZ not found in FREQUENCY command");
 					return ERROR_FAIL;
 				}
-				if (ERROR_OK != svf_execute_tap())
+				if (svf_execute_tap() != ERROR_OK)
 					return ERROR_FAIL;
 				svf_para.frequency = atof(argus[1]);
 				/* TODO: set jtag speed to */
@@ -1434,7 +1434,7 @@ xxr_common:
 						return ERROR_FAIL;
 					}
 					/* OpenOCD refuses paths containing TAP_RESET */
-					if (TAP_RESET == path[i]) {
+					if (path[i] == TAP_RESET) {
 						/* FIXME last state MUST be stable! */
 						if (i > 0) {
 							if (!svf_nil)
@@ -1487,7 +1487,7 @@ xxr_common:
 				return ERROR_FAIL;
 			}
 			if (svf_para.trst_mode != TRST_ABSENT) {
-				if (ERROR_OK != svf_execute_tap())
+				if (svf_execute_tap() != ERROR_OK)
 					return ERROR_FAIL;
 				i_tmp = svf_find_string_in_array(argus[1],
 						(char **)svf_trst_mode_name,
@@ -1530,7 +1530,7 @@ xxr_common:
 		if ((svf_buffer_index > 0) &&
 				(((command != STATE) && (command != RUNTEST)) ||
 						((command == STATE) && (num_of_argu == 2)))) {
-			if (ERROR_OK != svf_execute_tap())
+			if (svf_execute_tap() != ERROR_OK)
 				return ERROR_FAIL;
 
 			/* output debug info */

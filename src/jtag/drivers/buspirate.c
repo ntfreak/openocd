@@ -800,7 +800,7 @@ static void buspirate_tap_append(int tms, int tdi)
 		int bit_index = tap_chain_index % 8;
 		uint8_t bit = 1 << bit_index;
 
-		if (0 == bit_index) {
+		if (bit_index == 0) {
 			/* Let's say that the TAP shift operation wants to shift 9 bits,
 			   so we will be sending to the Bus Pirate a bit count of 9 but still
 			   full 16 bits (2 bytes) of shift data.
@@ -1178,13 +1178,13 @@ static int buspirate_serial_setspeed(int fd, char speed, cc_t timeout)
 
 	/* set the serial port parameters */
 	fcntl(fd, F_SETFL, 0);
-	if (0 != tcgetattr(fd, &t_opt))
+	if (tcgetattr(fd, &t_opt) != 0)
 		return -1;
 
-	if (0 != cfsetispeed(&t_opt, baud))
+	if (cfsetispeed(&t_opt, baud) != 0)
 		return -1;
 
-	if (0 != cfsetospeed(&t_opt, baud))
+	if (cfsetospeed(&t_opt, baud) != 0)
 		return -1;
 
 	t_opt.c_cflag |= (CLOCAL | CREAD);
@@ -1206,7 +1206,7 @@ static int buspirate_serial_setspeed(int fd, char speed, cc_t timeout)
 	/* Note that, in the past, TCSANOW was used below instead of TCSADRAIN,
 	   and CMD_UART_SPEED did not work properly then, at least with
 	   the Bus Pirate v3.5 (USB). */
-	if (0 != tcsetattr(fd, TCSADRAIN, &t_opt)) {
+	if (tcsetattr(fd, TCSADRAIN, &t_opt) != 0) {
 		/* According to the Linux documentation, this is actually not enough
 		   to detect errors, you need to call tcgetattr() and check that
 		   all changes have been performed successfully. */

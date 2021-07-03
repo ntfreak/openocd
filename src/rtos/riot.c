@@ -401,7 +401,7 @@ static int riot_create(struct target *target)
 
 	/* lookup if target is supported by RIOT */
 	while ((i < RIOT_NUM_PARAMS) &&
-		(0 != strcmp(riot_params_list[i].target_name, target->type->name))) {
+		(strcmp(riot_params_list[i].target_name, target->type->name) != 0)) {
 		i++;
 	}
 	if (i >= RIOT_NUM_PARAMS) {

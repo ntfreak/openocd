@@ -121,7 +121,7 @@ static int embkernel_create(struct target *target)
 {
 	size_t i = 0;
 	while ((i < ARRAY_SIZE(embkernel_params_list)) &&
-			(0 != strcmp(embkernel_params_list[i].target_name, target->type->name)))
+			(strcmp(embkernel_params_list[i].target_name, target->type->name) != 0))
 		i++;
 
 	if (i >= ARRAY_SIZE(embkernel_params_list)) {

@@ -243,7 +243,7 @@ struct jtag_tap *jtag_tap_by_string(const char *s)
 	struct jtag_tap *t = jtag_all_taps();
 
 	while (t) {
-		if (0 == strcmp(t->dotted_name, s))
+		if (strcmp(t->dotted_name, s) == 0)
 			return t;
 		t = t->next_tap;
 	}
@@ -1197,7 +1197,7 @@ static bool jtag_examine_chain_match_tap(const struct jtag_tap *tap)
 			return true;
 
 		/* treat "-expected-id 0" as a "don't-warn" wildcard */
-		if (0 == tap->expected_ids[ii])
+		if (tap->expected_ids[ii] == 0)
 			return true;
 	}
 

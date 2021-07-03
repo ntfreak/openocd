@@ -1835,9 +1835,9 @@ static int aice_check_dbger(uint32_t coreid, uint32_t expect_status)
 		aice_read_misc(coreid, NDS_EDM_MISC_DBGER, &value_dbger);
 
 		if ((value_dbger & expect_status) == expect_status) {
-			if (ERROR_OK != check_suppressed_exception(coreid, value_dbger))
+			if (check_suppressed_exception(coreid, value_dbger) != ERROR_OK)
 				return ERROR_FAIL;
-			if (ERROR_OK != check_privilege(coreid, value_dbger))
+			if (check_privilege(coreid, value_dbger) != ERROR_OK)
 				return ERROR_FAIL;
 			return ERROR_OK;
 		}
@@ -1895,18 +1895,18 @@ static int aice_read_reg(uint32_t coreid, uint32_t num, uint32_t *val)
 
 	uint32_t instructions[4]; /** execute instructions in DIM */
 
-	if (NDS32_REG_TYPE_GPR == nds32_reg_type(num)) { /* general registers */
+	if (nds32_reg_type(num) == NDS32_REG_TYPE_GPR) { /* general registers */
 		instructions[0] = MTSR_DTR(num);
 		instructions[1] = DSB;
 		instructions[2] = NOP;
 		instructions[3] = BEQ_MINUS_12;
-	} else if (NDS32_REG_TYPE_SPR == nds32_reg_type(num)) { /* user special registers */
+	} else if (nds32_reg_type(num) == NDS32_REG_TYPE_SPR) { /* user special registers */
 		instructions[0] = MFUSR_G0(0, nds32_reg_sr_index(num));
 		instructions[1] = MTSR_DTR(0);
 		instructions[2] = DSB;
 		instructions[3] = BEQ_MINUS_12;
-	} else if (NDS32_REG_TYPE_AUMR == nds32_reg_type(num)) { /* audio registers */
-		if ((CB_CTL <= num) && (num <= CBE3)) {
+	} else if (nds32_reg_type(num) == NDS32_REG_TYPE_AUMR) { /* audio registers */
+		if ((num >= CB_CTL) && (num <= CBE3)) {
 			instructions[0] = AMFAR2(0, nds32_reg_sr_index(num));
 			instructions[1] = MTSR_DTR(0);
 			instructions[2] = DSB;
@@ -1917,7 +1917,7 @@ static int aice_read_reg(uint32_t coreid, uint32_t num, uint32_t *val)
 			instructions[2] = DSB;
 			instructions[3] = BEQ_MINUS_12;
 		}
-	} else if (NDS32_REG_TYPE_FPU == nds32_reg_type(num)) { /* fpu registers */
+	} else if (nds32_reg_type(num) == NDS32_REG_TYPE_FPU) { /* fpu registers */
 		if (num == FPCSR) {
 			instructions[0] = FMFCSR;
 			instructions[1] = MTSR_DTR(0);
@@ -1983,7 +1983,7 @@ static int aice_usb_read_reg(uint32_t coreid, uint32_t num, uint32_t *val)
 	} else if ((core_info[coreid].target_dtr_valid == true) && (num == DR43)) {
 		*val = core_info[coreid].target_dtr_backup;
 	} else {
-		if (ERROR_OK != aice_read_reg(coreid, num, val))
+		if (aice_read_reg(coreid, num, val) != ERROR_OK)
 			*val = 0xBBADBEEF;
 	}
 
@@ -2004,18 +2004,18 @@ static int aice_write_reg(uint32_t coreid, uint32_t num, uint32_t val)
 		return ERROR_FAIL;
 	}
 
-	if (NDS32_REG_TYPE_GPR == nds32_reg_type(num)) { /* general registers */
+	if (nds32_reg_type(num) == NDS32_REG_TYPE_GPR) { /* general registers */
 		instructions[0] = MFSR_DTR(num);
 		instructions[1] = DSB;
 		instructions[2] = NOP;
 		instructions[3] = BEQ_MINUS_12;
-	} else if (NDS32_REG_TYPE_SPR == nds32_reg_type(num)) { /* user special registers */
+	} else if (nds32_reg_type(num) == NDS32_REG_TYPE_SPR) { /* user special registers */
 		instructions[0] = MFSR_DTR(0);
 		instructions[1] = MTUSR_G0(0, nds32_reg_sr_index(num));
 		instructions[2] = DSB;
 		instructions[3] = BEQ_MINUS_12;
-	} else if (NDS32_REG_TYPE_AUMR == nds32_reg_type(num)) { /* audio registers */
-		if ((CB_CTL <= num) && (num <= CBE3)) {
+	} else if (nds32_reg_type(num) == NDS32_REG_TYPE_AUMR) { /* audio registers */
+		if ((num >= CB_CTL) && (num <= CBE3)) {
 			instructions[0] = MFSR_DTR(0);
 			instructions[1] = AMTAR2(0, nds32_reg_sr_index(num));
 			instructions[2] = DSB;
@@ -2026,7 +2026,7 @@ static int aice_write_reg(uint32_t coreid, uint32_t num, uint32_t val)
 			instructions[2] = DSB;
 			instructions[3] = BEQ_MINUS_12;
 		}
-	} else if (NDS32_REG_TYPE_FPU == nds32_reg_type(num)) { /* fpu registers */
+	} else if (nds32_reg_type(num) == NDS32_REG_TYPE_FPU) { /* fpu registers */
 		if (num == FPCSR) {
 			instructions[0] = MFSR_DTR(0);
 			instructions[1] = FMTCSR;
@@ -2146,7 +2146,7 @@ static int aice_usb_read_reg_64(uint32_t coreid, uint32_t num, uint64_t *val)
 	uint32_t value;
 	uint32_t high_value;
 
-	if (ERROR_OK != aice_read_reg(coreid, num, &value))
+	if (aice_read_reg(coreid, num, &value) != ERROR_OK)
 		value = 0xBBADBEEF;
 
 	aice_read_reg(coreid, R1, &high_value);
@@ -2503,10 +2503,10 @@ static int aice_restore_tmp_registers(uint32_t coreid)
 
 static int aice_open_device(struct aice_port_param_s *param)
 {
-	if (ERROR_OK != aice_usb_open(param))
+	if (aice_usb_open(param) != ERROR_OK)
 		return ERROR_FAIL;
 
-	if (ERROR_FAIL == aice_get_version_info()) {
+	if (aice_get_version_info() == ERROR_FAIL) {
 		LOG_ERROR("Cannot get AICE version!");
 		return ERROR_FAIL;
 	}
@@ -2514,7 +2514,7 @@ static int aice_open_device(struct aice_port_param_s *param)
 	LOG_INFO("AICE initialization started");
 
 	/* attempt to reset Andes EDM */
-	if (ERROR_FAIL == aice_reset_box()) {
+	if (aice_reset_box() == ERROR_FAIL) {
 		LOG_ERROR("Cannot initial AICE box!");
 		return ERROR_FAIL;
 	}
@@ -2526,7 +2526,7 @@ static int aice_usb_set_jtag_clock(uint32_t a_clock)
 {
 	jtag_clock = a_clock;
 
-	if (ERROR_OK != aice_usb_set_clock(a_clock)) {
+	if (aice_usb_set_clock(a_clock) != ERROR_OK) {
 		LOG_ERROR("Cannot set AICE JTAG clock!");
 		return ERROR_FAIL;
 	}
@@ -2705,7 +2705,7 @@ static int aice_usb_state(uint32_t coreid, enum aice_target_state_s *state)
 		/* Clear CRST */
 		aice_write_misc(coreid, NDS_EDM_MISC_DBGER, NDS_DBGER_CRST);
 	} else if ((dbger_value & NDS_DBGER_DEX) == NDS_DBGER_DEX) {
-		if (AICE_TARGET_RUNNING == core_info[coreid].core_state) {
+		if (core_info[coreid].core_state == AICE_TARGET_RUNNING) {
 			/* enter debug mode, init EDM registers */
 			/* backup EDM registers */
 			aice_backup_edm_registers(coreid);
@@ -2713,7 +2713,7 @@ static int aice_usb_state(uint32_t coreid, enum aice_target_state_s *state)
 			aice_init_edm_registers(coreid, true);
 			aice_backup_tmp_registers(coreid);
 			core_info[coreid].core_state = AICE_TARGET_HALTED;
-		} else if (AICE_TARGET_UNKNOWN == core_info[coreid].core_state) {
+		} else if (core_info[coreid].core_state == AICE_TARGET_UNKNOWN) {
 			/* debug 'debug mode', use force debug to halt core */
 			aice_usb_halt(coreid);
 		}
@@ -2889,7 +2889,7 @@ static int aice_usb_assert_srst(uint32_t coreid, enum aice_srst_type_s srst)
 	if (srst == AICE_SRST)
 		result = aice_issue_srst(coreid);
 	else {
-		if (1 == total_num_of_core)
+		if (total_num_of_core == 1)
 			result = aice_issue_reset_hold(coreid);
 		else
 			result = aice_issue_reset_hold_multi();
@@ -2972,7 +2972,7 @@ static int aice_usb_step(uint32_t coreid)
 		aice_write_reg(coreid, ir0_reg_num, ir0_value);
 	}
 
-	if (ERROR_FAIL == aice_usb_run(coreid))
+	if (aice_usb_run(coreid) == ERROR_FAIL)
 		return ERROR_FAIL;
 
 	int i = 0;
@@ -3092,7 +3092,7 @@ static int aice_usb_read_memory_unit(uint32_t coreid, uint32_t addr, uint32_t si
 			", size: %" PRIu32 ", count: %" PRIu32 "",
 			addr, size, count);
 
-	if (NDS_MEMORY_ACC_CPU == core_info[coreid].access_channel)
+	if (core_info[coreid].access_channel == NDS_MEMORY_ACC_CPU)
 		aice_usb_set_address_dim(coreid, addr);
 
 	uint32_t value;
@@ -3101,7 +3101,7 @@ static int aice_usb_read_memory_unit(uint32_t coreid, uint32_t addr, uint32_t si
 
 	switch (size) {
 		case 1:
-			if (NDS_MEMORY_ACC_BUS == core_info[coreid].access_channel)
+			if (core_info[coreid].access_channel == NDS_MEMORY_ACC_BUS)
 				read_mem_func = aice_usb_read_mem_b_bus;
 			else
 				read_mem_func = aice_usb_read_mem_b_dim;
@@ -3113,7 +3113,7 @@ static int aice_usb_read_memory_unit(uint32_t coreid, uint32_t addr, uint32_t si
 			}
 			break;
 		case 2:
-			if (NDS_MEMORY_ACC_BUS == core_info[coreid].access_channel)
+			if (core_info[coreid].access_channel == NDS_MEMORY_ACC_BUS)
 				read_mem_func = aice_usb_read_mem_h_bus;
 			else
 				read_mem_func = aice_usb_read_mem_h_dim;
@@ -3127,7 +3127,7 @@ static int aice_usb_read_memory_unit(uint32_t coreid, uint32_t addr, uint32_t si
 			}
 			break;
 		case 4:
-			if (NDS_MEMORY_ACC_BUS == core_info[coreid].access_channel)
+			if (core_info[coreid].access_channel == NDS_MEMORY_ACC_BUS)
 				read_mem_func = aice_usb_read_mem_w_bus;
 			else
 				read_mem_func = aice_usb_read_mem_w_dim;
@@ -3211,7 +3211,7 @@ static int aice_usb_write_memory_unit(uint32_t coreid, uint32_t addr, uint32_t s
 			", size: %" PRIu32 ", count: %" PRIu32 "",
 			addr, size, count);
 
-	if (NDS_MEMORY_ACC_CPU == core_info[coreid].access_channel)
+	if (core_info[coreid].access_channel == NDS_MEMORY_ACC_CPU)
 		aice_usb_set_address_dim(coreid, addr);
 
 	size_t i;
@@ -3219,7 +3219,7 @@ static int aice_usb_write_memory_unit(uint32_t coreid, uint32_t addr, uint32_t s
 
 	switch (size) {
 		case 1:
-			if (NDS_MEMORY_ACC_BUS == core_info[coreid].access_channel)
+			if (core_info[coreid].access_channel == NDS_MEMORY_ACC_BUS)
 				write_mem_func = aice_usb_write_mem_b_bus;
 			else
 				write_mem_func = aice_usb_write_mem_b_dim;
@@ -3231,7 +3231,7 @@ static int aice_usb_write_memory_unit(uint32_t coreid, uint32_t addr, uint32_t s
 			}
 			break;
 		case 2:
-			if (NDS_MEMORY_ACC_BUS == core_info[coreid].access_channel)
+			if (core_info[coreid].access_channel == NDS_MEMORY_ACC_BUS)
 				write_mem_func = aice_usb_write_mem_h_bus;
 			else
 				write_mem_func = aice_usb_write_mem_h_dim;
@@ -3246,7 +3246,7 @@ static int aice_usb_write_memory_unit(uint32_t coreid, uint32_t addr, uint32_t s
 			}
 			break;
 		case 4:
-			if (NDS_MEMORY_ACC_BUS == core_info[coreid].access_channel)
+			if (core_info[coreid].access_channel == NDS_MEMORY_ACC_BUS)
 				write_mem_func = aice_usb_write_mem_w_bus;
 			else
 				write_mem_func = aice_usb_write_mem_w_dim;
@@ -3322,10 +3322,10 @@ static int aice_usb_bulk_read_mem(uint32_t coreid, uint32_t addr,
 
 	int retval;
 
-	if (NDS_MEMORY_ACC_CPU == core_info[coreid].access_channel)
+	if (core_info[coreid].access_channel == NDS_MEMORY_ACC_CPU)
 		aice_usb_set_address_dim(coreid, addr);
 
-	if (NDS_MEMORY_ACC_CPU == core_info[coreid].access_channel)
+	if (core_info[coreid].access_channel == NDS_MEMORY_ACC_CPU)
 		retval = aice_usb_read_memory_unit(coreid, addr, 4, length / 4, buffer);
 	else
 		retval = aice_bulk_read_mem(coreid, addr, length / 4, buffer);
@@ -3340,10 +3340,10 @@ static int aice_usb_bulk_write_mem(uint32_t coreid, uint32_t addr,
 
 	int retval;
 
-	if (NDS_MEMORY_ACC_CPU == core_info[coreid].access_channel)
+	if (core_info[coreid].access_channel == NDS_MEMORY_ACC_CPU)
 		aice_usb_set_address_dim(coreid, addr);
 
-	if (NDS_MEMORY_ACC_CPU == core_info[coreid].access_channel)
+	if (core_info[coreid].access_channel == NDS_MEMORY_ACC_CPU)
 		retval = aice_usb_write_memory_unit(coreid, addr, 4, length / 4, buffer);
 	else
 		retval = aice_bulk_write_mem(coreid, addr, length / 4, buffer);
@@ -3353,7 +3353,7 @@ static int aice_usb_bulk_write_mem(uint32_t coreid, uint32_t addr,
 
 static int aice_usb_read_debug_reg(uint32_t coreid, uint32_t addr, uint32_t *val)
 {
-	if (AICE_TARGET_HALTED == core_info[coreid].core_state) {
+	if (core_info[coreid].core_state == AICE_TARGET_HALTED) {
 		if (addr == NDS_EDM_SR_EDMSW) {
 			*val = core_info[coreid].edmsw_backup;
 		} else if (addr == NDS_EDM_SR_EDM_DTR) {
@@ -3373,7 +3373,7 @@ static int aice_usb_read_debug_reg(uint32_t coreid, uint32_t addr, uint32_t *val
 
 static int aice_usb_write_debug_reg(uint32_t coreid, uint32_t addr, const uint32_t val)
 {
-	if (AICE_TARGET_HALTED == core_info[coreid].core_state) {
+	if (core_info[coreid].core_state == AICE_TARGET_HALTED) {
 		if (addr == NDS_EDM_SR_EDM_DTR) {
 			core_info[coreid].host_dtr_backup = val;
 			core_info[coreid].edmsw_backup |= 0x2;
@@ -3402,7 +3402,7 @@ static int aice_usb_memory_mode(uint32_t coreid, enum nds_memory_select mem_sele
 
 	core_info[coreid].memory_select = mem_select;
 
-	if (NDS_MEMORY_SELECT_AUTO != core_info[coreid].memory_select)
+	if (core_info[coreid].memory_select != NDS_MEMORY_SELECT_AUTO)
 		aice_write_misc(coreid, NDS_EDM_MISC_ACC_CTL,
 				core_info[coreid].memory_select - 1);
 	else
@@ -3454,13 +3454,13 @@ static int aice_usb_read_tlb(uint32_t coreid, target_addr_t virtual_address,
 	aice_read_reg(coreid, MR4, &value_mr4);
 
 	access_page_size = value_mr4 & 0xF;
-	if (0 == access_page_size) { /* 4K page */
+	if (access_page_size == 0) { /* 4K page */
 		virtual_offset = virtual_address & 0x00000FFF;
 		physical_page_number = value_mr3 & 0xFFFFF000;
-	} else if (1 == access_page_size) { /* 8K page */
+	} else if (access_page_size == 1) { /* 8K page */
 		virtual_offset = virtual_address & 0x00001FFF;
 		physical_page_number = value_mr3 & 0xFFFFE000;
-	} else if (5 == access_page_size) { /* 1M page */
+	} else if (access_page_size == 5) { /* 1M page */
 		virtual_offset = virtual_address & 0x000FFFFF;
 		physical_page_number = value_mr3 & 0xFFF00000;
 	} else {
@@ -3546,10 +3546,10 @@ static int aice_usb_dcache_inval_all(uint32_t coreid)
 			cache_index = (way_index << (dcache->log2_set + dcache->log2_line_size)) |
 				(set_index << dcache->log2_line_size);
 
-			if (ERROR_OK != aice_write_dtr(coreid, cache_index))
+			if (aice_write_dtr(coreid, cache_index) != ERROR_OK)
 				return ERROR_FAIL;
 
-			if (ERROR_OK != aice_execute_dim(coreid, instructions, 4))
+			if (aice_execute_dim(coreid, instructions, 4) != ERROR_OK)
 				return ERROR_FAIL;
 		}
 	}
@@ -3594,10 +3594,10 @@ static int aice_usb_dcache_wb_all(uint32_t coreid)
 			cache_index = (way_index << (dcache->log2_set + dcache->log2_line_size)) |
 				(set_index << dcache->log2_line_size);
 
-			if (ERROR_OK != aice_write_dtr(coreid, cache_index))
+			if (aice_write_dtr(coreid, cache_index) != ERROR_OK)
 				return ERROR_FAIL;
 
-			if (ERROR_OK != aice_execute_dim(coreid, instructions, 4))
+			if (aice_execute_dim(coreid, instructions, 4) != ERROR_OK)
 				return ERROR_FAIL;
 		}
 	}
@@ -3642,10 +3642,10 @@ static int aice_usb_icache_inval_all(uint32_t coreid)
 			cache_index = (way_index << (icache->log2_set + icache->log2_line_size)) |
 				(set_index << icache->log2_line_size);
 
-			if (ERROR_OK != aice_write_dtr(coreid, cache_index))
+			if (aice_write_dtr(coreid, cache_index) != ERROR_OK)
 				return ERROR_FAIL;
 
-			if (ERROR_OK != aice_execute_dim(coreid, instructions, 4))
+			if (aice_execute_dim(coreid, instructions, 4) != ERROR_OK)
 				return ERROR_FAIL;
 		}
 	}
@@ -3896,13 +3896,13 @@ static int fill_profiling_batch_commands(uint32_t coreid, uint32_t reg_no)
 	aice_read_dtr_to_buffer(coreid, AICE_BATCH_DATA_BUFFER_0);
 
 	/* get samples */
-	if (NDS32_REG_TYPE_GPR == nds32_reg_type(reg_no)) {
+	if (nds32_reg_type(reg_no) == NDS32_REG_TYPE_GPR) {
 		/* general registers */
 		dim_instructions[0] = MTSR_DTR(reg_no);
 		dim_instructions[1] = DSB;
 		dim_instructions[2] = NOP;
 		dim_instructions[3] = BEQ_MINUS_12;
-	} else if (NDS32_REG_TYPE_SPR == nds32_reg_type(reg_no)) {
+	} else if (nds32_reg_type(reg_no) == NDS32_REG_TYPE_SPR) {
 		/* user special registers */
 		dim_instructions[0] = MFUSR_G0(0, nds32_reg_sr_index(reg_no));
 		dim_instructions[1] = MTSR_DTR(0);

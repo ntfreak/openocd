@@ -203,7 +203,7 @@ RESULT versaloon_send_command(uint16_t out_len, uint16_t *inlen)
 		LOG_BUG(ERRMSG_INVALID_BUFFER, TO_STR(versaloon_buf));
 		return ERRCODE_INVALID_BUFFER;
 	}
-	if ((0 == out_len) || (out_len > versaloon_interface.usb_setting.buf_size)) {
+	if ((out_len == 0) || (out_len > versaloon_interface.usb_setting.buf_size)) {
 		LOG_BUG(ERRMSG_INVALID_PARAMETER, __func__);
 		return ERRCODE_INVALID_PARAMETER;
 	}
@@ -222,7 +222,7 @@ RESULT versaloon_send_command(uint16_t out_len, uint16_t *inlen)
 			versaloon_interface.usb_setting.ep_in,
 			versaloon_buf, versaloon_interface.usb_setting.buf_size,
 			&transferred, versaloon_usb_to);
-		if (0 == ret) {
+		if (ret == 0) {
 			*inlen = (uint16_t)transferred;
 			return ERROR_OK;
 		} else {
@@ -254,7 +254,7 @@ static RESULT versaloon_init(void)
 	versaloon_usb_to = 100;
 	for (retry = 0; retry < VERSALOON_RETRY_CNT; retry++) {
 		versaloon_buf[0] = VERSALOON_GET_INFO;
-		if ((ERROR_OK == versaloon_send_command(1, &ret)) && (ret >= 3))
+		if ((versaloon_send_command(1, &ret) == ERROR_OK) && (ret >= 3))
 			break;
 	}
 	versaloon_usb_to = timeout_tmp;
@@ -285,7 +285,7 @@ static RESULT versaloon_init(void)
 		LOG_ERROR(ERRMSG_NOT_ENOUGH_MEMORY);
 		return ERRCODE_NOT_ENOUGH_MEMORY;
 	}
-	if (ERROR_OK != usbtoxxx_init()) {
+	if (usbtoxxx_init() != ERROR_OK) {
 		LOG_ERROR(ERRMSG_FAILURE_OPERATION, "initialize usbtoxxx");
 		return ERROR_FAIL;
 	}
@@ -337,7 +337,7 @@ static RESULT versaloon_get_target_voltage(uint16_t *voltage)
 
 	versaloon_buf[0] = VERSALOON_GET_TVCC;
 
-	if ((ERROR_OK != versaloon_send_command(1, &inlen)) || (inlen != 2)) {
+	if ((versaloon_send_command(1, &inlen) != ERROR_OK) || (inlen != 2)) {
 		LOG_ERROR(ERRMSG_FAILURE_OPERATION, "communicate with versaloon");
 		return ERRCODE_FAILURE_OPERATION;
 	} else {

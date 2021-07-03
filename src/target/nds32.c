@@ -95,10 +95,10 @@ static int nds32_get_core_reg(struct reg *reg)
 	} else {
 		uint32_t val = 0;
 		if ((nds32->fpu_enable == false)
-				&& (NDS32_REG_TYPE_FPU == nds32_reg_type(mapped_regnum))) {
+				&& (nds32_reg_type(mapped_regnum) == NDS32_REG_TYPE_FPU)) {
 			retval = ERROR_OK;
 		} else if ((nds32->audio_enable == false)
-				&& (NDS32_REG_TYPE_AUMR == nds32_reg_type(mapped_regnum))) {
+				&& (nds32_reg_type(mapped_regnum) == NDS32_REG_TYPE_AUMR)) {
 			retval = ERROR_OK;
 		} else {
 			retval = aice_read_register(aice, mapped_regnum, &val);
@@ -139,7 +139,7 @@ static int nds32_get_core_reg_64(struct reg *reg)
 	} else {
 		uint64_t val = 0;
 		if ((nds32->fpu_enable == false)
-				&& ((FD0 <= reg_arch_info->num) && (reg_arch_info->num <= FD31))) {
+				&& ((reg_arch_info->num >= FD0) && (reg_arch_info->num <= FD31))) {
 			retval = ERROR_OK;
 		} else {
 			retval = aice_read_reg_64(aice, reg_arch_info->num, &val);
@@ -193,7 +193,7 @@ static int nds32_update_cache_info(struct nds32 *nds32)
 {
 	uint32_t value;
 
-	if (ERROR_OK == nds32_get_mapped_reg(nds32, MR8, &value)) {
+	if (nds32_get_mapped_reg(nds32, MR8, &value) == ERROR_OK) {
 		if (value & 0x1)
 			nds32->memory.icache.enable = true;
 		else
@@ -308,11 +308,11 @@ static int nds32_set_core_reg(struct reg *reg, uint8_t *buf)
 			reg_arch_info->num, reg->name, value);
 
 	if ((nds32->fpu_enable == false) &&
-		(NDS32_REG_TYPE_FPU == nds32_reg_type(mapped_regnum))) {
+		(nds32_reg_type(mapped_regnum) == NDS32_REG_TYPE_FPU)) {
 
 		buf_set_u32(reg->value, 0, 32, 0);
 	} else if ((nds32->audio_enable == false) &&
-		(NDS32_REG_TYPE_AUMR == nds32_reg_type(mapped_regnum))) {
+		(nds32_reg_type(mapped_regnum) == NDS32_REG_TYPE_AUMR)) {
 
 		buf_set_u32(reg->value, 0, 32, 0);
 	} else {
@@ -361,7 +361,7 @@ static int nds32_set_core_reg_64(struct reg *reg, uint8_t *buf)
 	}
 
 	if ((nds32->fpu_enable == false) &&
-		((FD0 <= reg_arch_info->num) && (reg_arch_info->num <= FD31))) {
+		((reg_arch_info->num >= FD0) && (reg_arch_info->num <= FD31))) {
 
 		buf_set_u32(reg->value, 0, 32, 0);
 		buf_set_u32(reg->value, 32, 32, 0);
@@ -434,7 +434,7 @@ static struct reg_cache *nds32_build_reg_cache(struct target *target,
 			reg_list[i].type = &nds32_reg_access_type;
 			reg_list[i].group = "general";
 
-			if ((FS0 <= reg_arch_info[i].num) && (reg_arch_info[i].num <= FS31)) {
+			if ((reg_arch_info[i].num >= FS0) && (reg_arch_info[i].num <= FS31)) {
 				reg_list[i].reg_data_type->type = REG_TYPE_IEEE_SINGLE;
 				reg_list[i].reg_data_type->id = "ieee_single";
 				reg_list[i].group = "float";
@@ -531,7 +531,7 @@ int nds32_get_mapped_reg(struct nds32 *nds32, unsigned regnum, uint32_t *value)
 
 	r = nds32_reg_current(nds32, regnum);
 
-	if (ERROR_OK != r->type->get(r))
+	if (r->type->get(r) != ERROR_OK)
 		return ERROR_FAIL;
 
 	*value = buf_get_u32(r->value, 0, 32);
@@ -636,7 +636,7 @@ static int nds32_select_memory_mode(struct target *target, uint32_t address,
 	/* init end_address */
 	*end_address = address_end;
 
-	if (NDS_MEMORY_ACC_CPU == memory->access_channel)
+	if (memory->access_channel == NDS_MEMORY_ACC_CPU)
 		return ERROR_OK;
 
 	if (edm->access_control == false) {
@@ -650,7 +650,7 @@ static int nds32_select_memory_mode(struct target *target, uint32_t address,
 		return ERROR_OK;
 	}
 
-	if (NDS_MEMORY_SELECT_AUTO != memory->mode) {
+	if (memory->mode != NDS_MEMORY_SELECT_AUTO) {
 		LOG_DEBUG("Memory mode is not AUTO");
 		return ERROR_OK;
 	}
@@ -727,7 +727,7 @@ int nds32_read_buffer(struct target *target, uint32_t address,
 	struct nds32 *nds32 = target_to_nds32(target);
 	struct nds32_memory *memory = &(nds32->memory);
 
-	if ((NDS_MEMORY_ACC_CPU == memory->access_channel) &&
+	if ((memory->access_channel == NDS_MEMORY_ACC_CPU) &&
 			(target->state != TARGET_HALTED)) {
 		LOG_WARNING("target was not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -850,7 +850,7 @@ int nds32_write_buffer(struct target *target, uint32_t address,
 	struct nds32 *nds32 = target_to_nds32(target);
 	struct nds32_memory *memory = &(nds32->memory);
 
-	if ((NDS_MEMORY_ACC_CPU == memory->access_channel) &&
+	if ((memory->access_channel == NDS_MEMORY_ACC_CPU) &&
 			(target->state != TARGET_HALTED)) {
 		LOG_WARNING("target was not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -1576,7 +1576,7 @@ int nds32_edm_config(struct nds32 *nds32)
 
 	nds32->edm.breakpoint_num = (edm_cfg & 0x7) + 1;
 
-	if ((nds32->edm.version & 0x1000) || (0x60 <= nds32->edm.version))
+	if ((nds32->edm.version & 0x1000) || (nds32->edm.version >= 0x60))
 		nds32->edm.access_control = true;
 	else
 		nds32->edm.access_control = false;
@@ -1661,10 +1661,10 @@ int nds32_init_arch_info(struct target *target, struct nds32 *nds32)
 
 	nds32_reg_init();
 
-	if (ERROR_FAIL == nds32_reg_cache_init(target, nds32))
+	if (nds32_reg_cache_init(target, nds32) == ERROR_FAIL)
 		return ERROR_FAIL;
 
-	if (ERROR_OK != nds32_init_register_table(nds32))
+	if (nds32_init_register_table(nds32) != ERROR_OK)
 		return ERROR_FAIL;
 
 	return ERROR_OK;
@@ -1679,10 +1679,10 @@ int nds32_virtual_to_physical(struct target *target, target_addr_t address, targ
 		return ERROR_OK;
 	}
 
-	if (ERROR_OK == nds32_probe_tlb(nds32, address, physical))
+	if (nds32_probe_tlb(nds32, address, physical) == ERROR_OK)
 		return ERROR_OK;
 
-	if (ERROR_OK == nds32_walk_page_table(nds32, address, physical))
+	if (nds32_walk_page_table(nds32, address, physical) == ERROR_OK)
 		return ERROR_OK;
 
 	return ERROR_FAIL;
@@ -1800,7 +1800,7 @@ int nds32_step(struct target *target, int current,
 
 	if (no_step == false) {
 		struct aice_port_s *aice = target_to_aice(target);
-		if (ERROR_OK != aice_step(aice))
+		if (aice_step(aice) != ERROR_OK)
 			return ERROR_FAIL;
 	}
 
@@ -1843,7 +1843,7 @@ static int nds32_step_without_watchpoint(struct nds32 *nds32)
 
 	struct aice_port_s *aice = target_to_aice(target);
 
-	if (ERROR_OK != aice_step(aice))
+	if (aice_step(aice) != ERROR_OK)
 		return ERROR_FAIL;
 
 	/* save state */
@@ -1924,7 +1924,7 @@ int nds32_examine_debug_reason(struct nds32 *nds32)
 
 				nds32_get_mapped_reg(nds32, PC, &value_pc);
 
-				if (ERROR_OK != nds32_read_opcode(nds32, value_pc, &opcode))
+				if (nds32_read_opcode(nds32, value_pc, &opcode) != ERROR_OK)
 					return ERROR_FAIL;
 				if (ERROR_OK != nds32_evaluate_opcode(nds32, opcode, value_pc,
 							&instruction))
@@ -2012,7 +2012,7 @@ int nds32_login(struct nds32 *nds32)
 			strcat(command_sequence, command_str);
 		}
 
-		if (ERROR_OK != aice_program_edm(aice, command_sequence))
+		if (aice_program_edm(aice, command_sequence) != ERROR_OK)
 			return ERROR_FAIL;
 
 		/* get current privilege level */
@@ -2034,7 +2034,7 @@ int nds32_login(struct nds32 *nds32)
 				return ERROR_FAIL;
 
 			sprintf(command_str, "write_misc %s 0x%" PRIx32 ";", reg_name, code);
-			if (ERROR_OK != aice_program_edm(aice, command_str))
+			if (aice_program_edm(aice, command_str) != ERROR_OK)
 				return ERROR_FAIL;
 		}
 	}
@@ -2061,7 +2061,7 @@ int nds32_halt(struct target *target)
 
 	if (state != TARGET_HALTED)
 		/* TODO: if state == TARGET_HALTED, check ETYPE is DBGI or not */
-		if (ERROR_OK != aice_halt(aice))
+		if (aice_halt(aice) != ERROR_OK)
 			return ERROR_FAIL;
 
 	CHECK_RETVAL(nds32->enter_debug_state(nds32, true));
@@ -2083,7 +2083,7 @@ int nds32_poll(struct target *target)
 	if (state == TARGET_HALTED) {
 		if (target->state != TARGET_HALTED) {
 			/* if false_hit, continue free_run */
-			if (ERROR_OK != nds32->enter_debug_state(nds32, true)) {
+			if (nds32->enter_debug_state(nds32, true) != ERROR_OK) {
 				struct aice_port_s *aice = target_to_aice(target);
 				aice_run(aice);
 				return ERROR_OK;
@@ -2513,8 +2513,8 @@ int nds32_profiling(struct target *target, uint32_t *samples,
 int nds32_gdb_fileio_write_memory(struct nds32 *nds32, uint32_t address,
 		uint32_t size, const uint8_t *buffer)
 {
-	if ((NDS32_SYSCALL_FSTAT == nds32->active_syscall_id) ||
-			(NDS32_SYSCALL_STAT == nds32->active_syscall_id)) {
+	if ((nds32->active_syscall_id == NDS32_SYSCALL_FSTAT) ||
+			(nds32->active_syscall_id == NDS32_SYSCALL_STAT)) {
 		/* If doing GDB file-I/O, target should convert 'struct stat'
 		 * from gdb-format to target-format */
 		uint8_t stat_buffer[NDS32_STRUCT_STAT_SIZE];
@@ -2597,7 +2597,7 @@ int nds32_gdb_fileio_write_memory(struct nds32 *nds32, uint32_t address,
 		stat_buffer[59] = 0;
 
 		return nds32_write_buffer(nds32->target, address, NDS32_STRUCT_STAT_SIZE, stat_buffer);
-	} else if (NDS32_SYSCALL_GETTIMEOFDAY == nds32->active_syscall_id) {
+	} else if (nds32->active_syscall_id == NDS32_SYSCALL_GETTIMEOFDAY) {
 		/* If doing GDB file-I/O, target should convert 'struct timeval'
 		 * from gdb-format to target-format */
 		uint8_t timeval_buffer[NDS32_STRUCT_TIMEVAL_SIZE];

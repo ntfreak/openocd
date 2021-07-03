@@ -1062,7 +1062,7 @@ COMMAND_HANDLER(armv8_handle_exception_catch_command)
 		return ERROR_OK;
 	}
 
-	while (CMD_ARGC > argp) {
+	while (argp < CMD_ARGC) {
 		n = jim_nvp_name2value_simple(nvp_ecatch_modes, CMD_ARGV[argp]);
 		if (!n->name) {
 			LOG_ERROR("Unknown option: %s", CMD_ARGV[argp]);

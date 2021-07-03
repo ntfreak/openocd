@@ -287,7 +287,7 @@ static int vsllink_interface_init(void)
 
 	libusb_init(&vsllink_handle->libusb_ctx);
 
-	if (ERROR_OK != vsllink_usb_open(vsllink_handle)) {
+	if (vsllink_usb_open(vsllink_handle) != ERROR_OK) {
 		LOG_ERROR("Can't find USB JTAG Interface!"
 			"Please check connection and permissions.");
 		return ERROR_JTAG_INIT_FAILED;
@@ -297,7 +297,7 @@ static int vsllink_interface_init(void)
 		versaloon_interface.usb_setting.pid);
 	versaloon_usb_device_handle = vsllink_handle->usb_device_handle;
 
-	if (ERROR_OK != versaloon_interface.init())
+	if (versaloon_interface.init() != ERROR_OK)
 		return ERROR_FAIL;
 	if (versaloon_interface.usb_setting.buf_size < 32) {
 		versaloon_interface.fini();
@@ -344,7 +344,7 @@ static int vsllink_init(void)
 			GPIO_TRST, GPIO_SRST, GPIO_SRST);
 	}
 
-	if (ERROR_OK != versaloon_interface.adaptors.peripheral_commit())
+	if (versaloon_interface.adaptors.peripheral_commit() != ERROR_OK)
 		return ERROR_FAIL;
 
 	vsllink_reset(0, 0);

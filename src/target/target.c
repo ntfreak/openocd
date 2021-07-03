@@ -5718,7 +5718,7 @@ static int target_create(struct jim_getopt_info *goi)
 	}
 	/* now does target type exist */
 	for (x = 0 ; target_types[x] ; x++) {
-		if (0 == strcmp(cp, target_types[x]->name)) {
+		if (strcmp(cp, target_types[x]->name) == 0) {
 			/* found */
 			break;
 		}

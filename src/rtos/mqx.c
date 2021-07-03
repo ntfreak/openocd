@@ -268,7 +268,7 @@ static int mqx_create(
 {
 	/* check target name against supported architectures */
 	for (unsigned int i = 0; i < ARRAY_SIZE(mqx_params_list); i++) {
-		if (0 == strcmp(mqx_params_list[i].target_name, target->type->name)) {
+		if (strcmp(mqx_params_list[i].target_name, target->type->name) == 0) {
 			target->rtos->rtos_specific_params = (void *)&mqx_params_list[i];
 			/* LOG_DEBUG("MQX RTOS - valid architecture: %s", target->type->name); */
 			return 0;
@@ -299,7 +299,7 @@ static int mqx_update_threads(
 	/* clear old data */
 	rtos_free_threadlist(rtos);
 	/* check scheduler */
-	if (ERROR_OK != mqx_is_scheduler_running(rtos))
+	if (mqx_is_scheduler_running(rtos) != ERROR_OK)
 		return ERROR_FAIL;
 	/* get kernel_data symbol */
 	if (ERROR_OK != mqx_get_symbol(
@@ -468,7 +468,7 @@ static int mqx_get_thread_reg_list(
 		LOG_ERROR("MQX RTOS - invalid threadid: 0x%X", (int)thread_id);
 		return ERROR_FAIL;
 	}
-	if (ERROR_OK != mqx_is_scheduler_running(rtos))
+	if (mqx_is_scheduler_running(rtos) != ERROR_OK)
 		return ERROR_FAIL;
 	/* get kernel_data symbol */
 	if (ERROR_OK != mqx_get_symbol(
