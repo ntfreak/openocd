@@ -774,7 +774,7 @@ COMMAND_HANDLER(ambiqmicro_handle_mass_erase_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (ambiqmicro_mass_erase(bank) == ERROR_OK) {
@@ -802,7 +802,7 @@ COMMAND_HANDLER(ambiqmicro_handle_page_erase_command)
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[2], last);
 
 	retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (ambiqmicro_erase(bank, first, last) == ERROR_OK)

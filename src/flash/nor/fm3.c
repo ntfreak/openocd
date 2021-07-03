@@ -949,7 +949,7 @@ COMMAND_HANDLER(fm3_handle_chip_erase_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (fm3_chip_erase(bank) == ERROR_OK) {

@@ -141,7 +141,7 @@ static float lpc32xx_cycle_time(struct nand_device *nand)
 
 	/* determine current SYSCLK (13'MHz or main oscillator) */
 	retval = target_read_u32(target, 0x40004050, &sysclk_ctrl);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("could not read SYSCLK_CTRL");
 		return ERROR_NAND_OPERATION_FAILED;
 	}
@@ -153,7 +153,7 @@ static float lpc32xx_cycle_time(struct nand_device *nand)
 
 	/* determine selected HCLK source */
 	retval = target_read_u32(target, 0x40004044, &pwr_ctrl);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("could not read HCLK_CTRL");
 		return ERROR_NAND_OPERATION_FAILED;
 	}
@@ -162,14 +162,14 @@ static float lpc32xx_cycle_time(struct nand_device *nand)
 		hclk = sysclk;
 	else {
 		retval = target_read_u32(target, 0x40004058, &hclkpll_ctrl);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not read HCLKPLL_CTRL");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 		hclk_pll = lpc32xx_pll(sysclk, hclkpll_ctrl);
 
 		retval = target_read_u32(target, 0x40004040, &hclkdiv_ctrl);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not read CLKDIV_CTRL");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -235,21 +235,21 @@ static int lpc32xx_init(struct nand_device *nand)
 
 		/* FLASHCLK_CTRL = 0x22 (enable clk for MLC) */
 		retval = target_write_u32(target, 0x400040c8, 0x22);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set FLASHCLK_CTRL");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 
 		/* MLC_CEH = 0x0 (Force nCE assert) */
 		retval = target_write_u32(target, 0x200b804c, 0x0);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_CEH");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 
 		/* MLC_LOCK = 0xa25e (unlock protected registers) */
 		retval = target_write_u32(target, 0x200b8044, 0xa25e);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_LOCK");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -264,7 +264,7 @@ static int lpc32xx_init(struct nand_device *nand)
 		if (bus_width == 16)
 			mlc_icr_value |= 0x1;
 		retval = target_write_u32(target, 0x200b8030, mlc_icr_value);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ICR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -282,7 +282,7 @@ static int lpc32xx_init(struct nand_device *nand)
 
 		/* MLC_LOCK = 0xa25e (unlock protected registers) */
 		retval = target_write_u32(target, 0x200b8044, 0xa25e);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_LOCK");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -296,13 +296,13 @@ static int lpc32xx_init(struct nand_device *nand)
 				| ((trhz & 0x7) << 16)
 				| ((trbwb & 0x1f) << 19)
 				| ((tcea & 0x3) << 24));
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_TIME_REG");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 
 		retval = lpc32xx_reset(nand);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return ERROR_NAND_OPERATION_FAILED;
 	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		float cycle;
@@ -311,7 +311,7 @@ static int lpc32xx_init(struct nand_device *nand)
 
 		/* FLASHCLK_CTRL = 0x05 (enable clk for SLC) */
 		retval = target_write_u32(target, 0x400040c8, 0x05);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set FLASHCLK_CTRL");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -320,7 +320,7 @@ static int lpc32xx_init(struct nand_device *nand)
 		 * so reset calling is here at the beginning
 		 */
 		retval = lpc32xx_reset(nand);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return ERROR_NAND_OPERATION_FAILED;
 
 		/* SLC_CFG =
@@ -333,14 +333,14 @@ static int lpc32xx_init(struct nand_device *nand)
 		*/
 		retval = target_write_u32(target, 0x20020014,
 				0x3e | ((bus_width == 16) ? 1 : 0));
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set SLC_CFG");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 
 		/* SLC_IEN = 3 (INT_RDY_EN = 1) ,(INT_TC_STAT = 1) */
 		retval = target_write_u32(target, 0x20020020, 0x03);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set SLC_IEN");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -349,14 +349,14 @@ static int lpc32xx_init(struct nand_device *nand)
 
 		/* DMACLK_CTRL = 0x01 (enable clock for DMA controller) */
 		retval = target_write_u32(target, 0x400040e8, 0x01);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set DMACLK_CTRL");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 
 		/* DMACConfig = DMA enabled*/
 		retval = target_write_u32(target, 0x31000030, 0x01);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set DMACConfig");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -380,7 +380,7 @@ static int lpc32xx_init(struct nand_device *nand)
 				| ((w_hold & 0xf) << 20)
 				| ((w_width & 0xf) << 24)
 				| ((w_rdy & 0xf) << 28));
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set SLC_TAC");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -407,7 +407,7 @@ static int lpc32xx_reset(struct nand_device *nand)
 	} else if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 		/* MLC_CMD = 0xff (reset controller and NAND device) */
 		retval = target_write_u32(target, 0x200b8000, 0xff);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_CMD");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -420,7 +420,7 @@ static int lpc32xx_reset(struct nand_device *nand)
 	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		/* SLC_CTRL = 0x6 (ECC_CLEAR, SW_RESET) */
 		retval = target_write_u32(target, 0x20020010, 0x6);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set SLC_CTRL");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -453,14 +453,14 @@ static int lpc32xx_command(struct nand_device *nand, uint8_t command)
 	} else if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 		/* MLC_CMD = command */
 		retval = target_write_u32(target, 0x200b8000, command);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_CMD");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		/* SLC_CMD = command */
 		retval = target_write_u32(target, 0x20020008, command);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set SLC_CMD");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -487,14 +487,14 @@ static int lpc32xx_address(struct nand_device *nand, uint8_t address)
 	} else if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 		/* MLC_ADDR = address */
 		retval = target_write_u32(target, 0x200b8004, address);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		/* SLC_ADDR = address */
 		retval = target_write_u32(target, 0x20020004, address);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set SLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -521,14 +521,14 @@ static int lpc32xx_write_data(struct nand_device *nand, uint16_t data)
 	} else if (lpc32xx_info->selected_controller == LPC32XX_MLC_CONTROLLER) {
 		/* MLC_DATA = data */
 		retval = target_write_u32(target, 0x200b0000, data);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_DATA");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 	} else if (lpc32xx_info->selected_controller == LPC32XX_SLC_CONTROLLER) {
 		/* SLC_DATA = data */
 		retval = target_write_u32(target, 0x20020000, data);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set SLC_DATA");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -561,7 +561,7 @@ static int lpc32xx_read_data(struct nand_device *nand, void *data)
 			LOG_ERROR("BUG: bus_width neither 8 nor 16 bit");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not read MLC_DATA");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -570,7 +570,7 @@ static int lpc32xx_read_data(struct nand_device *nand, void *data)
 
 		/* data = SLC_DATA, must use 32-bit access */
 		retval = target_read_u32(target, 0x20020000, &data32);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not read SLC_DATA");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -600,7 +600,7 @@ static int lpc32xx_write_page_mlc(struct nand_device *nand, uint32_t page,
 
 	/* MLC_CMD = sequential input */
 	retval = target_write_u32(target, 0x200b8000, NAND_CMD_SEQIN);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("could not set MLC_CMD");
 		return ERROR_NAND_OPERATION_FAILED;
 	}
@@ -608,20 +608,20 @@ static int lpc32xx_write_page_mlc(struct nand_device *nand, uint32_t page,
 	if (nand->page_size == 512) {
 		/* MLC_ADDR = 0x0 (one column cycle) */
 		retval = target_write_u32(target, 0x200b8004, 0x0);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 
 		/* MLC_ADDR = row */
 		retval = target_write_u32(target, 0x200b8004, page & 0xff);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 		retval = target_write_u32(target, 0x200b8004,
 				(page >> 8) & 0xff);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -629,7 +629,7 @@ static int lpc32xx_write_page_mlc(struct nand_device *nand, uint32_t page,
 		if (nand->address_cycles == 4) {
 			retval = target_write_u32(target, 0x200b8004,
 					(page >> 16) & 0xff);
-			if (ERROR_OK != retval) {
+			if (retval != ERROR_OK) {
 				LOG_ERROR("could not set MLC_ADDR");
 				return ERROR_NAND_OPERATION_FAILED;
 			}
@@ -637,25 +637,25 @@ static int lpc32xx_write_page_mlc(struct nand_device *nand, uint32_t page,
 	} else {
 		/* MLC_ADDR = 0x0 (two column cycles) */
 		retval = target_write_u32(target, 0x200b8004, 0x0);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 		retval = target_write_u32(target, 0x200b8004, 0x0);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 
 		/* MLC_ADDR = row */
 		retval = target_write_u32(target, 0x200b8004, page & 0xff);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 		retval = target_write_u32(target, 0x200b8004,
 				(page >> 8) & 0xff);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -687,27 +687,27 @@ static int lpc32xx_write_page_mlc(struct nand_device *nand, uint32_t page,
 
 		/* write MLC_ECC_ENC_REG to start encode cycle */
 		retval = target_write_u32(target, 0x200b8008, 0x0);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ECC_ENC_REG");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 
 		retval = target_write_memory(target, 0x200a8000,
 				4, 128, page_buffer);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_BUF (data)");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 		retval = target_write_memory(target, 0x200a8000,
 				1, 6, oob_buffer);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_BUF (oob)");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 
 		/* write MLC_ECC_AUTO_ENC_REG to start auto encode */
 		retval = target_write_u32(target, 0x200b8010, 0x0);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ECC_AUTO_ENC_REG");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -721,7 +721,7 @@ static int lpc32xx_write_page_mlc(struct nand_device *nand, uint32_t page,
 
 	/* MLC_CMD = auto program command */
 	retval = target_write_u32(target, 0x200b8000, NAND_CMD_PAGEPROG);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("could not set MLC_CMD");
 		return ERROR_NAND_OPERATION_FAILED;
 	}
@@ -901,14 +901,14 @@ static int lpc32xx_start_slc_dma(struct nand_device *nand, uint32_t count,
 
 	/* DMACIntTCClear = ch0 */
 	retval = target_write_u32(target, 0x31000008, 1);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Could not set DMACIntTCClear");
 		return retval;
 	}
 
 	/* DMACIntErrClear = ch0 */
 	retval = target_write_u32(target, 0x31000010, 1);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Could not set DMACIntErrClear");
 		return retval;
 	}
@@ -926,28 +926,28 @@ static int lpc32xx_start_slc_dma(struct nand_device *nand, uint32_t count,
 	retval = target_write_u32(target, 0x31000110,
 			1 | 1<<1 | 1<<6 | 2<<11 | 0<<14
 			| 0<<15 | 0<<16 | 0<<18);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Could not set DMACC0Config");
 		return retval;
 	}
 
 	/* SLC_CTRL = 3 (START DMA), ECC_CLEAR */
 	retval = target_write_u32(target, 0x20020010, 0x3);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Could not set SLC_CTRL");
 		return retval;
 	}
 
 	/* SLC_ICR = 2, INT_TC_CLR, clear pending TC*/
 	retval = target_write_u32(target, 0x20020028, 2);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Could not set SLC_ICR");
 		return retval;
 	}
 
 	/* SLC_TC */
 	retval = target_write_u32(target, 0x20020030, count);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("lpc32xx_start_slc_dma: Could not set SLC_TC");
 		return retval;
 	}
@@ -974,13 +974,13 @@ static int lpc32xx_dma_ready(struct nand_device *nand, int timeout)
 
 		/* Read DMACRawIntTCStat */
 		retval = target_read_u32(target, 0x31000014, &tc_stat);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Could not read DMACRawIntTCStat");
 			return 0;
 		}
 		/* Read DMACRawIntErrStat */
 		retval = target_read_u32(target, 0x31000018, &err_stat);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Could not read DMACRawIntErrStat");
 			return 0;
 		}
@@ -1065,13 +1065,13 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 	retval = target_write_memory(target, target_mem_base, 4,
 			nll * sizeof(struct dmac_ll) / 4,
 			(uint8_t *)dmalist);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Could not write DMA descriptors to IRAM");
 		return retval;
 	}
 
 	retval = nand_page_command(nand, page, NAND_CMD_SEQIN, !data);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("NAND_CMD_SEQIN failed");
 		return retval;
 	}
@@ -1085,7 +1085,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 	       WIDTH = bus_width
 	*/
 	retval = target_write_u32(target, 0x20020014, 0x3c);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Could not set SLC_CFG");
 		return retval;
 	}
@@ -1097,7 +1097,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 		retval = target_write_memory(target,
 				target_mem_base + DATA_OFFS,
 				4, nand->page_size/4, fdata);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Could not write data to IRAM");
 			return retval;
 		}
@@ -1106,7 +1106,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 		retval = target_write_memory(target, 0x31000100, 4,
 				sizeof(struct dmac_ll) / 4,
 				(uint8_t *)dmalist);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Could not write DMA descriptor to DMAC");
 			return retval;
 		}
@@ -1115,7 +1115,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 		int tot_size = nand->page_size;
 		tot_size += tot_size == 2048 ? 64 : 16;
 		retval = lpc32xx_start_slc_dma(nand, tot_size, 0);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("DMA failed");
 			return retval;
 		}
@@ -1139,7 +1139,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 		static uint32_t hw_ecc[8];
 		retval = target_read_memory(target, target_mem_base + ECC_OFFS,
 				4, ecc_count, (uint8_t *)hw_ecc);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Reading hw generated ECC from IRAM failed");
 			return retval;
 		}
@@ -1154,7 +1154,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 	}
 	retval = target_write_memory(target, target_mem_base + SPARE_OFFS, 4,
 			foob_size / 4, foob);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Writing OOB to IRAM failed");
 		return retval;
 	}
@@ -1163,7 +1163,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 	retval = target_write_memory(target, 0x31000100, 4,
 			sizeof(struct dmac_ll) / 4,
 			(uint8_t *)(&dmalist[nll-1]));
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Could not write OOB DMA descriptor to DMAC");
 		return retval;
 	}
@@ -1173,7 +1173,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 
 		/* DMACIntTCClear = ch0 */
 		retval = target_write_u32(target, 0x31000008, 1);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Could not set DMACIntTCClear");
 			return retval;
 		}
@@ -1190,7 +1190,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 		retval = target_write_u32(target, 0x31000110,
 				1 | 1<<1 | 1<<6 | 2<<11 | 0<<14
 				| 0<<15 | 0<<16 | 0<<18);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Could not set DMACC0Config");
 			return retval;
 		}
@@ -1203,7 +1203,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 	} else {
 		/* Start xfer of data from iram to flash using DMA */
 		retval = lpc32xx_start_slc_dma(nand, foob_size, 1);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("DMA OOB failed");
 			return retval;
 		}
@@ -1211,7 +1211,7 @@ static int lpc32xx_write_page_slc(struct nand_device *nand,
 
 	/* Let NAND start actual writing */
 	retval = nand_write_finish(nand);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("nand_write_finish failed");
 		return retval;
 	}
@@ -1307,7 +1307,7 @@ static int lpc32xx_read_page_mlc(struct nand_device *nand, uint32_t page,
 		/* MLC_CMD = Read0 */
 		retval = target_write_u32(target, 0x200b8000, NAND_CMD_READ0);
 	}
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("could not set MLC_CMD");
 		return ERROR_NAND_OPERATION_FAILED;
 	}
@@ -1315,20 +1315,20 @@ static int lpc32xx_read_page_mlc(struct nand_device *nand, uint32_t page,
 		/* small page device
 		 * MLC_ADDR = 0x0 (one column cycle) */
 		retval = target_write_u32(target, 0x200b8004, 0x0);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 
 		/* MLC_ADDR = row */
 		retval = target_write_u32(target, 0x200b8004, page & 0xff);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 		retval = target_write_u32(target, 0x200b8004,
 				(page >> 8) & 0xff);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -1336,7 +1336,7 @@ static int lpc32xx_read_page_mlc(struct nand_device *nand, uint32_t page,
 		if (nand->address_cycles == 4) {
 			retval = target_write_u32(target, 0x200b8004,
 					(page >> 16) & 0xff);
-			if (ERROR_OK != retval) {
+			if (retval != ERROR_OK) {
 				LOG_ERROR("could not set MLC_ADDR");
 				return ERROR_NAND_OPERATION_FAILED;
 			}
@@ -1345,25 +1345,25 @@ static int lpc32xx_read_page_mlc(struct nand_device *nand, uint32_t page,
 		/* large page device
 		 * MLC_ADDR = 0x0 (two column cycles) */
 		retval = target_write_u32(target, 0x200b8004, 0x0);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 		retval = target_write_u32(target, 0x200b8004, 0x0);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 
 		/* MLC_ADDR = row */
 		retval = target_write_u32(target, 0x200b8004, page & 0xff);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
 		retval = target_write_u32(target, 0x200b8004,
 				(page >> 8) & 0xff);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ADDR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -1371,7 +1371,7 @@ static int lpc32xx_read_page_mlc(struct nand_device *nand, uint32_t page,
 		/* MLC_CMD = Read Start */
 		retval = target_write_u32(target, 0x200b8000,
 				NAND_CMD_READSTART);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_CMD");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -1380,7 +1380,7 @@ static int lpc32xx_read_page_mlc(struct nand_device *nand, uint32_t page,
 	while (page_bytes_done < (uint32_t)nand->page_size) {
 		/* MLC_ECC_AUTO_DEC_REG = dummy */
 		retval = target_write_u32(target, 0x200b8014, 0xaa55aa55);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not set MLC_ECC_AUTO_DEC_REG");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -1392,7 +1392,7 @@ static int lpc32xx_read_page_mlc(struct nand_device *nand, uint32_t page,
 		}
 
 		retval = target_read_u32(target, 0x200b8048, &mlc_isr);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("could not read MLC_ISR");
 			return ERROR_NAND_OPERATION_FAILED;
 		}
@@ -1411,7 +1411,7 @@ static int lpc32xx_read_page_mlc(struct nand_device *nand, uint32_t page,
 		if (data) {
 			retval = target_read_memory(target, 0x200a8000, 4, 128,
 					page_buffer + page_bytes_done);
-			if (ERROR_OK != retval) {
+			if (retval != ERROR_OK) {
 				LOG_ERROR("could not read MLC_BUF (data)");
 				return ERROR_NAND_OPERATION_FAILED;
 			}
@@ -1420,7 +1420,7 @@ static int lpc32xx_read_page_mlc(struct nand_device *nand, uint32_t page,
 		if (oob) {
 			retval = target_read_memory(target, 0x200a8000, 4, 4,
 					oob_buffer + oob_bytes_done);
-			if (ERROR_OK != retval) {
+			if (retval != ERROR_OK) {
 				LOG_ERROR("could not read MLC_BUF (oob)");
 				return ERROR_NAND_OPERATION_FAILED;
 			}
@@ -1462,13 +1462,13 @@ static int lpc32xx_read_page_slc(struct nand_device *nand,
 	retval = target_write_memory(target, target_mem_base, 4,
 			nll * sizeof(struct dmac_ll) / 4,
 			(uint8_t *)dmalist);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Could not write DMA descriptors to IRAM");
 		return retval;
 	}
 
 	retval = nand_page_command(nand, page, NAND_CMD_READ0, 0);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("lpc32xx_read_page_slc: NAND_CMD_READ0 failed");
 		return retval;
 	}
@@ -1482,7 +1482,7 @@ static int lpc32xx_read_page_slc(struct nand_device *nand,
 	       WIDTH = bus_width
 	*/
 	retval = target_write_u32(target, 0x20020014, 0x3e);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("lpc32xx_read_page_slc: Could not set SLC_CFG");
 		return retval;
 	}
@@ -1490,7 +1490,7 @@ static int lpc32xx_read_page_slc(struct nand_device *nand,
 	/* Write first descriptor to DMA controller */
 	retval = target_write_memory(target, 0x31000100, 4,
 			sizeof(struct dmac_ll) / 4, (uint8_t *)dmalist);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Could not write DMA descriptor to DMAC");
 		return retval;
 	}
@@ -1499,7 +1499,7 @@ static int lpc32xx_read_page_slc(struct nand_device *nand,
 	int tot_size = nand->page_size;
 	tot_size += nand->page_size == 2048 ? 64 : 16;
 	retval = lpc32xx_start_slc_dma(nand, tot_size, 1);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("lpc32xx_read_page_slc: DMA read failed");
 		return retval;
 	}
@@ -1508,7 +1508,7 @@ static int lpc32xx_read_page_slc(struct nand_device *nand,
 	if (data) {
 		retval = target_read_memory(target, target_mem_base + DATA_OFFS,
 				4, data_size/4, data);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Could not read data from IRAM");
 			return retval;
 		}
@@ -1518,7 +1518,7 @@ static int lpc32xx_read_page_slc(struct nand_device *nand,
 		retval = target_read_memory(target,
 				target_mem_base + SPARE_OFFS, 4,
 				oob_size/4, oob);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Could not read OOB from IRAM");
 			return retval;
 		}
@@ -1530,7 +1530,7 @@ static int lpc32xx_read_page_slc(struct nand_device *nand,
 	retval = target_read_memory(target, target_mem_base + SPARE_OFFS,
 			4, nand->page_size == 2048 ? 16 : 4, foob);
 	lpc32xx_dump_oob(foob, nand->page_size == 2048 ? 64 : 16);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Could not read OOB from IRAM");
 		return retval;
 	}
@@ -1539,7 +1539,7 @@ static int lpc32xx_read_page_slc(struct nand_device *nand,
 	static uint32_t hw_ecc[8];	/* max size */
 	retval = target_read_memory(target, target_mem_base + ECC_OFFS, 4,
 			ecc_count, (uint8_t *)hw_ecc);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Could not read hw generated ECC from IRAM");
 		return retval;
 	}
@@ -1633,7 +1633,7 @@ static int lpc32xx_controller_ready(struct nand_device *nand, int timeout)
 
 			/* Read MLC_ISR, wait for controller to become ready */
 			retval = target_read_u8(target, 0x200b8048, &status);
-			if (ERROR_OK != retval) {
+			if (retval != ERROR_OK) {
 				LOG_ERROR("could not set MLC_STAT");
 				return ERROR_NAND_OPERATION_FAILED;
 			}
@@ -1648,7 +1648,7 @@ static int lpc32xx_controller_ready(struct nand_device *nand, int timeout)
 
 			/* Read SLC_STAT and check READY bit */
 			retval = target_read_u32(target, 0x20020018, &status);
-			if (ERROR_OK != retval) {
+			if (retval != ERROR_OK) {
 				LOG_ERROR("could not set SLC_STAT");
 				return ERROR_NAND_OPERATION_FAILED;
 			}
@@ -1687,7 +1687,7 @@ static int lpc32xx_nand_ready(struct nand_device *nand, int timeout)
 			/* Read MLC_ISR, wait for NAND flash device to
 			 * become ready */
 			retval = target_read_u8(target, 0x200b8048, &status);
-			if (ERROR_OK != retval) {
+			if (retval != ERROR_OK) {
 				LOG_ERROR("could not read MLC_ISR");
 				return ERROR_NAND_OPERATION_FAILED;
 			}
@@ -1702,7 +1702,7 @@ static int lpc32xx_nand_ready(struct nand_device *nand, int timeout)
 
 			/* Read SLC_STAT and check READY bit */
 			retval = target_read_u32(target, 0x20020018, &status);
-			if (ERROR_OK != retval) {
+			if (retval != ERROR_OK) {
 				LOG_ERROR("could not read SLC_STAT");
 				return ERROR_NAND_OPERATION_FAILED;
 			}
@@ -1731,7 +1731,7 @@ static int lpc32xx_tc_ready(struct nand_device *nand, int timeout)
 		int retval;
 		/* Read SLC_INT_STAT and check INT_TC_STAT bit */
 		retval = target_read_u32(target, 0x2002001c, &status);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Could not read SLC_INT_STAT");
 			return 0;
 		}

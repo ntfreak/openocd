@@ -611,7 +611,7 @@ COMMAND_HANDLER(str9x_handle_flash_config_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	uint32_t bbsr, nbbsr, bbadr, nbbadr;

@@ -310,7 +310,7 @@ static int vsllink_interface_init(void)
 static int vsllink_init(void)
 {
 	int retval = vsllink_interface_init();
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	versaloon_interface.adaptors.gpio.init(0);
@@ -838,7 +838,7 @@ static int vsllink_usb_open(struct vsllink *vsllink)
 			continue;
 
 		retval = vsllink_check_usb_strings(usb_device_handle, &usb_desc);
-		if (ERROR_OK == retval)
+		if (retval == ERROR_OK)
 			break;
 
 		libusb_close(usb_device_handle);

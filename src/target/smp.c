@@ -141,7 +141,7 @@ COMMAND_HANDLER(handle_smp_gdb_command)
 		if (CMD_ARGC == 1) {
 			int coreid = 0;
 			COMMAND_PARSE_NUMBER(int, CMD_ARGV[0], coreid);
-			if (ERROR_OK != retval)
+			if (retval != ERROR_OK)
 				return retval;
 			target->gdb_service->core[1] = coreid;
 

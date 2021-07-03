@@ -113,7 +113,7 @@ static int os_alloc_create(struct target *target, struct rtos_type *ostype)
 {
 	int ret = os_alloc(target, ostype);
 
-	if (JIM_OK == ret) {
+	if (ret == JIM_OK) {
 		ret = target->rtos->type->create(target);
 		if (ret != JIM_OK)
 			os_free(target);

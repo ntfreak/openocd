@@ -37,35 +37,35 @@ static int nds32_v2_register_mapping(struct nds32 *nds32, int reg_no)
 	uint32_t cur_level = nds32->current_interrupt_level;
 
 	if ((1 <= cur_level) && (cur_level < max_level)) {
-		if (IR0 == reg_no) {
+		if (reg_no == IR0) {
 			LOG_DEBUG("Map PSW to IPSW");
 			return IR1;
-		} else if (PC == reg_no) {
+		} else if (reg_no == PC) {
 			LOG_DEBUG("Map PC to IPC");
 			return IR9;
 		}
 	} else if ((2 <= cur_level) && (cur_level < max_level)) {
-		if (R26 == reg_no) {
+		if (reg_no == R26) {
 			LOG_DEBUG("Mapping P0 to P_P0");
 			return IR12;
-		} else if (R27 == reg_no) {
+		} else if (reg_no == R27) {
 			LOG_DEBUG("Mapping P1 to P_P1");
 			return IR13;
-		} else if (IR1 == reg_no) {
+		} else if (reg_no == IR1) {
 			LOG_DEBUG("Mapping IPSW to P_IPSW");
 			return IR2;
-		} else if (IR4 == reg_no) {
+		} else if (reg_no == IR4) {
 			LOG_DEBUG("Mapping EVA to P_EVA");
 			return IR5;
-		} else if (IR6 == reg_no) {
+		} else if (reg_no == IR6) {
 			LOG_DEBUG("Mapping ITYPE to P_ITYPE");
 			return IR7;
-		} else if (IR9 == reg_no) {
+		} else if (reg_no == IR9) {
 			LOG_DEBUG("Mapping IPC to P_IPC");
 			return IR10;
 		}
 	} else if (cur_level == max_level) {
-		if (PC == reg_no) {
+		if (reg_no == PC) {
 			LOG_DEBUG("Mapping PC to O_IPC");
 			return IR11;
 		}
@@ -436,7 +436,7 @@ static int nds32_v2_add_breakpoint(struct target *target,
 		return ERROR_OK;
 	} else if (breakpoint->type == BKPT_SOFT) {
 		result = nds32_add_software_breakpoint(target, breakpoint);
-		if (ERROR_OK != result) {
+		if (result != ERROR_OK) {
 			/* auto convert to hardware breakpoint if failed */
 			if (nds32->auto_convert_hw_bp) {
 				/* convert to hardware breakpoint */

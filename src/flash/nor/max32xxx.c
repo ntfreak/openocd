@@ -768,7 +768,7 @@ COMMAND_HANDLER(max32xxx_handle_mass_erase_command)
 		return ERROR_OK;
 	}
 
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (max32xxx_mass_erase(bank) == ERROR_OK) {
@@ -796,7 +796,7 @@ COMMAND_HANDLER(max32xxx_handle_protection_set_command)
 	}
 
 	retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 	info = bank->driver_priv;
 
@@ -852,7 +852,7 @@ COMMAND_HANDLER(max32xxx_handle_protection_clr_command)
 	}
 
 	retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 	info = bank->driver_priv;
 
@@ -907,13 +907,13 @@ COMMAND_HANDLER(max32xxx_handle_protection_check_command)
 	}
 
 	retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 	info = bank->driver_priv;
 
 	/* Update the protection array */
 	retval = max32xxx_protect_check(bank);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_WARNING("Error updating the protection array");
 		return retval;
 	}

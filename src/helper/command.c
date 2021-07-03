@@ -394,11 +394,11 @@ int __register_commands(struct command_context *cmd_ctx, const char *cmd_prefix,
 			} else {
 				retval = __register_commands(cmd_ctx, cmd_prefix, cr->chain, data, override_target);
 			}
-			if (ERROR_OK != retval)
+			if (retval != ERROR_OK)
 				break;
 		}
 	}
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		for (unsigned j = 0; j < i; j++)
 			unregister_command(cmd_ctx, cmd_prefix, cmds[j].name);
 	}
@@ -1171,7 +1171,7 @@ COMMAND_HANDLER(handle_sleep_command)
 
 	unsigned long duration = 0;
 	int retval = parse_ulong(CMD_ARGV[0], &duration);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (!busy) {
@@ -1354,11 +1354,11 @@ void process_jim_events(struct command_context *cmd_ctx)
 			LOG_ERROR("Invalid command argument"); \
 			return ERROR_COMMAND_ARGUMENT_INVALID; \
 		} \
-		if ((max == *ul) && (ERANGE == errno)) { \
+		if ((max == *ul) && (errno == ERANGE)) { \
 			LOG_ERROR("Argument overflow");	\
 			return ERROR_COMMAND_ARGUMENT_OVERFLOW;	\
 		} \
-		if (min && (min == *ul) && (ERANGE == errno)) { \
+		if (min && (min == *ul) && (errno == ERANGE)) { \
 			LOG_ERROR("Argument underflow"); \
 			return ERROR_COMMAND_ARGUMENT_UNDERFLOW; \
 		} \
@@ -1374,7 +1374,7 @@ DEFINE_PARSE_NUM_TYPE(_llong, long long, strtoll, LLONG_MIN, LLONG_MAX)
 	{ \
 		functype n; \
 		int retval = parse ## funcname(str, &n); \
-		if (ERROR_OK != retval)	\
+		if (retval != ERROR_OK)	\
 			return retval; \
 		if (n > max) \
 			return ERROR_COMMAND_ARGUMENT_OVERFLOW;	\

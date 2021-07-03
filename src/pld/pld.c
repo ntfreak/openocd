@@ -69,7 +69,7 @@ COMMAND_HANDLER(handle_pld_device_command)
 			if (pld_drivers[i]->commands) {
 				retval = register_commands(CMD_CTX, NULL,
 						pld_drivers[i]->commands);
-				if (ERROR_OK != retval) {
+				if (retval != ERROR_OK) {
 					LOG_ERROR("couldn't register '%s' commands", CMD_ARGV[0]);
 					return ERROR_FAIL;
 				}
@@ -81,7 +81,7 @@ COMMAND_HANDLER(handle_pld_device_command)
 
 			retval = CALL_COMMAND_HANDLER(
 					pld_drivers[i]->pld_device_command, c);
-			if (ERROR_OK != retval) {
+			if (retval != ERROR_OK) {
 				LOG_ERROR("'%s' driver rejected pld device",
 					CMD_ARGV[0]);
 				free(c);

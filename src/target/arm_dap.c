@@ -269,7 +269,7 @@ static int dap_create(struct jim_getopt_info *goi)
 		dap_commands[0].chain = NULL;
 
 	e = register_commands_with_data(cmd_ctx, NULL, dap_commands, dap);
-	if (ERROR_OK != e)
+	if (e != ERROR_OK)
 		return JIM_ERR;
 
 	list_add_tail(&dap->lh, &all_dap);

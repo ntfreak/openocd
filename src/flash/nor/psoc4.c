@@ -624,7 +624,7 @@ COMMAND_HANDLER(psoc4_handle_flash_autoerase_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	struct psoc4_flash_bank *psoc4_info = bank->driver_priv;
@@ -898,7 +898,7 @@ COMMAND_HANDLER(psoc4_handle_mass_erase_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = psoc4_mass_erase(bank);

@@ -589,7 +589,7 @@ static int lpc3180_write_page(struct nand_device *nand,
 					oob_size);
 			}
 			retval = nand_page_command(nand, page, NAND_CMD_SEQIN, !data);
-			if (ERROR_OK != retval)
+			if (retval != ERROR_OK)
 				return retval;
 
 			/* allocate a working area */
@@ -970,7 +970,7 @@ static int lpc3180_read_page(struct nand_device *nand,
 			/* read always the data and also oob areas*/
 
 			retval = nand_page_command(nand, page, NAND_CMD_READ0, 0);
-			if (ERROR_OK != retval)
+			if (retval != ERROR_OK)
 				return retval;
 
 			/* allocate a working area */

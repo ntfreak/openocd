@@ -103,7 +103,7 @@ static int jsp_new_connection(struct connection *connection)
 
 	int retval = target_register_timer_callback(&jsp_poll_read, 1,
 		TARGET_TIMER_TYPE_PERIODIC, jsp_service);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	return ERROR_OK;
@@ -187,7 +187,7 @@ static int jsp_connection_closed(struct connection *connection)
 	struct jsp_service *jsp_service = connection->service->priv;
 
 	int retval = target_unregister_timer_callback(&jsp_poll_read, jsp_service);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	free(connection->priv);

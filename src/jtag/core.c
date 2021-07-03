@@ -1533,7 +1533,7 @@ int adapter_init(struct command_context *cmd_ctx)
 		return ERROR_OK;
 	}
 
-	if (CLOCK_MODE_UNSELECTED == clock_mode) {
+	if (clock_mode == CLOCK_MODE_UNSELECTED) {
 		LOG_ERROR("An adapter speed is not selected in the init script."
 			" Insert a call to \"adapter speed\" or \"jtag_rclk\" to proceed.");
 		return ERROR_JTAG_INIT_FAILED;
@@ -1549,12 +1549,12 @@ int adapter_init(struct command_context *cmd_ctx)
 	if (retval != ERROR_OK)
 		return retval;
 	retval = jtag_get_speed_readable(&actual_khz);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		LOG_INFO("adapter-specific clock speed value %d", jtag_speed_var);
 	else if (actual_khz) {
 		/* Adaptive clocking -- JTAG-specific */
-		if ((CLOCK_MODE_RCLK == clock_mode)
-				|| ((CLOCK_MODE_KHZ == clock_mode) && !requested_khz)) {
+		if ((clock_mode == CLOCK_MODE_RCLK)
+				|| ((clock_mode == CLOCK_MODE_KHZ) && !requested_khz)) {
 			LOG_INFO("RCLK (adaptive clock speed) not supported - fallback to %d kHz"
 			, actual_khz);
 		} else
@@ -1650,7 +1650,7 @@ int adapter_quit(void)
 	if (jtag && jtag->quit) {
 		/* close the JTAG interface */
 		int result = jtag->quit();
-		if (ERROR_OK != result)
+		if (result != ERROR_OK)
 			LOG_ERROR("failed: %d", result);
 	}
 
@@ -1789,7 +1789,7 @@ static int adapter_khz_to_speed(unsigned khz, int *speed)
 	}
 	int speed_div1;
 	int retval = jtag->khz(jtag_get_speed_khz(), &speed_div1);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 	*speed = speed_div1;
 	return ERROR_OK;
@@ -1798,7 +1798,7 @@ static int adapter_khz_to_speed(unsigned khz, int *speed)
 static int jtag_rclk_to_speed(unsigned fallback_speed_khz, int *speed)
 {
 	int retval = adapter_khz_to_speed(0, speed);
-	if ((ERROR_OK != retval) && fallback_speed_khz) {
+	if ((retval != ERROR_OK) && fallback_speed_khz) {
 		LOG_DEBUG("trying fallback speed...");
 		retval = adapter_khz_to_speed(fallback_speed_khz, speed);
 	}
@@ -1819,7 +1819,7 @@ int jtag_config_khz(unsigned khz)
 	clock_mode = CLOCK_MODE_KHZ;
 	int speed = 0;
 	int retval = adapter_khz_to_speed(khz, &speed);
-	return (ERROR_OK != retval) ? retval : jtag_set_speed(speed);
+	return (retval != ERROR_OK) ? retval : jtag_set_speed(speed);
 }
 
 int jtag_config_rclk(unsigned fallback_speed_khz)
@@ -1829,7 +1829,7 @@ int jtag_config_rclk(unsigned fallback_speed_khz)
 	rclk_fallback_speed_khz = fallback_speed_khz;
 	int speed = 0;
 	int retval = jtag_rclk_to_speed(fallback_speed_khz, &speed);
-	return (ERROR_OK != retval) ? retval : jtag_set_speed(speed);
+	return (retval != ERROR_OK) ? retval : jtag_set_speed(speed);
 }
 
 int jtag_get_speed(int *speed)

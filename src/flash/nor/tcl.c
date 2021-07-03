@@ -195,7 +195,7 @@ COMMAND_HANDLER(handle_flash_erase_check_command)
 
 	struct flash_bank *p;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &p);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = p->driver->erase_check(p);
@@ -286,7 +286,7 @@ COMMAND_HANDLER(handle_flash_erase_address_command)
 	if (retval == ERROR_OK)
 		retval = flash_erase_address_range(target, do_pad, address, length);
 
-	if ((ERROR_OK == retval) && (duration_measure(&bench) == ERROR_OK)) {
+	if ((retval == ERROR_OK) && (duration_measure(&bench) == ERROR_OK)) {
 		command_print(CMD, "erased address " TARGET_ADDR_FMT " (length %" PRIu32 ")"
 			" in %fs (%0.3f KiB/s)", address, length,
 			duration_elapsed(&bench), duration_kbps(&bench, length));
@@ -334,7 +334,7 @@ COMMAND_HANDLER(handle_flash_erase_command)
 
 	retval = flash_driver_erase(p, first, last);
 
-	if ((ERROR_OK == retval) && (duration_measure(&bench) == ERROR_OK)) {
+	if ((retval == ERROR_OK) && (duration_measure(&bench) == ERROR_OK)) {
 		command_print(CMD, "erased sectors %" PRIu32 " "
 			"through %" PRIu32 " on flash bank %u "
 			"in %fs", first, last, p->bank_number, duration_elapsed(&bench));
@@ -460,7 +460,7 @@ COMMAND_HANDLER(handle_flash_write_image_command)
 		return retval;
 	}
 
-	if ((ERROR_OK == retval) && (duration_measure(&bench) == ERROR_OK)) {
+	if ((retval == ERROR_OK) && (duration_measure(&bench) == ERROR_OK)) {
 		command_print(CMD, "wrote %" PRIu32 " bytes from file %s "
 			"in %fs (%0.3f KiB/s)", written, CMD_ARGV[0],
 			duration_elapsed(&bench), duration_kbps(&bench, written));
@@ -512,7 +512,7 @@ COMMAND_HANDLER(handle_flash_verify_image_command)
 		return retval;
 	}
 
-	if ((ERROR_OK == retval) && (duration_measure(&bench) == ERROR_OK)) {
+	if ((retval == ERROR_OK) && (duration_measure(&bench) == ERROR_OK)) {
 		command_print(CMD, "verified %" PRIu32 " bytes from file %s "
 			"in %fs (%0.3f KiB/s)", verified, CMD_ARGV[0],
 			duration_elapsed(&bench), duration_kbps(&bench, verified));
@@ -754,7 +754,7 @@ COMMAND_HANDLER(handle_flash_write_bank_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	offset = 0;
@@ -841,7 +841,7 @@ COMMAND_HANDLER(handle_flash_write_bank_command)
 
 	free(buffer);
 
-	if ((ERROR_OK == retval) && (duration_measure(&bench) == ERROR_OK)) {
+	if ((retval == ERROR_OK) && (duration_measure(&bench) == ERROR_OK)) {
 		command_print(CMD, "wrote %zu bytes from file %s to flash bank %u"
 			" at offset 0x%8.8" PRIx32 " in %fs (%0.3f KiB/s)",
 			length, CMD_ARGV[1], bank->bank_number, offset,
@@ -870,7 +870,7 @@ COMMAND_HANDLER(handle_flash_read_bank_command)
 	struct flash_bank *p;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &p);
 
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	offset = 0;
@@ -951,7 +951,7 @@ COMMAND_HANDLER(handle_flash_verify_bank_command)
 
 	struct flash_bank *p;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &p);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	offset = 0;
@@ -1072,7 +1072,7 @@ COMMAND_HANDLER(handle_flash_padded_value_command)
 
 	struct flash_bank *p;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &p);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	COMMAND_PARSE_NUMBER(u8, CMD_ARGV[1], p->default_padded_value);
@@ -1286,7 +1286,7 @@ COMMAND_HANDLER(handle_flash_bank_command)
 	if (driver->commands) {
 		int retval = register_commands(CMD_CTX, NULL,
 				driver->commands);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("couldn't register '%s' commands",
 				driver_name);
 			return ERROR_FAIL;
@@ -1306,7 +1306,7 @@ COMMAND_HANDLER(handle_flash_bank_command)
 
 	int retval;
 	retval = CALL_COMMAND_HANDLER(driver->flash_bank_command, c);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("'%s' driver rejected flash bank at " TARGET_ADDR_FMT
 				"; usage: %s", driver_name, c->base, driver->usage);
 		free(c);

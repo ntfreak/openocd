@@ -1428,7 +1428,7 @@ COMMAND_HANDLER(handle_iod_command)
 	uint8_t *buffer = calloc(count, size);
 	struct target *target = get_current_target(CMD_CTX);
 	int retval = x86_32_common_read_io(target, address, size, buffer);
-	if (ERROR_OK == retval)
+	if (retval == ERROR_OK)
 		handle_iod_output(CMD, target, address, size, count, buffer);
 	free(buffer);
 	return retval;

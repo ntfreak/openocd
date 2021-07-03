@@ -232,7 +232,7 @@ static int efm32x_read_info(struct flash_bank *bank,
 	memset(efm32_info, 0, sizeof(struct efm32_info));
 
 	ret = target_read_u32(bank->target, CPUID, &cpuid);
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	if (((cpuid >> 4) & 0xfff) == 0xc23) {
@@ -247,23 +247,23 @@ static int efm32x_read_info(struct flash_bank *bank,
 	}
 
 	ret = efm32x_get_flash_size(bank, &(efm32_info->flash_sz_kib));
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	ret = efm32x_get_ram_size(bank, &(efm32_info->ram_sz_kib));
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	ret = efm32x_get_part_num(bank, &(efm32_info->part_num));
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	ret = efm32x_get_part_family(bank, &(efm32_info->part_family));
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	ret = efm32x_get_prod_rev(bank, &(efm32_info->prod_rev));
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	for (size_t i = 0; i < ARRAY_SIZE(efm32_families); i++) {
@@ -296,7 +296,7 @@ static int efm32x_read_info(struct flash_bank *bank,
 		uint8_t pg_size = 0;
 		ret = target_read_u8(bank->target, EFM32_MSC_DI_PAGE_SIZE,
 			&pg_size);
-		if (ERROR_OK != ret)
+		if (ret != ERROR_OK)
 			return ret;
 
 		efm32_info->page_size = (1 << ((pg_size+10) & 0xff));
@@ -349,7 +349,7 @@ static int efm32x_set_reg_bits(struct flash_bank *bank, uint32_t reg,
 	uint32_t reg_val = 0;
 
 	ret = efm32x_read_reg_u32(bank, reg, &reg_val);
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	if (set)
@@ -381,7 +381,7 @@ static int efm32x_wait_status(struct flash_bank *bank, int timeout,
 
 	while (1) {
 		ret = efm32x_read_reg_u32(bank, EFM32_MSC_REG_STATUS, &status);
-		if (ERROR_OK != ret)
+		if (ret != ERROR_OK)
 			break;
 
 		LOG_DEBUG("status: 0x%" PRIx32 "", status);
@@ -420,16 +420,16 @@ static int efm32x_erase_page(struct flash_bank *bank, uint32_t addr)
 	LOG_DEBUG("erasing flash page at 0x%08" PRIx32, addr);
 
 	ret = efm32x_write_reg_u32(bank, EFM32_MSC_REG_ADDRB, addr);
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	ret = efm32x_set_reg_bits(bank, EFM32_MSC_REG_WRITECMD,
 		EFM32_MSC_WRITECMD_LADDRIM_MASK, 1);
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	ret = efm32x_read_reg_u32(bank, EFM32_MSC_REG_STATUS, &status);
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	LOG_DEBUG("status 0x%" PRIx32, status);
@@ -444,7 +444,7 @@ static int efm32x_erase_page(struct flash_bank *bank, uint32_t addr)
 
 	ret = efm32x_set_reg_bits(bank, EFM32_MSC_REG_WRITECMD,
 		EFM32_MSC_WRITECMD_ERASEPAGE_MASK, 1);
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	return efm32x_wait_status(bank, EFM32_FLASH_ERASE_TMO,
@@ -464,14 +464,14 @@ static int efm32x_erase(struct flash_bank *bank, unsigned int first,
 
 	efm32x_msc_lock(bank, 0);
 	ret = efm32x_set_wren(bank, 1);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to enable MSC write");
 		return ret;
 	}
 
 	for (unsigned int i = first; i <= last; i++) {
 		ret = efm32x_erase_page(bank, bank->sectors[i].offset);
-		if (ERROR_OK != ret)
+		if (ret != ERROR_OK)
 			LOG_ERROR("Failed to erase page %d", i);
 	}
 
@@ -498,7 +498,7 @@ static int efm32x_read_lock_data(struct flash_bank *bank)
 
 	for (int i = 0; i < data_size; i++, ptr++) {
 		ret = target_read_u32(target, EFM32_MSC_LOCK_BITS+i*4, ptr);
-		if (ERROR_OK != ret) {
+		if (ret != ERROR_OK) {
 			LOG_ERROR("Failed to read PLW %d", i);
 			return ret;
 		}
@@ -509,7 +509,7 @@ static int efm32x_read_lock_data(struct flash_bank *bank)
 	/* ULW, word 126 */
 	ptr = efm32x_info->lb_page + 126;
 	ret = target_read_u32(target, EFM32_MSC_LOCK_BITS+126*4, ptr);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to read ULW");
 		return ret;
 	}
@@ -517,7 +517,7 @@ static int efm32x_read_lock_data(struct flash_bank *bank)
 	/* DLW, word 127 */
 	ptr = efm32x_info->lb_page + 127;
 	ret = target_read_u32(target, EFM32_MSC_LOCK_BITS+127*4, ptr);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to read DLW");
 		return ret;
 	}
@@ -525,7 +525,7 @@ static int efm32x_read_lock_data(struct flash_bank *bank)
 	/* MLW, word 125, present in GG, LG, PG, JG, EFR32 */
 	ptr = efm32x_info->lb_page + 125;
 	ret = target_read_u32(target, EFM32_MSC_LOCK_BITS+125*4, ptr);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to read MLW");
 		return ret;
 	}
@@ -533,7 +533,7 @@ static int efm32x_read_lock_data(struct flash_bank *bank)
 	/* ALW, word 124, present in GG, LG, PG, JG, EFR32 */
 	ptr = efm32x_info->lb_page + 124;
 	ret = target_read_u32(target, EFM32_MSC_LOCK_BITS+124*4, ptr);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to read ALW");
 		return ret;
 	}
@@ -541,7 +541,7 @@ static int efm32x_read_lock_data(struct flash_bank *bank)
 	/* CLW1, word 123, present in EFR32 */
 	ptr = efm32x_info->lb_page + 123;
 	ret = target_read_u32(target, EFM32_MSC_LOCK_BITS+123*4, ptr);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to read CLW1");
 		return ret;
 	}
@@ -549,7 +549,7 @@ static int efm32x_read_lock_data(struct flash_bank *bank)
 	/* CLW0, word 122, present in GG, LG, PG, JG, EFR32 */
 	ptr = efm32x_info->lb_page + 122;
 	ret = target_read_u32(target, EFM32_MSC_LOCK_BITS+122*4, ptr);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to read CLW0");
 		return ret;
 	}
@@ -563,7 +563,7 @@ static int efm32x_write_lock_data(struct flash_bank *bank)
 	int ret = 0;
 
 	ret = efm32x_erase_page(bank, EFM32_MSC_LOCK_BITS);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to erase LB page");
 		return ret;
 	}
@@ -617,14 +617,14 @@ static int efm32x_protect(struct flash_bank *bank, int set, unsigned int first,
 
 	for (unsigned int i = first; i <= last; i++) {
 		ret = efm32x_set_page_lock(bank, i, set);
-		if (ERROR_OK != ret) {
+		if (ret != ERROR_OK) {
 			LOG_ERROR("Failed to set lock on page %d", i);
 			return ret;
 		}
 	}
 
 	ret = efm32x_write_lock_data(bank);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to write LB page");
 		return ret;
 	}
@@ -812,16 +812,16 @@ static int efm32x_write_word(struct flash_bank *bank, uint32_t addr,
 	keep_alive();
 
 	ret = efm32x_write_reg_u32(bank, EFM32_MSC_REG_ADDRB, addr);
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	ret = efm32x_set_reg_bits(bank, EFM32_MSC_REG_WRITECMD,
 		EFM32_MSC_WRITECMD_LADDRIM_MASK, 1);
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	ret = efm32x_read_reg_u32(bank, EFM32_MSC_REG_STATUS, &status);
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	LOG_DEBUG("status 0x%" PRIx32, status);
@@ -836,27 +836,27 @@ static int efm32x_write_word(struct flash_bank *bank, uint32_t addr,
 
 	ret = efm32x_wait_status(bank, EFM32_FLASH_WDATAREADY_TMO,
 		EFM32_MSC_STATUS_WDATAREADY_MASK, 1);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Wait for WDATAREADY failed");
 		return ret;
 	}
 
 	ret = efm32x_write_reg_u32(bank, EFM32_MSC_REG_WDATA, val);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("WDATA write failed");
 		return ret;
 	}
 
 	ret = efm32x_write_reg_u32(bank, EFM32_MSC_REG_WRITECMD,
 		EFM32_MSC_WRITECMD_WRITEONCE_MASK);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("WRITECMD write failed");
 		return ret;
 	}
 
 	ret = efm32x_wait_status(bank, EFM32_FLASH_WRITE_TMO,
 		EFM32_MSC_STATUS_BUSY_MASK, 0);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Wait for BUSY failed");
 		return ret;
 	}
@@ -950,7 +950,7 @@ static int efm32x_probe(struct flash_bank *bank)
 	memset(efm32x_info->lb_page, 0xff, LOCKBITS_PAGE_SZ);
 
 	ret = efm32x_read_info(bank, &efm32_mcu_info);
-	if (ERROR_OK != ret)
+	if (ret != ERROR_OK)
 		return ret;
 
 	LOG_INFO("detected part: %s Gecko, rev %d",
@@ -973,7 +973,7 @@ static int efm32x_probe(struct flash_bank *bank)
 	bank->num_sectors = num_pages;
 
 	ret = efm32x_read_lock_data(bank);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to read LB data");
 		return ret;
 	}
@@ -1011,7 +1011,7 @@ static int efm32x_protect_check(struct flash_bank *bank)
 	}
 
 	ret = efm32x_read_lock_data(bank);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to read LB data");
 		return ret;
 	}
@@ -1030,7 +1030,7 @@ static int get_efm32x_info(struct flash_bank *bank, struct command_invocation *c
 	int ret;
 
 	ret = efm32x_read_info(bank, &info);
-	if (ERROR_OK != ret) {
+	if (ret != ERROR_OK) {
 		LOG_ERROR("Failed to read EFM32 info");
 		return ret;
 	}
@@ -1048,7 +1048,7 @@ COMMAND_HANDLER(efm32x_handle_debuglock_command)
 
 	struct flash_bank *bank;
 	int retval = CALL_COMMAND_HANDLER(flash_command_get_bank, 0, &bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	struct efm32x_flash_bank *efm32x_info = bank->driver_priv;
@@ -1065,7 +1065,7 @@ COMMAND_HANDLER(efm32x_handle_debuglock_command)
 	*ptr = 0;
 
 	retval = efm32x_write_lock_data(bank);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("Failed to write LB page");
 		return retval;
 	}

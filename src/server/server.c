@@ -819,15 +819,15 @@ static const struct command_registration server_command_handlers[] = {
 int server_register_commands(struct command_context *cmd_ctx)
 {
 	int retval = telnet_register_commands(cmd_ctx);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = tcl_register_commands(cmd_ctx);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	retval = jsp_register_commands(cmd_ctx);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	return register_commands(cmd_ctx, NULL, server_command_handlers);

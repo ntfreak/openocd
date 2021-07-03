@@ -67,8 +67,8 @@ int nand_fileio_start(struct command_invocation *cmd,
 
 	if (filename) {
 		int retval = fileio_open(&state->fileio, filename, filemode, FILEIO_BINARY);
-		if (ERROR_OK != retval) {
-			const char *msg = (FILEIO_READ == filemode) ? "read" : "write";
+		if (retval != ERROR_OK) {
+			const char *msg = (filemode == FILEIO_READ) ? "read" : "write";
 			command_print(cmd, "failed to open '%s' for %s access",
 				filename, msg);
 			return retval;
@@ -124,7 +124,7 @@ COMMAND_HELPER(nand_fileio_parse_args, struct nand_fileio_state *state,
 
 	struct nand_device *nand;
 	int retval = CALL_COMMAND_HANDLER(nand_command_get_device, 0, &nand);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (!nand->device) {
@@ -159,7 +159,7 @@ COMMAND_HELPER(nand_fileio_parse_args, struct nand_fileio_state *state,
 	}
 
 	retval = nand_fileio_start(CMD, nand, CMD_ARGV[1], filemode, state);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	if (!need_size) {

@@ -107,9 +107,9 @@ static int cc26xx_wait_algo_done(struct flash_bank *bank, uint32_t params_addr)
 	int retval = ERROR_OK;
 
 	start_ms = timeval_ms();
-	while (CC26XX_BUFFER_FULL == status) {
+	while (status == CC26XX_BUFFER_FULL) {
 		retval = target_read_u32(target, status_addr, &status);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			return retval;
 
 		elapsed_ms = timeval_ms() - start_ms;
@@ -119,7 +119,7 @@ static int cc26xx_wait_algo_done(struct flash_bank *bank, uint32_t params_addr)
 			break;
 	};
 
-	if (CC26XX_BUFFER_EMPTY != status) {
+	if (status != CC26XX_BUFFER_EMPTY) {
 		LOG_ERROR("%s: Flash operation failed", cc26xx_bank->family_name);
 		return ERROR_FAIL;
 	}
@@ -136,7 +136,7 @@ static int cc26xx_init(struct flash_bank *bank)
 
 	/* Make sure we've probed the flash to get the device and size */
 	retval = cc26xx_auto_probe(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Check for working area to use for flash helper algorithm */
@@ -144,7 +144,7 @@ static int cc26xx_init(struct flash_bank *bank)
 		target_free_working_area(target, cc26xx_bank->working_area);
 	retval = target_alloc_working_area(target, cc26xx_bank->algo_working_size,
 				&cc26xx_bank->working_area);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Confirm the defined working address is the area we need to use */
@@ -154,7 +154,7 @@ static int cc26xx_init(struct flash_bank *bank)
 	/* Write flash helper algorithm into target memory */
 	retval = target_write_buffer(target, CC26XX_ALGO_BASE_ADDRESS,
 				cc26xx_bank->algo_size, cc26xx_bank->algo_code);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("%s: Failed to load flash helper algorithm",
 			cc26xx_bank->family_name);
 		target_free_working_area(target, cc26xx_bank->working_area);
@@ -168,7 +168,7 @@ static int cc26xx_init(struct flash_bank *bank)
 	/* Begin executing the flash helper algorithm */
 	retval = target_start_algorithm(target, 0, NULL, 0, NULL,
 				CC26XX_ALGO_BASE_ADDRESS, 0, &cc26xx_bank->armv7m_info);
-	if (ERROR_OK != retval) {
+	if (retval != ERROR_OK) {
 		LOG_ERROR("%s: Failed to start flash helper algorithm",
 			cc26xx_bank->family_name);
 		target_free_working_area(target, cc26xx_bank->working_area);
@@ -217,7 +217,7 @@ static int cc26xx_mass_erase(struct flash_bank *bank)
 	}
 
 	retval = cc26xx_init(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Initialize algorithm parameters */
@@ -231,7 +231,7 @@ static int cc26xx_mass_erase(struct flash_bank *bank)
 				sizeof(algo_params), (uint8_t *)&algo_params);
 
 	/* Wait for command to complete */
-	if (ERROR_OK == retval)
+	if (retval == ERROR_OK)
 		retval = cc26xx_wait_algo_done(bank, cc26xx_bank->params_addr[0]);
 
 	/* Regardless of errors, try to close down algo */
@@ -290,7 +290,7 @@ static int cc26xx_erase(struct flash_bank *bank, unsigned int first,
 	length = (last - first + 1) * cc26xx_bank->sector_length;
 
 	retval = cc26xx_init(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Set up algorithm parameters for erase command */
@@ -304,7 +304,7 @@ static int cc26xx_erase(struct flash_bank *bank, unsigned int first,
 				sizeof(algo_params), (uint8_t *)&algo_params);
 
 	/* If no error, wait for erase to finish */
-	if (ERROR_OK == retval)
+	if (retval == ERROR_OK)
 		retval = cc26xx_wait_algo_done(bank, cc26xx_bank->params_addr[0]);
 
 	/* Regardless of errors, try to close down algo */
@@ -333,7 +333,7 @@ static int cc26xx_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	retval = cc26xx_init(bank);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 
 	/* Initialize algorithm parameters to default values */
@@ -354,7 +354,7 @@ static int cc26xx_write(struct flash_bank *bank, const uint8_t *buffer,
 		/* Put next block of data to flash into buffer */
 		retval = target_write_buffer(target, cc26xx_bank->buffer_addr[index],
 					size, buffer);
-		if (ERROR_OK != retval) {
+		if (retval != ERROR_OK) {
 			LOG_ERROR("Unable to write data to target memory");
 			break;
 		}
@@ -367,13 +367,13 @@ static int cc26xx_write(struct flash_bank *bank, const uint8_t *buffer,
 		/* Issue flash helper algorithm parameters for block write */
 		retval = target_write_buffer(target, cc26xx_bank->params_addr[index],
 					sizeof(algo_params[index]), (uint8_t *)&algo_params[index]);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			break;
 
 		/* Wait for next ping pong buffer to be ready */
 		index ^= 1;
 		retval = cc26xx_wait_algo_done(bank, cc26xx_bank->params_addr[index]);
-		if (ERROR_OK != retval)
+		if (retval != ERROR_OK)
 			break;
 
 		count -= size;
@@ -386,7 +386,7 @@ static int cc26xx_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	/* If no error yet, wait for last buffer to finish */
-	if (ERROR_OK == retval) {
+	if (retval == ERROR_OK) {
 		index ^= 1;
 		retval = cc26xx_wait_algo_done(bank, cc26xx_bank->params_addr[index]);
 	}
@@ -410,12 +410,12 @@ static int cc26xx_probe(struct flash_bank *bank)
 	int retval;
 
 	retval = target_read_u32(target, FCFG1_ICEPICK_ID, &value);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 	cc26xx_bank->icepick_id = value;
 
 	retval = target_read_u32(target, FCFG1_USER_ID, &value);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 	cc26xx_bank->user_id = value;
 
@@ -454,7 +454,7 @@ static int cc26xx_probe(struct flash_bank *bank)
 	}
 
 	retval = target_read_u32(target, CC26XX_FLASH_SIZE_INFO, &value);
-	if (ERROR_OK != retval)
+	if (retval != ERROR_OK)
 		return retval;
 	num_sectors = value & 0xff;
 	if (num_sectors > max_sectors)

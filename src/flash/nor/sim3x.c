@@ -1039,7 +1039,7 @@ COMMAND_HANDLER(sim3x_lock)
 			return retval;
 
 		ret = sim3x_flash_write(bank, lock_word, LOCK_WORD_ADDRESS, 4);
-		if (ERROR_OK != ret)
+		if (ret != ERROR_OK)
 			return ret;
 
 		LOG_INFO("Target is successfully locked");

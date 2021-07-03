@@ -569,7 +569,7 @@ free_all:
 	svf_free_xxd_para(&svf_para.sdr_para);
 	svf_free_xxd_para(&svf_para.sir_para);
 
-	if (ERROR_OK == ret)
+	if (ret == ERROR_OK)
 		command_print(CMD,
 			      "svf file programmed %s for %d commands with %d errors",
 			      (svf_ignore_error > 1) ? "unsuccessfully" : "successfully",
@@ -742,8 +742,8 @@ parse_char:
 
 bool svf_tap_state_is_stable(tap_state_t state)
 {
-	return (TAP_RESET == state) || (TAP_IDLE == state)
-			|| (TAP_DRPAUSE == state) || (TAP_IRPAUSE == state);
+	return (state == TAP_RESET) || (state == TAP_IDLE)
+			|| (state == TAP_DRPAUSE) || (state == TAP_IRPAUSE);
 }
 
 static int svf_find_string_in_array(char *str, char **strs, int num_of_element)
@@ -1110,7 +1110,7 @@ xxr_common:
 				memset(xxr_para_tmp->mask, 0, (xxr_para_tmp->len + 7) >> 3);
 			}
 			/* do scan if necessary */
-			if (SDR == command) {
+			if (command == SDR) {
 				/* check buffer size first, reallocate if necessary */
 				i = svf_para.hdr_para.len + svf_para.sdr_para.len +
 						svf_para.tdr_para.len;
@@ -1201,7 +1201,7 @@ xxr_common:
 				}
 
 				svf_buffer_index += (i + 7) >> 3;
-			} else if (SIR == command) {
+			} else if (command == SIR) {
 				/* check buffer size first, reallocate if necessary */
 				i = svf_para.hir_para.len + svf_para.sir_para.len +
 						svf_para.tir_para.len;
@@ -1534,7 +1534,7 @@ xxr_common:
 				return ERROR_FAIL;
 
 			/* output debug info */
-			if ((SIR == command) || (SDR == command)) {
+			if ((command == SIR) || (command == SDR)) {
 				SVF_BUF_LOG(DEBUG, svf_tdi_buffer, svf_check_tdo_para[0].bit_len, "TDO read");
 			}
 		}

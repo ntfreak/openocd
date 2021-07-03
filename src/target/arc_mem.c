@@ -281,7 +281,7 @@ int arc_mem_read(struct target *target, target_addr_t address, uint32_t size,
 	/* arc_..._read_mem with size 4/2 returns uint32_t/uint16_t in host */
 	/* endianness, but byte array should represent target endianness      */
 
-	if (ERROR_OK == retval) {
+	if (retval == ERROR_OK) {
 		switch (size) {
 		case 4:
 			target_buffer_set_u32_array(target, buffer, count,

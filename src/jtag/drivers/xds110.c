@@ -661,7 +661,7 @@ static bool xds_execute(uint32_t out_length, uint32_t in_length,
 				/* Extract error code from return packet */
 				error = (int)xds110_get_u32(&xds110.read_payload[0]);
 				done = true;
-				if (SC_ERR_NONE != error)
+				if (error != SC_ERR_NONE)
 					LOG_DEBUG("XDS110: command 0x%02x returned error %d",
 						xds110.write_payload[0], error);
 			}
@@ -1183,7 +1183,7 @@ static bool xds110_legacy_read_reg(uint8_t cmd, uint32_t *value)
 	if (!is_read_request)
 		return false;
 
-	if (DAP_AP == type) {
+	if (type == DAP_AP) {
 		/* Add bank address to register address for CMAPI call */
 		address |= bank;
 	}
@@ -1245,12 +1245,12 @@ static bool xds110_legacy_write_reg(uint8_t cmd, uint32_t value)
 	/* Invalidate the RDBUFF cache */
 	xds110.use_rdbuff = false;
 
-	if (DAP_AP == type) {
+	if (type == DAP_AP) {
 		/* Add bank address to register address for CMAPI call */
 		address |= bank;
 		/* Any write to an AP register invalidates the firmware's cache */
 		xds110.is_ap_dirty = true;
-	} else if (DAP_DP_SELECT == address) {
+	} else if (address == DAP_DP_SELECT) {
 		/* Any write to the SELECT register invalidates the firmware's cache */
 		xds110.is_ap_dirty = true;
 	}
@@ -1264,7 +1264,7 @@ static bool xds110_legacy_write_reg(uint8_t cmd, uint32_t value)
 		 * If the debugger wrote to SELECT, cache the value
 		 * to use to build the apNum and address values above
 		 */
-		if ((DAP_DP == type) && (DAP_DP_SELECT == address))
+		if ((type == DAP_DP) && (address == DAP_DP_SELECT))
 			xds110.select = value;
 	}
 

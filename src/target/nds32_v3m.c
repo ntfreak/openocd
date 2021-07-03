@@ -267,7 +267,7 @@ static int nds32_v3m_add_breakpoint(struct target *target,
 		return ERROR_OK;
 	} else if (breakpoint->type == BKPT_SOFT) {
 		result = nds32_add_software_breakpoint(target, breakpoint);
-		if (ERROR_OK != result) {
+		if (result != ERROR_OK) {
 			/* auto convert to hardware breakpoint if failed */
 			if (nds32->auto_convert_hw_bp) {
 				/* convert to hardware breakpoint */
