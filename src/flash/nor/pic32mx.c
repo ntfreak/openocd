@@ -515,7 +515,7 @@ static int pic32mx_write_block(struct flash_bank *bank, const uint8_t *buffer,
 	uint8_t *new_buffer = NULL;
 	if (row_offset && (count >= (row_size / 4))) {
 		new_buffer = malloc(buffer_size);
-		if (new_buffer == NULL) {
+		if (!new_buffer) {
 			LOG_ERROR("Out of memory");
 			return ERROR_FAIL;
 		}

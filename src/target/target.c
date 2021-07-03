@@ -188,7 +188,7 @@ static const char *target_strerror_safe(int err)
 	const struct jim_nvp *n;
 
 	n = jim_nvp_value2name_simple(nvp_error_target, err);
-	if (n->name == NULL)
+	if (!n->name)
 		return "unknown";
 	else
 		return n->name;
@@ -526,7 +526,7 @@ struct target *get_current_target(struct command_context *cmd_ctx)
 {
 	struct target *target = get_current_target_or_null(cmd_ctx);
 
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("BUG: current_target out of bounds");
 		exit(-1);
 	}
@@ -663,7 +663,7 @@ static int target_process_reset(struct command_invocation *cmd, enum target_rese
 	int retval;
 	struct jim_nvp *n;
 	n = jim_nvp_value2name_simple(nvp_reset_modes, reset_mode);
-	if (n->name == NULL) {
+	if (!n->name) {
 		LOG_ERROR("invalid reset mode");
 		return ERROR_FAIL;
 	}
@@ -1537,13 +1537,13 @@ static int target_init_one(struct command_context *cmd_ctx,
 	target_reset_examined(target);
 
 	struct target_type *type = target->type;
-	if (type->examine == NULL)
+	if (!type->examine)
 		type->examine = default_examine;
 
-	if (type->check_reset == NULL)
+	if (!type->check_reset)
 		type->check_reset = default_check_reset;
 
-	assert(type->init_target != NULL);
+	assert(type->init_target);
 
 	int retval = type->init_target(cmd_ctx, target);
 	if (retval != ERROR_OK) {
@@ -1555,7 +1555,7 @@ static int target_init_one(struct command_context *cmd_ctx,
 	 * implement it in stages, but warn if we need to do so.
 	 */
 	if (type->mmu) {
-		if (type->virt2phys == NULL) {
+		if (!type->virt2phys) {
 			LOG_ERROR("type '%s' is missing virt2phys", type->name);
 			type->virt2phys = identity_virt2phys;
 		}
@@ -1652,7 +1652,7 @@ int target_register_event_callback(int (*callback)(struct target *target,
 {
 	struct target_event_callback **callbacks_p = &target_event_callbacks;
 
-	if (callback == NULL)
+	if (!callback)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	if (*callbacks_p) {
@@ -1674,11 +1674,11 @@ int target_register_reset_callback(int (*callback)(struct target *target,
 {
 	struct target_reset_callback *entry;
 
-	if (callback == NULL)
+	if (!callback)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	entry = malloc(sizeof(struct target_reset_callback));
-	if (entry == NULL) {
+	if (!entry) {
 		LOG_ERROR("error allocating buffer for reset callback entry");
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	}
@@ -1696,11 +1696,11 @@ int target_register_trace_callback(int (*callback)(struct target *target,
 {
 	struct target_trace_callback *entry;
 
-	if (callback == NULL)
+	if (!callback)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	entry = malloc(sizeof(struct target_trace_callback));
-	if (entry == NULL) {
+	if (!entry) {
 		LOG_ERROR("error allocating buffer for trace callback entry");
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	}
@@ -1718,7 +1718,7 @@ int target_register_timer_callback(int (*callback)(void *priv),
 {
 	struct target_timer_callback **callbacks_p = &target_timer_callbacks;
 
-	if (callback == NULL)
+	if (!callback)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	if (*callbacks_p) {
@@ -1748,7 +1748,7 @@ int target_unregister_event_callback(int (*callback)(struct target *target,
 	struct target_event_callback **p = &target_event_callbacks;
 	struct target_event_callback *c = target_event_callbacks;
 
-	if (callback == NULL)
+	if (!callback)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	while (c) {
@@ -1770,7 +1770,7 @@ int target_unregister_reset_callback(int (*callback)(struct target *target,
 {
 	struct target_reset_callback *entry;
 
-	if (callback == NULL)
+	if (!callback)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	list_for_each_entry(entry, &target_reset_callback_list, list) {
@@ -1789,7 +1789,7 @@ int target_unregister_trace_callback(int (*callback)(struct target *target,
 {
 	struct target_trace_callback *entry;
 
-	if (callback == NULL)
+	if (!callback)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	list_for_each_entry(entry, &target_trace_callback_list, list) {
@@ -1805,7 +1805,7 @@ int target_unregister_trace_callback(int (*callback)(struct target *target,
 
 int target_unregister_timer_callback(int (*callback)(void *priv), void *priv)
 {
-	if (callback == NULL)
+	if (!callback)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	for (struct target_timer_callback *c = target_timer_callbacks;
@@ -1961,7 +1961,7 @@ static void target_split_working_area(struct working_area *area, uint32_t size)
 	if (size < area->size) {
 		struct working_area *new_wa = malloc(sizeof(*new_wa));
 
-		if (new_wa == NULL)
+		if (!new_wa)
 			return;
 
 		new_wa->next = area->next;
@@ -2013,7 +2013,7 @@ static void target_merge_working_areas(struct target *target)
 int target_alloc_working_area_try(struct target *target, uint32_t size, struct working_area **area)
 {
 	/* Reevaluate working area address based on MMU state*/
-	if (target->working_areas == NULL) {
+	if (!target->working_areas) {
 		int retval;
 		int enabled;
 
@@ -2072,7 +2072,7 @@ int target_alloc_working_area_try(struct target *target, uint32_t size, struct w
 		c = c->next;
 	}
 
-	if (c == NULL)
+	if (!c)
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 
 	/* Split the working area into the requested size */
@@ -2082,9 +2082,9 @@ int target_alloc_working_area_try(struct target *target, uint32_t size, struct w
 			  size, c->address);
 
 	if (target->backup_working_area) {
-		if (c->backup == NULL) {
+		if (!c->backup) {
 			c->backup = malloc(c->size);
-			if (c->backup == NULL)
+			if (!c->backup)
 				return ERROR_FAIL;
 		}
 
@@ -2215,7 +2215,7 @@ uint32_t target_get_working_area_avail(struct target *target)
 	struct working_area *c = target->working_areas;
 	uint32_t max_size = 0;
 
-	if (c == NULL)
+	if (!c)
 		return target->working_area_size;
 
 	while (c) {
@@ -2250,7 +2250,7 @@ static void target_destroy(struct target *target)
 	/* release the targets SMP list */
 	if (target->smp) {
 		struct target_list *head = target->head;
-		while (head != NULL) {
+		while (head) {
 			struct target_list *pos = head->next;
 			head->target->smp = 0;
 			free(head);
@@ -2301,7 +2301,7 @@ void target_quit(void)
 int target_arch_state(struct target *target)
 {
 	int retval;
-	if (target == NULL) {
+	if (!target) {
 		LOG_WARNING("No target has been configured");
 		return ERROR_OK;
 	}
@@ -2520,7 +2520,7 @@ int target_checksum_memory(struct target *target, target_addr_t address, uint32_
 	retval = target->type->checksum_memory(target, address, size, &checksum);
 	if (retval != ERROR_OK) {
 		buffer = malloc(size);
-		if (buffer == NULL) {
+		if (!buffer) {
 			LOG_ERROR("error allocating buffer for section (%" PRIu32 " bytes)", size);
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		}
@@ -2820,7 +2820,7 @@ int target_write_phys_u8(struct target *target, target_addr_t address, uint8_t v
 static int find_target(struct command_invocation *cmd, const char *name)
 {
 	struct target *target = get_target(name);
-	if (target == NULL) {
+	if (!target) {
 		command_print(cmd, "Target: %s is unknown, try one of:\n", name);
 		return ERROR_FAIL;
 	}
@@ -3136,7 +3136,7 @@ COMMAND_HANDLER(handle_reg_command)
 			goto not_found;
 	}
 
-	assert(reg != NULL); /* give clang a hint that we *know* reg is != NULL here */
+	assert(reg); /* give clang a hint that we *know* reg is != NULL here */
 
 	if (!reg->exist)
 		goto not_found;
@@ -3163,7 +3163,7 @@ COMMAND_HANDLER(handle_reg_command)
 	/* set register value */
 	if (CMD_ARGC == 2) {
 		uint8_t *buf = malloc(DIV_ROUND_UP(reg->size, 8));
-		if (buf == NULL)
+		if (!buf)
 			return ERROR_FAIL;
 		str_to_buf(CMD_ARGV[1], strlen(CMD_ARGV[1]), buf, reg->size, 0);
 
@@ -3316,7 +3316,7 @@ COMMAND_HANDLER(handle_reset_command)
 	if (CMD_ARGC == 1) {
 		const struct jim_nvp *n;
 		n = jim_nvp_name2value_simple(nvp_reset_modes, CMD_ARGV[0]);
-		if ((n->name == NULL) || (n->value == RESET_UNKNOWN))
+		if ((!n->name) || (n->value == RESET_UNKNOWN))
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		reset_mode = n->value;
 	}
@@ -3475,7 +3475,7 @@ COMMAND_HANDLER(handle_md_command)
 		COMMAND_PARSE_NUMBER(uint, CMD_ARGV[1], count);
 
 	uint8_t *buffer = calloc(count, size);
-	if (buffer == NULL) {
+	if (!buffer) {
 		LOG_ERROR("Failed to allocate md read buffer");
 		return ERROR_FAIL;
 	}
@@ -3506,7 +3506,7 @@ static int target_fill_mem(struct target *target,
 	 * to fill large memory areas with any sane speed */
 	const unsigned chunk_size = 16384;
 	uint8_t *target_buf = malloc(chunk_size * data_size);
-	if (target_buf == NULL) {
+	if (!target_buf) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
@@ -3654,7 +3654,7 @@ COMMAND_HANDLER(handle_load_image_command)
 	retval = ERROR_OK;
 	for (unsigned int i = 0; i < image.num_sections; i++) {
 		buffer = malloc(image.sections[i].size);
-		if (buffer == NULL) {
+		if (!buffer) {
 			command_print(CMD,
 						  "error allocating buffer for section (%d bytes)",
 						  (int)(image.sections[i].size));
@@ -3825,7 +3825,7 @@ static COMMAND_HELPER(handle_verify_image_command_internal, enum verify_mode ver
 	retval = ERROR_OK;
 	for (unsigned int i = 0; i < image.num_sections; i++) {
 		buffer = malloc(image.sections[i].size);
-		if (buffer == NULL) {
+		if (!buffer) {
 			command_print(CMD,
 					"error allocating buffer for section (%" PRIu32 " bytes)",
 					image.sections[i].size);
@@ -4194,7 +4194,7 @@ static void write_gmon(uint32_t *samples, uint32_t sample_num, const char *filen
 {
 	uint32_t i;
 	FILE *f = fopen(filename, "w");
-	if (f == NULL)
+	if (!f)
 		return;
 	write_string(f, "gmon");
 	write_long(f, 0x00000001, target); /* Version */
@@ -4236,7 +4236,7 @@ static void write_gmon(uint32_t *samples, uint32_t sample_num, const char *filen
 	if (num_buckets > max_buckets)
 		num_buckets = max_buckets;
 	int *buckets = malloc(sizeof(int) * num_buckets);
-	if (buckets == NULL) {
+	if (!buckets) {
 		fclose(f);
 		return;
 	}
@@ -4268,7 +4268,7 @@ static void write_gmon(uint32_t *samples, uint32_t sample_num, const char *filen
 	/*append binary memory gmon.out profile_hist_data (profile_hist_data + profile_hist_hdr.hist_size) */
 
 	char *data = malloc(2 * num_buckets);
-	if (data != NULL) {
+	if (data) {
 		for (i = 0; i < num_buckets; i++) {
 			int val;
 			val = buckets[i];
@@ -4304,7 +4304,7 @@ COMMAND_HANDLER(handle_profile_command)
 	COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], offset);
 
 	uint32_t *samples = malloc(sizeof(uint32_t) * MAX_PROFILE_SAMPLE_NUM);
-	if (samples == NULL) {
+	if (!samples) {
 		LOG_ERROR("No memory to store samples.");
 		return ERROR_FAIL;
 	}
@@ -4406,10 +4406,10 @@ static int jim_mem2array(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 	struct target *target;
 
 	context = current_command_context(interp);
-	assert(context != NULL);
+	assert(context);
 
 	target = get_current_target(context);
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("mem2array: no current target");
 		return JIM_ERR;
 	}
@@ -4517,7 +4517,7 @@ static int target_mem2array(Jim_Interp *interp, struct target *target, int argc,
 
 	const size_t buffersize = 4096;
 	uint8_t *buffer = malloc(buffersize);
-	if (buffer == NULL)
+	if (!buffer)
 		return JIM_ERR;
 
 	/* assume ok */
@@ -4589,7 +4589,7 @@ static int get_u64_array_element(Jim_Interp *interp, const char *varname, size_t
 	Jim_Obj *obj_val = Jim_GetVariable(interp, obj_name, JIM_ERRMSG);
 	Jim_DecrRefCount(interp, obj_name);
 	free(namebuf);
-	if (obj_val == NULL)
+	if (!obj_val)
 		return JIM_ERR;
 
 	jim_wide wide_val;
@@ -4604,10 +4604,10 @@ static int jim_array2mem(Jim_Interp *interp, int argc, Jim_Obj *const *argv)
 	struct target *target;
 
 	context = current_command_context(interp);
-	assert(context != NULL);
+	assert(context);
 
 	target = get_current_target(context);
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("array2mem: no current target");
 		return JIM_ERR;
 	}
@@ -4720,7 +4720,7 @@ static int target_array2mem(Jim_Interp *interp, struct target *target,
 
 	const size_t buffersize = 4096;
 	uint8_t *buffer = malloc(buffersize);
-	if (buffer == NULL)
+	if (!buffer)
 		return JIM_ERR;
 
 	/* index counter */
@@ -4974,7 +4974,7 @@ no_params:
 					/* END_DEPRECATED_TPIU */
 
 					bool replace = true;
-					if (teap == NULL) {
+					if (!teap) {
 						/* create new */
 						teap = calloc(1, sizeof(*teap));
 						replace = false;
@@ -5005,7 +5005,7 @@ no_params:
 					Jim_SetEmptyResult(goi->interp);
 				} else {
 					/* get */
-					if (teap == NULL)
+					if (!teap)
 						Jim_SetEmptyResult(goi->interp);
 					else
 						Jim_SetResult(goi->interp, Jim_DuplicateObj(goi->interp, teap->body));
@@ -5091,7 +5091,7 @@ no_params:
 					goto no_params;
 			}
 			n = jim_nvp_value2name_simple(nvp_target_endian, target->endianness);
-			if (n->name == NULL) {
+			if (!n->name) {
 				target->endianness = TARGET_LITTLE_ENDIAN;
 				n = jim_nvp_value2name_simple(nvp_target_endian, target->endianness);
 			}
@@ -5129,7 +5129,7 @@ no_params:
 				if (e != JIM_OK)
 					return e;
 				tap = jtag_tap_by_jim_obj(goi->interp, o_t);
-				if (tap == NULL)
+				if (!tap)
 					return JIM_ERR;
 				target->tap = tap;
 				target->tap_configured = true;
@@ -5692,7 +5692,7 @@ static int target_create(struct jim_getopt_info *goi)
 	struct command_context *cmd_ctx;
 
 	cmd_ctx = current_command_context(goi->interp);
-	assert(cmd_ctx != NULL);
+	assert(cmd_ctx);
 
 	if (goi->argc < 3) {
 		Jim_WrongNumArgs(goi->interp, 1, goi->argv, "?name? ?type? ..options...");
@@ -5824,7 +5824,7 @@ static int target_create(struct jim_getopt_info *goi)
 			}
 		}
 		/* tap must be set after target was configured */
-		if (target->tap == NULL)
+		if (!target->tap)
 			e = JIM_ERR;
 	}
 
@@ -5922,7 +5922,7 @@ static int jim_target_current(Jim_Interp *interp, int argc, Jim_Obj *const *argv
 		return JIM_ERR;
 	}
 	struct command_context *cmd_ctx = current_command_context(interp);
-	assert(cmd_ctx != NULL);
+	assert(cmd_ctx);
 
 	struct target *target = get_current_target_or_null(cmd_ctx);
 	if (target)
@@ -6081,7 +6081,7 @@ static struct fast_load *fastload;
 
 static void free_fastload(void)
 {
-	if (fastload != NULL) {
+	if (fastload) {
 		for (int i = 0; i < fastload_num; i++)
 			free(fastload[i].data);
 		free(fastload);
@@ -6115,7 +6115,7 @@ COMMAND_HANDLER(handle_fast_load_image_command)
 	retval = ERROR_OK;
 	fastload_num = image.num_sections;
 	fastload = malloc(sizeof(struct fast_load)*image.num_sections);
-	if (fastload == NULL) {
+	if (!fastload) {
 		command_print(CMD, "out of memory");
 		image_close(&image);
 		return ERROR_FAIL;
@@ -6123,7 +6123,7 @@ COMMAND_HANDLER(handle_fast_load_image_command)
 	memset(fastload, 0, sizeof(struct fast_load)*image.num_sections);
 	for (unsigned int i = 0; i < image.num_sections; i++) {
 		buffer = malloc(image.sections[i].size);
-		if (buffer == NULL) {
+		if (!buffer) {
 			command_print(CMD, "error allocating buffer for section (%d bytes)",
 						  (int)(image.sections[i].size));
 			retval = ERROR_FAIL;
@@ -6195,7 +6195,7 @@ COMMAND_HANDLER(handle_fast_load_command)
 {
 	if (CMD_ARGC > 0)
 		return ERROR_COMMAND_SYNTAX_ERROR;
-	if (fastload == NULL) {
+	if (!fastload) {
 		LOG_ERROR("No image in memory");
 		return ERROR_FAIL;
 	}
@@ -6281,7 +6281,7 @@ COMMAND_HANDLER(handle_ps_command)
 
 static void binprint(struct command_invocation *cmd, const char *text, const uint8_t *buf, int size)
 {
-	if (text != NULL)
+	if (text)
 		command_print_sameline(cmd, "%s", text);
 	for (int i = 0; i < size; i++)
 		command_print_sameline(cmd, " %02x", buf[i]);
@@ -6381,7 +6381,7 @@ next:
 out:
 	free(test_pattern);
 
-	if (wa != NULL)
+	if (wa)
 		target_free_working_area(target, wa);
 
 	/* Test writes */
@@ -6466,7 +6466,7 @@ nextw:
 
 	free(test_pattern);
 
-	if (wa != NULL)
+	if (wa)
 		target_free_working_area(target, wa);
 	return retval;
 }

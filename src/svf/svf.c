@@ -302,7 +302,7 @@ static int svf_realloc_buffers(size_t len)
 
 static void svf_free_xxd_para(struct svf_xxr_para *para)
 {
-	if (NULL != para) {
+	if (para) {
 		free(para->tdi);
 		para->tdi = NULL;
 
@@ -395,7 +395,7 @@ COMMAND_HANDLER(handle_svf_command)
 			svf_ignore_error = 1;
 		else {
 			svf_fd = fopen(CMD_ARGV[i], "r");
-			if (svf_fd == NULL) {
+			if (!svf_fd) {
 				int err = errno;
 				command_print(CMD, "open(\"%s\"): %s", CMD_ARGV[i], strerror(err));
 				/* no need to free anything now */
@@ -405,7 +405,7 @@ COMMAND_HANDLER(handle_svf_command)
 		}
 	}
 
-	if (svf_fd == NULL)
+	if (!svf_fd)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	/* get time */
@@ -417,7 +417,7 @@ COMMAND_HANDLER(handle_svf_command)
 
 	svf_check_tdo_para_index = 0;
 	svf_check_tdo_para = malloc(sizeof(struct svf_check_tdo_para) * SVF_CHECK_TDO_PARA_SIZE);
-	if (NULL == svf_check_tdo_para) {
+	if (!svf_check_tdo_para) {
 		LOG_ERROR("not enough memory");
 		ret = ERROR_FAIL;
 		goto free_all;
@@ -675,7 +675,7 @@ static int svf_read_command_from_file(FILE *fd)
 				if (cmd_pos + 3 > svf_command_buffer_size) {
 					svf_command_buffer = realloc(svf_command_buffer, cmd_pos + 3);
 					svf_command_buffer_size = cmd_pos + 3;
-					if (svf_command_buffer == NULL) {
+					if (!svf_command_buffer) {
 						LOG_ERROR("not enough memory");
 						return ERROR_FAIL;
 					}
@@ -1091,7 +1091,7 @@ xxr_common:
 			}
 			/* If TDO is absent, no comparison is needed, set the mask to 0 */
 			if (!(xxr_para_tmp->data_mask & XXR_TDO)) {
-				if (NULL == xxr_para_tmp->tdo) {
+				if (!xxr_para_tmp->tdo) {
 					if (ERROR_OK !=
 					svf_adjust_array_length(&xxr_para_tmp->tdo, i_tmp,
 						xxr_para_tmp->len)) {
@@ -1099,7 +1099,7 @@ xxr_common:
 						return ERROR_FAIL;
 					}
 				}
-				if (NULL == xxr_para_tmp->mask) {
+				if (!xxr_para_tmp->mask) {
 					if (ERROR_OK !=
 					svf_adjust_array_length(&xxr_para_tmp->mask, i_tmp,
 						xxr_para_tmp->len)) {
@@ -1420,7 +1420,7 @@ xxr_common:
 			if (num_of_argu > 2) {
 				/* STATE pathstate1 ... stable_state */
 				path = malloc((num_of_argu - 1) * sizeof(tap_state_t));
-				if (NULL == path) {
+				if (!path) {
 					LOG_ERROR("not enough memory");
 					return ERROR_FAIL;
 				}

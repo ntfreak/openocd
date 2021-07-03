@@ -168,7 +168,7 @@ static void bitq_scan_field(struct scan_field *field, int do_pause)
 	else
 		tdo_req = 0;
 
-	if (field->out_value == NULL) {
+	if (!field->out_value) {
 		/* just send zeros and request data from TDO */
 		for (bit_cnt = field->num_bits; bit_cnt > 1; bit_cnt--)
 			bitq_io(0, 0, tdo_req);

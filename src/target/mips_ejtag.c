@@ -32,7 +32,7 @@
 
 void mips_ejtag_set_instr(struct mips_ejtag *ejtag_info, uint32_t new_instr)
 {
-	assert(ejtag_info->tap != NULL);
+	assert(ejtag_info->tap);
 	struct jtag_tap *tap = ejtag_info->tap;
 
 	if (buf_get_u32(tap->cur_instr, 0, tap->ir_length) != new_instr) {
@@ -68,7 +68,7 @@ static int mips_ejtag_get_impcode(struct mips_ejtag *ejtag_info)
 
 void mips_ejtag_add_scan_96(struct mips_ejtag *ejtag_info, uint32_t ctrl, uint32_t data, uint8_t *in_scan_buf)
 {
-	assert(ejtag_info->tap != NULL);
+	assert(ejtag_info->tap);
 	struct jtag_tap *tap = ejtag_info->tap;
 
 	struct scan_field field;
@@ -94,7 +94,7 @@ int mips_ejtag_drscan_64(struct mips_ejtag *ejtag_info, uint64_t *data)
 	struct jtag_tap *tap;
 	tap  = ejtag_info->tap;
 
-	if (tap == NULL)
+	if (!tap)
 		return ERROR_FAIL;
 	struct scan_field field;
 	uint8_t t[8] = { 0 }, r[8];
@@ -122,7 +122,7 @@ int mips_ejtag_drscan_64(struct mips_ejtag *ejtag_info, uint64_t *data)
 static void mips_ejtag_drscan_32_queued(struct mips_ejtag *ejtag_info,
 		uint32_t data_out, uint8_t *data_in)
 {
-	assert(ejtag_info->tap != NULL);
+	assert(ejtag_info->tap);
 	struct jtag_tap *tap = ejtag_info->tap;
 
 	struct scan_field field;
@@ -160,7 +160,7 @@ void mips_ejtag_drscan_32_out(struct mips_ejtag *ejtag_info, uint32_t data)
 
 int mips_ejtag_drscan_8(struct mips_ejtag *ejtag_info, uint8_t *data)
 {
-	assert(ejtag_info->tap != NULL);
+	assert(ejtag_info->tap);
 	struct jtag_tap *tap = ejtag_info->tap;
 
 	struct scan_field field;
@@ -181,7 +181,7 @@ int mips_ejtag_drscan_8(struct mips_ejtag *ejtag_info, uint8_t *data)
 
 void mips_ejtag_drscan_8_out(struct mips_ejtag *ejtag_info, uint8_t data)
 {
-	assert(ejtag_info->tap != NULL);
+	assert(ejtag_info->tap);
 	struct jtag_tap *tap = ejtag_info->tap;
 
 	struct scan_field field;
@@ -421,7 +421,7 @@ int mips_ejtag_init(struct mips_ejtag *ejtag_info)
 
 int mips_ejtag_fastdata_scan(struct mips_ejtag *ejtag_info, int write_t, uint32_t *data)
 {
-	assert(ejtag_info->tap != NULL);
+	assert(ejtag_info->tap);
 	struct jtag_tap *tap = ejtag_info->tap;
 
 	struct scan_field fields[2];
@@ -530,7 +530,7 @@ int mips64_ejtag_fastdata_scan(struct mips_ejtag *ejtag_info, bool write_t, uint
 	struct jtag_tap *tap;
 
 	tap = ejtag_info->tap;
-	assert(tap != NULL);
+	assert(tap);
 
 	struct scan_field fields[2];
 	uint8_t spracc = 0;

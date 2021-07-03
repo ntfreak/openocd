@@ -70,11 +70,11 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 	 */
 	devs = hid_enumerate(0x0, 0x0);
 	cur_dev = devs;
-	while (NULL != cur_dev) {
+	while (cur_dev) {
 		bool found = false;
 
 		if (0 == vids[0]) {
-			if (NULL == cur_dev->product_string) {
+			if (!cur_dev->product_string) {
 				LOG_DEBUG("Cannot read product string of device 0x%x:0x%x",
 					  cur_dev->vendor_id, cur_dev->product_id);
 			} else if (wcsstr(cur_dev->product_string, L"CMSIS-DAP")) {
@@ -97,10 +97,10 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 
 		if (found) {
 			/* check serial number matches if given */
-			if (serial == NULL)
+			if (!serial)
 				break;
 
-			if (cur_dev->serial_number != NULL) {
+			if (cur_dev->serial_number) {
 				size_t len = (strlen(serial) + 1) * sizeof(wchar_t);
 				wchar_t *wserial = malloc(len);
 				mbstowcs(wserial, serial, len);
@@ -118,7 +118,7 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 		cur_dev = cur_dev->next;
 	}
 
-	if (NULL != cur_dev) {
+	if (cur_dev) {
 		target_vid = cur_dev->vendor_id;
 		target_pid = cur_dev->product_id;
 	}
@@ -129,7 +129,7 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 	}
 
 	dap->bdata = malloc(sizeof(struct cmsis_dap_backend_data));
-	if (dap->bdata == NULL) {
+	if (!dap->bdata) {
 		LOG_ERROR("unable to allocate memory");
 		return ERROR_FAIL;
 	}
@@ -137,7 +137,7 @@ static int cmsis_dap_hid_open(struct cmsis_dap *dap, uint16_t vids[], uint16_t p
 	dev = hid_open_path(cur_dev->path);
 	hid_free_enumeration(devs);
 
-	if (dev == NULL) {
+	if (!dev) {
 		LOG_ERROR("unable to open CMSIS-DAP device 0x%x:0x%x", target_vid, target_pid);
 		return ERROR_FAIL;
 	}
@@ -217,7 +217,7 @@ static int cmsis_dap_hid_alloc(struct cmsis_dap *dap, unsigned int pkt_sz)
 {
 	unsigned int packet_buffer_size = pkt_sz + REPORT_ID_SIZE;
 	uint8_t *buf = malloc(packet_buffer_size);
-	if (buf == NULL) {
+	if (!buf) {
 		LOG_ERROR("unable to allocate CMSIS-DAP packet buffer");
 		return ERROR_FAIL;
 	}

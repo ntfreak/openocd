@@ -40,7 +40,7 @@ int arm_jtag_set_instr_inner(struct jtag_tap *tap,
 	buf_set_u32(t, 0, field.num_bits, new_instr);
 	field.in_value = NULL;
 
-	if (no_verify_capture == NULL)
+	if (!no_verify_capture)
 		jtag_add_ir_scan(tap, &field, end_state);
 	else {
 		/* FIX!!!! this is a kludge!!! arm926ejs.c should reimplement this arm_jtag_set_instr to

@@ -93,7 +93,7 @@ int xilinx_read_bit_file(struct xilinx_bit_file *bit_file, const char *filename)
 	}
 
 	input_file = fopen(filename, "rb");
-	if (input_file == NULL) {
+	if (!input_file) {
 		LOG_ERROR("couldn't open %s: %s", filename, strerror(errno));
 		return ERROR_PLD_FILE_LOAD_FAILED;
 	}

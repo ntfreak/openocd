@@ -351,7 +351,7 @@ static const struct jim_nvp nvp_arm_tpiu_swo_bool_opts[] = {
 
 static int arm_tpiu_swo_configure(struct jim_getopt_info *goi, struct arm_tpiu_swo_object *obj)
 {
-	assert(obj != NULL);
+	assert(obj);
 
 	if (goi->isconfigure && obj->enabled) {
 		Jim_SetResultFormatted(goi->interp, "Cannot configure TPIU/SWO; %s is enabled!", obj->name);
@@ -866,7 +866,7 @@ static int arm_tpiu_swo_create(Jim_Interp *interp, struct arm_tpiu_swo_object *o
 	int e;
 
 	cmd_ctx = current_command_context(interp);
-	assert(cmd_ctx != NULL);
+	assert(cmd_ctx);
 
 	/* does this command exist? */
 	cmd = Jim_GetCommand(interp, Jim_NewStringObj(interp, obj->name, -1), JIM_ERRMSG);

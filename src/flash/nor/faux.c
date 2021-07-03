@@ -43,12 +43,12 @@ FLASH_BANK_COMMAND_HANDLER(faux_flash_bank_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	info = malloc(sizeof(struct faux_flash_bank));
-	if (info == NULL) {
+	if (!info) {
 		LOG_ERROR("no memory for flash bank info");
 		return ERROR_FAIL;
 	}
 	info->memory = malloc(bank->size);
-	if (info->memory == NULL) {
+	if (!info->memory) {
 		free(info);
 		LOG_ERROR("no memory for flash bank info");
 		return ERROR_FAIL;
@@ -68,7 +68,7 @@ FLASH_BANK_COMMAND_HANDLER(faux_flash_bank_command)
 	}
 
 	info->target = get_target(CMD_ARGV[5]);
-	if (info->target == NULL) {
+	if (!info->target) {
 		LOG_ERROR("target '%s' not defined", CMD_ARGV[5]);
 		free(info->memory);
 		free(info);

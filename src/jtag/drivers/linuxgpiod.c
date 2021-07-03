@@ -207,14 +207,14 @@ static int linuxgpiod_reset(int trst, int srst)
 	LOG_DEBUG("linuxgpiod_reset");
 
 	/* assume active low */
-	if (gpiod_srst != NULL) {
+	if (gpiod_srst) {
 		retval1 = gpiod_line_set_value(gpiod_srst, srst ? 0 : 1);
 		if (retval1 < 0)
 			LOG_WARNING("set srst value failed");
 	}
 
 	/* assume active low */
-	if (gpiod_trst != NULL) {
+	if (gpiod_trst) {
 		retval2 = gpiod_line_set_value(gpiod_trst, trst ? 0 : 1);
 		if (retval2 < 0)
 			LOG_WARNING("set trst value failed");
@@ -284,7 +284,7 @@ static struct gpiod_line *helper_get_input_line(const char *label, unsigned int 
 	int retval;
 
 	line = gpiod_chip_get_line(gpiod_chip, offset);
-	if (line == NULL) {
+	if (!line) {
 		LOG_ERROR("Error get line %s", label);
 		return NULL;
 	}
@@ -304,7 +304,7 @@ static struct gpiod_line *helper_get_output_line(const char *label, unsigned int
 	int retval;
 
 	line = gpiod_chip_get_line(gpiod_chip, offset);
-	if (line == NULL) {
+	if (!line) {
 		LOG_ERROR("Error get line %s", label);
 		return NULL;
 	}
@@ -325,7 +325,7 @@ static int linuxgpiod_init(void)
 	bitbang_interface = &linuxgpiod_bitbang;
 
 	gpiod_chip = gpiod_chip_open_by_number(gpiochip);
-	if (gpiod_chip == NULL) {
+	if (!gpiod_chip) {
 		LOG_ERROR("Cannot open LinuxGPIOD gpiochip %d", gpiochip);
 		return ERROR_JTAG_INIT_FAILED;
 	}
@@ -343,24 +343,24 @@ static int linuxgpiod_init(void)
 		}
 
 		gpiod_tdo = helper_get_input_line("tdo", tdo_gpio);
-		if (gpiod_tdo == NULL)
+		if (!gpiod_tdo)
 			goto out_error;
 
 		gpiod_tdi = helper_get_output_line("tdi", tdi_gpio, 0);
-		if (gpiod_tdi == NULL)
+		if (!gpiod_tdi)
 			goto out_error;
 
 		gpiod_tck = helper_get_output_line("tck", tck_gpio, 0);
-		if (gpiod_tck == NULL)
+		if (!gpiod_tck)
 			goto out_error;
 
 		gpiod_tms = helper_get_output_line("tms", tms_gpio, 1);
-		if (gpiod_tms == NULL)
+		if (!gpiod_tms)
 			goto out_error;
 
 		if (is_gpio_valid(trst_gpio)) {
 			gpiod_trst = helper_get_output_line("trst", trst_gpio, 1);
-			if (gpiod_trst == NULL)
+			if (!gpiod_trst)
 				goto out_error;
 		}
 	}
@@ -372,23 +372,23 @@ static int linuxgpiod_init(void)
 		}
 
 		gpiod_swclk = helper_get_output_line("swclk", swclk_gpio, 1);
-		if (gpiod_swclk == NULL)
+		if (!gpiod_swclk)
 			goto out_error;
 
 		gpiod_swdio = helper_get_output_line("swdio", swdio_gpio, 1);
-		if (gpiod_swdio == NULL)
+		if (!gpiod_swdio)
 			goto out_error;
 	}
 
 	if (is_gpio_valid(srst_gpio)) {
 		gpiod_srst = helper_get_output_line("srst", srst_gpio, 1);
-		if (gpiod_srst == NULL)
+		if (!gpiod_srst)
 			goto out_error;
 	}
 
 	if (is_gpio_valid(led_gpio)) {
 		gpiod_led = helper_get_output_line("led", led_gpio, 0);
-		if (gpiod_led == NULL)
+		if (!gpiod_led)
 			goto out_error;
 	}
 

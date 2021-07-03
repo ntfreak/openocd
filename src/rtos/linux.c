@@ -181,7 +181,7 @@ static int linux_os_thread_reg_list(struct rtos *rtos,
 			found = 1;
 		else
 			next = next->next;
-	} while ((found == 0) && (next != tmp) && (next != NULL));
+	} while ((found == 0) && (next != tmp) && (next));
 
 	if (found == 0) {
 		LOG_ERROR("could not find thread: %" PRIx64, thread_id);
@@ -408,7 +408,7 @@ static int get_current(struct target *target, int create)
 	struct current_thread *ctt = linux_os->current_threads;
 
 	/*  invalid current threads content */
-	while (ctt != NULL) {
+	while (ctt) {
 		ctt->threadid = -1;
 		ctt->TS = 0xdeadbeef;
 		ctt = ctt->next;
@@ -445,10 +445,10 @@ static int get_current(struct target *target, int create)
 					linux_os->current_threads;
 				cpu = head->target->coreid;
 
-				while ((ct != NULL) && (ct->core_id != (int32_t) cpu))
+				while ((ct) && (ct->core_id != (int32_t) cpu))
 					ct = ct->next;
 
-				if ((ct != NULL) && (ct->TS == 0xdeadbeef))
+				if ((ct) && (ct->TS == 0xdeadbeef))
 					ct->TS = TS;
 				else
 					LOG_ERROR
@@ -603,13 +603,13 @@ static struct current_thread *add_current_thread(struct current_thread *currents
 {
 	ct->next = NULL;
 
-	if (currents == NULL) {
+	if (!currents) {
 		currents = ct;
 		return currents;
 	} else {
 		struct current_thread *temp = currents;
 
-		while (temp->next != NULL)
+		while (temp->next)
 			temp = temp->next;
 
 		temp->next = ct;
@@ -640,13 +640,13 @@ static struct threads *liste_add_task(struct threads *task_list, struct threads 
 	t->next = NULL;
 
 	if (*last == NULL)
-		if (task_list == NULL) {
+		if (!task_list) {
 			task_list = t;
 			return task_list;
 		} else {
 			struct threads *temp = task_list;
 
-			while (temp->next != NULL)
+			while (temp->next)
 				temp = temp->next;
 
 			temp->next = t;
@@ -668,15 +668,15 @@ static int current_base_addr(struct linux_os *linux_os, uint32_t base_addr)
 	struct current_thread *ct = linux_os->current_threads;
 #ifdef PID_CHECK
 
-	while ((ct != NULL) && (ct->pid != pid))
+	while ((ct) && (ct->pid != pid))
 #else
-	while ((ct != NULL) && (ct->TS != base_addr))
+	while ((ct) && (ct->TS != base_addr))
 #endif
 		ct = ct->next;
 #ifdef PID_CHECK
-	if ((ct != NULL) && (ct->pid == pid))
+	if ((ct) && (ct->pid == pid))
 #else
-	if ((ct != NULL) && (ct->TS == base_addr))
+	if ((ct) && (ct->TS == base_addr))
 #endif
 		return 1;
 
@@ -777,7 +777,7 @@ static int clean_threadlist(struct target *target)
 		target->rtos->rtos_specific_params;
 	struct threads *old, *temp = linux_os->thread_list;
 
-	while (temp != NULL) {
+	while (temp) {
 		old = temp;
 
 		free(temp->context);
@@ -815,10 +815,10 @@ static int insert_into_threadlist(struct target *target, struct threads *t)
 	t->status = 1;
 	t->next = NULL;
 
-	if (temp == NULL)
+	if (!temp)
 		linux_os->thread_list = t;
 	else {
-		while (temp->next != NULL)
+		while (temp->next)
 			temp = temp->next;
 
 		t->next = NULL;
@@ -836,7 +836,7 @@ static void linux_identify_current_threads(struct target *target)
 	struct current_thread *ct = linux_os->current_threads;
 	struct threads *t = NULL;
 
-	while ((ct != NULL)) {
+	while ((ct)) {
 		if (ct->threadid == -1) {
 
 			/*  un-identified thread */
@@ -856,7 +856,7 @@ error_handling:
 
 			/* search in the list of threads if pid
 			   already present */
-			while ((thread_list != NULL) && (found == 0)) {
+			while ((thread_list) && (found == 0)) {
 #ifdef PID_CHECK
 				if (thread_list->pid == t->pid) {
 #else
@@ -926,7 +926,7 @@ static int linux_task_update(struct target *target, int context)
 	linux_os->thread_count = 0;
 
 	/*thread_list = thread_list->next; skip init_task*/
-	while (thread_list != NULL) {
+	while (thread_list) {
 		thread_list->status = 0;	/*setting all tasks to dead state*/
 
 		free(thread_list->context);
@@ -967,7 +967,7 @@ static int linux_task_update(struct target *target, int context)
 
 		thread_list = linux_os->thread_list;
 
-		while (thread_list != NULL) {
+		while (thread_list) {
 #ifdef PID_CHECK
 			if (t->pid == thread_list->pid) {
 #else
@@ -1058,7 +1058,7 @@ static int linux_gdb_thread_packet(struct target *target,
 	tmp_str += sprintf(tmp_str, "m");
 	struct threads *temp = linux_os->thread_list;
 
-	while (temp != NULL) {
+	while (temp) {
 		tmp_str += sprintf(tmp_str, "%016" PRIx64, temp->threadid);
 		temp = temp->next;
 		if (temp)
@@ -1079,7 +1079,7 @@ static int linux_gdb_thread_update(struct target *target,
 		target->rtos->rtos_specific_params;
 	struct threads *temp = linux_os->thread_list;
 
-	while (temp != NULL) {
+	while (temp) {
 		if (temp->threadid == linux_os->preupdtate_threadid_count + 1) {
 			/*LOG_INFO("FOUND");*/
 			found = 1;
@@ -1098,7 +1098,7 @@ static int linux_gdb_thread_update(struct target *target,
 
 		temp = temp->next;
 
-		while (temp != NULL) {
+		while (temp) {
 			/*LOG_INFO("INTO GDB THREAD UPDATE WHILE");*/
 			tmp_strr += sprintf(tmp_strr, ",");
 			tmp_strr +=
@@ -1128,7 +1128,7 @@ static int linux_thread_extra_info(struct target *target,
 	/*LOG_INFO("lookup extra info for thread %" SCNx64, threadid);*/
 	struct threads *temp = linux_os->thread_list;
 
-	while (temp != NULL) {
+	while (temp) {
 		if (temp->threadid == threadid) {
 			char *pid = " PID: ";
 			char *pid_current = "*PID: ";
@@ -1176,7 +1176,7 @@ static int linux_gdb_t_packet(struct connection *connection,
 		struct threads *temp = linux_os->thread_list;
 		struct threads *prev = NULL;
 
-		while (temp != NULL) {
+		while (temp) {
 			if (temp->threadid == threadid) {
 				if (temp->status != 0) {
 					gdb_put_packet(connection, "OK", 2);
@@ -1205,7 +1205,7 @@ static int linux_gdb_t_packet(struct connection *connection,
 		retval = linux_task_update(target, 1);
 		struct threads *temp = linux_os->thread_list;
 
-		while (temp != NULL) {
+		while (temp) {
 			if (temp->threadid == threadid) {
 				if (temp->status == 1) {
 					gdb_put_packet(connection, "OK", 2);
@@ -1231,20 +1231,20 @@ static int linux_gdb_h_packet(struct connection *connection,
 	struct current_thread *ct = linux_os->current_threads;
 
 	/* select to display the current thread of the selected target */
-	while ((ct != NULL) && (ct->core_id != target->coreid))
+	while ((ct) && (ct->core_id != target->coreid))
 		ct = ct->next;
 
 	int64_t current_gdb_thread_rq;
 
 	if (linux_os->threads_lookup == 1) {
-		if ((ct != NULL) && (ct->threadid == -1)) {
+		if ((ct) && (ct->threadid == -1)) {
 			ct = linux_os->current_threads;
 
-			while ((ct != NULL) && (ct->threadid == -1))
+			while ((ct) && (ct->threadid == -1))
 				ct = ct->next;
 		}
 
-		if (ct == NULL) {
+		if (!ct) {
 			/*  no current thread can be identified
 			 *  any way with smp  */
 			LOG_INFO("no current thread identified");
@@ -1253,7 +1253,7 @@ static int linux_gdb_h_packet(struct connection *connection,
 			struct threads t;
 			ct = linux_os->current_threads;
 
-			while ((ct != NULL) && (ct->threadid == -1)) {
+			while ((ct) && (ct->threadid == -1)) {
 				t.base_addr = ct->TS;
 				get_name(target, &t);
 				LOG_INFO("name of unidentified thread %s",
@@ -1321,7 +1321,7 @@ static int linux_thread_packet(struct connection *connection, char const *packet
 
 				break;
 			} else if (strncmp(packet, "qfThreadInfo", 12) == 0) {
-				if (linux_os->thread_list == NULL) {
+				if (!linux_os->thread_list) {
 					retval = linux_gdb_thread_packet(target,
 							connection,
 							packet,
@@ -1356,17 +1356,17 @@ static int linux_thread_packet(struct connection *connection, char const *packet
 			if (linux_os->threads_lookup == 1) {
 				ct = linux_os->current_threads;
 
-				while ((ct != NULL) && (ct->core_id) != target->coreid)
+				while ((ct) && (ct->core_id) != target->coreid)
 					ct = ct->next;
 
-				if ((ct != NULL) && (ct->threadid == -1)) {
+				if ((ct) && (ct->threadid == -1)) {
 					ct = linux_os->current_threads;
 
-					while ((ct != NULL) && (ct->threadid == -1))
+					while ((ct) && (ct->threadid == -1))
 						ct = ct->next;
 				}
 
-				if ((ct != NULL) && (ct->threadid !=
+				if ((ct) && (ct->threadid !=
 						 target->rtos->current_threadid)
 				&& (target->rtos->current_threadid != -1))
 					LOG_WARNING("WARNING! current GDB thread do not match "
@@ -1478,7 +1478,7 @@ static char *linux_ps_command(struct target *target)
 		tmp += sprintf(tmp, "PID\t\tCPU\t\tASID\t\tNAME\n");
 		tmp += sprintf(tmp, "---\t\t---\t\t----\t\t----\n");
 
-		while (temp != NULL) {
+		while (temp) {
 			if (temp->status) {
 				if (temp->context)
 					tmp +=

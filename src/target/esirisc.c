@@ -539,7 +539,7 @@ static int esirisc_add_breakpoints(struct target *target)
 
 	LOG_DEBUG("-");
 
-	while (breakpoint != NULL) {
+	while (breakpoint) {
 		if (breakpoint->set == 0)
 			esirisc_add_breakpoint(target, breakpoint);
 
@@ -723,7 +723,7 @@ static int esirisc_add_watchpoints(struct target *target)
 
 	LOG_DEBUG("-");
 
-	while (watchpoint != NULL) {
+	while (watchpoint) {
 		if (watchpoint->set == 0)
 			esirisc_add_watchpoint(target, watchpoint);
 
@@ -890,7 +890,7 @@ static int esirisc_resume_or_step(struct target *target, int current, target_add
 
 	if (handle_breakpoints) {
 		breakpoint = breakpoint_find(target, address);
-		if (breakpoint != NULL)
+		if (breakpoint)
 			esirisc_remove_breakpoint(target, breakpoint);
 	}
 
@@ -1061,7 +1061,7 @@ static int esirisc_debug_entry(struct target *target)
 			case EID_INST_BREAKPOINT:
 				breakpoint = breakpoint_find(target,
 						buf_get_u32(esirisc->epc->value, 0, esirisc->epc->size));
-				target->debug_reason = (breakpoint != NULL) ?
+				target->debug_reason = (breakpoint) ?
 						DBG_REASON_BREAKPOINT : DBG_REASON_DBGRQ;
 				break;
 
@@ -1561,7 +1561,7 @@ static int esirisc_target_create(struct target *target, Jim_Interp *interp)
 	struct jtag_tap *tap = target->tap;
 	struct esirisc_common *esirisc;
 
-	if (tap == NULL)
+	if (!tap)
 		return ERROR_FAIL;
 
 	if (tap->ir_length != INSTR_LENGTH) {
@@ -1571,7 +1571,7 @@ static int esirisc_target_create(struct target *target, Jim_Interp *interp)
 	}
 
 	esirisc = calloc(1, sizeof(struct esirisc_common));
-	if (esirisc == NULL)
+	if (!esirisc)
 		return ERROR_FAIL;
 
 	esirisc->target = target;

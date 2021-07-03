@@ -81,7 +81,7 @@ static int str9xpec_write_options(struct flash_bank *bank);
 
 static int str9xpec_set_instr(struct jtag_tap *tap, uint32_t new_instr, tap_state_t end_state)
 {
-	if (tap == NULL)
+	if (!tap)
 		return ERROR_TARGET_INVALID;
 
 	if (buf_get_u32(tap->cur_instr, 0, tap->ir_length) != new_instr) {
@@ -1043,19 +1043,19 @@ COMMAND_HANDLER(str9xpec_handle_flash_enable_turbo_command)
 
 	/* remove arm core from chain - enter turbo mode */
 	tap0 = str9xpec_info->tap;
-	if (tap0 == NULL) {
+	if (!tap0) {
 		/* things are *WRONG* */
 		command_print(CMD, "**STR9FLASH** (tap0) invalid chain?");
 		return ERROR_FAIL;
 	}
 	tap1 = tap0->next_tap;
-	if (tap1 == NULL) {
+	if (!tap1) {
 		/* things are *WRONG* */
 		command_print(CMD, "**STR9FLASH** (tap1) invalid chain?");
 		return ERROR_FAIL;
 	}
 	tap2 = tap1->next_tap;
-	if (tap2 == NULL) {
+	if (!tap2) {
 		/* things are *WRONG* */
 		command_print(CMD, "**STR9FLASH** (tap2) invalid chain?");
 		return ERROR_FAIL;
@@ -1089,7 +1089,7 @@ COMMAND_HANDLER(str9xpec_handle_flash_disable_turbo_command)
 	str9xpec_info = bank->driver_priv;
 	tap = str9xpec_info->tap;
 
-	if (tap == NULL)
+	if (!tap)
 		return ERROR_FAIL;
 
 	/* exit turbo mode via RESET */

@@ -263,11 +263,11 @@ int add_service(char *name,
 		memset(&c->sin, 0, sizeof(c->sin));
 		c->sin.sin_family = AF_INET;
 
-		if (bindto_name == NULL)
+		if (!bindto_name)
 			c->sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 		else {
 			hp = gethostbyname(bindto_name);
-			if (hp == NULL) {
+			if (!hp) {
 				LOG_ERROR("couldn't resolve bindto address: %s", bindto_name);
 				close_socket(c->fd);
 				free_service(c);

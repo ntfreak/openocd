@@ -882,7 +882,7 @@ static int mrvlqspi_probe(struct flash_bank *bank)
 	/* create and fill sectors array */
 	bank->num_sectors = mrvlqspi_info->dev->size_in_bytes / sectorsize;
 	sectors = malloc(sizeof(struct flash_sector) * bank->num_sectors);
-	if (sectors == NULL) {
+	if (!sectors) {
 		LOG_ERROR("not enough memory");
 		return ERROR_FAIL;
 	}
@@ -938,7 +938,7 @@ FLASH_BANK_COMMAND_HANDLER(mrvlqspi_flash_bank_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	mrvlqspi_info = malloc(sizeof(struct mrvlqspi_flash_bank));
-	if (mrvlqspi_info == NULL) {
+	if (!mrvlqspi_info) {
 		LOG_ERROR("not enough memory");
 		return ERROR_FAIL;
 	}

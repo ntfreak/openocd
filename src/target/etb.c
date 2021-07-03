@@ -44,7 +44,7 @@ static int etb_set_instr(struct etb *etb, uint32_t new_instr)
 	struct jtag_tap *tap;
 
 	tap = etb->tap;
-	if (tap == NULL)
+	if (!tap)
 		return ERROR_FAIL;
 
 	if (buf_get_u32(tap->cur_instr, 0, tap->ir_length) != new_instr) {
@@ -349,7 +349,7 @@ COMMAND_HANDLER(handle_etb_config_command)
 	}
 
 	tap = jtag_tap_by_string(CMD_ARGV[1]);
-	if (tap == NULL) {
+	if (!tap) {
 		command_print(CMD, "ETB: TAP %s does not exist", CMD_ARGV[1]);
 		return ERROR_FAIL;
 	}

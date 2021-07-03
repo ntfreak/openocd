@@ -949,7 +949,7 @@ COMMAND_HANDLER(handle_arm_disassemble_command)
 #if HAVE_CAPSTONE
 	struct target *target = get_current_target(CMD_CTX);
 
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("No target selected");
 		return ERROR_FAIL;
 	}
@@ -1007,10 +1007,10 @@ static int jim_mcrmrc(Jim_Interp *interp, int argc, Jim_Obj * const *argv)
 	int retval;
 
 	context = current_command_context(interp);
-	assert(context != NULL);
+	assert(context);
 
 	target = get_current_target(context);
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("%s: no current target", __func__);
 		return JIM_ERR;
 	}

@@ -99,7 +99,7 @@ int semihosting_common_init(struct target *target, void *setup,
 	LOG_DEBUG(" ");
 
 	target->fileio_info = malloc(sizeof(*target->fileio_info));
-	if (target->fileio_info == NULL) {
+	if (!target->fileio_info) {
 		LOG_ERROR("out of memory");
 		return ERROR_FAIL;
 	}
@@ -107,7 +107,7 @@ int semihosting_common_init(struct target *target, void *setup,
 
 	struct semihosting *semihosting;
 	semihosting = malloc(sizeof(*target->semihosting));
-	if (semihosting == NULL) {
+	if (!semihosting) {
 		LOG_ERROR("out of memory");
 		return ERROR_FAIL;
 	}
@@ -1478,7 +1478,7 @@ static __COMMAND_HANDLER(handle_common_semihosting_command)
 {
 	struct target *target = get_current_target(CMD_CTX);
 
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("No target selected");
 		return ERROR_FAIL;
 	}
@@ -1519,7 +1519,7 @@ static __COMMAND_HANDLER(handle_common_semihosting_fileio_command)
 {
 	struct target *target = get_current_target(CMD_CTX);
 
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("No target selected");
 		return ERROR_FAIL;
 	}
@@ -1550,7 +1550,7 @@ static __COMMAND_HANDLER(handle_common_semihosting_cmdline)
 	struct target *target = get_current_target(CMD_CTX);
 	unsigned int i;
 
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("No target selected");
 		return ERROR_FAIL;
 	}
@@ -1566,7 +1566,7 @@ static __COMMAND_HANDLER(handle_common_semihosting_cmdline)
 
 	for (i = 1; i < CMD_ARGC; i++) {
 		char *cmdline = alloc_printf("%s %s", semihosting->cmdline, CMD_ARGV[i]);
-		if (cmdline == NULL)
+		if (!cmdline)
 			break;
 		free(semihosting->cmdline);
 		semihosting->cmdline = cmdline;
@@ -1582,7 +1582,7 @@ static __COMMAND_HANDLER(handle_common_semihosting_resumable_exit_command)
 {
 	struct target *target = get_current_target(CMD_CTX);
 
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("No target selected");
 		return ERROR_FAIL;
 	}

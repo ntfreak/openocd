@@ -179,7 +179,7 @@ void flash_bank_add(struct flash_bank *bank)
 	if (flash_banks) {
 		/* find last flash bank */
 		struct flash_bank *p = flash_banks;
-		while (NULL != p->next) {
+		while (p->next) {
 			bank_num += 1;
 			p = p->next;
 		}
@@ -275,7 +275,7 @@ int get_flash_bank_by_name(const char *name, struct flash_bank **bank_result)
 	int retval;
 
 	bank = get_flash_bank_by_name_noprobe(name);
-	if (bank != NULL) {
+	if (bank) {
 		retval = bank->driver->auto_probe(bank);
 
 		if (retval != ERROR_OK) {
@@ -293,7 +293,7 @@ int get_flash_bank_by_num(unsigned int num, struct flash_bank **bank)
 	struct flash_bank *p = get_flash_bank_by_num_noprobe(num);
 	int retval;
 
-	if (p == NULL)
+	if (!p)
 		return ERROR_FAIL;
 
 	retval = p->driver->auto_probe(p);
@@ -400,7 +400,7 @@ int default_flash_blank_check(struct flash_bank *bank)
 
 	struct target_memory_check_block *block_array;
 	block_array = malloc(bank->num_sectors * sizeof(struct target_memory_check_block));
-	if (block_array == NULL)
+	if (!block_array)
 		return default_flash_mem_blank_check(bank);
 
 	for (unsigned int i = 0; i < bank->num_sectors; i++) {
@@ -791,7 +791,7 @@ int flash_write_unlock_verify(struct target *target, struct image *image,
 		retval = get_flash_bank_by_addr(target, run_address, false, &c);
 		if (retval != ERROR_OK)
 			goto done;
-		if (c == NULL) {
+		if (!c) {
 			LOG_WARNING("no flash bank found for address " TARGET_ADDR_FMT, run_address);
 			section++;	/* and skip it */
 			section_offset = 0;
@@ -903,7 +903,7 @@ int flash_write_unlock_verify(struct target *target, struct image *image,
 
 		/* allocate buffer */
 		buffer = malloc(run_size);
-		if (buffer == NULL) {
+		if (!buffer) {
 			LOG_ERROR("Out of memory for flash bank buffer");
 			retval = ERROR_FAIL;
 			goto done;
@@ -989,7 +989,7 @@ int flash_write_unlock_verify(struct target *target, struct image *image,
 			goto done;
 		}
 
-		if (written != NULL)
+		if (written)
 			*written += run_size;	/* add run size to total written counter */
 	}
 
@@ -1010,7 +1010,7 @@ struct flash_sector *alloc_block_array(uint32_t offset, uint32_t size,
 		unsigned int num_blocks)
 {
 	struct flash_sector *array = calloc(num_blocks, sizeof(struct flash_sector));
-	if (array == NULL)
+	if (!array)
 		return NULL;
 
 	for (unsigned int i = 0; i < num_blocks; i++) {

@@ -328,7 +328,7 @@ static int mdr_write(struct flash_bank *bank, const uint8_t *buffer,
 	int rem = count % 4;
 	if (rem) {
 		new_buffer = malloc(count + rem);
-		if (new_buffer == NULL) {
+		if (!new_buffer) {
 			LOG_ERROR("odd number of bytes to write and no memory for padding buffer");
 			return ERROR_FAIL;
 		}

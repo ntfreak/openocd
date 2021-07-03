@@ -46,7 +46,7 @@
 static int quark_d20xx_target_create(struct target *t, Jim_Interp *interp)
 {
 	struct x86_32_common *x86_32 = calloc(1, sizeof(struct x86_32_common));
-	if (x86_32 == NULL) {
+	if (!x86_32) {
 		LOG_ERROR("%s out of memory", __func__);
 		return ERROR_FAIL;
 	}

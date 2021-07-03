@@ -252,13 +252,13 @@ struct arm {
 /** Convert target handle to generic ARM target state handle. */
 static inline struct arm *target_to_arm(struct target *target)
 {
-	assert(target != NULL);
+	assert(target);
 	return target->arch_info;
 }
 
 static inline bool is_arm(struct arm *arm)
 {
-	assert(arm != NULL);
+	assert(arm);
 	return arm->common_magic == ARM_COMMON_MAGIC;
 }
 

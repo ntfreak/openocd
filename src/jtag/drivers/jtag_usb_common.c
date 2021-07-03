@@ -46,7 +46,7 @@ bool jtag_usb_location_equal(uint8_t dev_bus, uint8_t *port_path,
 	string_length = strnlen(loc, JTAG_USB_MAX_LOCATION_LENGTH);
 
 	ptr = strtok(loc, "-");
-	if (ptr == NULL) {
+	if (!ptr) {
 		LOG_WARNING("no '-' in usb path\n");
 		goto done;
 	}
@@ -61,7 +61,7 @@ bool jtag_usb_location_equal(uint8_t dev_bus, uint8_t *port_path,
 		ptr = strtok(NULL, ".");
 
 		/* no more tokens in path */
-		if (ptr == NULL)
+		if (!ptr)
 			break;
 
 		/* path mismatch at some step */

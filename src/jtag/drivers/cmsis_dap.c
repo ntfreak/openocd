@@ -269,7 +269,7 @@ static int cmsis_dap_open(void)
 	const struct cmsis_dap_backend *backend = NULL;
 
 	struct cmsis_dap *dap = calloc(1, sizeof(struct cmsis_dap));
-	if (dap == NULL) {
+	if (!dap) {
 		LOG_ERROR("unable to allocate memory");
 		return ERROR_FAIL;
 	}
@@ -290,7 +290,7 @@ static int cmsis_dap_open(void)
 		}
 	}
 
-	if (backend == NULL) {
+	if (!backend) {
 		LOG_ERROR("unable to find a matching CMSIS-DAP device");
 		free(dap);
 		return ERROR_FAIL;
@@ -1533,14 +1533,14 @@ static void cmsis_dap_add_jtag_sequence(int s_len, const uint8_t *sequence, int 
 		(tdo_buffer != NULL ? DAP_JTAG_SEQ_TDO : 0) |
 		(s_len == 64 ? 0 : s_len);
 
-	if (sequence != NULL)
+	if (sequence)
 		bit_copy(&queued_seq_buf[queued_seq_buf_end + 1], 0, sequence, s_offset, s_len);
 	else
 		memset(&queued_seq_buf[queued_seq_buf_end + 1], 0, DIV_ROUND_UP(s_len, 8));
 
 	queued_seq_buf_end += cmd_len;
 
-	if (tdo_buffer != NULL) {
+	if (tdo_buffer) {
 		struct pending_scan_result *scan = &pending_scan_results[pending_scan_result_count++];
 		scan->first = queued_seq_tdo_ptr;
 		queued_seq_tdo_ptr += DIV_ROUND_UP(s_len, 8);
@@ -1799,7 +1799,7 @@ static int cmsis_dap_execute_queue(void)
 {
 	struct jtag_command *cmd = jtag_command_queue;
 
-	while (cmd != NULL) {
+	while (cmd) {
 		cmsis_dap_execute_command(cmd);
 		cmd = cmd->next;
 	}

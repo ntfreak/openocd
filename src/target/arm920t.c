@@ -887,7 +887,7 @@ COMMAND_HANDLER(arm920t_handle_read_cache_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	output = fopen(CMD_ARGV[0], "w");
-	if (output == NULL) {
+	if (!output) {
 		LOG_DEBUG("error opening cache content file");
 		return ERROR_OK;
 	}
@@ -1169,7 +1169,7 @@ COMMAND_HANDLER(arm920t_handle_read_mmu_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	output = fopen(CMD_ARGV[0], "w");
-	if (output == NULL) {
+	if (!output) {
 		LOG_DEBUG("error opening mmu content file");
 		return ERROR_OK;
 	}

@@ -102,15 +102,15 @@ static int ecos_update_threads(struct rtos *rtos)
 	int thread_list_size = 0;
 	const struct ecos_params *param;
 
-	if (rtos == NULL)
+	if (!rtos)
 		return -1;
 
-	if (rtos->rtos_specific_params == NULL)
+	if (!rtos->rtos_specific_params)
 		return -3;
 
 	param = (const struct ecos_params *) rtos->rtos_specific_params;
 
-	if (rtos->symbols == NULL) {
+	if (!rtos->symbols) {
 		LOG_ERROR("No symbols for eCos");
 		return -4;
 	}
@@ -289,13 +289,13 @@ static int ecos_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	int retval;
 	const struct ecos_params *param;
 
-	if (rtos == NULL)
+	if (!rtos)
 		return -1;
 
 	if (thread_id == 0)
 		return -2;
 
-	if (rtos->rtos_specific_params == NULL)
+	if (!rtos->rtos_specific_params)
 		return -3;
 
 	param = (const struct ecos_params *) rtos->rtos_specific_params;

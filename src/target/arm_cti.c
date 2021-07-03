@@ -143,7 +143,7 @@ int arm_cti_read_reg(struct arm_cti *self, unsigned int reg, uint32_t *p_value)
 {
 	struct adiv5_ap *ap = dap_ap(self->spot.dap, self->spot.ap_num);
 
-	if (p_value == NULL)
+	if (!p_value)
 		return ERROR_COMMAND_ARGUMENT_INVALID;
 
 	return mem_ap_read_atomic_u32(ap, self->spot.base + reg, p_value);
@@ -456,7 +456,7 @@ static int cti_create(struct jim_getopt_info *goi)
 	int e;
 
 	cmd_ctx = current_command_context(goi->interp);
-	assert(cmd_ctx != NULL);
+	assert(cmd_ctx);
 
 	if (goi->argc < 3) {
 		Jim_WrongNumArgs(goi->interp, 1, goi->argv, "?name? ..options...");
@@ -474,7 +474,7 @@ static int cti_create(struct jim_getopt_info *goi)
 
 	/* Create it */
 	cti = calloc(1, sizeof(*cti));
-	if (cti == NULL)
+	if (!cti)
 		return JIM_ERR;
 
 	adiv5_mem_ap_spot_init(&cti->spot);

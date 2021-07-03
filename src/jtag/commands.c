@@ -66,7 +66,7 @@ void jtag_queue_command(struct jtag_command *cmd)
 	cmd->next = NULL;
 
 	struct jtag_command **last_cmd = next_command_pointer;
-	assert(NULL != last_cmd);
+	assert(last_cmd);
 	assert(NULL == *last_cmd);
 	*last_cmd = cmd;
 

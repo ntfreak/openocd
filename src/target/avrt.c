@@ -160,7 +160,7 @@ int avr_jtag_sendinstr(struct jtag_tap *tap, uint8_t *ir_in, uint8_t ir_out)
 static int mcu_write_ir(struct jtag_tap *tap, uint8_t *ir_in, uint8_t *ir_out,
 		int ir_len, int rti)
 {
-	if (NULL == tap) {
+	if (!tap) {
 		LOG_ERROR("invalid tap");
 		return ERROR_FAIL;
 	}
@@ -179,7 +179,7 @@ static int mcu_write_ir(struct jtag_tap *tap, uint8_t *ir_in, uint8_t *ir_out,
 static int mcu_write_dr(struct jtag_tap *tap, uint8_t *dr_in, uint8_t *dr_out,
 		int dr_len, int rti)
 {
-	if (NULL == tap) {
+	if (!tap) {
 		LOG_ERROR("invalid tap");
 		return ERROR_FAIL;
 	}

@@ -1113,7 +1113,7 @@ static int psoc5lp_erase_check(struct flash_bank *bank)
 
 	struct target_memory_check_block *block_array;
 	block_array = malloc(num_sectors * sizeof(struct target_memory_check_block));
-	if (block_array == NULL)
+	if (!block_array)
 		return ERROR_FAIL;
 
 	for (unsigned int i = 0; i < num_sectors; i++) {

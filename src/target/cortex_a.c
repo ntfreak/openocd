@@ -3126,13 +3126,13 @@ static int cortex_a_target_create(struct target *target, Jim_Interp *interp)
 	struct cortex_a_common *cortex_a;
 	struct adiv5_private_config *pc;
 
-	if (target->private_config == NULL)
+	if (!target->private_config)
 		return ERROR_FAIL;
 
 	pc = (struct adiv5_private_config *)target->private_config;
 
 	cortex_a = calloc(1, sizeof(struct cortex_a_common));
-	if (cortex_a == NULL) {
+	if (!cortex_a) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
@@ -3153,7 +3153,7 @@ static int cortex_r4_target_create(struct target *target, Jim_Interp *interp)
 		return ERROR_FAIL;
 
 	cortex_a = calloc(1, sizeof(struct cortex_a_common));
-	if (cortex_a == NULL) {
+	if (!cortex_a) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
@@ -3268,7 +3268,7 @@ COMMAND_HANDLER(handle_cortex_a_mask_interrupts_command)
 
 	if (CMD_ARGC > 0) {
 		n = jim_nvp_name2value_simple(nvp_maskisr_modes, CMD_ARGV[0]);
-		if (n->name == NULL) {
+		if (!n->name) {
 			LOG_ERROR("Unknown parameter: %s - should be off or on", CMD_ARGV[0]);
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		}
@@ -3296,7 +3296,7 @@ COMMAND_HANDLER(handle_cortex_a_dacrfixup_command)
 
 	if (CMD_ARGC > 0) {
 		n = jim_nvp_name2value_simple(nvp_dacrfixup_modes, CMD_ARGV[0]);
-		if (n->name == NULL)
+		if (!n->name)
 			return ERROR_COMMAND_SYNTAX_ERROR;
 		cortex_a->dacrfixup_mode = n->value;
 

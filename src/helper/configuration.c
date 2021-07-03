@@ -111,7 +111,7 @@ FILE *open_file_from_path(const char *file, const char *mode)
 		return fopen(file, mode);
 	else {
 		char *full_path = find_file(file);
-		if (full_path == NULL)
+		if (!full_path)
 			return NULL;
 		FILE *fp = NULL;
 		fp = fopen(full_path, mode);
@@ -150,12 +150,12 @@ char *get_home_dir(const char *append_path)
 {
 	char *home = getenv("HOME");
 
-	if (home == NULL) {
+	if (!home) {
 
 #ifdef _WIN32
 		home = getenv("USERPROFILE");
 
-		if (home == NULL) {
+		if (!home) {
 
 			char homepath[MAX_PATH];
 			char *drive = getenv("HOMEDRIVE");
@@ -173,7 +173,7 @@ char *get_home_dir(const char *append_path)
 #endif
 	}
 
-	if (home == NULL)
+	if (!home)
 		return home;
 
 	char *home_path;

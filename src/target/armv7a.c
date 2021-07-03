@@ -282,7 +282,7 @@ int armv7a_handle_cache_info_command(struct command_invocation *cmd,
 		}
 	}
 
-	if (l2x_cache != NULL)
+	if (l2x_cache)
 		command_print(cmd, "Outer unified cache Base Address 0x%" PRIx32 ", %" PRIu32 " ways",
 			l2x_cache->base, l2x_cache->way);
 

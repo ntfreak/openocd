@@ -138,7 +138,7 @@ static bool jtag_libusb_match_serial(struct libusb_device_handle *device,
 	char *alternate_serial = adapter_get_alternate_serial(device, dev_desc);
 
 	/* check possible failures */
-	if (alternate_serial == NULL)
+	if (!alternate_serial)
 		return false;
 
 	/* then compare and free the alternate serial */

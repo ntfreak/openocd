@@ -469,8 +469,8 @@ static int chibios_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 	const struct chibios_params *param;
 	uint32_t stack_ptr = 0;
 
-	if ((rtos == NULL) || (thread_id == 0) ||
-			(rtos->rtos_specific_params == NULL))
+	if ((!rtos) || (thread_id == 0) ||
+			(!rtos->rtos_specific_params))
 		return -1;
 
 	param = (const struct chibios_params *) rtos->rtos_specific_params;

@@ -49,7 +49,7 @@ static int last_ir_num_bits;
 
 static int write_sock(char *buf, size_t len)
 {
-	if (buf == NULL) {
+	if (!buf) {
 		LOG_ERROR("%s: NULL 'buf' argument, file %s, line %d",
 			__func__, __FILE__, __LINE__);
 		return ERROR_FAIL;
@@ -64,7 +64,7 @@ static int write_sock(char *buf, size_t len)
 
 static int read_sock(char *buf, size_t len)
 {
-	if (buf == NULL) {
+	if (!buf) {
 		LOG_ERROR("%s: NULL 'buf' argument, file %s, line %d",
 			__func__, __FILE__, __LINE__);
 		return ERROR_FAIL;
@@ -123,7 +123,7 @@ static int jtag_dpi_scan(struct scan_command *cmd)
 	int ret = ERROR_OK;
 
 	num_bits = jtag_build_buffer(cmd, &data_buf);
-	if (data_buf == NULL) {
+	if (!data_buf) {
 		LOG_ERROR("jtag_build_buffer call failed, data_buf == NULL, "
 			"file %s, line %d", __FILE__, __LINE__);
 		return ERROR_FAIL;
@@ -133,7 +133,7 @@ static int jtag_dpi_scan(struct scan_command *cmd)
 	if (cmd->ir_scan) {
 		free(last_ir_buf);
 		last_ir_buf = (uint8_t *)malloc(bytes * sizeof(uint8_t));
-		if (last_ir_buf == NULL) {
+		if (!last_ir_buf) {
 			LOG_ERROR("%s: malloc fail, file %s, line %d",
 				__func__, __FILE__, __LINE__);
 			ret = ERROR_FAIL;
@@ -181,7 +181,7 @@ static int jtag_dpi_runtest(int cycles)
 	int num_bits = last_ir_num_bits, bytes;
 	int ret = ERROR_OK;
 
-	if (data_buf == NULL) {
+	if (!data_buf) {
 		LOG_ERROR("%s: NULL 'data_buf' argument, file %s, line %d",
 			__func__, __FILE__, __LINE__);
 		return ERROR_FAIL;
@@ -194,7 +194,7 @@ static int jtag_dpi_runtest(int cycles)
 
 	bytes = DIV_ROUND_UP(num_bits, 8);
 	read_scan = (uint8_t *)malloc(bytes * sizeof(uint8_t));
-	if (read_scan == NULL) {
+	if (!read_scan) {
 		LOG_ERROR("%s: malloc fail, file %s, line %d",
 			__func__, __FILE__, __LINE__);
 		return ERROR_FAIL;
@@ -289,9 +289,9 @@ static int jtag_dpi_init(void)
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(server_port);
 
-	if (server_address == NULL) {
+	if (!server_address) {
 		server_address = strdup(SERVER_ADDRESS);
-		if (server_address == NULL) {
+		if (!server_address) {
 			LOG_ERROR("%s: strdup fail, file %s, line %d",
 				__func__, __FILE__, __LINE__);
 			return ERROR_FAIL;
@@ -350,9 +350,9 @@ COMMAND_HANDLER(jtag_dpi_set_address)
 	if (CMD_ARGC > 1)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 	else if (CMD_ARGC == 0) {
-		if (server_address == NULL) {
+		if (!server_address) {
 			server_address = strdup(SERVER_ADDRESS);
-			if (server_address == NULL) {
+			if (!server_address) {
 				LOG_ERROR("%s: strdup fail, file %s, line %d",
 					__func__, __FILE__, __LINE__);
 				return ERROR_FAIL;
@@ -362,7 +362,7 @@ COMMAND_HANDLER(jtag_dpi_set_address)
 	} else {
 		free(server_address);
 		server_address = strdup(CMD_ARGV[0]);
-		if (server_address == NULL) {
+		if (!server_address) {
 			LOG_ERROR("%s: strdup fail, file %s, line %d",
 				__func__, __FILE__, __LINE__);
 			return ERROR_FAIL;

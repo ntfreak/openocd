@@ -22,7 +22,7 @@
 #include "server/server.h"
 
 #define foreach_smp_target(pos, head) \
-	for (pos = head; (pos != NULL); pos = pos->next)
+	for (pos = head; (pos); pos = pos->next)
 
 extern const struct command_registration smp_command_handlers[];
 

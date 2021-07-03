@@ -65,7 +65,7 @@ int nand_fileio_start(struct command_invocation *cmd,
 
 	duration_start(&state->bench);
 
-	if (NULL != filename) {
+	if (filename) {
 		int retval = fileio_open(&state->fileio, filename, filemode, FILEIO_BINARY);
 		if (retval != ERROR_OK) {
 			const char *msg = (filemode == FILEIO_READ) ? "read" : "write";
@@ -127,7 +127,7 @@ COMMAND_HELPER(nand_fileio_parse_args, struct nand_fileio_state *state,
 	if (retval != ERROR_OK)
 		return retval;
 
-	if (NULL == nand->device) {
+	if (!nand->device) {
 		command_print(CMD, "#%s: not probed", CMD_ARGV[0]);
 		return ERROR_NAND_DEVICE_NOT_PROBED;
 	}
@@ -184,7 +184,7 @@ int nand_fileio_read(struct nand_device *nand, struct nand_fileio_state *s)
 	size_t total_read = 0;
 	size_t one_read;
 
-	if (NULL != s->page) {
+	if (s->page) {
 		fileio_read(s->fileio, s->page_size, s->page, &one_read);
 		if (one_read < s->page_size)
 			memset(s->page + one_read, 0xff, s->page_size - one_read);
@@ -213,7 +213,7 @@ int nand_fileio_read(struct nand_device *nand, struct nand_fileio_state *s)
 			nand_calculate_ecc_kw(nand, s->page + i, ecc);
 			ecc += 10;
 		}
-	} else if (NULL != s->oob)   {
+	} else if (s->oob)   {
 		fileio_read(s->fileio, s->oob_size, s->oob, &one_read);
 		if (one_read < s->oob_size)
 			memset(s->oob + one_read, 0xff, s->oob_size - one_read);

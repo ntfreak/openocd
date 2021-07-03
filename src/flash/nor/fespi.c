@@ -151,7 +151,7 @@ FLASH_BANK_COMMAND_HANDLER(fespi_flash_bank_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	fespi_info = malloc(sizeof(struct fespi_flash_bank));
-	if (fespi_info == NULL) {
+	if (!fespi_info) {
 		LOG_ERROR("not enough memory");
 		return ERROR_FAIL;
 	}
@@ -986,7 +986,7 @@ static int fespi_probe(struct flash_bank *bank)
 	/* create and fill sectors array */
 	bank->num_sectors = fespi_info->dev->size_in_bytes / sectorsize;
 	sectors = malloc(sizeof(struct flash_sector) * bank->num_sectors);
-	if (sectors == NULL) {
+	if (!sectors) {
 		LOG_ERROR("not enough memory");
 		return ERROR_FAIL;
 	}

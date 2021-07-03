@@ -140,7 +140,7 @@ static int cc26xx_init(struct flash_bank *bank)
 		return retval;
 
 	/* Check for working area to use for flash helper algorithm */
-	if (NULL != cc26xx_bank->working_area)
+	if (cc26xx_bank->working_area)
 		target_free_working_area(target, cc26xx_bank->working_area);
 	retval = target_alloc_working_area(target, cc26xx_bank->algo_working_size,
 				&cc26xx_bank->working_area);
@@ -248,7 +248,7 @@ FLASH_BANK_COMMAND_HANDLER(cc26xx_flash_bank_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	cc26xx_bank = malloc(sizeof(struct cc26xx_bank));
-	if (NULL == cc26xx_bank)
+	if (!cc26xx_bank)
 		return ERROR_FAIL;
 
 	/* Initialize private flash information */
@@ -461,7 +461,7 @@ static int cc26xx_probe(struct flash_bank *bank)
 		num_sectors = max_sectors;
 
 	bank->sectors = malloc(sizeof(struct flash_sector) * num_sectors);
-	if (NULL == bank->sectors)
+	if (!bank->sectors)
 		return ERROR_FAIL;
 
 	bank->base = CC26XX_FLASH_BASE_ADDR;

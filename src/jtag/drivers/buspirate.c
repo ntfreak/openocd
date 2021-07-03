@@ -285,7 +285,7 @@ static bool read_and_discard_all_data(const int fd)
 
 static int buspirate_init(void)
 {
-	if (buspirate_port == NULL) {
+	if (!buspirate_port) {
 		LOG_ERROR("You need to specify the serial port!");
 		return ERROR_JTAG_INIT_FAILED;
 	}
@@ -466,7 +466,7 @@ COMMAND_HANDLER(buspirate_handle_port_command)
 	if (CMD_ARGC < 1)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
-	if (buspirate_port == NULL)
+	if (!buspirate_port)
 		buspirate_port = strdup(CMD_ARGV[0]);
 
 	return ERROR_OK;

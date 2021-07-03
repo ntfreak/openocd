@@ -1046,11 +1046,11 @@ COMMAND_HANDLER(armv8_handle_exception_catch_command)
 			return retval;
 
 		n = jim_nvp_value2name_simple(nvp_ecatch_modes, edeccr & 0x0f);
-		if (n->name != NULL)
+		if (n->name)
 			sec = n->name;
 
 		n = jim_nvp_value2name_simple(nvp_ecatch_modes, edeccr & 0xf0);
-		if (n->name != NULL)
+		if (n->name)
 			nsec = n->name;
 
 		if (sec == NULL || nsec == NULL) {
@@ -1064,7 +1064,7 @@ COMMAND_HANDLER(armv8_handle_exception_catch_command)
 
 	while (CMD_ARGC > argp) {
 		n = jim_nvp_name2value_simple(nvp_ecatch_modes, CMD_ARGV[argp]);
-		if (n->name == NULL) {
+		if (!n->name) {
 			LOG_ERROR("Unknown option: %s", CMD_ARGV[argp]);
 			return ERROR_FAIL;
 		}
@@ -1730,7 +1730,7 @@ void armv8_free_reg_cache(struct target *target)
 	struct reg_cache *cache = NULL, *cache32 = NULL;
 
 	cache = arm->core_cache;
-	if (cache != NULL)
+	if (cache)
 		cache32 = cache->next;
 	armv8_free_cache(cache32, true);
 	armv8_free_cache(cache, false);

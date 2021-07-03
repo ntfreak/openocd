@@ -66,7 +66,7 @@ FLASH_BANK_COMMAND_HANDLER(lpcspifi_flash_bank_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	lpcspifi_info = malloc(sizeof(struct lpcspifi_flash_bank));
-	if (lpcspifi_info == NULL) {
+	if (!lpcspifi_info) {
 		LOG_ERROR("not enough memory");
 		return ERROR_FAIL;
 	}
@@ -894,7 +894,7 @@ static int lpcspifi_probe(struct flash_bank *bank)
 	/* create and fill sectors array */
 	bank->num_sectors = lpcspifi_info->dev->size_in_bytes / sectorsize;
 	sectors = malloc(sizeof(struct flash_sector) * bank->num_sectors);
-	if (sectors == NULL) {
+	if (!sectors) {
 		LOG_ERROR("not enough memory");
 		return ERROR_FAIL;
 	}

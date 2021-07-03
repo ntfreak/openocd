@@ -150,7 +150,7 @@ static int xscale_verify_pointer(struct command_invocation *cmd,
 
 static int xscale_jtag_set_instr(struct jtag_tap *tap, uint32_t new_instr, tap_state_t end_state)
 {
-	assert(tap != NULL);
+	assert(tap);
 
 	if (buf_get_u32(tap->cur_instr, 0, tap->ir_length) != new_instr) {
 		struct scan_field field;
@@ -1158,7 +1158,7 @@ static int xscale_resume(struct target *target, int current,
 		struct breakpoint *breakpoint;
 		breakpoint = breakpoint_find(target,
 				buf_get_u32(arm->pc->value, 0, 32));
-		if (breakpoint != NULL) {
+		if (breakpoint) {
 			uint32_t next_pc;
 			enum trace_mode saved_trace_mode;
 
@@ -1421,7 +1421,7 @@ static int xscale_step(struct target *target, int current,
 	if (handle_breakpoints)
 		breakpoint = breakpoint_find(target,
 				buf_get_u32(arm->pc->value, 0, 32));
-	if (breakpoint != NULL) {
+	if (breakpoint) {
 		retval = xscale_unset_breakpoint(target, breakpoint);
 		if (retval != ERROR_OK)
 			return retval;
@@ -3048,7 +3048,7 @@ COMMAND_HANDLER(xscale_handle_debug_handler_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	target = get_target(CMD_ARGV[0]);
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("target '%s' not defined", CMD_ARGV[0]);
 		return ERROR_FAIL;
 	}
@@ -3083,7 +3083,7 @@ COMMAND_HANDLER(xscale_handle_cache_clean_address_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	target = get_target(CMD_ARGV[0]);
-	if (target == NULL) {
+	if (!target) {
 		LOG_ERROR("target '%s' not defined", CMD_ARGV[0]);
 		return ERROR_FAIL;
 	}

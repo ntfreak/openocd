@@ -85,7 +85,7 @@ static int dsp5680xx_drscan(struct target *target, uint8_t *d_in,
 	 */
 	int retval = ERROR_OK;
 
-	if (NULL == target->tap) {
+	if (!target->tap) {
 		retval = ERROR_FAIL;
 		err_check(retval, DSP5680XX_ERROR_JTAG_INVALID_TAP,
 			  "Invalid tap");
@@ -104,7 +104,7 @@ static int dsp5680xx_drscan(struct target *target, uint8_t *d_in,
 		err_check(retval, DSP5680XX_ERROR_JTAG_DRSCAN,
 			  "drscan failed!");
 	}
-	if (d_out != NULL)
+	if (d_out)
 		LOG_DEBUG("Data read (%d bits): 0x%04X", len, *d_out);
 	else
 		LOG_DEBUG("Data read was discarded.");
@@ -127,7 +127,7 @@ static int dsp5680xx_irscan(struct target *target, uint32_t *d_in,
 
 	uint16_t tap_ir_len = DSP5680XX_JTAG_MASTER_TAP_IRLEN;
 
-	if (NULL == target->tap) {
+	if (!target->tap) {
 		retval = ERROR_FAIL;
 		err_check(retval, DSP5680XX_ERROR_JTAG_INVALID_TAP,
 			  "Invalid tap");
@@ -140,7 +140,7 @@ static int dsp5680xx_irscan(struct target *target, uint32_t *d_in,
 		} else {
 			struct jtag_tap *t =
 				jtag_tap_by_string("dsp568013.chp");
-			if ((t == NULL)
+			if ((!t)
 			    || ((t->enabled) && (ir_len != tap_ir_len))) {
 				retval = ERROR_FAIL;
 				err_check(retval,
@@ -172,7 +172,7 @@ static int dsp5680xx_jtag_status(struct target *target, uint8_t *status)
 		dsp5680xx_irscan(target, &instr, &read_from_ir,
 				 DSP5680XX_JTAG_CORE_TAP_IRLEN);
 	err_check_propagate(retval);
-	if (status != NULL)
+	if (status)
 		*status = (uint8_t) read_from_ir;
 	return ERROR_OK;
 }
@@ -205,7 +205,7 @@ static int jtag_data_write(struct target *target, uint32_t instr, int num_bits,
 		dsp5680xx_drscan(target, (uint8_t *) &instr,
 				 (uint8_t *) &data_read_dummy, num_bits);
 	err_check_propagate(retval);
-	if (data_read != NULL)
+	if (data_read)
 		*data_read = data_read_dummy;
 	return retval;
 }
@@ -239,7 +239,7 @@ static int eonce_instruction_exec_single(struct target *target, uint8_t instr,
 
 	retval = jtag_data_write(target, instr_with_flags, 8, &dr_out_tmp);
 	err_check_propagate(retval);
-	if (eonce_status != NULL)
+	if (eonce_status)
 		*eonce_status = (uint8_t) dr_out_tmp;
 	return retval;
 }
@@ -577,9 +577,9 @@ static int switch_tap(struct target *target, struct jtag_tap *master_tap,
 
 	uint32_t ir_out;	/* not used, just to make jtag happy. */
 
-	if (master_tap == NULL) {
+	if (!master_tap) {
 		master_tap = jtag_tap_by_string("dsp568013.chp");
-		if (master_tap == NULL) {
+		if (!master_tap) {
 			retval = ERROR_FAIL;
 			const char *msg = "Failed to get master tap.";
 
@@ -587,9 +587,9 @@ static int switch_tap(struct target *target, struct jtag_tap *master_tap,
 				  msg);
 		}
 	}
-	if (core_tap == NULL) {
+	if (!core_tap) {
 		core_tap = jtag_tap_by_string("dsp568013.cpu");
-		if (core_tap == NULL) {
+		if (!core_tap) {
 			retval = ERROR_FAIL;
 			err_check(retval, DSP5680XX_ERROR_JTAG_TAP_FIND_CORE,
 				  "Failed to get core tap.");
@@ -695,7 +695,7 @@ static int eonce_enter_debug_mode_without_reset(struct target *target,
 		 */
 		err_check_propagate(retval);
 	}
-	if (eonce_status != NULL)
+	if (eonce_status)
 		*eonce_status = data_read_from_dr;
 	return retval;
 }
@@ -731,13 +731,13 @@ static int eonce_enter_debug_mode(struct target *target,
 	struct jtag_tap *tap_cpu;
 
 	tap_chp = jtag_tap_by_string("dsp568013.chp");
-	if (tap_chp == NULL) {
+	if (!tap_chp) {
 		retval = ERROR_FAIL;
 		err_check(retval, DSP5680XX_ERROR_JTAG_TAP_FIND_MASTER,
 			  "Failed to get master tap.");
 	}
 	tap_cpu = jtag_tap_by_string("dsp568013.cpu");
-	if (tap_cpu == NULL) {
+	if (!tap_cpu) {
 		retval = ERROR_FAIL;
 		err_check(retval, DSP5680XX_ERROR_JTAG_TAP_FIND_CORE,
 			  "Failed to get master tap.");
@@ -833,7 +833,7 @@ static int eonce_enter_debug_mode(struct target *target,
 		retval = ERROR_TARGET_FAILURE;
 		err_check(retval, DSP5680XX_ERROR_ENTER_DEBUG_MODE, msg);
 	}
-	if (eonce_status != NULL)
+	if (eonce_status)
 		*eonce_status = data_read_from_dr;
 	return retval;
 }
@@ -1585,7 +1585,7 @@ int dsp5680xx_f_protect_check(struct target *target, uint16_t *protected)
 	int retval;
 
 	check_halt_and_debug(target);
-	if (protected == NULL) {
+	if (!protected) {
 		const char *msg = "NULL pointer not valid.";
 
 		err_check(ERROR_FAIL,
@@ -1829,7 +1829,7 @@ int dsp5680xx_f_erase_check(struct target *target, uint8_t *erased,
 	retval =
 		dsp5680xx_f_ex(target, HFM_ERASE_VERIFY, tmp, 0, &hfm_ustat, 1);
 	err_check_propagate(retval);
-	if (erased != NULL)
+	if (erased)
 		*erased = (uint8_t) (hfm_ustat & HFM_USTAT_MASK_BLANK);
 	return retval;
 }
@@ -2118,13 +2118,13 @@ int dsp5680xx_f_unlock(struct target *target)
 	struct jtag_tap *tap_cpu;
 
 	tap_chp = jtag_tap_by_string("dsp568013.chp");
-	if (tap_chp == NULL) {
+	if (!tap_chp) {
 		retval = ERROR_FAIL;
 		err_check(retval, DSP5680XX_ERROR_JTAG_TAP_ENABLE_MASTER,
 			  "Failed to get master tap.");
 	}
 	tap_cpu = jtag_tap_by_string("dsp568013.cpu");
-	if (tap_cpu == NULL) {
+	if (!tap_cpu) {
 		retval = ERROR_FAIL;
 		err_check(retval, DSP5680XX_ERROR_JTAG_TAP_ENABLE_CORE,
 			  "Failed to get master tap.");
@@ -2226,13 +2226,13 @@ int dsp5680xx_f_lock(struct target *target)
 	jtag_add_sleep(TIME_DIV_FREESCALE * 300 * 1000);
 
 	tap_chp = jtag_tap_by_string("dsp568013.chp");
-	if (tap_chp == NULL) {
+	if (!tap_chp) {
 		retval = ERROR_FAIL;
 		err_check(retval, DSP5680XX_ERROR_JTAG_TAP_ENABLE_MASTER,
 			  "Failed to get master tap.");
 	}
 	tap_cpu = jtag_tap_by_string("dsp568013.cpu");
-	if (tap_cpu == NULL) {
+	if (!tap_cpu) {
 		retval = ERROR_FAIL;
 		err_check(retval, DSP5680XX_ERROR_JTAG_TAP_ENABLE_CORE,
 			  "Failed to get master tap.");

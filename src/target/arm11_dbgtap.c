@@ -586,7 +586,7 @@ static int arm11_run_instr_data_to_core_noack_inner(struct jtag_tap *tap,
 	unsigned bytes = sizeof(*readies)*readies_num;
 
 	readies = malloc(bytes);
-	if (readies == NULL) {
+	if (!readies) {
 		LOG_ERROR("Out of memory allocating %u bytes", bytes);
 		return ERROR_FAIL;
 	}

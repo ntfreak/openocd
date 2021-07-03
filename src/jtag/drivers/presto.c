@@ -534,7 +534,7 @@ static int presto_jtag_init(void)
 {
 	if (presto_open(presto_serial) != ERROR_OK) {
 		presto_close();
-		if (presto_serial != NULL)
+		if (presto_serial)
 			LOG_ERROR("Cannot open PRESTO, serial number '%s'", presto_serial);
 		else
 			LOG_ERROR("Cannot open PRESTO");

@@ -43,7 +43,7 @@ static int jim_newtap_expected_id(struct jim_nvp *n, struct jim_getopt_info *goi
 
 	unsigned expected_len = sizeof(uint32_t) * tap->expected_ids_cnt;
 	uint32_t *new_expected_ids = malloc(expected_len + sizeof(uint32_t));
-	if (new_expected_ids == NULL) {
+	if (!new_expected_ids) {
 		Jim_SetResultFormatted(goi->interp, "no memory");
 		return JIM_ERR;
 	}

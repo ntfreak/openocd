@@ -99,7 +99,7 @@ int spi_sfdp(struct flash_bank *bank, struct flash_device *dev,
 	nph = ((header.revision >> 16) & 0xFF) + 1;
 	LOG_DEBUG("parameter headers: %d", nph);
 	pheaders = malloc(sizeof(struct sfdp_phdr) * nph);
-	if (pheaders == NULL) {
+	if (!pheaders) {
 		LOG_ERROR("not enough memory");
 		return ERROR_FAIL;
 	}
@@ -119,7 +119,7 @@ int spi_sfdp(struct flash_bank *bank, struct flash_device *dev,
 
 		/* retrieve parameter table */
 		ptable = malloc(words << 2);
-		if (ptable == NULL) {
+		if (!ptable) {
 			LOG_ERROR("not enough memory");
 			retval = ERROR_FAIL;
 			goto err;

@@ -941,7 +941,7 @@ static int xmc4xxx_get_info_command(struct flash_bank *bank, struct command_invo
 		}
 	}
 
-	if (rev_str != NULL)
+	if (rev_str)
 		command_print_sameline(cmd, "%s - Rev: %s%s", dev_str, rev_str, prot_str);
 	else
 		command_print_sameline(cmd, "%s - Rev: unknown (0x%01x)%s", dev_str, rev_id, prot_str);

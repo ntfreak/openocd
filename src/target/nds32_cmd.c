@@ -701,7 +701,7 @@ static int jim_nds32_bulk_write(Jim_Interp *interp, int argc, Jim_Obj * const *a
 		return e;
 
 	uint32_t *data = malloc(count * sizeof(uint32_t));
-	if (data == NULL)
+	if (!data)
 		return JIM_ERR;
 
 	jim_wide i;

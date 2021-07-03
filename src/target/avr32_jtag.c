@@ -29,7 +29,7 @@ static int avr32_jtag_set_instr(struct avr32_jtag *jtag_info, int new_instr)
 	int busy = 0;
 
 	tap = jtag_info->tap;
-	if (tap == NULL)
+	if (!tap)
 		return ERROR_FAIL;
 
 	if (buf_get_u32(tap->cur_instr, 0, tap->ir_length) != (uint32_t)new_instr) {

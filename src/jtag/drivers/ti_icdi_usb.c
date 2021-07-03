@@ -122,7 +122,7 @@ static int icdi_send_packet(void *handle, int len)
 	int result, retry = 0;
 	int transferred = 0;
 
-	assert(handle != NULL);
+	assert(handle);
 
 	/* check we have a large enough buffer for checksum "#00" */
 	if (len + 3 > h->max_packet) {
@@ -253,7 +253,7 @@ static int icdi_get_cmd_result(void *handle)
 	int offset = 0;
 	char ch;
 
-	assert(handle != NULL);
+	assert(handle);
 
 	do {
 		ch = h->read_buffer[offset++];

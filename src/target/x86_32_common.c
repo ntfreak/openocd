@@ -95,7 +95,7 @@ int x86_32_common_init_arch_info(struct target *t, struct x86_32_common *x86_32)
 	x86_32->num_hw_bpoints = MAX_DEBUG_REGS;
 	x86_32->hw_break_list = calloc(x86_32->num_hw_bpoints,
 				sizeof(struct x86_32_dbg_reg));
-	if (x86_32->hw_break_list == NULL) {
+	if (!x86_32->hw_break_list) {
 		LOG_ERROR("%s out of memory", __func__);
 		return ERROR_FAIL;
 	}
@@ -157,7 +157,7 @@ int x86_32_common_read_phys_mem(struct target *t, target_addr_t phys_address,
 	 * with the original instructions again.
 	 */
 	struct swbp_mem_patch *iter = x86_32->swbbp_mem_patch_list;
-	while (iter != NULL) {
+	while (iter) {
 		if (iter->physaddr >= phys_address && iter->physaddr < phys_address+(size*count)) {
 			uint32_t offset = iter->physaddr - phys_address;
 			buffer[offset] = iter->orig_byte;
@@ -245,13 +245,13 @@ int x86_32_common_write_phys_mem(struct target *t, target_addr_t phys_address,
 	 * breakpoint instruction.
 	 */
 	newbuffer = malloc(size*count);
-	if (newbuffer == NULL) {
+	if (!newbuffer) {
 		LOG_ERROR("%s out of memory", __func__);
 		return ERROR_FAIL;
 	}
 	memcpy(newbuffer, buffer, size*count);
 	struct swbp_mem_patch *iter = x86_32->swbbp_mem_patch_list;
-	while (iter != NULL) {
+	while (iter) {
 		if (iter->physaddr >= phys_address && iter->physaddr < phys_address+(size*count)) {
 			uint32_t offset = iter->physaddr - phys_address;
 			newbuffer[offset] = SW_BP_OPCODE;
@@ -1059,7 +1059,7 @@ static int set_swbp(struct target *t, struct breakpoint *bp)
 
 	/* add the memory patch */
 	struct swbp_mem_patch *new_patch = malloc(sizeof(struct swbp_mem_patch));
-	if (new_patch == NULL) {
+	if (!new_patch) {
 		LOG_ERROR("%s out of memory", __func__);
 		return ERROR_FAIL;
 	}
@@ -1069,10 +1069,10 @@ static int set_swbp(struct target *t, struct breakpoint *bp)
 	new_patch->swbp_unique_id = bp->unique_id;
 
 	struct swbp_mem_patch *addto = x86_32->swbbp_mem_patch_list;
-	if (addto == NULL)
+	if (!addto)
 		x86_32->swbbp_mem_patch_list = new_patch;
 	else {
-		while (addto->next != NULL)
+		while (addto->next)
 			addto = addto->next;
 		addto->next = new_patch;
 	}
@@ -1107,7 +1107,7 @@ static int unset_swbp(struct target *t, struct breakpoint *bp)
 
 	/* remove from patch */
 	struct swbp_mem_patch *iter = x86_32->swbbp_mem_patch_list;
-	if (iter != NULL) {
+	if (iter) {
 		if (iter->swbp_unique_id == bp->unique_id) {
 			/* it's the first item */
 			x86_32->swbbp_mem_patch_list = iter->next;
@@ -1115,7 +1115,7 @@ static int unset_swbp(struct target *t, struct breakpoint *bp)
 		} else {
 			while (iter->next != NULL && iter->next->swbp_unique_id != bp->unique_id)
 				iter = iter->next;
-			if (iter->next != NULL) {
+			if (iter->next) {
 				/* it's the next one */
 				struct swbp_mem_patch *freeme = iter->next;
 				iter->next = iter->next->next;

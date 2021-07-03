@@ -144,7 +144,7 @@ FLASH_BANK_COMMAND_HANDLER(stmsmi_flash_bank_command)
 		return ERROR_COMMAND_SYNTAX_ERROR;
 
 	stmsmi_info = malloc(sizeof(struct stmsmi_flash_bank));
-	if (stmsmi_info == NULL) {
+	if (!stmsmi_info) {
 		LOG_ERROR("not enough memory");
 		return ERROR_FAIL;
 	}
@@ -600,7 +600,7 @@ static int stmsmi_probe(struct flash_bank *bank)
 	bank->num_sectors =
 		stmsmi_info->dev->size_in_bytes / sectorsize;
 	sectors = malloc(sizeof(struct flash_sector) * bank->num_sectors);
-	if (sectors == NULL) {
+	if (!sectors) {
 		LOG_ERROR("not enough memory");
 		return ERROR_FAIL;
 	}

@@ -426,7 +426,7 @@ static int cfi_read_intel_pri_ext(struct flash_bank *bank)
 	free(cfi_info->pri_ext);
 
 	pri_ext = malloc(sizeof(struct cfi_intel_pri_ext));
-	if (pri_ext == NULL) {
+	if (!pri_ext) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
@@ -522,7 +522,7 @@ static int cfi_read_spansion_pri_ext(struct flash_bank *bank)
 	free(cfi_info->pri_ext);
 
 	pri_ext = malloc(sizeof(struct cfi_spansion_pri_ext));
-	if (pri_ext == NULL) {
+	if (!pri_ext) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
@@ -624,7 +624,7 @@ static int cfi_read_atmel_pri_ext(struct flash_bank *bank)
 	free(cfi_info->pri_ext);
 
 	pri_ext = malloc(sizeof(struct cfi_spansion_pri_ext));
-	if (pri_ext == NULL) {
+	if (!pri_ext) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
@@ -811,7 +811,7 @@ int cfi_flash_bank_cmd(struct flash_bank *bank, unsigned int argc, const char **
 	}
 
 	cfi_info = calloc(1, sizeof(struct cfi_flash_bank));
-	if (cfi_info == NULL) {
+	if (!cfi_info) {
 		LOG_ERROR("No memory for flash bank info");
 		return ERROR_FAIL;
 	}
@@ -1488,7 +1488,7 @@ static int cfi_spansion_write_block_mips(struct flash_bank *bank, const uint8_t 
 
 	/* convert bus-width dependent algorithm code to correct endianness */
 	target_code = malloc(target_code_size);
-	if (target_code == NULL) {
+	if (!target_code) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}
@@ -1867,7 +1867,7 @@ static int cfi_spansion_write_block(struct flash_bank *bank, const uint8_t *buff
 
 	/* convert bus-width dependent algorithm code to correct endianness */
 	target_code = malloc(target_code_size);
-	if (target_code == NULL) {
+	if (!target_code) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}

@@ -38,7 +38,7 @@ static int mem_ap_target_create(struct target *target, Jim_Interp *interp)
 	struct adiv5_private_config *pc;
 
 	pc = (struct adiv5_private_config *)target->private_config;
-	if (pc == NULL)
+	if (!pc)
 		return ERROR_FAIL;
 
 	if (pc->ap_num == DP_APSEL_INVALID) {
@@ -47,7 +47,7 @@ static int mem_ap_target_create(struct target *target, Jim_Interp *interp)
 	}
 
 	mem_ap = calloc(1, sizeof(struct mem_ap));
-	if (mem_ap == NULL) {
+	if (!mem_ap) {
 		LOG_ERROR("Out of memory");
 		return ERROR_FAIL;
 	}

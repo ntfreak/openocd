@@ -882,9 +882,9 @@ FLASH_BANK_COMMAND_HANDLER(kinetis_flash_bank_command)
 
 	k_chip = kinetis_get_chip(target);
 
-	if (k_chip == NULL) {
+	if (!k_chip) {
 		k_chip = calloc(sizeof(struct kinetis_chip), 1);
-		if (k_chip == NULL) {
+		if (!k_chip) {
 			LOG_ERROR("No memory");
 			return ERROR_FAIL;
 		}
@@ -915,11 +915,11 @@ FLASH_BANK_COMMAND_HANDLER(kinetis_flash_bank_command)
 static void kinetis_free_driver_priv(struct flash_bank *bank)
 {
 	struct kinetis_flash_bank *k_bank = bank->driver_priv;
-	if (k_bank == NULL)
+	if (!k_bank)
 		return;
 
 	struct kinetis_chip *k_chip = k_bank->k_chip;
-	if (k_chip == NULL)
+	if (!k_chip)
 		return;
 
 	k_chip->num_banks--;
@@ -985,7 +985,7 @@ static int kinetis_create_missing_banks(struct kinetis_chip *k_chip)
 		}
 
 		bank = calloc(sizeof(struct flash_bank), 1);
-		if (bank == NULL)
+		if (!bank)
 			return ERROR_FAIL;
 
 		bank->target = k_chip->target;
@@ -1174,7 +1174,7 @@ COMMAND_HANDLER(kinetis_disable_wdog_handler)
 	struct target *target = get_current_target(CMD_CTX);
 	struct kinetis_chip *k_chip = kinetis_get_chip(target);
 
-	if (k_chip == NULL)
+	if (!k_chip)
 		return ERROR_FAIL;
 
 	if (CMD_ARGC > 0)
@@ -1428,7 +1428,7 @@ static int kinetis_fill_fcf(struct flash_bank *bank, uint8_t *fcf)
 		k_bank = &(k_chip->banks[bank_idx]);
 		bank_iter = k_bank->bank;
 
-		if (bank_iter == NULL) {
+		if (!bank_iter) {
 			LOG_WARNING("Missing bank %u configuration, FCF protection flags may be incomplete", bank_idx);
 			continue;
 		}
@@ -1538,7 +1538,7 @@ static int kinetis_check_run_mode(struct kinetis_chip *k_chip)
 	uint8_t pmstat;
 	struct target *target;
 
-	if (k_chip == NULL) {
+	if (!k_chip) {
 		LOG_ERROR("Chip not probed.");
 		return ERROR_FAIL;
 	}
@@ -1840,7 +1840,7 @@ static int kinetis_write_inner(struct flash_bank *bank, const uint8_t *buffer,
 			uint32_t old_count = count;
 			count = (old_count | 3) + 1;
 			new_buffer = malloc(count);
-			if (new_buffer == NULL) {
+			if (!new_buffer) {
 				LOG_ERROR("odd number of bytes to write and no memory "
 					"for padding buffer");
 				return ERROR_FAIL;
@@ -2896,7 +2896,7 @@ COMMAND_HANDLER(kinetis_nvm_partition)
 	}
 	switch (sz_type) {
 	case SHOW_INFO:
-		if (k_chip == NULL) {
+		if (!k_chip) {
 			LOG_ERROR("Chip not probed.");
 			return ERROR_FAIL;
 		}

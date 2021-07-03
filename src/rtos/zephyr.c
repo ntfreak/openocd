@@ -745,14 +745,14 @@ static int zephyr_get_thread_reg_list(struct rtos *rtos, int64_t thread_id,
 
 	LOG_INFO("Getting thread %" PRId64 " reg list", thread_id);
 
-	if (rtos == NULL)
+	if (!rtos)
 		return ERROR_FAIL;
 
 	if (thread_id == 0)
 		return ERROR_FAIL;
 
 	params = rtos->rtos_specific_params;
-	if (params == NULL)
+	if (!params)
 		return ERROR_FAIL;
 
 	addr = thread_id + params->offsets[OFFSET_T_STACK_POINTER]

@@ -1096,7 +1096,7 @@ static int arm11_target_create(struct target *target, Jim_Interp *interp)
 {
 	struct arm11_common *arm11;
 
-	if (target->tap == NULL)
+	if (!target->tap)
 		return ERROR_FAIL;
 
 	if (target->tap->ir_length != 5) {

@@ -25,7 +25,7 @@
 unsigned get_flash_name_index(const char *name)
 {
 	const char *name_index = strrchr(name, '.');
-	if (NULL == name_index)
+	if (!name_index)
 		return 0;
 	if (name_index[1] < '0' || name_index[1] > '9')
 		return ~0U;

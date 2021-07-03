@@ -105,7 +105,7 @@ static int vsllink_execute_queue(void)
 		" vsllink "
 		"-------------------------------------");
 
-	while (cmd != NULL) {
+	while (cmd) {
 		switch (cmd->type) {
 			case JTAG_RUNTEST:
 				LOG_DEBUG_IO("runtest %i cycles, end in %s",
@@ -280,7 +280,7 @@ static int vsllink_quit(void)
 static int vsllink_interface_init(void)
 {
 	vsllink_handle = malloc(sizeof(struct vsllink));
-	if (NULL == vsllink_handle) {
+	if (!vsllink_handle) {
 		LOG_ERROR("unable to allocate memory");
 		return ERROR_FAIL;
 	}
@@ -333,7 +333,7 @@ static int vsllink_init(void)
 		tdi_buffer = malloc(tap_buffer_size);
 		tdo_buffer = malloc(tap_buffer_size);
 		tms_buffer = malloc(tap_buffer_size);
-		if ((NULL == tdi_buffer) || (NULL == tdo_buffer) || (NULL == tms_buffer)) {
+		if ((!tdi_buffer) || (!tdo_buffer) || (!tms_buffer)) {
 			vsllink_quit();
 			return ERROR_FAIL;
 		}

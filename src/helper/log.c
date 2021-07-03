@@ -108,7 +108,7 @@ static void log_puts(enum log_levels level,
 	}
 
 	f = strrchr(file, '/');
-	if (f != NULL)
+	if (f)
 		file = f + 1;
 
 	if (strlen(string) > 0) {
@@ -163,7 +163,7 @@ void log_printf(enum log_levels level,
 	va_start(ap, format);
 
 	string = alloc_vprintf(format, ap);
-	if (string != NULL) {
+	if (string) {
 		log_puts(level, file, line, function, string);
 		free(string);
 	}
@@ -240,7 +240,7 @@ COMMAND_HANDLER(handle_log_output_command)
 	}
 	if (CMD_ARGC == 1) {
 		FILE *file = fopen(CMD_ARGV[0], "w");
-		if (file == NULL) {
+		if (!file) {
 			LOG_ERROR("failed to open output log '%s'", CMD_ARGV[0]);
 			return ERROR_FAIL;
 		}
@@ -287,7 +287,7 @@ void log_init(void)
 	/* set defaults for daemon configuration,
 	 * if not set by cmdline or cfgfile */
 	char *debug_env = getenv("OPENOCD_DEBUG_LEVEL");
-	if (NULL != debug_env) {
+	if (debug_env) {
 		int value;
 		int retval = parse_int(debug_env, &value);
 		if (retval == ERROR_OK &&
@@ -296,7 +296,7 @@ void log_init(void)
 				debug_level = value;
 	}
 
-	if (log_output == NULL)
+	if (!log_output)
 		log_output = stderr;
 
 	start = last_time = timeval_ms();
@@ -322,7 +322,7 @@ int log_add_callback(log_callback_fn fn, void *priv)
 	/* alloc memory, it is safe just to return in case of an error, no need for the caller to
 	 *check this */
 	cb = malloc(sizeof(struct log_callback));
-	if (cb == NULL)
+	if (!cb)
 		return ERROR_BUF_TOO_SMALL;
 
 	/* add item to the beginning of the linked list */
@@ -367,7 +367,7 @@ char *alloc_vprintf(const char *fmt, va_list ap)
 	 * other code depend on that. They should be probably be fixed, but for
 	 * now reserve the extra byte. */
 	string = malloc(len + 2);
-	if (string == NULL)
+	if (!string)
 		return NULL;
 
 	/* do the real work */

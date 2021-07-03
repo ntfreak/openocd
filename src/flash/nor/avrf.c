@@ -332,7 +332,7 @@ static int avrf_probe(struct flash_bank *bank)
 		}
 	}
 
-	if (avr_info != NULL) {
+	if (avr_info) {
 		free(bank->sectors);
 
 		/* chip found */
@@ -398,7 +398,7 @@ static int avrf_info(struct flash_bank *bank, struct command_invocation *cmd)
 		}
 	}
 
-	if (avr_info != NULL) {
+	if (avr_info) {
 		/* chip found */
 		command_print_sameline(cmd, "%s - Rev: 0x%" PRIx32 "", avr_info->name,
 			EXTRACT_VER(device_id));

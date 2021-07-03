@@ -572,7 +572,7 @@ FLASH_BANK_COMMAND_HANDLER(xcf_flash_bank_command)
 	struct xcf_priv *priv;
 
 	priv = malloc(sizeof(struct xcf_priv));
-	if (priv == NULL) {
+	if (!priv) {
 		LOG_ERROR("no memory for flash bank info");
 		return ERROR_FAIL;
 	}
@@ -629,7 +629,7 @@ static int xcf_probe(struct flash_bank *bank)
 	}
 
 	bank->sectors = malloc(bank->num_sectors * sizeof(struct flash_sector));
-	if (bank->sectors == NULL) {
+	if (!bank->sectors) {
 		LOG_ERROR("No memory for sector table");
 		return ERROR_FAIL;
 	}

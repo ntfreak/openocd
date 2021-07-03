@@ -946,7 +946,7 @@ static int or1k_adv_jtag_write_memory(struct or1k_jtag *jtag_info,
 	struct target *target = jtag_info->target;
 	if ((target->endianness == TARGET_BIG_ENDIAN) && (size != 1)) {
 		t = malloc(count * size * sizeof(uint8_t));
-		if (t == NULL) {
+		if (!t) {
 			LOG_ERROR("Out of memory");
 			return ERROR_FAIL;
 		}

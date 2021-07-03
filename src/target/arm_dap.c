@@ -187,7 +187,7 @@ static int dap_configure(struct jim_getopt_info *goi, struct arm_dap_object *dap
 			if (e != JIM_OK)
 				return e;
 			tap = jtag_tap_by_jim_obj(goi->interp, o_t);
-			if (tap == NULL) {
+			if (!tap) {
 				Jim_SetResultString(goi->interp, "-chain-position is invalid", -1);
 				return JIM_ERR;
 			}
@@ -202,7 +202,7 @@ static int dap_configure(struct jim_getopt_info *goi, struct arm_dap_object *dap
 		}
 	}
 
-	if (tap == NULL) {
+	if (!tap) {
 		Jim_SetResultString(goi->interp, "-chain-position required when creating DAP", -1);
 		return JIM_ERR;
 	}
@@ -223,7 +223,7 @@ static int dap_create(struct jim_getopt_info *goi)
 	int e;
 
 	cmd_ctx = current_command_context(goi->interp);
-	assert(cmd_ctx != NULL);
+	assert(cmd_ctx);
 
 	if (goi->argc < 3) {
 		Jim_WrongNumArgs(goi->interp, 1, goi->argv, "?name? ..options...");
@@ -241,7 +241,7 @@ static int dap_create(struct jim_getopt_info *goi)
 
 	/* Create it */
 	dap = calloc(1, sizeof(struct arm_dap_object));
-	if (dap == NULL)
+	if (!dap)
 		return JIM_ERR;
 
 	e = dap_configure(goi, dap);
@@ -317,7 +317,7 @@ COMMAND_HANDLER(handle_dap_info_command)
 	struct adiv5_dap *dap = arm->dap;
 	uint32_t apsel;
 
-	if (dap == NULL) {
+	if (!dap) {
 		LOG_ERROR("DAP instance not available. Probably a HLA target...");
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 	}
