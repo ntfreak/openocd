@@ -233,7 +233,7 @@ int win_select(int max_fd, fd_set *rfds, fd_set *wfds, fd_set *efds, struct time
 				if (retcode < 0)
 					retcode = 0;
 				for (i = 0; i < n_handles; i++) {
-					if (WAIT_OBJECT_0 == WaitForSingleObject(handles[i], 0)) {
+					if (WaitForSingleObject(handles[i], 0) == WAIT_OBJECT_0) {
 						if (SAFE_FD_ISSET(handle_slot_to_fd[i], rfds)) {
 							DWORD bytes;
 							intptr_t handle = (intptr_t) _get_osfhandle(

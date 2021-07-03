@@ -148,7 +148,7 @@ static int cc26xx_init(struct flash_bank *bank)
 		return retval;
 
 	/* Confirm the defined working address is the area we need to use */
-	if (CC26XX_ALGO_BASE_ADDRESS != cc26xx_bank->working_area->address)
+	if (cc26xx_bank->working_area->address != CC26XX_ALGO_BASE_ADDRESS)
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 
 	/* Write flash helper algorithm into target memory */
@@ -211,7 +211,7 @@ static int cc26xx_mass_erase(struct flash_bank *bank)
 
 	int retval;
 
-	if (TARGET_HALTED != target->state) {
+	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
@@ -275,7 +275,7 @@ static int cc26xx_erase(struct flash_bank *bank, unsigned int first,
 	uint32_t length;
 	int retval;
 
-	if (TARGET_HALTED != target->state) {
+	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
@@ -327,7 +327,7 @@ static int cc26xx_write(struct flash_bank *bank, const uint8_t *buffer,
 	uint32_t index;
 	int retval;
 
-	if (TARGET_HALTED != target->state) {
+	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}

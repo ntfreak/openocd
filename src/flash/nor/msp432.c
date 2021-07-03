@@ -209,7 +209,7 @@ static int msp432_wait_return_code(struct target *target)
 	int retval = ERROR_OK;
 
 	start_ms = timeval_ms();
-	while ((0 == return_code) || (return_code == FLASH_BUSY)) {
+	while ((return_code == 0) || (return_code == FLASH_BUSY)) {
 		retval = target_read_u32(target, ALGO_RETURN_CODE_ADDR, &return_code);
 		if (retval != ERROR_OK)
 			return retval;
@@ -322,11 +322,11 @@ static int msp432_init(struct flash_bank *bank)
 			"msp432: Unrecognized MSP432P4 Device ID and Hardware "
 			"Rev (%04" PRIX32 ", %02" PRIX32 ")", msp432_bank->device_id,
 			msp432_bank->hardware_rev);
-	} else if (MSP432P401X_DEPR == msp432_bank->device_type) {
+	} else if (msp432_bank->device_type == MSP432P401X_DEPR) {
 		LOG_WARNING(
 			"msp432: MSP432P401x pre-production device (deprecated "
 			"silicon)\n" SUPPORT_MESSAGE);
-	} else if (MSP432E4X_GUESS == msp432_bank->device_type) {
+	} else if (msp432_bank->device_type == MSP432E4X_GUESS) {
 		/* Explicit device type check failed. Report this. */
 		LOG_WARNING(
 			"msp432: Unrecognized MSP432E4 DID0 and DID1 values "
@@ -343,7 +343,7 @@ static int msp432_init(struct flash_bank *bank)
 		return retval;
 
 	/* Confirm the defined working address is the area we need to use */
-	if (ALGO_BASE_ADDR != msp432_bank->working_area->address)
+	if (msp432_bank->working_area->address != ALGO_BASE_ADDR)
 		return ERROR_TARGET_RESOURCE_NOT_AVAILABLE;
 
 	/* Write flash helper algorithm into target memory */
@@ -432,7 +432,7 @@ static int msp432_mass_erase(struct flash_bank *bank, bool all)
 
 	int retval;
 
-	if (TARGET_HALTED != target->state) {
+	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
@@ -501,7 +501,7 @@ COMMAND_HANDLER(msp432_mass_erase_command)
 
 	msp432_bank = bank->driver_priv;
 
-	if (MSP432E4 == msp432_bank->family_type) {
+	if (msp432_bank->family_type == MSP432E4) {
 		/* MSP432E4 does not have main vs info regions, ignore "all" */
 		all = false;
 	}
@@ -510,7 +510,7 @@ COMMAND_HANDLER(msp432_mass_erase_command)
 	if (retval != ERROR_OK)
 		return retval;
 
-	if (MSP432E4 == msp432_bank->family_type) {
+	if (msp432_bank->family_type == MSP432E4) {
 		/* MSP432E4 does not have main vs info regions */
 		LOG_INFO("msp432: Mass erase of flash is complete");
 	} else {
@@ -537,7 +537,7 @@ COMMAND_HANDLER(msp432_bsl_command)
 
 	msp432_bank = bank->driver_priv;
 
-	if (MSP432E4 == msp432_bank->family_type) {
+	if (msp432_bank->family_type == MSP432E4) {
 		LOG_WARNING("msp432: MSP432E4 does not have a BSL region");
 		return ERROR_OK;
 	}
@@ -602,7 +602,7 @@ static int msp432_erase(struct flash_bank *bank, unsigned int first,
 
 	int retval;
 
-	if (TARGET_HALTED != target->state) {
+	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
@@ -680,7 +680,7 @@ static int msp432_write(struct flash_bank *bank, const uint8_t *buffer,
 
 	int retval;
 
-	if (TARGET_HALTED != target->state) {
+	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
@@ -829,7 +829,7 @@ static int msp432_probe(struct flash_bank *bank)
 	if (retval != ERROR_OK)
 		return retval;
 
-	if (0 == size) {
+	if (size == 0) {
 		/* This is likely an MSP432E4 */
 		msp432_bank->family_type = MSP432E4;
 
@@ -864,7 +864,7 @@ static int msp432_probe(struct flash_bank *bank)
 	msp432_bank->device_type = msp432_device_type(msp432_bank->family_type,
 		msp432_bank->device_id, msp432_bank->hardware_rev);
 
-	if (MSP432P4 == msp432_bank->family_type) {
+	if (msp432_bank->family_type == MSP432P4) {
 		/* Set up MSP432P4 specific flash parameters */
 		if (is_main) {
 			retval = target_read_u32(target, P4_FLASH_MAIN_SIZE_REG, &size);
@@ -981,7 +981,7 @@ static int msp432_info(struct flash_bank *bank, struct command_invocation *cmd)
 
 	switch (msp432_bank->device_type) {
 		case MSP432P401X_DEPR:
-			if (0xFFFF == msp432_bank->device_id) {
+			if (msp432_bank->device_id == 0xFFFF) {
 				/* Very early pre-production silicon currently deprecated */
 				command_print_sameline(cmd, "MSP432P401x pre-production device (deprecated silicon)\n"
 					SUPPORT_MESSAGE);

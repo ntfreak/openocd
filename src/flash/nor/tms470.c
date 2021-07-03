@@ -437,7 +437,7 @@ static int tms470_try_flash_keys(struct target *target, const uint32_t *key_set)
 			target_write_u32(target, 0xFFE89C0C, key_set[i]);
 		}
 
-		if (ERROR_OK == tms470_check_flash_unlocked(target)) {
+		if (tms470_check_flash_unlocked(target) == ERROR_OK) {
 			/*
 			 * There seems to be a side-effect of reading the FMPKEY
 			 * register in that it re-enables the protection.  So we

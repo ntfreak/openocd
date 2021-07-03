@@ -121,7 +121,7 @@ int aice_init_targets(void)
  */
 static int aice_init(void)
 {
-	if (ERROR_OK != aice_port->api->open(&param)) {
+	if (aice_port->api->open(&param) != ERROR_OK) {
 		LOG_ERROR("Cannot find AICE Interface! Please check "
 				"connection and permissions.");
 		return ERROR_JTAG_INIT_FAILED;
@@ -217,7 +217,7 @@ static int aice_khz(int khz, int *jtag_speed)
 	int i;
 	for (i = 0 ; i < AICE_KHZ_TO_SPEED_MAP_SIZE ; i++) {
 		if (khz == aice_khz_to_speed_map[i]) {
-			if (8 <= i)
+			if (i >= 8)
 				*jtag_speed = i | AICE_TCK_CONTROL_TCK3048;
 			else
 				*jtag_speed = i;

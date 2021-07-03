@@ -538,7 +538,7 @@ static unsigned as_compile(struct algorithm_steps *as, uint8_t *target,
 					break;
 				}
 			case STEP_WRITE_REG:
-				if (4 > bytes_left) {
+				if (bytes_left < 4) {
 					finish_early = true;
 					break;
 				}
@@ -546,7 +546,7 @@ static unsigned as_compile(struct algorithm_steps *as, uint8_t *target,
 				offset += 3;
 				break;
 			case STEP_SET_DIR:
-				if (3 > bytes_left) {
+				if (bytes_left < 3) {
 					finish_early = true;
 					break;
 				}
@@ -555,7 +555,7 @@ static unsigned as_compile(struct algorithm_steps *as, uint8_t *target,
 				break;
 			case STEP_TXWM_WAIT:
 			case STEP_WIP_WAIT:
-				if (2 > bytes_left) {
+				if (bytes_left < 2) {
 					finish_early = true;
 					break;
 				}

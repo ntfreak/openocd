@@ -86,7 +86,7 @@ int duration_measure(struct duration *duration)
 {
 	struct timeval end;
 	int retval = gettimeofday(&end, NULL);
-	if (0 == retval)
+	if (retval == 0)
 		timeval_subtract(&duration->elapsed, &end, &duration->start);
 	return retval;
 }

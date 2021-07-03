@@ -66,7 +66,7 @@ int jim_get_nvp(Jim_Interp *interp,
 struct jim_nvp *jim_nvp_name2value_simple(const struct jim_nvp *p, const char *name)
 {
 	while (p->name) {
-		if (0 == strcmp(name, p->name))
+		if (strcmp(name, p->name) == 0)
 			break;
 		p++;
 	}
@@ -76,7 +76,7 @@ struct jim_nvp *jim_nvp_name2value_simple(const struct jim_nvp *p, const char *n
 struct jim_nvp *jim_nvp_name2value_nocase_simple(const struct jim_nvp *p, const char *name)
 {
 	while (p->name) {
-		if (0 == strcasecmp(name, p->name))
+		if (strcasecmp(name, p->name) == 0)
 			break;
 		p++;
 	}

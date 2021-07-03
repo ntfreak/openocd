@@ -575,7 +575,7 @@ COMMAND_HANDLER(handle_nds32_decode_command)
 		read_addr = addr;
 		i = 0;
 		while (i < insn_count) {
-			if (ERROR_OK != nds32_read_opcode(nds32, read_addr, &opcode))
+			if (nds32_read_opcode(nds32, read_addr, &opcode) != ERROR_OK)
 				return ERROR_FAIL;
 			if (nds32_evaluate_opcode(nds32, opcode, read_addr, &instruction) != ERROR_OK)
 				return ERROR_FAIL;
@@ -593,9 +593,9 @@ COMMAND_HANDLER(handle_nds32_decode_command)
 
 		COMMAND_PARSE_NUMBER(u32, CMD_ARGV[0], addr);
 
-		if (ERROR_OK != nds32_read_opcode(nds32, addr, &opcode))
+		if (nds32_read_opcode(nds32, addr, &opcode) != ERROR_OK)
 			return ERROR_FAIL;
-		if (ERROR_OK != nds32_evaluate_opcode(nds32, opcode, addr, &instruction))
+		if (nds32_evaluate_opcode(nds32, opcode, addr, &instruction) != ERROR_OK)
 			return ERROR_FAIL;
 
 		command_print(CMD, "%s", instruction.text);

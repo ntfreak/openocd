@@ -222,7 +222,7 @@ static void str_radix_guess(const char **_str, unsigned *_str_len,
 	unsigned *_radix)
 {
 	unsigned radix = *_radix;
-	if (0 != radix)
+	if (radix != 0)
 		return;
 	const char *str = *_str;
 	unsigned str_len = *_str_len;

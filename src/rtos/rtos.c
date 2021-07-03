@@ -152,7 +152,7 @@ int rtos_create(struct jim_getopt_info *goi, struct target *target)
 	}
 
 	for (x = 0; rtos_types[x]; x++)
-		if (0 == strcmp(cp, rtos_types[x]->name))
+		if (strcmp(cp, rtos_types[x]->name) == 0)
 			return os_alloc_create(target, rtos_types[x]);
 
 	Jim_SetResultFormatted(goi->interp, "Unknown RTOS type %s, try one of: ", cp);

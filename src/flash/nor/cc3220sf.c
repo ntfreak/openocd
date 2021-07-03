@@ -42,7 +42,7 @@ static int cc3220sf_mass_erase(struct flash_bank *bank)
 
 	int retval = ERROR_OK;
 
-	if (TARGET_HALTED != target->state) {
+	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
@@ -118,7 +118,7 @@ static int cc3220sf_erase(struct flash_bank *bank, unsigned int first,
 
 	int retval = ERROR_OK;
 
-	if (TARGET_HALTED != target->state) {
+	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
@@ -192,7 +192,7 @@ static int cc3220sf_write(struct flash_bank *bank, const uint8_t *buffer,
 
 	int retval = ERROR_OK;
 
-	if (TARGET_HALTED != target->state) {
+	if (target->state != TARGET_HALTED) {
 		LOG_ERROR("Target not halted");
 		return ERROR_TARGET_NOT_HALTED;
 	}
@@ -295,7 +295,7 @@ static int cc3220sf_write(struct flash_bank *bank, const uint8_t *buffer,
 
 			/* Check that the head value was written to flash */
 			result = buf_get_u32(reg_params[2].value, 0, 32);
-			if (0 != result) {
+			if (result != 0) {
 				retval = ERROR_FAIL;
 				LOG_ERROR("cc3220sf: Flash operation failed");
 			}
@@ -359,7 +359,7 @@ static int cc3220sf_write(struct flash_bank *bank, const uint8_t *buffer,
 
 		/* Check that all words were written to flash */
 		result = buf_get_u32(reg_params[2].value, 0, 32);
-		if (0 != result) {
+		if (result != 0) {
 			retval = ERROR_FAIL;
 			LOG_ERROR("cc3220sf: Flash operation failed");
 			break;
@@ -369,7 +369,7 @@ static int cc3220sf_write(struct flash_bank *bank, const uint8_t *buffer,
 	}
 
 	/* Do one word write for any final bytes less than a full word */
-	if ((retval == ERROR_OK) && (0 != tail_count)) {
+	if ((retval == ERROR_OK) && (tail_count != 0)) {
 		uint8_t tail[4];
 
 		/* Set starting byte offset for data to write */
@@ -409,7 +409,7 @@ static int cc3220sf_write(struct flash_bank *bank, const uint8_t *buffer,
 
 			/* Check that the tail was written to flash */
 			result = buf_get_u32(reg_params[2].value, 0, 32);
-			if (0 != result) {
+			if (result != 0) {
 				retval = ERROR_FAIL;
 				LOG_ERROR("cc3220sf: Flash operation failed");
 			}

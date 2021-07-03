@@ -134,7 +134,7 @@ static int avr_jtagprg_chiperase(struct avr_common *avr)
 			&poll_value,
 			0x3380,
 			AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
-		if (ERROR_OK != mcu_execute_queue())
+		if (mcu_execute_queue() != ERROR_OK)
 			return ERROR_FAIL;
 		LOG_DEBUG("poll_value = 0x%04" PRIx32 "", poll_value);
 	} while (!(poll_value & 0x0200));
@@ -195,7 +195,7 @@ static int avr_jtagprg_writeflashpage(struct avr_common *avr,
 			&poll_value,
 			0x3700,
 			AVR_JTAG_REG_PROGRAMMING_COMMAND_LEN);
-		if (ERROR_OK != mcu_execute_queue())
+		if (mcu_execute_queue() != ERROR_OK)
 			return ERROR_FAIL;
 		LOG_DEBUG("poll_value = 0x%04" PRIx32 "", poll_value);
 	} while (!(poll_value & 0x0200));
@@ -266,7 +266,7 @@ static int avrf_write(struct flash_bank *bank, const uint8_t *buffer, uint32_t o
 	LOG_DEBUG("offset is 0x%08" PRIx32 "", offset);
 	LOG_DEBUG("count is %" PRIu32 "", count);
 
-	if (ERROR_OK != avr_jtagprg_enterprogmode(avr))
+	if (avr_jtagprg_enterprogmode(avr) != ERROR_OK)
 		return ERROR_FAIL;
 
 	if (bank->size > 0x20000)
@@ -315,7 +315,7 @@ static int avrf_probe(struct flash_bank *bank)
 	avrf_info->probed = false;
 
 	avr_jtag_read_jtagid(avr, &device_id);
-	if (ERROR_OK != mcu_execute_queue())
+	if (mcu_execute_queue() != ERROR_OK)
 		return ERROR_FAIL;
 
 	LOG_INFO("device id = 0x%08" PRIx32 "", device_id);
@@ -380,7 +380,7 @@ static int avrf_info(struct flash_bank *bank, struct command_invocation *cmd)
 	}
 
 	avr_jtag_read_jtagid(avr, &device_id);
-	if (ERROR_OK != mcu_execute_queue())
+	if (mcu_execute_queue() != ERROR_OK)
 		return ERROR_FAIL;
 
 	LOG_INFO("device id = 0x%08" PRIx32 "", device_id);
@@ -420,9 +420,9 @@ static int avrf_mass_erase(struct flash_bank *bank)
 		return ERROR_TARGET_NOT_HALTED;
 	}
 
-	if ((ERROR_OK != avr_jtagprg_enterprogmode(avr))
-	    || (ERROR_OK != avr_jtagprg_chiperase(avr))
-	    || (ERROR_OK != avr_jtagprg_leaveprogmode(avr)))
+	if ((avr_jtagprg_enterprogmode(avr) != ERROR_OK)
+	    || (avr_jtagprg_chiperase(avr) != ERROR_OK)
+	    || (avr_jtagprg_leaveprogmode(avr) != ERROR_OK))
 		return ERROR_FAIL;
 
 	return ERROR_OK;

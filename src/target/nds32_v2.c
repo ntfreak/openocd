@@ -36,7 +36,7 @@ static int nds32_v2_register_mapping(struct nds32 *nds32, int reg_no)
 	uint32_t max_level = nds32->max_interrupt_level;
 	uint32_t cur_level = nds32->current_interrupt_level;
 
-	if ((1 <= cur_level) && (cur_level < max_level)) {
+	if ((cur_level >= 1) && (cur_level < max_level)) {
 		if (reg_no == IR0) {
 			LOG_DEBUG("Map PSW to IPSW");
 			return IR1;
@@ -44,7 +44,7 @@ static int nds32_v2_register_mapping(struct nds32 *nds32, int reg_no)
 			LOG_DEBUG("Map PC to IPC");
 			return IR9;
 		}
-	} else if ((2 <= cur_level) && (cur_level < max_level)) {
+	} else if ((cur_level >= 2) && (cur_level < max_level)) {
 		if (reg_no == R26) {
 			LOG_DEBUG("Mapping P0 to P_P0");
 			return IR12;
@@ -308,7 +308,7 @@ static int nds32_v2_debug_entry(struct nds32 *nds32, bool enable_watchpoint)
 	if (enable_watchpoint)
 		CHECK_RETVAL(nds32_v2_deactivate_hardware_watchpoint(nds32->target));
 
-	if (ERROR_OK != nds32_examine_debug_reason(nds32)) {
+	if (nds32_examine_debug_reason(nds32) != ERROR_OK) {
 		nds32->target->state = backup_state;
 
 		/* re-activate all hardware breakpoints & watchpoints */
@@ -644,10 +644,10 @@ static int nds32_v2_translate_address(struct target *target, target_addr_t *addr
 	/* Following conditions need to do address translation
 	 * 1. BUS mode
 	 * 2. CPU mode under maximum interrupt level */
-	if ((NDS_MEMORY_ACC_BUS == memory->access_channel) ||
-			((NDS_MEMORY_ACC_CPU == memory->access_channel) &&
+	if ((memory->access_channel == NDS_MEMORY_ACC_BUS) ||
+			((memory->access_channel == NDS_MEMORY_ACC_CPU) &&
 			 nds32_reach_max_interrupt_level(nds32))) {
-		if (ERROR_OK == target->type->virt2phys(target, *address, &physical_address))
+		if (target->type->virt2phys(target, *address, &physical_address) == ERROR_OK)
 			*address = physical_address;
 		else
 			return ERROR_FAIL;
@@ -662,7 +662,7 @@ static int nds32_v2_read_buffer(struct target *target, target_addr_t address,
 	struct nds32 *nds32 = target_to_nds32(target);
 	struct nds32_memory *memory = &(nds32->memory);
 
-	if ((NDS_MEMORY_ACC_CPU == memory->access_channel) &&
+	if ((memory->access_channel == NDS_MEMORY_ACC_CPU) &&
 			(target->state != TARGET_HALTED)) {
 		LOG_WARNING("target was not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -682,7 +682,7 @@ static int nds32_v2_write_buffer(struct target *target, target_addr_t address,
 	struct nds32 *nds32 = target_to_nds32(target);
 	struct nds32_memory *memory = &(nds32->memory);
 
-	if ((NDS_MEMORY_ACC_CPU == memory->access_channel) &&
+	if ((memory->access_channel == NDS_MEMORY_ACC_CPU) &&
 			(target->state != TARGET_HALTED)) {
 		LOG_WARNING("target was not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -702,7 +702,7 @@ static int nds32_v2_read_memory(struct target *target, target_addr_t address,
 	struct nds32 *nds32 = target_to_nds32(target);
 	struct nds32_memory *memory = &(nds32->memory);
 
-	if ((NDS_MEMORY_ACC_CPU == memory->access_channel) &&
+	if ((memory->access_channel == NDS_MEMORY_ACC_CPU) &&
 			(target->state != TARGET_HALTED)) {
 		LOG_WARNING("target was not halted");
 		return ERROR_TARGET_NOT_HALTED;
@@ -722,7 +722,7 @@ static int nds32_v2_write_memory(struct target *target, target_addr_t address,
 	struct nds32 *nds32 = target_to_nds32(target);
 	struct nds32_memory *memory = &(nds32->memory);
 
-	if ((NDS_MEMORY_ACC_CPU == memory->access_channel) &&
+	if ((memory->access_channel == NDS_MEMORY_ACC_CPU) &&
 			(target->state != TARGET_HALTED)) {
 		LOG_WARNING("target was not halted");
 		return ERROR_TARGET_NOT_HALTED;
