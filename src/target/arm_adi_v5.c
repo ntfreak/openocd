@@ -990,13 +990,21 @@ int dap_lookup_cs_component(struct adiv5_ap *ap,
 
 		if (romentry & 0x1) {
 			uint32_t c_cid1;
+			uint8_t class;
 			retval = mem_ap_read_atomic_u32(ap, component_base | 0xff4, &c_cid1);
 			if (retval != ERROR_OK) {
 				LOG_ERROR("Can't read component with base address " TARGET_ADDR_FMT
 					  ", the corresponding core might be turned off", component_base);
 				return retval;
 			}
-			if (((c_cid1 >> 4) & 0x0f) == 1) {
+
+			retval = mem_ap_read_atomic_u32(ap, component_base | 0xfcc, &devtype);
+			if (retval != ERROR_OK)
+				return retval;
+
+			class = (c_cid1 >> 4) & 0x0f;
+			/* Parse class 0x1 ROM or class 0x9 ROM with devtype = 0 */
+			if (class == 1 || (class == 9 && devtype == 0)) {
 				retval = dap_lookup_cs_component(ap, component_base,
 							type, addr, idx);
 				if (retval == ERROR_OK)
@@ -1005,9 +1013,6 @@ int dap_lookup_cs_component(struct adiv5_ap *ap,
 					return retval;
 			}
 
-			retval = mem_ap_read_atomic_u32(ap, component_base | 0xfcc, &devtype);
-			if (retval != ERROR_OK)
-				return retval;
 			if ((devtype & 0xff) == type) {
 				if (!*idx) {
 					*addr = component_base;
