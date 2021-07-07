@@ -1216,6 +1216,8 @@ static const struct {
 static int dap_rom_display(struct command_invocation *cmd,
 				struct adiv5_ap *ap, target_addr_t dbgbase, int depth)
 {
+	uint32_t entry_present_mask = 0;
+	uint16_t rom_num_entries = 0;
 	int retval;
 	uint64_t pid;
 	uint32_t cid;
@@ -1297,26 +1299,8 @@ static int dap_rom_display(struct command_invocation *cmd,
 		else
 			command_print(cmd, "\t\tMEMTYPE system memory not present: dedicated debug bus");
 
-		/* Read ROM table entries from base address until we get 0x00000000 or reach the reserved area */
-		for (uint16_t entry_offset = 0; entry_offset < 0xF00; entry_offset += 4) {
-			uint32_t romentry;
-			retval = mem_ap_read_atomic_u32(ap, base_addr | entry_offset, &romentry);
-			if (retval != ERROR_OK)
-				return retval;
-			command_print(cmd, "\t%sROMTABLE[0x%x] = 0x%" PRIx32 "",
-					tabs, entry_offset, romentry);
-			if (romentry & 0x01) {
-				/* Recurse */
-				retval = dap_rom_display(cmd, ap, base_addr + (romentry & 0xFFFFF000), depth + 1);
-				if (retval != ERROR_OK)
-					return retval;
-			} else if (romentry != 0) {
-				command_print(cmd, "\t\tComponent not present");
-			} else {
-				command_print(cmd, "\t%s\tEnd of ROM table", tabs);
-				break;
-			}
-		}
+		rom_num_entries = 960;
+		entry_present_mask = 0x1;
 	} else if (class == 9) { /* CoreSight component */
 		const char *major = "Reserved", *subtype = "Reserved";
 
@@ -1462,6 +1446,36 @@ static int dap_rom_display(struct command_invocation *cmd,
 				(uint8_t)(devtype & 0xff),
 				major, subtype);
 		/* REVISIT also show 0xfc8 DevId */
+
+		/* Components with a DEVTYPE of 0 can be nested ROMs, fall
+		 * through to parsing those.
+		 */
+		if (devtype != 0)
+			return ERROR_OK;
+
+		rom_num_entries = 512;
+		entry_present_mask = 0x3;
+	}
+
+	/* Read ROM table entries from base address until we get 0x00000000 or reach the reserved area */
+	for (uint16_t entry_offset = 0; entry_offset < rom_num_entries; entry_offset += 4) {
+		uint32_t romentry;
+		retval = mem_ap_read_atomic_u32(ap, base_addr | entry_offset, &romentry);
+		if (retval != ERROR_OK)
+			return retval;
+		command_print(cmd, "\t%sROMTABLE[0x%x] = 0x%" PRIx32 "",
+				tabs, entry_offset, romentry);
+		if (romentry & entry_present_mask) {
+			/* Recurse */
+			retval = dap_rom_display(cmd, ap, base_addr + (romentry & 0xFFFFF000), depth + 1);
+			if (retval != ERROR_OK)
+				return retval;
+		} else if (romentry != 0) {
+			command_print(cmd, "\t\tComponent not present");
+		} else {
+			command_print(cmd, "\t%s\tEnd of ROM table", tabs);
+			break;
+		}
 	}
 
 	return ERROR_OK;
