@@ -2251,6 +2251,78 @@ static int get_reg_features_list(struct target *target, char const **feature_lis
 	return ERROR_OK;
 }
 
+/* Create a register list that's the union of all the registers of the SMP
+ * group this target is in. If the target is not part of an SMP group, this
+ * returns the same as target_get_gdb_reg_list_noread().
+ */
+static int smp_reg_list_noread(struct target *target,
+		struct reg **combined_list[], int *combined_list_size,
+		enum target_register_class reg_class)
+{
+	if (!target->smp)
+		return target_get_gdb_reg_list_noread(target, combined_list,
+				combined_list_size, REG_CLASS_ALL);
+
+	int combined_allocated = 256;
+	*combined_list = malloc(combined_allocated * sizeof(struct reg *));
+	if (*combined_list == NULL) {
+		LOG_ERROR("malloc(%d) failed", (int) (combined_allocated * sizeof(struct reg *)));
+		return ERROR_FAIL;
+	}
+	*combined_list_size = 0;
+	struct target_list *head;
+	foreach_smp_target(head, target->head) {
+		struct reg **reg_list = NULL;
+		int reg_list_size;
+		int result = target_get_gdb_reg_list_noread(head->target, &reg_list,
+				&reg_list_size, reg_class);
+		if (result != ERROR_OK) {
+			free(*combined_list);
+			return result;
+		}
+		for (int i = 0; i < reg_list_size; i++) {
+			bool found = false;
+			struct reg *a = reg_list[i];
+			if (a->exist) {
+				/* Nested loop makes this O(n^2), but this entire function with
+				 * 5 RISC-V targets takes just 2ms on my computer. Fast enough
+				 * for me. */
+				for (int j = 0; j < *combined_list_size; j++) {
+					struct reg *b = (*combined_list)[j];
+					if (!strcmp(a->name, b->name)) {
+						found = true;
+						if (a->size != b->size) {
+							LOG_ERROR("SMP register %s is %d bits on one "
+									"target, but %d bits on another target.",
+									a->name, a->size, b->size);
+							free(reg_list);
+							free(*combined_list);
+							return ERROR_FAIL;
+						}
+						break;
+					}
+				}
+				if (!found) {
+					LOG_DEBUG("[%s] %s not found in combined list", target_name(target), a->name);
+					if (*combined_list_size >= combined_allocated) {
+						combined_allocated *= 2;
+						*combined_list = realloc(*combined_list, combined_allocated * sizeof(struct reg *));
+						if (*combined_list == NULL) {
+							LOG_ERROR("realloc(%d) failed", (int) (combined_allocated * sizeof(struct reg *)));
+							return ERROR_FAIL;
+						}
+					}
+					(*combined_list)[*combined_list_size] = a;
+					(*combined_list_size)++;
+				}
+			}
+		}
+		free(reg_list);
+	}
+
+	return ERROR_OK;
+}
+
 static int gdb_generate_target_description(struct target *target, char **tdesc_out)
 {
 	int retval = ERROR_OK;
@@ -2264,8 +2336,8 @@ static int gdb_generate_target_description(struct target *target, char **tdesc_o
 	int size = 0;
 
 
-	retval = target_get_gdb_reg_list_noread(target, &reg_list,
-			&reg_list_size, REG_CLASS_ALL);
+	retval = smp_reg_list_noread(target, &reg_list, &reg_list_size,
+			REG_CLASS_ALL);
 
 	if (retval != ERROR_OK) {
 		LOG_ERROR("get register list failed");
