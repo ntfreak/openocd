@@ -2599,13 +2599,13 @@ static int gdb_query_packet(struct connection *connection,
 
 			/* We want to print all debug output to GDB connection */
 			log_add_callback(gdb_log_callback, connection);
-			target_call_timer_callbacks_now();
+			target_call_timer_callbacks_now(NULL);
 			/* some commands need to know the GDB connection, make note of current
 			 * GDB connection. */
 			current_gdb_connection = gdb_connection;
 			command_run_line(cmd_ctx, cmd);
 			current_gdb_connection = NULL;
-			target_call_timer_callbacks_now();
+			target_call_timer_callbacks_now(NULL);
 			log_remove_callback(gdb_log_callback, connection);
 			free(cmd);
 		}

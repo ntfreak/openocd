@@ -982,7 +982,7 @@ static int jim_command_dispatch(Jim_Interp *interp, int argc, Jim_Obj * const *a
 	if (!command_can_run(cmd_ctx, c, Jim_GetString(argv[0], NULL)))
 		return JIM_ERR;
 
-	target_call_timer_callbacks_now();
+	target_call_timer_callbacks_now(NULL);
 
 	/*
 	 * Black magic of overridden current target:
@@ -1177,7 +1177,7 @@ COMMAND_HANDLER(handle_sleep_command)
 	if (!busy) {
 		int64_t then = timeval_ms();
 		while (timeval_ms() - then < (int64_t)duration) {
-			target_call_timer_callbacks_now();
+			target_call_timer_callbacks_now(NULL);
 			usleep(1000);
 		}
 	} else

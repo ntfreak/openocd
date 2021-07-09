@@ -156,7 +156,7 @@ static struct target_event_callback *target_event_callbacks;
 static struct target_timer_callback *target_timer_callbacks;
 static LIST_HEAD(target_reset_callback_list);
 static LIST_HEAD(target_trace_callback_list);
-static const int polling_interval = 100;
+static const int polling_interval = TARGET_DEFAULT_POLLING_INTERVAL;
 
 static const struct jim_nvp nvp_assert[] = {
 	{ .name = "assert", NVP_ASSERT },
@@ -692,7 +692,7 @@ static int target_process_reset(struct command_invocation *cmd, enum target_rese
 	}
 
 	/* We want any events to be processed before the prompt */
-	retval = target_call_timer_callbacks_now();
+	retval = target_call_timer_callbacks_now(NULL);
 
 	for (target = all_targets; target; target = target->next) {
 		target->type->check_reset(target);
@@ -1733,8 +1733,7 @@ int target_register_timer_callback(int (*callback)(void *priv),
 	(*callbacks_p)->time_ms = time_ms;
 	(*callbacks_p)->removed = false;
 
-	gettimeofday(&(*callbacks_p)->when, NULL);
-	timeval_add_time(&(*callbacks_p)->when, 0, time_ms * 1000);
+	(*callbacks_p)->when = timeval_ms() + time_ms;
 
 	(*callbacks_p)->priv = priv;
 	(*callbacks_p)->next = NULL;
@@ -1868,15 +1867,14 @@ int target_call_trace_callbacks(struct target *target, size_t len, uint8_t *data
 }
 
 static int target_timer_callback_periodic_restart(
-		struct target_timer_callback *cb, struct timeval *now)
+		struct target_timer_callback *cb, int64_t *now)
 {
-	cb->when = *now;
-	timeval_add_time(&cb->when, 0, cb->time_ms * 1000L);
+	cb->when = *now + cb->time_ms;
 	return ERROR_OK;
 }
 
 static int target_call_timer_callback(struct target_timer_callback *cb,
-		struct timeval *now)
+		int64_t *now)
 {
 	cb->callback(cb->priv);
 
@@ -1886,7 +1884,7 @@ static int target_call_timer_callback(struct target_timer_callback *cb,
 	return target_unregister_timer_callback(cb->callback, cb->priv);
 }
 
-static int target_call_timer_callbacks_check_time(int checktime)
+static int target_call_timer_callbacks_check_time(int64_t *next_event, int checktime)
 {
 	static bool callback_processing;
 
@@ -1898,8 +1896,9 @@ static int target_call_timer_callbacks_check_time(int checktime)
 
 	keep_alive();
 
-	struct timeval now;
-	gettimeofday(&now, NULL);
+	int64_t now = timeval_ms();
+	if (next_event)
+		*next_event = now + 1000;
 
 	/* Store an address of the place containing a pointer to the
 	 * next item; initially, that's a standalone "root of the
@@ -1915,10 +1914,13 @@ static int target_call_timer_callbacks_check_time(int checktime)
 
 		bool call_it = (*callback)->callback &&
 			((!checktime && (*callback)->type == TARGET_TIMER_TYPE_PERIODIC) ||
-			 timeval_compare(&now, &(*callback)->when) >= 0);
+			 now >= (*callback)->when);
 
 		if (call_it)
 			target_call_timer_callback(*callback, &now);
+
+		if (next_event && (*callback)->when < *next_event)
+			*next_event = (*callback)->when;
 
 		callback = &(*callback)->next;
 	}
@@ -1927,15 +1929,19 @@ static int target_call_timer_callbacks_check_time(int checktime)
 	return ERROR_OK;
 }
 
-int target_call_timer_callbacks(void)
+/**
+ * This function updates *next_event with the time (according to timeval_ms())
+ * that it would next need to be called in order to run all callbacks on time.
+ */
+int target_call_timer_callbacks(int64_t *next_event)
 {
-	return target_call_timer_callbacks_check_time(1);
+	return target_call_timer_callbacks_check_time(next_event, 1);
 }
 
 /* invoke periodic callbacks immediately */
-int target_call_timer_callbacks_now(void)
+int target_call_timer_callbacks_now(int64_t *next_event)
 {
-	return target_call_timer_callbacks_check_time(0);
+	return target_call_timer_callbacks_check_time(next_event, 0);
 }
 
 /* Prints the working area layout for debug purposes */

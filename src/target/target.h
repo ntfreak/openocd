@@ -333,7 +333,7 @@ struct target_timer_callback {
 	unsigned int time_ms;
 	enum target_timer_type type;
 	bool removed;
-	struct timeval when;
+	int64_t when;	/* output of timeval_ms() */
 	void *priv;
 	struct target_timer_callback *next;
 };
@@ -401,12 +401,12 @@ int target_call_trace_callbacks(struct target *target, size_t len, uint8_t *data
 int target_register_timer_callback(int (*callback)(void *priv),
 		unsigned int time_ms, enum target_timer_type type, void *priv);
 int target_unregister_timer_callback(int (*callback)(void *priv), void *priv);
-int target_call_timer_callbacks(void);
+int target_call_timer_callbacks(int64_t *next_event);
 /**
  * Invoke this to ensure that e.g. polling timer callbacks happen before
  * a synchronous command completes.
  */
-int target_call_timer_callbacks_now(void);
+int target_call_timer_callbacks_now(int64_t *next_event);
 
 struct target *get_target_by_num(int num);
 struct target *get_current_target(struct command_context *cmd_ctx);
@@ -789,5 +789,7 @@ int target_profiling_default(struct target *target, uint32_t *samples, uint32_t
 #define ERROR_TARGET_ALGO_EXIT  (-313)
 
 extern bool get_target_reset_nag(void);
+
+#define TARGET_DEFAULT_POLLING_INTERVAL		100
 
 #endif /* OPENOCD_TARGET_TARGET_H */
