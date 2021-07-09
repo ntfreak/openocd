@@ -437,6 +437,8 @@ int server_loop(struct command_context *command_context)
 	/* used in accept() */
 	int retval;
 
+	int64_t next_event = timeval_ms() + polling_period;
+
 #ifndef _WIN32
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
 		LOG_ERROR("couldn't set SIGPIPE to SIG_IGN");
@@ -478,7 +480,12 @@ int server_loop(struct command_context *command_context)
 			retval = socket_select(fd_max + 1, &read_fds, NULL, NULL, &tv);
 		} else {
 			/* Every 100ms, can be changed with "poll_period" command */
-			tv.tv_usec = polling_period * 1000;
+			int timeout_ms = next_event - timeval_ms();
+			if (timeout_ms < 0)
+				timeout_ms = 0;
+			else if (timeout_ms > polling_period)
+				timeout_ms = polling_period;
+			tv.tv_usec = timeout_ms * 1000;
 			/* Only while we're sleeping we'll let others run */
 			openocd_sleep_prelude();
 			kept_alive();
@@ -511,7 +518,8 @@ int server_loop(struct command_context *command_context)
 		if (retval == 0) {
 			/* We only execute these callbacks when there was nothing to do or we timed
 			 *out */
-			target_call_timer_callbacks();
+			target_call_timer_callbacks_now();
+			next_event = target_timer_next_event();
 			process_jim_events(command_context);
 
 			FD_ZERO(&read_fds);	/* eCos leaves read_fds unchanged in this case!  */
