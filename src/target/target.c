@@ -154,9 +154,10 @@ static struct target_type *target_types[] = {
 struct target *all_targets;
 static struct target_event_callback *target_event_callbacks;
 static struct target_timer_callback *target_timer_callbacks;
+static int64_t target_timer_next_event_value;
 static LIST_HEAD(target_reset_callback_list);
 static LIST_HEAD(target_trace_callback_list);
-static const int polling_interval = 100;
+static const int polling_interval = TARGET_DEFAULT_POLLING_INTERVAL;
 
 static const struct jim_nvp nvp_assert[] = {
 	{ .name = "assert", NVP_ASSERT },
@@ -1733,8 +1734,8 @@ int target_register_timer_callback(int (*callback)(void *priv),
 	(*callbacks_p)->time_ms = time_ms;
 	(*callbacks_p)->removed = false;
 
-	gettimeofday(&(*callbacks_p)->when, NULL);
-	timeval_add_time(&(*callbacks_p)->when, 0, time_ms * 1000);
+	(*callbacks_p)->when = timeval_ms() + time_ms;
+	target_timer_next_event_value = MIN(target_timer_next_event_value, (*callbacks_p)->when);
 
 	(*callbacks_p)->priv = priv;
 	(*callbacks_p)->next = NULL;
@@ -1868,15 +1869,14 @@ int target_call_trace_callbacks(struct target *target, size_t len, uint8_t *data
 }
 
 static int target_timer_callback_periodic_restart(
-		struct target_timer_callback *cb, struct timeval *now)
+		struct target_timer_callback *cb, int64_t *now)
 {
-	cb->when = *now;
-	timeval_add_time(&cb->when, 0, cb->time_ms * 1000L);
+	cb->when = *now + cb->time_ms;
 	return ERROR_OK;
 }
 
 static int target_call_timer_callback(struct target_timer_callback *cb,
-		struct timeval *now)
+		int64_t *now)
 {
 	cb->callback(cb->priv);
 
@@ -1898,8 +1898,12 @@ static int target_call_timer_callbacks_check_time(int checktime)
 
 	keep_alive();
 
-	struct timeval now;
-	gettimeofday(&now, NULL);
+	int64_t now = timeval_ms();
+
+	/* Initialize to a default value that's a ways into the future.
+	 * The loop below will make it closer to now if there are
+	 * callbacks that want to be called sooner. */
+	target_timer_next_event_value = now + 1000;
 
 	/* Store an address of the place containing a pointer to the
 	 * next item; initially, that's a standalone "root of the
@@ -1915,10 +1919,13 @@ static int target_call_timer_callbacks_check_time(int checktime)
 
 		bool call_it = (*callback)->callback &&
 			((!checktime && (*callback)->type == TARGET_TIMER_TYPE_PERIODIC) ||
-			 timeval_compare(&now, &(*callback)->when) >= 0);
+			 now >= (*callback)->when);
 
 		if (call_it)
 			target_call_timer_callback(*callback, &now);
+
+		if ((*callback)->when < target_timer_next_event_value)
+			target_timer_next_event_value = (*callback)->when;
 
 		callback = &(*callback)->next;
 	}
@@ -1927,15 +1934,20 @@ static int target_call_timer_callbacks_check_time(int checktime)
 	return ERROR_OK;
 }
 
-int target_call_timer_callbacks(void)
+int target_call_timer_callbacks()
 {
 	return target_call_timer_callbacks_check_time(1);
 }
 
 /* invoke periodic callbacks immediately */
-int target_call_timer_callbacks_now(void)
+int target_call_timer_callbacks_now()
 {
 	return target_call_timer_callbacks_check_time(0);
+}
+
+int64_t target_timer_next_event(void)
+{
+	return target_timer_next_event_value;
 }
 
 /* Prints the working area layout for debug purposes */
