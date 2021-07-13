@@ -341,6 +341,14 @@ static struct zephyr_params zephyr_params_list[] = {
 		.get_cpu_state = &zephyr_get_arm_state,
 	},
 	{
+		.target_name = "cortex_r4",
+		.pointer_width = 4,
+		.callee_saved_stacking = &arm_callee_saved_stacking,
+		.cpu_saved_nofp_stacking = &arm_cpu_saved_nofp_stacking,
+		.cpu_saved_fp_stacking = &arm_cpu_saved_fp_stacking,
+		.get_cpu_state = &zephyr_get_arm_state,
+	},
+	{
 		.target_name = "hla_target",
 		.pointer_width = 4,
 		.callee_saved_stacking = &arm_callee_saved_stacking,
