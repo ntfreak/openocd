@@ -86,6 +86,8 @@ static int swclk_gpio = -1;
 static int swclk_gpio_mode;
 static int swdio_gpio = -1;
 static int swdio_gpio_mode;
+static int swdio_dir_gpio = -1;
+static int swdio_dir_gpio_mode;
 
 /* Transition delay coefficients */
 static int speed_coeff = 113714;
@@ -149,10 +151,20 @@ static int bcm2835gpio_reset(int trst, int srst)
 
 static void bcm2835_swdio_drive(bool is_output)
 {
-	if (is_output)
-		OUT_GPIO(swdio_gpio);
-	else
-		INP_GPIO(swdio_gpio);
+	if (swdio_dir_gpio > 0) {
+		if (is_output) {
+			GPIO_SET = (1<<swdio_dir_gpio);
+			OUT_GPIO(swdio_gpio);
+		} else {
+			INP_GPIO(swdio_gpio);
+			GPIO_CLR = (1<<swdio_dir_gpio);
+		}
+	} else {
+		if (is_output)
+			OUT_GPIO(swdio_gpio);
+		else
+			INP_GPIO(swdio_gpio);
+	}
 }
 
 static int bcm2835_swdio_read(void)
@@ -295,6 +307,15 @@ COMMAND_HANDLER(bcm2835gpio_handle_swd_gpionum_swdio)
 	return ERROR_OK;
 }
 
+COMMAND_HANDLER(bcm2835gpio_handle_swd_dir_gpionum_swdio)
+{
+	if (CMD_ARGC == 1)
+		COMMAND_PARSE_NUMBER(int, CMD_ARGV[0], swdio_dir_gpio);
+
+	command_print(CMD, "BCM2835 num: swdio_dir = %d", swdio_dir_gpio);
+	return ERROR_OK;
+}
+
 COMMAND_HANDLER(bcm2835gpio_handle_speed_coeffs)
 {
 	if (CMD_ARGC == 2) {
@@ -373,6 +394,13 @@ static const struct command_registration bcm2835gpio_command_handlers[] = {
 		.mode = COMMAND_CONFIG,
 		.help = "gpio number for swdio.",
 		.usage = "[swdio]",
+	},
+	{
+		.name = "bcm2835gpio_swdio_dir_num",
+		.handler = &bcm2835gpio_handle_swd_dir_gpionum_swdio,
+		.mode = COMMAND_CONFIG,
+		.help = "gpio number for swdio direction control pin.",
+		.usage = "[swdio_dir]",
 	},
 	{
 		.name = "bcm2835gpio_srst_num",
@@ -541,6 +569,12 @@ static int bcm2835gpio_init(void)
 		OUT_GPIO(srst_gpio);
 	}
 
+	if (swdio_dir_gpio != -1) {
+		swdio_dir_gpio_mode = MODE_GPIO(swdio_dir_gpio);
+		GPIO_SET = 1 << swdio_dir_gpio;
+		OUT_GPIO(swdio_dir_gpio);
+	}
+
 	LOG_DEBUG("saved pinmux settings: tck %d tms %d tdi %d "
 		  "tdo %d trst %d srst %d", tck_gpio_mode, tms_gpio_mode,
 		  tdi_gpio_mode, tdo_gpio_mode, trst_gpio_mode, srst_gpio_mode);
@@ -567,5 +601,9 @@ static int bcm2835gpio_quit(void)
 	if (srst_gpio != -1)
 		SET_MODE_GPIO(srst_gpio, srst_gpio_mode);
 
+	if (swdio_dir_gpio != -1)
+		SET_MODE_GPIO(swdio_dir_gpio, swdio_dir_gpio_mode);
+
 	return ERROR_OK;
 }
+
